@@ -98,7 +98,7 @@ IBM Spectrum Scale Cloud deployment.
 
 2. Create terraform variable definitions file (`aws_new_vpc_scale_inputs.auto.tfvars.json`) and provide infrastructure inputs.
 
-   (Below is a sample. For details related to input parameters, refer to [AWS New VPC Template Input Parameters](docs/aws_new_vpc_scale/README.md#inputs).)
+   (Below is a sample. For details related to input parameters, refer to [AWS New VPC Template Input Parameters](docs/aws_new_vpc/README.md#inputs).)
 
     ```
     $ cat aws_new_vpc_scale_inputs.auto.tfvars.json
@@ -140,7 +140,7 @@ IBM Spectrum Scale Cloud deployment.
 
 2. Create terraform variable definitions file (`aws_scale_instances_inputs.auto.tfvars.json`) and provide infrastructure inputs.
 
-   (Below is a sample. For details related to input parameters, refer to [AWS Existing VPC Template Input Parameters](docs/aws_existing_vpc_scale/README.md#inputs).)
+   (Below is a sample. For details related to input parameters, refer to [AWS Existing VPC Template Input Parameters](docs/aws_existing_vpc/README.md#inputs).)
     ```
     $ cat aws_scale_instances_inputs.auto.tfvars.json
     {
@@ -183,7 +183,7 @@ IBM Spectrum Scale Cloud deployment.
 
 2. Create terraform variable definitions file (`azure_new_vnet_scale_inputs.auto.tfvars.json`) and provide infrastructure inputs.
 
-   (Below is a sample. For details related to input parameters, refer to [Azure New VNet Template Input Parameters](docs/azure_new_vnet_scale/README.md#inputs).)
+   (Below is a sample. For details related to input parameters, refer to [Azure New VNet Template Input Parameters](docs/azure_new_vnet/README.md#inputs).)
     ```
     $ cat azure_new_vnet_scale_inputs.auto.tfvars.json
     {
@@ -228,7 +228,7 @@ IBM Spectrum Scale Cloud deployment.
 
 2. Create terraform variable definitions file (`azure_scale_vms_inputs.auto.tfvars.json`) and provide infrastructure inputs.
 
-   (Below is a sample. For details related to input parameters, refer to [Azure Existing VNet Template Input Parameters](docs/azure_existing_vnet_scale/README.md#inputs).)
+   (Below is a sample. For details related to input parameters, refer to [Azure Existing VNet Template Input Parameters](docs/azure_existing_vnet/README.md#inputs).)
 
     ```
     $ cat azure_scale_vms_inputs.auto.tfvars.json
