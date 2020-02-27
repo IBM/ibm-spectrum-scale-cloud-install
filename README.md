@@ -10,11 +10,12 @@ Scale cloud deployment.
         + [AWS - Existing VPC Template](#AWS-Existing-VPC-Template)
         + [Azure - New VNet Template](#Azure-New-VNet-Template)
         + [Azure - Existing VNet Template](#Azure-Existing-VNet-Template)
-- [Template Parameters](docs/)
-    + [AWS - New VPC Template Parameters](docs/aws_new_vpc/README.md)
-    + [AWS - Existing VPC Template Parameters](docs/aws_existing_vpc/README.md)
-    + [Azure - New VNet Template Parameters](docs/azure_new_vnet/README.md)
-    + [Azure - Existing VNet Template Parameters](docs/azure_existing_vnet/README.md)
+- [Documentation](docs/)
+   * Template Parameters
+     + [AWS - New VPC](docs/aws_new_vpc/README.md)
+     + [AWS - Existing VPC](docs/aws_existing_vpc/README.md)
+     + [Azure - New VNet](docs/azure_new_vnet/README.md)
+     + [Azure - Existing VNet](docs/azure_existing_vnet/README.md)
 - [Warnings](#Warnings)
 - [Reporting Issues and Feedback](#Reporting-Issues-and-Feedback)
 - [Disclaimer](#Disclaimer)
@@ -265,8 +266,8 @@ IBM Spectrum Scale Cloud deployment.
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 ## Warnings
-- Each `terraform apply` will generate a new SSH key, that causes replacement (destroy of old and creates new) of
-key dependent resources.
+
+- Each `terraform apply` will generate a new SSH key, that causes replacement (destroy of old and creates new) of key dependent resources.
 
 ## Reporting Issues and Feedback
 
