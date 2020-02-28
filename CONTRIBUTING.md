@@ -2,9 +2,11 @@
 
 ## Before You Submit a Pull Request
 
-1. Follow [coding practices](#coding-practices)
-2. [Verify](#run-local-verifications) your pull request
-3. [Sign your work](#sign-your-work-for-submittal) (required)
+1. Fork the repo, create a branch for your feature
+2. Follow [coding practices](#coding-practices)
+3. Run changes through appropriate linters, generate template paramter documentation
+4. Create a Pull Request for your feature
+5. [Sign your work](#sign-your-work-for-submittal) (required)
 
 ### Coding Practices
 
