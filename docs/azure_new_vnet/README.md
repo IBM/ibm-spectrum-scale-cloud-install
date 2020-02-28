@@ -46,3 +46,4 @@
 | storage\_vmips\_lun\_number\_map | Dictionary of storage vm ip vs. data disk device path. |
 | storage\_vms\_by\_private\_ip | Private IP address of Azure storage vms. |
 | vnet\_name | Azure virtual network name. |
+

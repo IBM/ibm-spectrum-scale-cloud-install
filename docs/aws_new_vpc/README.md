@@ -38,3 +38,4 @@
 | storage\_instances\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
 | storage\_instances\_private\_ip\_by\_instance\_id | Dictionary of storage instance ip vs. instance id. |
 | vpc\_id | VPC ID. |
+

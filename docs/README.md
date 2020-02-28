@@ -1,4 +1,9 @@
-## Auto-Generate Docs for Template Parameters
+# Documentation 
+
+| Warning: The content under this directory contains auto-generated documentation using [terraform-docs](https://github.com/segmentio/terraform-docs).  Changes made to any files under this directory are not gauranteed to be preserved. |
+|---|
+
+## How-To Generate Docs
 
 These instructions will help you generate documentation for template parameters.
 
@@ -30,4 +35,4 @@ These instructions will help you generate documentation for template parameters.
 
 6. Copy the documentation to the respective location `docs/<cloud_vendor_name>_[new|existing]_<private_network_service_name>/README.md`.
 
-7. Update the [Template Parameters](https://github.com/IBM/ibm-spectrum-scale-cloud-install/README.md#Template-Parameters) with links of generated content.
+7. Validate the "Template Paramters" section in the [README.md](../README.md) with links to the generated content. 

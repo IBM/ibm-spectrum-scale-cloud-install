@@ -39,3 +39,4 @@
 | compute\_vms\_by\_az | n/a |
 | storage\_vm\_ids | n/a |
 | storage\_vms\_by\_az | n/a |
+

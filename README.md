@@ -10,11 +10,12 @@ Scale cloud deployment.
         + [AWS - Existing VPC Template](#AWS-Existing-VPC-Template)
         + [Azure - New VNet Template](#Azure-New-VNet-Template)
         + [Azure - Existing VNet Template](#Azure-Existing-VNet-Template)
-- [Template Parameters](docs/)
-    + [AWS - New VPC Template Parameters](docs/aws_new_vpc/README.md)
-    + [AWS - Existing VPC Template Parameters](docs/aws_existing_vpc/README.md)
-    + [Azure - New VNet Template Parameters](docs/azure_new_vnet/README.md)
-    + [Azure - Existing VNet Template Parameters](docs/azure_existing_vnet/README.md)
+- [Documentation](docs/)
+   * Template Parameters
+     + [AWS - New VPC](docs/aws_new_vpc/README.md)
+     + [AWS - Existing VPC](docs/aws_existing_vpc/README.md)
+     + [Azure - New VNet](docs/azure_new_vnet/README.md)
+     + [Azure - Existing VNet](docs/azure_existing_vnet/README.md)
 - [Warnings](#Warnings)
 - [Reporting Issues and Feedback](#Reporting-Issues-and-Feedback)
 - [Disclaimer](#Disclaimer)
@@ -98,7 +99,7 @@ IBM Spectrum Scale Cloud deployment.
 
 2. Create terraform variable definitions file (`aws_new_vpc_scale_inputs.auto.tfvars.json`) and provide infrastructure inputs.
 
-   (Below is a sample. For details related to input parameters, refer to [AWS New VPC Template Input Parameters](docs/aws_new_vpc_scale/README.md#inputs).)
+   (Below is a sample. For details related to input parameters, refer to [AWS New VPC Template Input Parameters](docs/aws_new_vpc/README.md#inputs).)
 
     ```
     $ cat aws_new_vpc_scale_inputs.auto.tfvars.json
@@ -140,7 +141,7 @@ IBM Spectrum Scale Cloud deployment.
 
 2. Create terraform variable definitions file (`aws_scale_instances_inputs.auto.tfvars.json`) and provide infrastructure inputs.
 
-   (Below is a sample. For details related to input parameters, refer to [AWS Existing VPC Template Input Parameters](docs/aws_existing_vpc_scale/README.md#inputs).)
+   (Below is a sample. For details related to input parameters, refer to [AWS Existing VPC Template Input Parameters](docs/aws_existing_vpc/README.md#inputs).)
     ```
     $ cat aws_scale_instances_inputs.auto.tfvars.json
     {
@@ -183,7 +184,7 @@ IBM Spectrum Scale Cloud deployment.
 
 2. Create terraform variable definitions file (`azure_new_vnet_scale_inputs.auto.tfvars.json`) and provide infrastructure inputs.
 
-   (Below is a sample. For details related to input parameters, refer to [Azure New VNet Template Input Parameters](docs/azure_new_vnet_scale/README.md#inputs).)
+   (Below is a sample. For details related to input parameters, refer to [Azure New VNet Template Input Parameters](docs/azure_new_vnet/README.md#inputs).)
     ```
     $ cat azure_new_vnet_scale_inputs.auto.tfvars.json
     {
@@ -228,7 +229,7 @@ IBM Spectrum Scale Cloud deployment.
 
 2. Create terraform variable definitions file (`azure_scale_vms_inputs.auto.tfvars.json`) and provide infrastructure inputs.
 
-   (Below is a sample. For details related to input parameters, refer to [Azure Existing VNet Template Input Parameters](docs/azure_existing_vnet_scale/README.md#inputs).)
+   (Below is a sample. For details related to input parameters, refer to [Azure Existing VNet Template Input Parameters](docs/azure_existing_vnet/README.md#inputs).)
 
     ```
     $ cat azure_scale_vms_inputs.auto.tfvars.json
@@ -265,8 +266,8 @@ IBM Spectrum Scale Cloud deployment.
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 ## Warnings
-- Each `terraform apply` will generate a new SSH key, that causes replacement (destroy of old and creates new) of
-key dependent resources.
+
+- Each `terraform apply` will generate a new SSH key, that causes replacement (destroy of old and creates new) of key dependent resources.
 
 ## Reporting Issues and Feedback
 

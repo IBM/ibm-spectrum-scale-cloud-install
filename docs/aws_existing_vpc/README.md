@@ -48,3 +48,4 @@
 | storage\_az\_instances\_map | n/a |
 | storage\_instance\_ips | n/a |
 | storage\_instances\_private\_ip\_by\_instance\_id | n/a |
+
