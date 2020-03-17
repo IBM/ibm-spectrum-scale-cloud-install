@@ -21,6 +21,10 @@ resource "aws_volume_attachment" "ebs_attach" {
     device_name = element(var.device_names, count.index)
     volume_id   = element(var.ebs_volume_ids, count.index)
     instance_id = element(var.instance_ids, count.index)
+
+    lifecycle {
+        ignore_changes = [instance_id]
+    }
 }
 
 output "instances_device_map" {

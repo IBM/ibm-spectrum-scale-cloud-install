@@ -59,6 +59,10 @@ resource "aws_instance" "main" {
     }
     user_data_base64          = base64encode(data.template_file.user_data.rendered)
     tags                      = var.instance_tags
+
+    lifecycle {
+        ignore_changes = [user_data_base64, security_groups]
+    }
 }
 
 resource "aws_cloudwatch_metric_alarm" "autorecovery" {
