@@ -37,6 +37,15 @@ chmod 600 ~/.ssh/authorized_keys
 EOF
 }
 
+data "template_cloudinit_config" "user_data64" {
+    gzip          = true
+    base64_encode = true
+    part {
+        content_type = "text/x-shellscript"
+        content      = data.template_file.user_data.rendered
+    }
+}
+
 resource "aws_instance" "main" {
     count                     = var.total_ec2_count
     ami                       = var.ami_id
@@ -57,7 +66,7 @@ resource "aws_instance" "main" {
         volume_type           = var.root_volume_type
         delete_on_termination = var.enable_delete_on_termination
     }
-    user_data_base64          = base64encode(data.template_file.user_data.rendered)
+    user_data_base64          = data.template_cloudinit_config.user_data64.rendered
     tags                      = var.instance_tags
 }
 
