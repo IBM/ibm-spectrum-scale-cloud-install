@@ -1,7 +1,10 @@
-# ibm-spectrum-scale-cloud-install
+# Cloud Install 
 
-This repository contains terraform templates to provision public cloud (AWS, Azure) resources needed for IBM Spectrum
-Scale cloud deployment.
+This repository contains Terraform templates to provision public cloud infrastructure (i.e. AWS, Azure) where IBM Spectrum Scale can then be installed. 
+
+| IBM Spectrum Scale is NOT installed at the conclusion of running these templates.  For assistance with installation of IBM Spectrum Scale, see https://github.com/IBM/ibm-spectrum-scale-install-infra. |
+| --- |
+
 
 - [Getting Started](#Getting-Started)
     + [Prerequisites](#Prerequisites)
