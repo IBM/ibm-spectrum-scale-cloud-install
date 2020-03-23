@@ -52,5 +52,9 @@ output "instance_ips_ebs_device_names" {
 }
 
 output "compute_instance_desc_map" {
-    value = {module.compute_instances.instances_private_ip_addresses[local.compute_desc_id[0]] = var.ebs_volume_device_names[0]}
+    value = {
+        for instance in module.desc_compute_instance.instance_private_ip_address:
+            instance => var.ebs_volume_device_names[0]
+    }
 }
+

@@ -71,6 +71,7 @@ variable "storage_ami_id" {
 
 variable "bastion_image_name" {
     type = string
+    default = "Amazon-Linux-HVM"
     description = "Bastion AMI image name"
 }
 

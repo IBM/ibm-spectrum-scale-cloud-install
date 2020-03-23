@@ -3,7 +3,6 @@
 */
 
 variable "region" {}
-variable "stack_name" {}
 variable "total_ec2_count" {}
 variable "ami_id" {}
 variable "instance_type" {}
@@ -19,7 +18,6 @@ variable "enable_instance_termination_protection" {}
 variable "vault_private_key" {}
 variable "vault_public_key" {}
 variable "instance_tags" {}
-variable "sns_topic_arn" {}
 
 data "template_file" "user_data" {
     template = <<EOF
@@ -41,8 +39,8 @@ data "template_cloudinit_config" "user_data64" {
     gzip          = true
     base64_encode = true
     part {
-        content_type = "text/x-shellscript"
-        content      = data.template_file.user_data.rendered
+       content_type = "text/x-shellscript"
+       content      = data.template_file.user_data.rendered
     }
 }
 
@@ -69,25 +67,9 @@ resource "aws_instance" "main" {
     user_data_base64          = data.template_cloudinit_config.user_data64.rendered
     tags                      = var.instance_tags
 
+    # Refer to https://github.com/terraform-providers/terraform-provider-aws/issues/4954
     lifecycle {
         ignore_changes = [user_data_base64, security_groups]
-    }
-}
-
-resource "aws_cloudwatch_metric_alarm" "autorecovery" {
-    count               = length(aws_instance.main.*.id)
-    alarm_name          = format("%s-AutoRecoveryAlarm-%s", var.stack_name, element(aws_instance.main.*.id, count.index))
-    alarm_description   = "Auto recover if EC2 status checks fail for 5 minutes"
-    alarm_actions       = ["arn:aws:automate:${var.region}:ec2:recover", var.sns_topic_arn]
-    namespace           = "AWS/EC2"
-    metric_name         = "StatusCheckFailed_System"
-    comparison_operator = "GreaterThanOrEqualToThreshold"
-    evaluation_periods  = "5"
-    period              = "60"
-    threshold           = "1"
-    statistic           = "Minimum"
-    dimensions = {
-        InstanceId = element(aws_instance.main.*.id, count.index)
     }
 }
 

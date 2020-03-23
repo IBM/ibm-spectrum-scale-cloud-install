@@ -146,14 +146,37 @@ module "email_notification" {
     region         = var.region
 }
 
-module "compute_instances" {
-    source                                 = "../../../resources/aws/compute/ec2"
+module "desc_compute_instance" {
+    source                                 = "../../../resources/aws/compute/ec2/instance_with_data"
     region                                 = var.region
     stack_name                             = var.stack_name
     ami_id                                 = var.compute_ami_id
     instance_type                          = var.compute_instance_type
     key_name                               = var.key_name
-    total_ec2_count                        = var.total_compute_instances
+
+    enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
+    enable_instance_termination_protection = var.enable_instance_termination_protection
+    instance_iam_instance_profile          = module.cluster_instance_iam_profile.iam_instance_profile_name
+    instance_placement_group               = null
+    instance_security_groups               = [module.compute_security_group.sec_group_id[0]]
+    instance_subnet_id                     = var.private_instance_subnet_ids[0]
+    root_volume_size                       = var.compute_root_volume_size
+    root_volume_type                       = var.compute_root_volume_type
+
+    vault_private_key                      = module.ansible_vault.id_rsa_content
+    vault_public_key                       = module.ansible_vault.id_rsa_pub_content
+
+    instance_tags                          = {Name = "${var.stack_name}-compute-desc"}
+    sns_topic_arn                          = module.email_notification.sns_topic_arn
+}
+
+module "compute_instances" {
+    source                                 = "../../../resources/aws/compute/ec2/instance_with_root"
+    region                                 = var.region
+    ami_id                                 = var.compute_ami_id
+    instance_type                          = var.compute_instance_type
+    key_name                               = var.key_name
+    total_ec2_count                        = var.total_compute_instances - 1
 
     enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
     enable_instance_termination_protection = var.enable_instance_termination_protection
@@ -168,35 +191,20 @@ module "compute_instances" {
     vault_public_key                       = module.ansible_vault.id_rsa_pub_content
 
     instance_tags                          = {Name = "${var.stack_name}-compute"}
+}
+
+module "compute_instances_auto_recovery" {
+    source                                 = "../../../resources/aws/cloudwatch"
+    region                                 = var.region
+    stack_name                             = var.stack_name
     sns_topic_arn                          = module.email_notification.sns_topic_arn
-}
-
-module "compute_desc_volume" {
-    source                           = "../../../resources/aws/storage/ebs_create"
-    total_ebs_volumes                = 1
-    availability_zones               = var.availability_zones
-    ebs_volume_size                  = 5
-    ebs_volume_type                  = "gp2"
-    ebs_volume_iops                  = null
-    ebs_tags                         = {Name = "${var.stack_name}-desc-volume"}
-}
-
-module "desc_ebs_instance_attach" {
-    source                   = "../../../resources/aws/storage/ebs_attach"
-    total_volume_attachments = 1
-    device_names             = var.ebs_volume_device_names
-    ebs_volume_ids           = module.compute_desc_volume.ebs_by_availability_zone[var.availability_zones[0]]
-    instance_ids             = module.compute_instances.instances_by_availability_zone[var.availability_zones[0]]
-}
-
-locals {
-    compute_desc_id = module.compute_instances.instances_by_availability_zone[var.availability_zones[0]]
+    total_instance_count                   = var.total_compute_instances - 1
+    all_instance_ids                       = module.compute_instances.instance_ids
 }
 
 module "storage_instances" {
-    source                                 = "../../../resources/aws/compute/ec2"
+    source                                 = "../../../resources/aws/compute/ec2/instance_with_root"
     region                                 = var.region
-    stack_name                             = var.stack_name
     ami_id                                 = var.storage_ami_id == null ? var.compute_ami_id : var.storage_ami_id
     instance_type                          = var.storage_instance_type
     key_name                               = var.key_name
@@ -215,7 +223,15 @@ module "storage_instances" {
     vault_public_key                       = module.ansible_vault.id_rsa_pub_content
 
     instance_tags                          = {Name = "${var.stack_name}-storage"}
+}
+
+module "storage_instances_auto_recovery" {
+    source                                 = "../../../resources/aws/cloudwatch"
+    region                                 = var.region
+    stack_name                             = var.stack_name
     sns_topic_arn                          = module.email_notification.sns_topic_arn
+    total_instance_count                   = length(module.storage_instances.instance_ids)
+    all_instance_ids                       = module.storage_instances.instance_ids
 }
 
 locals {
