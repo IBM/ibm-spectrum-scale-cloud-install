@@ -26,7 +26,7 @@ This repository contains Terraform templates to provision public cloud infrastru
 
 ## Getting Started
 
-These instructions will help you provision resources needed for IBM Spectrum Scale deployment on cloud from your machine (on-premise node or a node in cloud).
+The following set of instructions will help you provision cloud resources from a linux-based laptop or server.
 
 ### Prerequisites
 
