@@ -151,7 +151,7 @@ IBM Spectrum Scale Cloud deployment.
             "sa-east-1c"
         ],
         "bastion_sec_group_id": "sg-05546f0e8c6ebd1ce",
-        "private_instance_subnet_ids": ["subnet-03773a72bf9499420", "subnet-0bf0320b47f195f19"]
+        "private_instance_subnet_ids": ["subnet-03773a72bf9499420", "subnet-0bf0320b47f195f19"],
         "vpc_id": "vpc-04eef62f613ba98e0",
         "key_name": "aws_key",
         "compute_ami_id": "ami-048b2348ac2ccfc53",
