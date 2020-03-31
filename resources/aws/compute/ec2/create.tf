@@ -1367,7 +1367,7 @@ output "instance_ips_with_15_datadisks" {
   value = tonumber(var.total_ebs_volumes) == 15 ? aws_instance.main_with_15_data.*.private_ip : null
 }
 
-output "instances_private_ip_addresses_with_0_datadisks" {
+output "instance_ip_by_id_with_0_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 0 ? {
@@ -1376,7 +1376,7 @@ output "instances_private_ip_addresses_with_0_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_1_datadisks" {
+output "instance_ip_by_id_with_1_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 1 ? {
@@ -1385,7 +1385,7 @@ output "instances_private_ip_addresses_with_1_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_2_datadisks" {
+output "instance_ip_by_id_with_2_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 2 ? {
@@ -1394,7 +1394,7 @@ output "instances_private_ip_addresses_with_2_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_3_datadisks" {
+output "instance_ip_by_id_with_3_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 3 ? {
@@ -1403,7 +1403,7 @@ output "instances_private_ip_addresses_with_3_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_4_datadisks" {
+output "instance_ip_by_id_with_4_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 4 ? {
@@ -1412,7 +1412,7 @@ output "instances_private_ip_addresses_with_4_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_5_datadisks" {
+output "instance_ip_by_id_with_5_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 5 ? {
@@ -1421,7 +1421,7 @@ output "instances_private_ip_addresses_with_5_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_6_datadisks" {
+output "instance_ip_by_id_with_6_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 6 ? {
@@ -1430,7 +1430,7 @@ output "instances_private_ip_addresses_with_6_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_7_datadisks" {
+output "instance_ip_by_id_with_7_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 7 ? {
@@ -1439,7 +1439,7 @@ output "instances_private_ip_addresses_with_7_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_8_datadisks" {
+output "instance_ip_by_id_with_8_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 8 ? {
@@ -1448,7 +1448,7 @@ output "instances_private_ip_addresses_with_8_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_9_datadisks" {
+output "instance_ip_by_id_with_9_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 9 ? {
@@ -1457,7 +1457,7 @@ output "instances_private_ip_addresses_with_9_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_10_datadisks" {
+output "instance_ip_by_id_with_10_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 10 ? {
@@ -1466,7 +1466,7 @@ output "instances_private_ip_addresses_with_10_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_11_datadisks" {
+output "instance_ip_by_id_with_11_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 11 ? {
@@ -1475,7 +1475,7 @@ output "instances_private_ip_addresses_with_11_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_12_datadisks" {
+output "instance_ip_by_id_with_12_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 12 ? {
@@ -1484,7 +1484,7 @@ output "instances_private_ip_addresses_with_12_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_13_datadisks" {
+output "instance_ip_by_id_with_13_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 13 ? {
@@ -1493,7 +1493,7 @@ output "instances_private_ip_addresses_with_13_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_14_datadisks" {
+output "instance_ip_by_id_with_14_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 14 ? {
@@ -1502,7 +1502,7 @@ output "instances_private_ip_addresses_with_14_datadisks" {
   } : null
 }
 
-output "instances_private_ip_addresses_with_15_datadisks" {
+output "instance_ip_by_id_with_15_datadisks" {
   # Result is a map from instance id to private IP address, such as:
   #  {"i-1234" = "192.168.1.2", "i-5678" = "192.168.1.5"}
   value = tonumber(var.total_ebs_volumes) == 15 ? {
@@ -1511,7 +1511,7 @@ output "instances_private_ip_addresses_with_15_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_0_datadisks" {
+output "instance_ids_by_availability_zone_with_0_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 0 ? {
@@ -1522,7 +1522,7 @@ output "instances_by_availability_zone_with_0_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_1_datadisks" {
+output "instance_ids_by_availability_zone_with_1_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 1 ? {
@@ -1533,7 +1533,7 @@ output "instances_by_availability_zone_with_1_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_2_datadisks" {
+output "instance_ids_by_availability_zone_with_2_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 2 ? {
@@ -1544,7 +1544,7 @@ output "instances_by_availability_zone_with_2_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_3_datadisks" {
+output "instance_ids_by_availability_zone_with_3_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 3 ? {
@@ -1555,7 +1555,7 @@ output "instances_by_availability_zone_with_3_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_4_datadisks" {
+output "instance_ids_by_availability_zone_with_4_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 4 ? {
@@ -1566,7 +1566,7 @@ output "instances_by_availability_zone_with_4_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_5_datadisks" {
+output "instance_ids_by_availability_zone_with_5_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 5 ? {
@@ -1577,7 +1577,7 @@ output "instances_by_availability_zone_with_5_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_6_datadisks" {
+output "instance_ids_by_availability_zone_with_6_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 6 ? {
@@ -1588,7 +1588,7 @@ output "instances_by_availability_zone_with_6_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_7_datadisks" {
+output "instance_ids_by_availability_zone_with_7_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 7 ? {
@@ -1599,7 +1599,7 @@ output "instances_by_availability_zone_with_7_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_8_datadisks" {
+output "instance_ids_by_availability_zone_with_8_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 8 ? {
@@ -1610,7 +1610,7 @@ output "instances_by_availability_zone_with_8_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_9_datadisks" {
+output "instance_ids_by_availability_zone_with_9_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 9 ? {
@@ -1621,7 +1621,7 @@ output "instances_by_availability_zone_with_9_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_10_datadisks" {
+output "instance_ids_by_availability_zone_with_10_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 10 ? {
@@ -1632,7 +1632,7 @@ output "instances_by_availability_zone_with_10_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_11_datadisks" {
+output "instance_ids_by_availability_zone_with_11_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 11 ? {
@@ -1643,7 +1643,7 @@ output "instances_by_availability_zone_with_11_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_12_datadisks" {
+output "instance_ids_by_availability_zone_with_12_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 12 ? {
@@ -1654,7 +1654,7 @@ output "instances_by_availability_zone_with_12_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_13_datadisks" {
+output "instance_ids_by_availability_zone_with_13_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 13 ? {
@@ -1665,7 +1665,7 @@ output "instances_by_availability_zone_with_13_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_14_datadisks" {
+output "instance_ids_by_availability_zone_with_14_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 14 ? {
@@ -1676,7 +1676,7 @@ output "instances_by_availability_zone_with_14_datadisks" {
   } : null
 }
 
-output "instances_by_availability_zone_with_15_datadisks" {
+output "instance_ids_by_availability_zone_with_15_datadisks" {
   # Result is a map from availability zone to instance ids, such as:
   # {"us-east-1a": ["i-1234", "i-5678"], "us-east-1b": ["i-1234", "i-5678"]}
   value = tonumber(var.total_ebs_volumes) == 15 ? {
