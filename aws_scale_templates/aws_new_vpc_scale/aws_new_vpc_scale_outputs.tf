@@ -28,7 +28,7 @@ output "private_subnets" {
   description = "AWS private subnet IDs."
 }
 
-output "compute_instances_by_private_ip" {
+output "compute_instances_by_ip" {
   value       = module.instances_module.compute_instance_ips
   description = "Private IP address of AWS compute instances."
 }
