@@ -29,13 +29,58 @@
 | cloud\_infrastructure | Flag to represent cloud platform. |
 | cloud\_platform | Flag to represent AWS cloud. |
 | compute\_instance\_desc\_map | Dictionary of compute instance ip vs. descriptor EBS device path. |
+| compute\_instances\_by\_id | AWS compute instance id. |
 | compute\_instances\_by\_private\_ip | Private IP address of AWS compute instances. |
-| compute\_instances\_private\_ip\_by\_instance\_id | Dictionary of compute instance ip vs. instance id. |
 | private\_subnets | AWS private subnet IDs. |
 | public\_subnets | AWS public subnet IDs. |
 | stack\_name | AWS Stack name. |
-| storage\_instances\_by\_private\_ip | Private IP address of AWS storage instances. |
-| storage\_instances\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
-| storage\_instances\_private\_ip\_by\_instance\_id | Dictionary of storage instance ip vs. instance id. |
+| storage\_instance\_ids\_with\_0\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_10\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_11\_datadisks | AWS storage instances. |
+| storage\_instance\_ids\_with\_12\_datadisks | AWS storage instances. |
+| storage\_instance\_ids\_with\_13\_datadisks | AWS storage instances. |
+| storage\_instance\_ids\_with\_14\_datadisks | AWS storage instances. |
+| storage\_instance\_ids\_with\_15\_datadisks | AWS storage instances. |
+| storage\_instance\_ids\_with\_1\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_2\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_3\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_4\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_5\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_6\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_7\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_8\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ids\_with\_9\_datadisks | AWS storage instance ids. |
+| storage\_instance\_ips\_with\_0\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_0\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_10\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_10\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_11\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_11\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_12\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_12\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_13\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_13\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_14\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_14\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_15\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_15\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_1\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_1\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_2\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_2\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_3\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_3\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_4\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_4\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_5\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_5\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_6\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_6\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_7\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instance\_ips\_with\_7\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_8\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instance\_ips\_with\_9\_datadisks\_device\_names\_map | Dictionary of storage instance ip vs. EBS device path. |
+| storage\_instances\_ips\_with\_8\_datadisks | Private IP address of AWS storage instances. |
+| storage\_instances\_ips\_with\_9\_datadisks | Private IP address of AWS storage instances. |
 | vpc\_id | VPC ID. |
 
