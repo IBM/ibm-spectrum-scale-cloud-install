@@ -50,7 +50,7 @@ data "template_cloudinit_config" "user_data64" {
 }
 
 resource "aws_instance" "main_with_0_data" {
-  count                   = var.total_ebs_volumes == 0 ? var.total_ec2_count : 0
+  count                   = tonumber(var.total_ebs_volumes) == 0 ? var.total_ec2_count : 0
   ami                     = var.ami_id
   instance_type           = var.instance_type
   key_name                = var.key_name
