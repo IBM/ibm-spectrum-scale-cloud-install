@@ -309,6 +309,7 @@ module "invoke_scale_playbook" {
   filesystem_block_size                                   = var.filesystem_block_size
   cloud_env                                               = var.cloud_env
   cloud_platform                                          = var.cloud_platform
+  avail_zones                                             = jsonencode(var.availability_zones)
   compute_instances_by_ip                                 = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
   compute_instance_desc_map                               = jsonencode(local.compute_instance_desc_map)
   storage_instance_ips_with_0_datadisks_device_names_map  = local.instance_ips_with_0_datadisks_ebs_device_names == null ? "[]" : jsonencode(local.instance_ips_with_0_datadisks_ebs_device_names)
