@@ -75,6 +75,7 @@ module "public_route" {
   route_table_id  = [module.public_route_table.table_id[0]]
   dest_cidr_block = "0.0.0.0/0"
   gateway_id      = [module.internet_gw.internet_gw_id]
+  nat_gateway_id  = null
 }
 
 /*
@@ -87,8 +88,6 @@ module "public_route_table_association" {
   subnet_id          = module.public_subnet.subnet_id
   route_table_id     = module.public_route_table.table_id
 }
-
-
 
 /*
     For Scale deployment, we need 1 EIP per provided AZ.
@@ -156,13 +155,13 @@ module "private_route_table" {
 /*
     For Scale deployment, we need NAT gateways attached to all private routes.
 */
-
 module "private_route" {
   source          = "../../../resources/aws/network/route"
   total_routes    = length(var.availability_zones)
   route_table_id  = module.private_route_table.table_id
   dest_cidr_block = "0.0.0.0/0"
-  gateway_id      = module.nat_gateway.nat_gw_id
+  gateway_id      = null
+  nat_gateway_id  = module.nat_gateway.nat_gw_id
 }
 
 /*
