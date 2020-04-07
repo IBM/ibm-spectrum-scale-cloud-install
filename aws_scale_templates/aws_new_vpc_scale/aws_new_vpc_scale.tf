@@ -24,10 +24,14 @@ module "bastion_module" {
   vpc_id                     = module.vpc_module.vpc_id
 }
 
+locals {
+  cloud_env      = true
+  cloud_platform = "AWS"
+}
+
 module "instances_module" {
   source                                   = "../sub_modules/instance_template"
   region                                   = var.region
-  availability_zones                       = var.availability_zones
   bastion_sec_group_id                     = module.bastion_module.bastion_sec_group_id
   compute_ami_id                           = var.compute_ami_id
   compute_instance_type                    = var.compute_instance_type
@@ -46,4 +50,11 @@ module "instances_module" {
   vpc_id                                   = module.vpc_module.vpc_id
   deploy_container_sec_group_id            = null
   operator_email                           = var.operator_email
+  cloud_env                                = local.cloud_env
+  cloud_platform                           = local.cloud_platform
+  availability_zones                       = var.availability_zones
+  create_scale_cluster                     = var.create_scale_cluster
+  filesystem_mountpoint                    = var.filesystem_mountpoint
+  filesystem_block_size                    = var.filesystem_block_size
+  ansible_scale_repo_clone_path            = var.ansible_scale_repo_clone_path
 }

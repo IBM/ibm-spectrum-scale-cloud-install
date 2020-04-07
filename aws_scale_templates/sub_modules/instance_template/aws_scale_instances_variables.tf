@@ -1,3 +1,21 @@
+variable "cloud_env" {
+  type        = bool
+  default     = true
+  description = "Flag to represent cloud platform."
+}
+
+variable "cloud_platform" {
+  type        = string
+  default     = "AWS"
+  description = "Flag to represent AWS cloud."
+}
+
+variable "ansible_scale_repo_clone_path" {
+  type        = string
+  default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
+  description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
+}
+
 variable "region" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
@@ -162,4 +180,22 @@ variable "private_instance_subnet_ids" {
 variable "operator_email" {
   type        = string
   description = "SNS notifications will be sent to provided email id."
+}
+
+variable "create_scale_cluster" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to create scale cluster or not."
+}
+
+variable "filesystem_mountpoint" {
+  type        = string
+  default     = "/gpfs/fs1"
+  description = "Filesystem mount point."
+}
+
+variable "filesystem_block_size" {
+  type        = string
+  default     = "4M"
+  description = "Filesystem block size."
 }

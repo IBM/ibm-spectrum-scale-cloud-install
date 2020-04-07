@@ -1,10 +1,10 @@
-output "cloud_infrastructure" {
-  value       = "yes"
+output "cloud_env" {
+  value       = local.cloud_env
   description = "Flag to represent cloud platform."
 }
 
 output "cloud_platform" {
-  value       = "aws"
+  value       = local.cloud_platform
   description = "Flag to represent AWS cloud."
 }
 
@@ -35,7 +35,7 @@ output "compute_instances_by_ip" {
 
 output "compute_instances_by_id" {
   value       = module.instances_module.compute_instance_ids
-  description = "AWS compute instance id."
+  description = "AWS compute instance ids."
 }
 
 output "compute_instance_desc_map" {
@@ -180,27 +180,27 @@ output "storage_instance_ids_with_10_datadisks" {
 
 output "storage_instance_ids_with_11_datadisks" {
   value       = module.instances_module.storage_instance_ids_with_11_datadisks
-  description = "AWS storage instances."
+  description = "AWS storage instance ids."
 }
 
 output "storage_instance_ids_with_12_datadisks" {
   value       = module.instances_module.storage_instance_ids_with_12_datadisks
-  description = "AWS storage instances."
+  description = "AWS storage instance ids."
 }
 
 output "storage_instance_ids_with_13_datadisks" {
   value       = module.instances_module.storage_instance_ids_with_13_datadisks
-  description = "AWS storage instances."
+  description = "AWS storage instance ids."
 }
 
 output "storage_instance_ids_with_14_datadisks" {
   value       = module.instances_module.storage_instance_ids_with_14_datadisks
-  description = "AWS storage instances."
+  description = "AWS storage instance ids."
 }
 
 output "storage_instance_ids_with_15_datadisks" {
   value       = module.instances_module.storage_instance_ids_with_15_datadisks
-  description = "AWS storage instances."
+  description = "AWS storage instance ids."
 }
 
 output "storage_instance_ips_with_0_datadisks_device_names_map" {
