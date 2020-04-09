@@ -5,6 +5,10 @@
     3. (Compute, Storage) Instances along with EBS attachments to storage instances
 */
 
+terraform {
+  backend "s3" {}
+}
+
 module "vpc_module" {
   source             = "../sub_modules/vpc_template"
   region             = var.region
