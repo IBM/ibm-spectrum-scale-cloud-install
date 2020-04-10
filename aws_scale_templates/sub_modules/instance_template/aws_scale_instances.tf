@@ -303,6 +303,7 @@ locals {
 
 module "invoke_scale_playbook" {
   source                                                  = "../../../resources/common/ansible_scale_playbook"
+  region                                                  = var.region
   ansible_scale_repo_clone_path                           = var.ansible_scale_repo_clone_path
   create_scale_cluster                                    = var.create_scale_cluster
   filesystem_mountpoint                                   = var.filesystem_mountpoint
@@ -310,8 +311,26 @@ module "invoke_scale_playbook" {
   cloud_env                                               = var.cloud_env
   cloud_platform                                          = var.cloud_platform
   avail_zones                                             = jsonencode(var.availability_zones)
+  compute_instances_by_id                                 = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
   compute_instances_by_ip                                 = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
   compute_instance_desc_map                               = jsonencode(local.compute_instance_desc_map)
+  compute_instance_desc_id                                = jsonencode(module.desc_compute_instance.instance_ids_with_1_datadisks)
+  storage_instance_ids_with_0_datadisks                   = module.storage_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_0_datadisks)
+  storage_instance_ids_with_1_datadisks                   = module.storage_instances.instance_ids_with_1_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_1_datadisks)
+  storage_instance_ids_with_2_datadisks                   = module.storage_instances.instance_ids_with_2_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_2_datadisks)
+  storage_instance_ids_with_3_datadisks                   = module.storage_instances.instance_ids_with_3_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_3_datadisks)
+  storage_instance_ids_with_4_datadisks                   = module.storage_instances.instance_ids_with_4_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_4_datadisks)
+  storage_instance_ids_with_5_datadisks                   = module.storage_instances.instance_ids_with_5_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_5_datadisks)
+  storage_instance_ids_with_6_datadisks                   = module.storage_instances.instance_ids_with_6_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_6_datadisks)
+  storage_instance_ids_with_7_datadisks                   = module.storage_instances.instance_ids_with_7_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_7_datadisks)
+  storage_instance_ids_with_8_datadisks                   = module.storage_instances.instance_ids_with_8_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_8_datadisks)
+  storage_instance_ids_with_9_datadisks                   = module.storage_instances.instance_ids_with_9_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_9_datadisks)
+  storage_instance_ids_with_10_datadisks                  = module.storage_instances.instance_ids_with_10_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_10_datadisks)
+  storage_instance_ids_with_11_datadisks                  = module.storage_instances.instance_ids_with_11_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_11_datadisks)
+  storage_instance_ids_with_12_datadisks                  = module.storage_instances.instance_ids_with_12_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_12_datadisks)
+  storage_instance_ids_with_13_datadisks                  = module.storage_instances.instance_ids_with_13_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_13_datadisks)
+  storage_instance_ids_with_14_datadisks                  = module.storage_instances.instance_ids_with_14_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_14_datadisks)
+  storage_instance_ids_with_15_datadisks                  = module.storage_instances.instance_ids_with_15_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_15_datadisks)
   storage_instance_ips_with_0_datadisks_device_names_map  = local.instance_ips_with_0_datadisks_ebs_device_names == null ? "[]" : jsonencode(local.instance_ips_with_0_datadisks_ebs_device_names)
   storage_instance_ips_with_1_datadisks_device_names_map  = local.instance_ips_with_1_datadisks_ebs_device_names == null ? "[]" : jsonencode(local.instance_ips_with_1_datadisks_ebs_device_names)
   storage_instance_ips_with_2_datadisks_device_names_map  = local.instance_ips_with_2_datadisks_ebs_device_names == null ? "[]" : jsonencode(local.instance_ips_with_2_datadisks_ebs_device_names)
