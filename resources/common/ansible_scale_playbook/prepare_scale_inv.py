@@ -90,7 +90,7 @@ if __name__ == "__main__":
     PARSER.add_argument('--ansible_scale_repo_path', required=True,
                         help='ibm-spectrum-scale-install-infra repository path')
     PARSER.add_argument('--ansible_ssh_private_key_file', required=True,
-                        help='Ansible SSH private key file')
+                        help='Ansible SSH private key file (Ex: /root/tf_data_path/id_rsa)')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
@@ -159,17 +159,45 @@ if __name__ == "__main__":
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_nsd_server=False, is_quorum_node=False, is_manager_node=False)
 
+    # Map storage nodes to failure groups based on AZ and subnet variations
+    failure_group1, failure_group2 = [], []
+    if len(TF_INV['availability_zones']) == 1:
+        # Single AZ, just split list equally
+        num_storage_nodes = len(list(TF_INV['storage_instance_disk_map']))
+        mid_index = num_storage_nodes//2
+        failure_group1 = list(TF_INV['storage_instance_disk_map'])[:mid_index]
+        failure_group2 = list(TF_INV['storage_instance_disk_map'])[mid_index:]
+    else:
+        # Multi AZ, split based on subnet match
+        subnet_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
+        subnet1A = subnet_pattern.findall(list(TF_INV['storage_instance_disk_map'])[0])
+        for each_ip in TF_INV['storage_instance_disk_map']:
+            current_subnet = subnet_pattern.findall(each_ip)
+            if current_subnet[0] == subnet1A[0]:
+                failure_group1.append(each_ip)
+            else:
+                failure_group2.append(each_ip)
+
     # Prepare dict of disks / NSD list
     disks_list, nsd_index = [], 0
     for each_ip, disk_per_ip in TF_INV['storage_instance_disk_map'].items():
-        for each_disk in disk_per_ip:
-            nsd_index += 1
-            disks_list.append({"device": each_disk, "nsd": "nsd%s" % nsd_index,
-                               "servers": each_ip, "usage": "dataAndMetadata", "pool": "system"})
+        if each_ip in failure_group1:
+            for each_disk in disk_per_ip:
+                nsd_index += 1
+                disks_list.append({"device": each_disk, "nsd": "nsd%s" % nsd_index,
+                                   "failureGroup": 1, "servers": each_ip,
+                                   "usage": "dataAndMetadata", "pool": "system"})
+        if each_ip in failure_group2:
+            for each_disk in disk_per_ip:
+                nsd_index += 1
+                disks_list.append({"device": each_disk, "nsd": "nsd%s" % nsd_index,
+                                   "failureGroup": 2, "servers": each_ip,
+                                   "usage": "dataAndMetadata", "pool": "system"})
 
     # Append "descOnly" disk details
     disks_list.append({"device": list(TF_INV['compute_instance_desc_map'].values())[0],
                        "nsd": "desconlynsd",
+                       "failureGroup": 3,
                        "servers": list(TF_INV['compute_instance_desc_map'].keys())[0],
                        "usage": "descOnly", "pool": "system"})
 
@@ -177,7 +205,8 @@ if __name__ == "__main__":
     CLUSTER_DEFINITION_JSON["scale_storage"].append({"filesystem": pathlib.PurePath(TF_INV['filesystem_mountpoint']).name,
                                                      "blockSize": TF_INV['filesystem_block_size'],
                                                      "defaultDataReplicas": len(TF_INV['availability_zones']),
-                                                     "defaultMetaDataReplicas": 2,
+                                                     "defaultMetadataReplicas": 2,
+                                                     "automaticMountOption": "true",
                                                      "defaultMountPoint": TF_INV['filesystem_mountpoint'],
                                                      "disks": disks_list})
 
