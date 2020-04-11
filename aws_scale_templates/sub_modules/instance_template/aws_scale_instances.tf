@@ -8,6 +8,10 @@
     Tags are not allowed for EBS, root volumes.
 */
 
+terraform {
+  backend "s3" {}
+}
+
 module "cluster_host_iam_role" {
   source           = "../../../resources/aws/compute/iam/iam_role"
   role_name_prefix = "${var.stack_name}-Cluster-"
