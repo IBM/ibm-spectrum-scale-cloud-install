@@ -29,12 +29,12 @@ output "private_subnets" {
 }
 
 output "compute_instances_by_ip" {
-  value       = module.instances_module.compute_instance_ips
+  value       = module.instances_module.compute_instances_by_ip
   description = "Private IP address of AWS compute instances."
 }
 
 output "compute_instances_by_id" {
-  value       = module.instances_module.compute_instance_ids
+  value       = module.instances_module.compute_instances_by_id
   description = "AWS compute instance ids."
 }
 
@@ -204,81 +204,81 @@ output "storage_instance_ids_with_15_datadisks" {
 }
 
 output "storage_instance_ips_with_0_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_0_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_0_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_1_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_1_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_1_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_2_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_2_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_2_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_3_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_3_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_3_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_4_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_4_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_4_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_5_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_5_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_5_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_6_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_6_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_6_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_7_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_7_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_7_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_8_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_8_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_8_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_9_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_9_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_9_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_10_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_10_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_10_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_11_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_11_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_11_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_12_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_12_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_12_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_13_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_13_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_13_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_14_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_14_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_14_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }
 
 output "storage_instance_ips_with_15_datadisks_device_names_map" {
-  value       = module.instances_module.instance_ips_with_15_datadisks_ebs_device_names
+  value       = module.instances_module.storage_instance_ips_with_15_datadisks_ebs_device_names
   description = "Dictionary of storage instance ip vs. EBS device path."
 }

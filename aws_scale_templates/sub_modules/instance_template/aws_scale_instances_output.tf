@@ -1,8 +1,8 @@
-output "compute_instance_ids" {
+output "compute_instances_by_id" {
   value = module.compute_instances.instance_ids_with_0_datadisks
 }
 
-output "compute_instance_ips" {
+output "compute_instances_by_ip" {
   value = module.compute_instances.instance_ips_with_0_datadisks
 }
 
@@ -12,6 +12,10 @@ output "compute_instance_ip_by_id" {
 
 output "compute_instance_desc_map" {
   value = local.compute_instance_desc_map
+}
+
+output "compute_instance_desc_by_id" {
+  value = module.desc_compute_instance.instance_ids_with_1_datadisks
 }
 
 output "storage_instance_ids_with_0_datadisks" {
