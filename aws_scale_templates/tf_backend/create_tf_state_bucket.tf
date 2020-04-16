@@ -4,14 +4,18 @@
 */
 
 variable "region" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
+  /*
+    Keep it empty, it will be propagated via command line or via ".tfvars"
+    or ".tfvars.json"
+  */
   type        = string
   description = "AWS region where the resources will be created."
 }
 
 variable "bucket_name" {
+  /*
+    If omitted, Terraform will assign a random, unique name
+  */
   type        = string
   description = "Name to be used for bucket (make sure it is unique)"
 }
@@ -37,6 +41,10 @@ resource "aws_s3_bucket" "create_bucket" {
       }
     }
   }
+}
+
+output "bucket_id" {
+  value = aws_s3_bucket.create_bucket.id
 }
 
 output "bucket_arn" {
