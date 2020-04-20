@@ -10,6 +10,11 @@ variable "cloud_platform" {
   description = "Flag to represent AWS cloud."
 }
 
+variable "bucket_name" {
+  type        = string
+  description = "s3 bucket name to be used for backing up ansible inventory file."
+}
+
 variable "ansible_scale_repo_clone_path" {
   type        = string
   default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"

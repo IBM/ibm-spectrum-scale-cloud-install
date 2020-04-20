@@ -308,6 +308,7 @@ locals {
 module "invoke_scale_playbook" {
   source                                                  = "../../../resources/common/ansible_scale_playbook"
   region                                                  = var.region
+  bucket_name                                             = var.bucket_name
   ansible_scale_repo_clone_path                           = var.ansible_scale_repo_clone_path
   create_scale_cluster                                    = var.create_scale_cluster
   filesystem_mountpoint                                   = var.filesystem_mountpoint

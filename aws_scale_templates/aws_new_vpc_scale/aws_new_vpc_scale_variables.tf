@@ -131,3 +131,8 @@ variable "ansible_scale_repo_clone_path" {
   default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
+
+variable "bucket_name" {
+  type        = string
+  description = "s3 bucket name to be used for backing up ansible inventory file."
+}
