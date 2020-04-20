@@ -56,6 +56,7 @@ module "instances_module" {
   operator_email                           = var.operator_email
   cloud_env                                = local.cloud_env
   cloud_platform                           = local.cloud_platform
+  bucket_name                              = var.bucket_name
   availability_zones                       = var.availability_zones
   create_scale_cluster                     = var.create_scale_cluster
   filesystem_mountpoint                    = var.filesystem_mountpoint

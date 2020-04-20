@@ -16,6 +16,7 @@ variable "tf_ansible_data" {
 }
 
 variable "region" {}
+variable "bucket_name" {}
 variable "create_scale_cluster" {}
 variable "avail_zones" {}
 variable "filesystem_mountpoint" {}
@@ -61,11 +62,12 @@ variable "storage_instance_ips_with_14_datadisks_device_names_map" {}
 variable "storage_instance_ips_with_15_datadisks_device_names_map" {}
 
 locals {
-  tf_inv_path                   = "${path.module}/tf_inventory"
-  ansible_inv_script_path       = "${path.module}/prepare_scale_inv.py"
-  instance_ssh_wait_script_path = "${path.module}/wait_instance_ok_state.py"
-  ansible_scale_repo_path       = format("%s/%s", var.ansible_scale_repo_clone_path, "ibm-spectrum-scale-install-infra")
-  cloud_playbook_path           = format("%s/%s", local.ansible_scale_repo_path, "cloud_playbook.yml")
+  tf_inv_path                    = "${path.module}/tf_inventory"
+  ansible_inv_script_path        = "${path.module}/prepare_scale_inv.py"
+  instance_ssh_wait_script_path  = "${path.module}/wait_instance_ok_state.py"
+  backup_ansible_inv_script_path = "${path.module}/backup_ansible_inv.py"
+  ansible_scale_repo_path        = format("%s/%s", var.ansible_scale_repo_clone_path, "ibm-spectrum-scale-install-infra")
+  cloud_playbook_path            = format("%s/%s", local.ansible_scale_repo_path, "cloud_playbook.yml")
 }
 
 resource "null_resource" "check_tf_data_existence" {
@@ -115,6 +117,16 @@ resource "null_resource" "prepare_ansible_inventory" {
   }
 
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
+}
+
+resource "null_resource" "backup_ansible_inv" {
+  count = var.create_scale_cluster == true ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "python3 ${local.backup_ansible_inv_script_path} --ansible_inv_path ${local.ansible_scale_repo_path}/vars/scale_clusterdefinition.json  --bucket_name ${var.bucket_name} --obj_name scale_clusterdefinition.json"
+  }
+
+  depends_on = [null_resource.prepare_ansible_inventory]
 }
 
 resource "null_resource" "decrypt_ansible_ssh_private_key" {
