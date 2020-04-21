@@ -13,6 +13,11 @@ output "stack_name" {
   description = "AWS Stack name."
 }
 
+output "bucket_name" {
+  value       = var.bucket_name
+  description = "Bucket name used for backing up terraform state and ansible inventory."
+}
+
 output "vpc_id" {
   value       = module.vpc_module.vpc_id
   description = "VPC ID."

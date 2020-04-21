@@ -1,3 +1,11 @@
+output "bucket_name" {
+  value = var.bucket_name
+}
+
+output "stack_name" {
+  value = var.stack_name
+}
+
 output "compute_instances_by_id" {
   value = module.compute_instances.instance_ids_with_0_datadisks
 }
