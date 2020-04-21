@@ -27,9 +27,8 @@ variable "device_names" {}
 data "template_file" "user_data" {
   template = <<EOF
 #!/usr/bin/env bash
-curl -O https://bootstrap.pypa.io/get-pip.py
-python get-pip.py
-pip install awscli ansible
+yum install python3 -y
+pip3 install awscli ansible boto3
 echo "${var.vault_private_key}" > ~/.ssh/id_rsa
 echo "${var.vault_public_key}"  > ~/.ssh/id_rsa.pub
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
