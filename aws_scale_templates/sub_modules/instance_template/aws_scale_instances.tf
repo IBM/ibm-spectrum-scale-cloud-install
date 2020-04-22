@@ -156,7 +156,7 @@ module "compute_instances" {
   ami_id          = var.compute_ami_id
   instance_type   = var.compute_instance_type
   key_name        = var.key_name
-  total_ec2_count = var.total_compute_instances - 1
+  total_ec2_count = var.total_compute_instances >= 1 ? var.total_compute_instances - 1 : var.total_compute_instances
 
   enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
   enable_instance_termination_protection = var.enable_instance_termination_protection
@@ -184,7 +184,7 @@ module "desc_compute_instance" {
   ami_id          = var.compute_ami_id
   instance_type   = var.compute_instance_type
   key_name        = var.key_name
-  total_ec2_count = 1
+  total_ec2_count = var.total_compute_instances >= 1 ? 1 : 0
 
   enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
   enable_instance_termination_protection = var.enable_instance_termination_protection
