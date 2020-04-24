@@ -10,6 +10,26 @@ variable "cloud_platform" {
   description = "Flag to represent AWS cloud."
 }
 
+variable "region" {
+  /* Keep it empty, it will be propagated via command line or via ".tfvars"
+       or ".tfvars.json"
+    */
+  type        = string
+  description = "AWS region where the resources will be created."
+}
+
+variable "tf_data_path" {
+  type        = string
+  default     = "~/tf_data_path"
+  description = "Data path to be used by terraform for storing ssh keys."
+}
+
+variable "tf_ansible_key" {
+  type        = string
+  default     = "~/tf_data_path/keyring"
+  description = "Ansible vault keyring file path."
+}
+
 variable "bucket_name" {
   type        = string
   description = "s3 bucket name to be used for backing up ansible inventory file."
@@ -19,14 +39,6 @@ variable "ansible_scale_repo_clone_path" {
   type        = string
   default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
-}
-
-variable "region" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
-  type        = string
-  description = "AWS region where the resources will be created."
 }
 
 variable "vpc_id" {

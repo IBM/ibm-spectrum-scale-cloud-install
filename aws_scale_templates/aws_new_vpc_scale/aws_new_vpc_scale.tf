@@ -53,6 +53,8 @@ module "instances_module" {
   total_storage_instances                  = var.total_storage_instances
   vpc_id                                   = module.vpc_module.vpc_id
   deploy_container_sec_group_id            = null
+  tf_data_path                             = var.tf_data_path
+  tf_ansible_key                           = var.tf_ansible_key
   operator_email                           = var.operator_email
   cloud_env                                = local.cloud_env
   cloud_platform                           = local.cloud_platform
