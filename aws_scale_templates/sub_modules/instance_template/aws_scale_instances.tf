@@ -313,6 +313,8 @@ locals {
 module "invoke_scale_playbook" {
   source                                                  = "../../../resources/common/ansible_scale_playbook"
   region                                                  = var.region
+  tf_data_path                                            = var.tf_data_path
+  tf_ansible_key                                          = var.tf_ansible_key
   bucket_name                                             = var.bucket_name
   ansible_scale_repo_clone_path                           = var.ansible_scale_repo_clone_path
   create_scale_cluster                                    = var.create_scale_cluster

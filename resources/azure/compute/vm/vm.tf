@@ -126,7 +126,6 @@ EOF
     }
 
     tags = var.vm_tags
-
     depends_on = [var.private_zone_vnet_link_name]
 }
 

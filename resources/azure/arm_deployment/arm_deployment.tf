@@ -42,7 +42,6 @@ resource "azurerm_template_deployment" "arm_deploy" {
         bastion-host-name        = var.bastion_host_name
         location                 = var.location
     }
-
     depends_on = [var.bastion_subnet_id]
 }
 
