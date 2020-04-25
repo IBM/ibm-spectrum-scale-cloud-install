@@ -30,6 +30,18 @@ variable "tf_ansible_key" {
   description = "Ansible vault keyring file path."
 }
 
+variable "tf_input_json_root_path" {
+  type        = string
+  default     = null
+  description = "Terraform module absolute path."
+}
+
+variable "tf_input_json_file_name" {
+  type        = string
+  default     = null
+  description = "Terraform module input variable defintion/json file name."
+}
+
 variable "bucket_name" {
   type        = string
   description = "s3 bucket name to be used for backing up ansible inventory file."

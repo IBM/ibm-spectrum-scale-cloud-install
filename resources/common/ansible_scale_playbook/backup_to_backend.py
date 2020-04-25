@@ -60,10 +60,10 @@ def aws_s3_upload_object(bucket_name, obj_name, file_path):
 
 
 if __name__ == "__main__":
-    PARSER = argparse.ArgumentParser(description='Backup ansible inventory '
-                                                 'to specified backend.')
-    PARSER.add_argument('--ansible_inv_path', required=True,
-                        help='Ansible inventory file path')
+    PARSER = argparse.ArgumentParser(description='Backup local file to '
+                                                 'specified backend.')
+    PARSER.add_argument('--local_file_path', required=True,
+                        help='Target local file path to back up')
     PARSER.add_argument('--bucket_name', required=True,
                         help='Bucket name')
     PARSER.add_argument('--obj_name', required=True,
@@ -74,4 +74,4 @@ if __name__ == "__main__":
 
     aws_s3_upload_object(ARGUMENTS.bucket_name,
                          ARGUMENTS.obj_name,
-                         ARGUMENTS.ansible_inv_path)
+                         ARGUMENTS.local_file_path)
