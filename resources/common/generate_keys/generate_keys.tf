@@ -5,7 +5,6 @@
 */
 
 variable "tf_data_path" {}
-
 variable "tf_ansible_key" {}
 
 resource "null_resource" "check_tf_data_existence" {
