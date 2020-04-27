@@ -107,7 +107,7 @@ resource "null_resource" "backup_ansible_inv" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.backup_ansible_inv_script_path} --ansible_inv_path ${local.ansible_scale_repo_path}/vars/scale_clusterdefinition.json  --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-scale_clusterdefinition.json"
+    command     = "python3 ${local.backup_to_backend_script_path} --ansible_inv_path ${local.ansible_scale_repo_path}/vars/scale_clusterdefinition.json  --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-scale_clusterdefinition.json"
   }
   depends_on = [null_resource.prepare_ansible_inventory]
 }
