@@ -136,7 +136,7 @@ resource "null_resource" "wait_for_instances_to_boot" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.instance_ssh_wait_script_path} --tf_inv_path ${local.tf_inv_path} --region_name ${var.region}"
   }
-  depends_on = [null_resource.decrypt_ansible_ssh_private_key]
+  depends_on = [null_resource.decrypt_private_key]
 }
 
 resource "null_resource" "call_scale_install_playbook" {
