@@ -27,8 +27,12 @@ variable "device_names" {}
 data "template_file" "user_data" {
   template = <<EOF
 #!/usr/bin/env bash
-yum install python3 -y
+yum install -y python3 git wget unzip
 pip3 install awscli ansible boto3
+wget https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+unzip terraform_0.12.24_linux_amd64.zip
+rm -rf terraform_0.12.24_linux_amd64.zip
+mv terraform /usr/bin
 echo "${var.vault_private_key}" > ~/.ssh/id_rsa
 echo "${var.vault_public_key}"  > ~/.ssh/id_rsa.pub
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
