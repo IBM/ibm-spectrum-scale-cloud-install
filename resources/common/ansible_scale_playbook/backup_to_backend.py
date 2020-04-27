@@ -63,7 +63,7 @@ if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Backup local file to '
                                                  'specified backend.')
     PARSER.add_argument('--local_file_path', required=True,
-                        help='Target local file path to back up')
+                        help='Local file absolute path to back up')
     PARSER.add_argument('--bucket_name', required=True,
                         help='Bucket name')
     PARSER.add_argument('--obj_name', required=True,
