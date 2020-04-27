@@ -139,8 +139,10 @@ module "instances_ingress_security_rule" {
   local.deploy_sec_group_id, var.bastion_sec_group_id]
 }
 
-module "ansible_vault" {
-  source = "../../../resources/common/ansible_vault"
+module "generate_keys" {
+  source = "../../../resources/common/generate_keys"
+  tf_data_path = var.tf_data_path
+  tf_ansible_key = var.tf_ansible_key
 }
 
 module "email_notification" {
@@ -172,8 +174,9 @@ module "compute_instances" {
   ebs_volume_size   = var.ebs_volume_size
   device_names      = var.ebs_volume_device_names
 
-  vault_private_key = module.ansible_vault.id_rsa_content
-  vault_public_key  = module.ansible_vault.id_rsa_pub_content
+  vault_pri_key_path = module.generate_keys.vault_pri_key_path
+  vault_pub_key_path = module.generate_keys.vault_pub_key_path
+  tf_ansible_key     = var.tf_ansible_key  
 
   instance_tags = { Name = "${var.stack_name}-compute" }
 }
@@ -200,8 +203,9 @@ module "desc_compute_instance" {
   ebs_volume_size   = 5
   device_names      = var.ebs_volume_device_names
 
-  vault_private_key = module.ansible_vault.id_rsa_content
-  vault_public_key  = module.ansible_vault.id_rsa_pub_content
+  vault_pri_key_path = module.generate_keys.vault_pri_key_path
+  vault_pub_key_path = module.generate_keys.vault_pub_key_path
+  tf_ansible_key     = var.tf_ansible_key  
 
   instance_tags = { Name = "${var.stack_name}-compute-desc" }
 }
@@ -228,8 +232,9 @@ module "storage_instances" {
   ebs_volume_size   = var.ebs_volume_size
   device_names      = var.ebs_volume_device_names
 
-  vault_private_key = module.ansible_vault.id_rsa_content
-  vault_public_key  = module.ansible_vault.id_rsa_pub_content
+  vault_pri_key_path = module.generate_keys.vault_pri_key_path
+  vault_pub_key_path = module.generate_keys.vault_pub_key_path
+  tf_ansible_key     = var.tf_ansible_key  
 
   instance_tags = { Name = "${var.stack_name}-storage" }
 }
@@ -308,6 +313,8 @@ locals {
 module "invoke_scale_playbook" {
   source                                                  = "../../../resources/common/ansible_scale_playbook"
   region                                                  = var.region
+  tf_data_path                                            = var.tf_data_path
+  tf_ansible_key                                          = var.tf_ansible_key
   bucket_name                                             = var.bucket_name
   ansible_scale_repo_clone_path                           = var.ansible_scale_repo_clone_path
   create_scale_cluster                                    = var.create_scale_cluster

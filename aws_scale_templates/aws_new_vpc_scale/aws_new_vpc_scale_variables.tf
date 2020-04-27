@@ -23,6 +23,18 @@ variable "availability_zones" {
   description = "List of AWS Availability Zones."
 }
 
+variable "tf_data_path" {
+  type        = string
+  default     = "~/tf_data_path"
+  description = "Data path to be used by terraform for storing ssh keys."
+}
+
+variable "tf_ansible_key" {
+  type        = string
+  default     = "~/tf_data_path/keyring"
+  description = "Ansible vault keyring file path."
+}
+
 variable "total_compute_instances" {
   type        = string
   default     = 2
