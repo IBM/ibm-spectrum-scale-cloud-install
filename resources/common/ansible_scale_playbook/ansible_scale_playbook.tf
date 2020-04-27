@@ -9,6 +9,7 @@ variable "tf_input_json_root_path" {}
 variable "tf_input_json_file_name" {}
 
 variable "region" {}
+variable "stack_name" {}
 variable "bucket_name" {}
 
 variable "create_scale_cluster" {}
@@ -106,7 +107,7 @@ resource "null_resource" "backup_ansible_inv" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.backup_ansible_inv_script_path} --ansible_inv_path ${local.ansible_scale_repo_path}/vars/scale_clusterdefinition.json  --bucket_name ${var.bucket_name} --obj_name scale_clusterdefinition.json"
+    command     = "python3 ${local.backup_ansible_inv_script_path} --ansible_inv_path ${local.ansible_scale_repo_path}/vars/scale_clusterdefinition.json  --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-scale_clusterdefinition.json"
   }
   depends_on = [null_resource.prepare_ansible_inventory]
 }
@@ -115,7 +116,7 @@ resource "null_resource" "backup_tf_input_json" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.backup_to_backend_script_path} --local_file_path ${var.tf_input_json_root_path}/${var.tf_input_json_file_name} --bucket_name ${var.bucket_name} --obj_name ${var.tf_input_json_file_name}"
+    command     = "python3 ${local.backup_to_backend_script_path} --local_file_path ${var.tf_input_json_root_path}/${var.tf_input_json_file_name} --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-${var.tf_input_json_file_name}"
   }
   depends_on = [null_resource.backup_ansible_inv]
 }

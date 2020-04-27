@@ -311,8 +311,10 @@ locals {
 }
 
 module "invoke_scale_playbook" {
-  source                  = "../../../resources/common/ansible_scale_playbook"
-  region                  = var.region
+  source     = "../../../resources/common/ansible_scale_playbook"
+  region     = var.region
+  stack_name = var.stack_name
+
   tf_data_path            = var.tf_data_path
   tf_ansible_key          = var.tf_ansible_key
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
