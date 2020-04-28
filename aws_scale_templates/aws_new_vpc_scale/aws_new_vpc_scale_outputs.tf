@@ -13,6 +13,11 @@ output "stack_name" {
   description = "AWS Stack name."
 }
 
+output "bucket_name" {
+  value       = var.bucket_name
+  description = "Bucket name used for backing up terraform state and ansible inventory."
+}
+
 output "vpc_id" {
   value       = module.vpc_module.vpc_id
   description = "VPC ID."
@@ -29,12 +34,12 @@ output "private_subnets" {
 }
 
 output "compute_instances_by_ip" {
-  value       = module.instances_module.compute_instance_ips
+  value       = module.instances_module.compute_instances_by_ip
   description = "Private IP address of AWS compute instances."
 }
 
 output "compute_instances_by_id" {
-  value       = module.instances_module.compute_instance_ids
+  value       = module.instances_module.compute_instances_by_id
   description = "AWS compute instance ids."
 }
 

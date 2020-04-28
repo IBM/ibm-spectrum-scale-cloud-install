@@ -24,7 +24,6 @@ resource "aws_cloudwatch_metric_alarm" "autorecovery" {
   dimensions = {
     InstanceId = element(var.all_instance_ids, count.index)
   }
-
   depends_on = [var.all_instance_ids]
 }
 

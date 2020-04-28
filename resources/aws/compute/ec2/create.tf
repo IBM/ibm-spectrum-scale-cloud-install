@@ -1,5 +1,7 @@
 /*
     Creates specified number of AWS EC2 instance(s).
+    Note: Don't covert below element syntax to HCL2,
+         since element could only avoid index overflow.
 */
 
 variable "region" {}
@@ -15,23 +17,78 @@ variable "root_volume_size" {}
 variable "root_volume_type" {}
 variable "enable_delete_on_termination" {}
 variable "enable_instance_termination_protection" {}
-variable "vault_private_key" {}
-variable "vault_public_key" {}
+variable "vault_pri_key_path" {}
+variable "vault_pub_key_path" {}
+variable "tf_ansible_key" {}
 variable "instance_tags" {}
 variable "ebs_volume_type" {}
 variable "ebs_volume_size" {}
 variable "total_ebs_volumes" {}
 variable "device_names" {}
 
+resource "null_resource" "decrypt_public_key" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "/usr/bin/flock --exclusive ${var.vault_pub_key_path} -c \"if cat ${var.vault_pub_key_path} | grep -q ANSIBLE_VAULT; then /usr/local/bin/ansible-vault decrypt ${var.vault_pub_key_path} --vault-password-file=${var.tf_ansible_key}; fi;\""
+  }
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+}
+
+resource "null_resource" "decrypt_private_key" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "/usr/bin/flock --exclusive ${var.vault_pri_key_path} -c \"if cat ${var.vault_pri_key_path} | grep -q ANSIBLE_VAULT; then /usr/local/bin/ansible-vault decrypt ${var.vault_pri_key_path} --vault-password-file=${var.tf_ansible_key}; fi;\""
+  }
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+}
+
+data local_file "id_rsa_template" {
+  filename   = pathexpand(var.vault_pri_key_path)
+  depends_on = [null_resource.decrypt_private_key]
+}
+
+data local_file "id_rsa_pub_template" {
+  filename   = pathexpand(var.vault_pub_key_path)
+  depends_on = [null_resource.decrypt_public_key]
+}
+
+resource "null_resource" "encrypt_pub_key" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "/usr/bin/flock --exclusive ${var.vault_pub_key_path} -c \"if cat ${var.vault_pub_key_path} | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.vault_pub_key_path} --vault-password-file=${var.tf_ansible_key}; fi;\""
+  }
+  depends_on = [data.local_file.id_rsa_template]
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+}
+
+resource "null_resource" "encrypt_pri_key" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "/usr/bin/flock --exclusive ${var.vault_pri_key_path} -c \"if cat ${var.vault_pri_key_path} | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.vault_pri_key_path} --vault-password-file=${var.tf_ansible_key}; fi;\""
+  }
+  depends_on = [data.local_file.id_rsa_pub_template]
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+}
 
 data "template_file" "user_data" {
   template = <<EOF
 #!/usr/bin/env bash
-curl -O https://bootstrap.pypa.io/get-pip.py
-python get-pip.py
-pip install awscli ansible
-echo "${var.vault_private_key}" > ~/.ssh/id_rsa
-echo "${var.vault_public_key}"  > ~/.ssh/id_rsa.pub
+yum install -y python3 git wget unzip
+pip3 install awscli ansible boto3
+wget https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+unzip terraform_0.12.24_linux_amd64.zip
+rm -rf terraform_0.12.24_linux_amd64.zip
+mv terraform /usr/bin
+echo "${data.local_file.id_rsa_template.content}" > ~/.ssh/id_rsa
+echo "${data.local_file.id_rsa_pub_template.content}"  > ~/.ssh/id_rsa.pub
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 chmod 600 ~/.ssh/id_rsa

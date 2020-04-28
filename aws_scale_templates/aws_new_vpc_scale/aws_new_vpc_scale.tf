@@ -5,6 +5,10 @@
     3. (Compute, Storage) Instances along with EBS attachments to storage instances
 */
 
+terraform {
+  backend "s3" {}
+}
+
 module "vpc_module" {
   source             = "../sub_modules/vpc_template"
   region             = var.region
@@ -25,8 +29,10 @@ module "bastion_module" {
 }
 
 locals {
-  cloud_env      = true
-  cloud_platform = "AWS"
+  cloud_env               = true
+  cloud_platform          = "AWS"
+  tf_input_json_root_path = abspath(path.cwd)
+  tf_input_json_file_name = join(", ", fileset(local.tf_input_json_root_path, "*.tfvars*"))
 }
 
 module "instances_module" {
@@ -49,9 +55,14 @@ module "instances_module" {
   total_storage_instances                  = var.total_storage_instances
   vpc_id                                   = module.vpc_module.vpc_id
   deploy_container_sec_group_id            = null
+  tf_data_path                             = var.tf_data_path
+  tf_ansible_key                           = var.tf_ansible_key
+  tf_input_json_root_path                  = local.tf_input_json_root_path
+  tf_input_json_file_name                  = local.tf_input_json_file_name
   operator_email                           = var.operator_email
   cloud_env                                = local.cloud_env
   cloud_platform                           = local.cloud_platform
+  bucket_name                              = var.bucket_name
   availability_zones                       = var.availability_zones
   create_scale_cluster                     = var.create_scale_cluster
   filesystem_mountpoint                    = var.filesystem_mountpoint

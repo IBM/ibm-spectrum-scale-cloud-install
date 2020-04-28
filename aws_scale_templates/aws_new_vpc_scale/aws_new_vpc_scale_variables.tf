@@ -23,6 +23,18 @@ variable "availability_zones" {
   description = "List of AWS Availability Zones."
 }
 
+variable "tf_data_path" {
+  type        = string
+  default     = "~/tf_data_path"
+  description = "Data path to be used by terraform for storing ssh keys."
+}
+
+variable "tf_ansible_key" {
+  type        = string
+  default     = "~/tf_data_path/keyring"
+  description = "Ansible vault keyring file path."
+}
+
 variable "total_compute_instances" {
   type        = string
   default     = 2
@@ -130,4 +142,9 @@ variable "ansible_scale_repo_clone_path" {
   type        = string
   default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
+}
+
+variable "bucket_name" {
+  type        = string
+  description = "s3 bucket name to be used for backing up ansible inventory file."
 }

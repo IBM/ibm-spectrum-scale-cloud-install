@@ -8,6 +8,10 @@
     Tags are not allowed for EBS, root volumes.
 */
 
+terraform {
+  backend "s3" {}
+}
+
 module "cluster_host_iam_role" {
   source           = "../../../resources/aws/compute/iam/iam_role"
   role_name_prefix = "${var.stack_name}-Cluster-"
@@ -135,8 +139,10 @@ module "instances_ingress_security_rule" {
   local.deploy_sec_group_id, var.bastion_sec_group_id]
 }
 
-module "ansible_vault" {
-  source = "../../../resources/common/ansible_vault"
+module "generate_keys" {
+  source         = "../../../resources/common/generate_keys"
+  tf_data_path   = var.tf_data_path
+  tf_ansible_key = var.tf_ansible_key
 }
 
 module "email_notification" {
@@ -152,7 +158,7 @@ module "compute_instances" {
   ami_id          = var.compute_ami_id
   instance_type   = var.compute_instance_type
   key_name        = var.key_name
-  total_ec2_count = var.total_compute_instances - 1
+  total_ec2_count = var.total_compute_instances >= 1 ? var.total_compute_instances - 1 : var.total_compute_instances
 
   enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
   enable_instance_termination_protection = var.enable_instance_termination_protection
@@ -168,8 +174,9 @@ module "compute_instances" {
   ebs_volume_size   = var.ebs_volume_size
   device_names      = var.ebs_volume_device_names
 
-  vault_private_key = module.ansible_vault.id_rsa_content
-  vault_public_key  = module.ansible_vault.id_rsa_pub_content
+  vault_pri_key_path = module.generate_keys.vault_pri_key_path
+  vault_pub_key_path = module.generate_keys.vault_pub_key_path
+  tf_ansible_key     = var.tf_ansible_key
 
   instance_tags = { Name = "${var.stack_name}-compute" }
 }
@@ -180,7 +187,7 @@ module "desc_compute_instance" {
   ami_id          = var.compute_ami_id
   instance_type   = var.compute_instance_type
   key_name        = var.key_name
-  total_ec2_count = 1
+  total_ec2_count = var.total_compute_instances >= 1 ? 1 : 0
 
   enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
   enable_instance_termination_protection = var.enable_instance_termination_protection
@@ -196,8 +203,9 @@ module "desc_compute_instance" {
   ebs_volume_size   = 5
   device_names      = var.ebs_volume_device_names
 
-  vault_private_key = module.ansible_vault.id_rsa_content
-  vault_public_key  = module.ansible_vault.id_rsa_pub_content
+  vault_pri_key_path = module.generate_keys.vault_pri_key_path
+  vault_pub_key_path = module.generate_keys.vault_pub_key_path
+  tf_ansible_key     = var.tf_ansible_key
 
   instance_tags = { Name = "${var.stack_name}-compute-desc" }
 }
@@ -224,8 +232,9 @@ module "storage_instances" {
   ebs_volume_size   = var.ebs_volume_size
   device_names      = var.ebs_volume_device_names
 
-  vault_private_key = module.ansible_vault.id_rsa_content
-  vault_public_key  = module.ansible_vault.id_rsa_pub_content
+  vault_pri_key_path = module.generate_keys.vault_pri_key_path
+  vault_pub_key_path = module.generate_keys.vault_pub_key_path
+  tf_ansible_key     = var.tf_ansible_key
 
   instance_tags = { Name = "${var.stack_name}-storage" }
 }
@@ -302,16 +311,44 @@ locals {
 }
 
 module "invoke_scale_playbook" {
-  source                                                  = "../../../resources/common/ansible_scale_playbook"
-  ansible_scale_repo_clone_path                           = var.ansible_scale_repo_clone_path
-  create_scale_cluster                                    = var.create_scale_cluster
-  filesystem_mountpoint                                   = var.filesystem_mountpoint
-  filesystem_block_size                                   = var.filesystem_block_size
-  cloud_env                                               = var.cloud_env
-  cloud_platform                                          = var.cloud_platform
-  avail_zones                                             = jsonencode(var.availability_zones)
+  source     = "../../../resources/common/ansible_scale_playbook"
+  region     = var.region
+  stack_name = var.stack_name
+
+  tf_data_path            = var.tf_data_path
+  tf_ansible_key          = var.tf_ansible_key
+  tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
+  tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
+
+  bucket_name                   = var.bucket_name
+  ansible_scale_repo_clone_path = var.ansible_scale_repo_clone_path
+  create_scale_cluster          = var.create_scale_cluster
+  filesystem_mountpoint         = var.filesystem_mountpoint
+  filesystem_block_size         = var.filesystem_block_size
+  cloud_env                     = var.cloud_env
+  cloud_platform                = var.cloud_platform
+  avail_zones                   = jsonencode(var.availability_zones)
+
+  compute_instances_by_id                                 = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
   compute_instances_by_ip                                 = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
   compute_instance_desc_map                               = jsonencode(local.compute_instance_desc_map)
+  compute_instance_desc_id                                = jsonencode(module.desc_compute_instance.instance_ids_with_1_datadisks)
+  storage_instance_ids_with_0_datadisks                   = module.storage_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_0_datadisks)
+  storage_instance_ids_with_1_datadisks                   = module.storage_instances.instance_ids_with_1_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_1_datadisks)
+  storage_instance_ids_with_2_datadisks                   = module.storage_instances.instance_ids_with_2_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_2_datadisks)
+  storage_instance_ids_with_3_datadisks                   = module.storage_instances.instance_ids_with_3_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_3_datadisks)
+  storage_instance_ids_with_4_datadisks                   = module.storage_instances.instance_ids_with_4_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_4_datadisks)
+  storage_instance_ids_with_5_datadisks                   = module.storage_instances.instance_ids_with_5_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_5_datadisks)
+  storage_instance_ids_with_6_datadisks                   = module.storage_instances.instance_ids_with_6_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_6_datadisks)
+  storage_instance_ids_with_7_datadisks                   = module.storage_instances.instance_ids_with_7_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_7_datadisks)
+  storage_instance_ids_with_8_datadisks                   = module.storage_instances.instance_ids_with_8_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_8_datadisks)
+  storage_instance_ids_with_9_datadisks                   = module.storage_instances.instance_ids_with_9_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_9_datadisks)
+  storage_instance_ids_with_10_datadisks                  = module.storage_instances.instance_ids_with_10_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_10_datadisks)
+  storage_instance_ids_with_11_datadisks                  = module.storage_instances.instance_ids_with_11_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_11_datadisks)
+  storage_instance_ids_with_12_datadisks                  = module.storage_instances.instance_ids_with_12_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_12_datadisks)
+  storage_instance_ids_with_13_datadisks                  = module.storage_instances.instance_ids_with_13_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_13_datadisks)
+  storage_instance_ids_with_14_datadisks                  = module.storage_instances.instance_ids_with_14_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_14_datadisks)
+  storage_instance_ids_with_15_datadisks                  = module.storage_instances.instance_ids_with_15_datadisks == null ? "[]" : jsonencode(module.storage_instances.instance_ids_with_15_datadisks)
   storage_instance_ips_with_0_datadisks_device_names_map  = local.instance_ips_with_0_datadisks_ebs_device_names == null ? "[]" : jsonencode(local.instance_ips_with_0_datadisks_ebs_device_names)
   storage_instance_ips_with_1_datadisks_device_names_map  = local.instance_ips_with_1_datadisks_ebs_device_names == null ? "[]" : jsonencode(local.instance_ips_with_1_datadisks_ebs_device_names)
   storage_instance_ips_with_2_datadisks_device_names_map  = local.instance_ips_with_2_datadisks_ebs_device_names == null ? "[]" : jsonencode(local.instance_ips_with_2_datadisks_ebs_device_names)
