@@ -18,6 +18,11 @@ output "compute_instance_desc_map" {
   description = "Dictionary of compute instance ip vs. descriptor EBS device path."
 }
 
+output "compute_instance_desc_by_id" {
+  value = module.desc_compute_instance.instance_ids_with_1_datadisks
+  description = "AWS compute desc instance id." 
+}
+
 output "storage_instance_ids_with_0_datadisks" {
   # This output has no significance.
   # Keeping it support ephemeral disks.

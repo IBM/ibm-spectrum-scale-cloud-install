@@ -43,6 +43,7 @@
 |------|-------------|
 | compute\_instance\_desc\_map | Dictionary of compute instance ip vs. descriptor EBS device path. |
 | compute\_instance\_ids | AWS compute instance ids. |
+| compute\_instance\_desc\_by\_id | AWS compute desc instance id. |
 | compute\_instance\_ip\_by\_id | Dictionary of compute instance ip vs. id. |
 | compute\_instance\_ips | Private IP address of AWS compute instances. |
 | instance\_ips\_with\_0\_datadisks\_ebs\_device\_names | Dictionary of instance ip vs. EBS device path. |
