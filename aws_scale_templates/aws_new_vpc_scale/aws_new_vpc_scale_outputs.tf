@@ -48,6 +48,11 @@ output "compute_instance_desc_map" {
   description = "Dictionary of compute instance ip vs. descriptor EBS device path."
 }
 
+output "compute_instance_desc_by_id" {
+  value       = module.instances_module.compute_instance_desc_by_id
+  description = "AWS compute desc instance id." 
+}
+
 output "storage_instance_ips_with_0_datadisks" {
   value       = module.instances_module.storage_instance_ips_with_0_datadisks
   description = "Private IP address of AWS storage instances."

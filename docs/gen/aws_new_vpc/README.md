@@ -34,6 +34,7 @@
 | cloud\_platform | Flag to represent AWS cloud. |
 | vpc\_id | VPC ID. |
 | compute\_instance\_desc\_map | Dictionary of compute instance ip vs. descriptor EBS device path. |
+| compute\_instance\_desc\_by\_id | AWS compute desc instance id. |
 | compute\_instances\_by\_id | AWS compute instance ids. |
 | compute\_instances\_by\_ip | Private IP address of AWS compute instances. |
 | private\_subnets | AWS private subnet IDs. |
