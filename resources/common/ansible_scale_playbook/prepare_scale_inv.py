@@ -75,6 +75,7 @@ def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, is_n
     CLUSTER_DEFINITION_JSON['node_details'].append({'fqdn': fqdn,
                                                     'ip_address': ip_address,
                                                     'ansible_ssh_private_key_file': ansible_ssh_private_key_file,
+                                                    'state': 'present',
                                                     'is_nsd_server': is_nsd_server,
                                                     'is_quorum_node': is_quorum_node,
                                                     'is_manager_node': is_manager_node,
