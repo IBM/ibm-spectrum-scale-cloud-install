@@ -82,7 +82,7 @@ data "template_file" "user_data" {
   template = <<EOF
 #!/usr/bin/env bash
 yum install -y python3 git wget unzip
-pip3 install awscli ansible boto3
+pip3 install -U awscli ansible boto3 PyYAML
 wget https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
 unzip terraform_0.12.24_linux_amd64.zip
 rm -rf terraform_0.12.24_linux_amd64.zip
