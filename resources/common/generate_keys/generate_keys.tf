@@ -52,7 +52,7 @@ resource "null_resource" "encrypt_pri_key_using_vault" {
              vault encrypted.
              
     */
-    command = "if cat ${var.tf_data_path}/id_rsa | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.tf_data_path}/id_rsa --vault-password-file=${var.tf_ansible_key}; fi"
+    command = "/usr/bin/flock --exclusive ${var.tf_data_path}/id_rsa -c \"if cat ${var.tf_data_path}/id_rsa | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.tf_data_path}/id_rsa --vault-password-file=${var.tf_ansible_key}; fi;\""
   }
   depends_on = [null_resource.generate_local_ssh_key, null_resource.check_tf_ansible_key_existence]
 }
@@ -61,7 +61,7 @@ resource "null_resource" "encrypt_pub_key_using_vault" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     /* Note: Encrypt only if left plain. */
-    command = "if cat ${var.tf_data_path}/id_rsa.pub | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.tf_data_path}/id_rsa.pub --vault-password-file=${var.tf_ansible_key}; fi"
+    command = "/usr/bin/flock --exclusive ${var.tf_data_path}/id_rsa.pub -c \"if cat ${var.tf_data_path}/id_rsa.pub | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.tf_data_path}/id_rsa.pub --vault-password-file=${var.tf_ansible_key}; fi;\""
   }
   depends_on = [null_resource.generate_local_ssh_key, null_resource.check_tf_ansible_key_existence]
 }
