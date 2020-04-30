@@ -139,6 +139,15 @@ resource "null_resource" "decrypt_public_key" {
   depends_on = [null_resource.prepare_ansible_inventory]
 }
 
+resource "null_resource" "decrypt_public_key" {
+  count = var.create_scale_cluster == true ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "/usr/bin/flock --exclusive ${var.tf_data_path}/id_rsa.pub -c \"if cat ${var.tf_data_path}/id_rsa.pub | grep -q ANSIBLE_VAULT; then /usr/local/bin/ansible-vault decrypt ${var.tf_data_path}/id_rsa.pub --vault-password-file=${var.tf_ansible_key}; fi;\""
+  }
+  depends_on = [null_resource.prepare_ansible_inventory]
+}
+
 resource "null_resource" "wait_for_instances_to_boot" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
