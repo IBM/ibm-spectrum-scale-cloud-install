@@ -140,9 +140,8 @@ module "instances_ingress_security_rule" {
 }
 
 module "generate_keys" {
-  source         = "../../../resources/common/generate_keys"
-  tf_data_path   = var.tf_data_path
-  tf_ansible_key = var.tf_ansible_key
+  source       = "../../../resources/common/generate_keys"
+  tf_data_path = var.tf_data_path
 }
 
 module "email_notification" {
@@ -174,9 +173,8 @@ module "compute_instances" {
   ebs_volume_size   = var.ebs_volume_size
   device_names      = var.ebs_volume_device_names
 
-  vault_pri_key_path = module.generate_keys.vault_pri_key_path
-  vault_pub_key_path = module.generate_keys.vault_pub_key_path
-  tf_ansible_key     = var.tf_ansible_key
+  private_key_path = module.generate_keys.private_key_path
+  public_key_path  = module.generate_keys.public_key_path
 
   instance_tags = { Name = "${var.stack_name}-compute" }
 }
@@ -203,9 +201,8 @@ module "desc_compute_instance" {
   ebs_volume_size   = 5
   device_names      = var.ebs_volume_device_names
 
-  vault_pri_key_path = module.generate_keys.vault_pri_key_path
-  vault_pub_key_path = module.generate_keys.vault_pub_key_path
-  tf_ansible_key     = var.tf_ansible_key
+  private_key_path = module.generate_keys.private_key_path
+  public_key_path  = module.generate_keys.public_key_path
 
   instance_tags = { Name = "${var.stack_name}-compute-desc" }
 }
@@ -232,9 +229,8 @@ module "storage_instances" {
   ebs_volume_size   = var.ebs_volume_size
   device_names      = var.ebs_volume_device_names
 
-  vault_pri_key_path = module.generate_keys.vault_pri_key_path
-  vault_pub_key_path = module.generate_keys.vault_pub_key_path
-  tf_ansible_key     = var.tf_ansible_key
+  private_key_path = module.generate_keys.private_key_path
+  public_key_path  = module.generate_keys.public_key_path
 
   instance_tags = { Name = "${var.stack_name}-storage" }
 }
@@ -316,18 +312,17 @@ module "invoke_scale_playbook" {
   stack_name = var.stack_name
 
   tf_data_path            = var.tf_data_path
-  tf_ansible_key          = var.tf_ansible_key
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
   tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
 
-  bucket_name                   = var.bucket_name
-  ansible_scale_repo_clone_path = var.ansible_scale_repo_clone_path
-  create_scale_cluster          = var.create_scale_cluster
-  filesystem_mountpoint         = var.filesystem_mountpoint
-  filesystem_block_size         = var.filesystem_block_size
-  cloud_env                     = var.cloud_env
-  cloud_platform                = var.cloud_platform
-  avail_zones                   = jsonencode(var.availability_zones)
+  bucket_name                 = var.bucket_name
+  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  create_scale_cluster        = var.create_scale_cluster
+  filesystem_mountpoint       = var.filesystem_mountpoint
+  filesystem_block_size       = var.filesystem_block_size
+  operating_env               = var.operating_env
+  cloud_platform              = "AWS"
+  avail_zones                 = jsonencode(var.availability_zones)
 
   compute_instances_by_id                                 = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
   compute_instances_by_ip                                 = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
