@@ -4,13 +4,13 @@
 |------|-------------|------|---------|:-----:|
 | availability\_zones | List of AWS Availability Zones. | `list(string)` | n/a | yes |
 | bastion\_image\_name | Bastion AMI image name | `string` | n/a | yes |
+| bucket\_name | s3 bucket name to be used for backing up ansible inventory file. | `string` | n/a | yes |
 | compute\_ami\_id | AMI ID of provisioning compute instances. | `string` | n/a | yes |
 | ebs\_volume\_iops | Provisioned IOPS (input/output operations per second) per volume. | `string` | n/a | yes |
 | key\_name | Name for the AWS key pair | `string` | n/a | yes |
 | operator\_email | SNS notifications will be sent to provided email id. | `string` | n/a | yes |
 | region | AWS region where the resources will be created. | `string` | n/a | yes |
 | storage\_ami\_id | AMI ID of provisioning storage instances | `string` | n/a | yes |
-| ansible\_scale\_repo\_clone\_path | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` | `"/opt/IBM/ibm-spectrumscale-cloud-deploy"` | no |
 | bastion\_instance\_type | Instance type to use for the bastion instance. | `string` | `"t2.micro"` | no |
 | cidr\_block | The CIDR block for the VPC. | `string` | `"10.0.0.0/16"` | no |
 | compute\_instance\_type | Instance type to use for the compute instances. | `string` | `"t2.medium"` | no |
@@ -21,8 +21,11 @@
 | ebs\_volumes\_per\_instance | Number of disks to be attached to each storage instance. | `string` | `1` | no |
 | filesystem\_block\_size | Filesystem block size. | `string` | `"4M"` | no |
 | filesystem\_mountpoint | Filesystem mount point. | `string` | `"/gpfs/fs1"` | no |
+| operating\_env | Operating environement (valid: local). | `string` | `"local"` | no |
+| scale\_infra\_repo\_clone\_path | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` | `"/opt/IBM/ibm-spectrumscale-cloud-deploy"` | no |
 | stack\_name | AWS stack name, will be used for tagging resources. | `string` | `"Spectrum-Scale"` | no |
 | storage\_instance\_type | Instance type to use for the storage instances. | `string` | `"t2.medium"` | no |
+| tf\_data\_path | Data path to be used by terraform for storing ssh keys. | `string` | `"~/tf_data_path"` | no |
 | total\_compute\_instances | Number of EC2 instances to be launched for compute instances. | `string` | `2` | no |
 | total\_storage\_instances | Number of EC2 instances to be launched for storage instances. | `string` | `2` | no |
 
@@ -30,8 +33,9 @@
 
 | Name | Description |
 |------|-------------|
-| cloud\_env | Flag to represent cloud platform. |
+| operating\_env | Operating environement (valid: local). |
 | cloud\_platform | Flag to represent AWS cloud. |
+| bucket\_name | Bucket name used for backing up terraform state and ansible inventory. |
 | vpc\_id | VPC ID. |
 | compute\_instance\_desc\_map | Dictionary of compute instance ip vs. descriptor EBS device path. |
 | compute\_instance\_desc\_by\_id | AWS compute desc instance id. |
