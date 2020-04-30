@@ -34,12 +34,12 @@ output "private_subnets" {
 }
 
 output "compute_instances_by_ip" {
-  value       = module.instances_module.compute_instances_by_ip
+  value       = module.instances_module.compute_instance_ips
   description = "Private IP address of AWS compute instances."
 }
 
 output "compute_instances_by_id" {
-  value       = module.instances_module.compute_instances_by_id
+  value       = module.instances_module.compute_instance_ids
   description = "AWS compute instance ids."
 }
 
