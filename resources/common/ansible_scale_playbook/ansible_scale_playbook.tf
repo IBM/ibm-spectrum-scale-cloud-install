@@ -121,20 +121,20 @@ resource "null_resource" "backup_tf_input_json" {
   depends_on = [null_resource.backup_ansible_inv]
 }
 
-resource "null_resource" "backup_keyring" {
-  count = var.create_scale_cluster == true ? 1 : 0
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.backup_to_backend_script_path} --local_file_path ${var.tf_ansible_key} --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-keyring"
-  }
-  depends_on = [null_resource.backup_ansible_inv]
-}
-
 resource "null_resource" "decrypt_private_key" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "/usr/bin/flock --exclusive ${var.tf_data_path}/id_rsa -c \"if cat ${var.tf_data_path}/id_rsa | grep -q ANSIBLE_VAULT; then /usr/local/bin/ansible-vault decrypt ${var.tf_data_path}/id_rsa --vault-password-file=${var.tf_ansible_key}; fi;\""
+  }
+  depends_on = [null_resource.prepare_ansible_inventory]
+}
+
+resource "null_resource" "decrypt_public_key" {
+  count = var.create_scale_cluster == true ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "/usr/bin/flock --exclusive ${var.tf_data_path}/id_rsa.pub -c \"if cat ${var.tf_data_path}/id_rsa.pub | grep -q ANSIBLE_VAULT; then /usr/local/bin/ansible-vault decrypt ${var.tf_data_path}/id_rsa.pub --vault-password-file=${var.tf_ansible_key}; fi;\""
   }
   depends_on = [null_resource.prepare_ansible_inventory]
 }
@@ -160,7 +160,15 @@ resource "null_resource" "call_scale_install_playbook" {
 resource "null_resource" "encrypt_pri_key_using_vault" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "if cat ${var.tf_data_path}/id_rsa | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.tf_data_path}/id_rsa --vault-password-file=${var.tf_ansible_key}; fi"
+    command     = "/usr/bin/flock --exclusive ${var.tf_data_path}/id_rsa -c \"if cat ${var.tf_data_path}/id_rsa | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.tf_data_path}/id_rsa --vault-password-file=${var.tf_ansible_key}; fi;\""
+  }
+  depends_on = [null_resource.call_scale_install_playbook]
+}
+
+resource "null_resource" "encrypt_pub_key_using_vault" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "/usr/bin/flock --exclusive ${var.tf_data_path}/id_rsa.pub -c \"if cat ${var.tf_data_path}/id_rsa.pub | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.tf_data_path}/id_rsa.pub --vault-password-file=${var.tf_ansible_key}; fi;\""
   }
   depends_on = [null_resource.call_scale_install_playbook]
 }
