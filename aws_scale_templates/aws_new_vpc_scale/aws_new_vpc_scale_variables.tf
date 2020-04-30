@@ -1,3 +1,9 @@
+variable "operating_env" {
+  type        = string
+  default     = "local"
+  description = "Operating environement (valid: local)."
+}
+
 variable "region" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
@@ -27,12 +33,6 @@ variable "tf_data_path" {
   type        = string
   default     = "~/tf_data_path"
   description = "Data path to be used by terraform for storing ssh keys."
-}
-
-variable "tf_ansible_key" {
-  type        = string
-  default     = "~/tf_data_path/keyring"
-  description = "Ansible vault keyring file path."
 }
 
 variable "total_compute_instances" {
@@ -138,7 +138,7 @@ variable "filesystem_block_size" {
   description = "Filesystem block size."
 }
 
-variable "ansible_scale_repo_clone_path" {
+variable "scale_infra_repo_clone_path" {
   type        = string
   default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
