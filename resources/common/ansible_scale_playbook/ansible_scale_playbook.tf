@@ -10,6 +10,7 @@ variable "tf_input_json_file_name" {}
 variable "region" {}
 variable "stack_name" {}
 variable "bucket_name" {}
+variable "notification_arn" {}
 
 variable "create_scale_cluster" {}
 variable "avail_zones" {}
@@ -60,8 +61,24 @@ locals {
   ansible_inv_script_path       = "${path.module}/prepare_scale_inv.py"
   instance_ssh_wait_script_path = "${path.module}/wait_instance_ok_state.py"
   backup_to_backend_script_path = "${path.module}/backup_to_backend.py"
+  send_message_script_path      = "${path.module}/send_sns_notification.py"
   scale_infra_path              = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
   cloud_playbook_path           = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
+  infra_complete_message        = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
+  cluster_complete_message      = "IBM Spectrum Scale cluster creation completed successfully."
+}
+
+resource "null_resource" "send_infra_complete_message" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "python3 ${local.send_message_script_path} --message \"${local.infra_complete_message}\" --topic_arn ${var.notification_arn} --region_name ${var.region}"
+  }
+  depends_on = [var.compute_instances_by_ip, var.storage_instance_ids_with_0_datadisks, var.storage_instance_ids_with_1_datadisks,
+    var.storage_instance_ids_with_2_datadisks, var.storage_instance_ids_with_3_datadisks, var.storage_instance_ids_with_4_datadisks,
+    var.storage_instance_ids_with_5_datadisks, var.storage_instance_ids_with_6_datadisks, var.storage_instance_ids_with_7_datadisks,
+    var.storage_instance_ids_with_8_datadisks, var.storage_instance_ids_with_9_datadisks, var.storage_instance_ids_with_10_datadisks,
+    var.storage_instance_ids_with_11_datadisks, var.storage_instance_ids_with_12_datadisks, var.storage_instance_ids_with_13_datadisks,
+  var.storage_instance_ids_with_14_datadisks, var.storage_instance_ids_with_15_datadisks]
 }
 
 resource "null_resource" "remove_existing_tf_inv" {
@@ -136,4 +153,13 @@ resource "null_resource" "call_scale_install_playbook" {
     command     = "/usr/local/bin/ansible-playbook ${local.cloud_playbook_path}"
   }
   depends_on = [null_resource.wait_for_instances_to_boot]
+}
+
+resource "null_resource" "send_cluster_complete_message" {
+  count = var.create_scale_cluster == true ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "python3 ${local.send_message_script_path} --message \"${local.cluster_complete_message}\" --topic_arn ${var.notification_arn} --region_name ${var.region}"
+  }
+  depends_on = [null_resource.call_scale_install_playbook]
 }
