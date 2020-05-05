@@ -38,8 +38,9 @@ IBM Spectrum Scale Cloud deployment.
             "sa-east-1a",
             "sa-east-1c"
         ],
+        "bucket_name": "<aws_bucket_name>",
         "bastion_image_name": "Amazon-Linux-HVM",
-        "key_name": "aws_key",
+        "key_name": "<aws_key>",
         "compute_ami_id": "ami-048b2348ac2ccfc53",
         "storage_ami_id": "ami-048b2348ac2ccfc53",
         "compute_instance_type": "t2.micro",
@@ -49,7 +50,7 @@ IBM Spectrum Scale Cloud deployment.
         "ebs_volume_size": "500",
         "ebs_volume_type": "gp2",
         "ebs_volumes_per_instance": 3,
-        "operator_email": "operator@email.com"
+        "operator_email": "<operator@email.com>"
     }
     ```
     | Note: In case of single availability zone, provide a single value for the `availability_zone` keyword. Ex: `"availability_zones"=["sa-east-1a"]` |
@@ -79,10 +80,11 @@ IBM Spectrum Scale Cloud deployment.
             "sa-east-1a",
             "sa-east-1c"
         ],
+        "bucket_name": "<aws_bucket_name>",
         "bastion_sec_group_id": "sg-05546f0e8c6ebd1ce",
         "private_instance_subnet_ids": ["subnet-03773a72bf9499420", "subnet-0bf0320b47f195f19"],
         "vpc_id": "vpc-04eef62f613ba98e0",
-        "key_name": "aws_key",
+        "key_name": "<aws_key>",
         "compute_ami_id": "ami-048b2348ac2ccfc53",
         "storage_ami_id": "ami-048b2348ac2ccfc53",
         "compute_instance_type": "t2.micro",
@@ -92,7 +94,7 @@ IBM Spectrum Scale Cloud deployment.
         "ebs_volumes_per_instance": 3,
         "total_compute_instances": "2",
         "total_storage_instances": "2",
-        "operator_email": "operator@email.com"
+        "operator_email": "<operator@email.com>"
     }
     ```
 

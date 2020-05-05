@@ -17,65 +17,22 @@ variable "root_volume_size" {}
 variable "root_volume_type" {}
 variable "enable_delete_on_termination" {}
 variable "enable_instance_termination_protection" {}
-variable "vault_pri_key_path" {}
-variable "vault_pub_key_path" {}
-variable "tf_ansible_key" {}
+variable "private_key_path" {}
+variable "public_key_path" {}
 variable "instance_tags" {}
 variable "ebs_volume_type" {}
 variable "ebs_volume_size" {}
 variable "total_ebs_volumes" {}
 variable "device_names" {}
 
-resource "null_resource" "decrypt_public_key" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/bin/flock --exclusive ${var.vault_pub_key_path} -c \"if cat ${var.vault_pub_key_path} | grep -q ANSIBLE_VAULT; then /usr/local/bin/ansible-vault decrypt ${var.vault_pub_key_path} --vault-password-file=${var.tf_ansible_key}; fi;\""
-  }
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-}
-
-resource "null_resource" "decrypt_private_key" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/bin/flock --exclusive ${var.vault_pri_key_path} -c \"if cat ${var.vault_pri_key_path} | grep -q ANSIBLE_VAULT; then /usr/local/bin/ansible-vault decrypt ${var.vault_pri_key_path} --vault-password-file=${var.tf_ansible_key}; fi;\""
-  }
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-}
-
 data local_file "id_rsa_template" {
-  filename   = pathexpand(var.vault_pri_key_path)
-  depends_on = [null_resource.decrypt_private_key]
+  filename   = pathexpand(var.private_key_path)
+  depends_on = [var.private_key_path]
 }
 
 data local_file "id_rsa_pub_template" {
-  filename   = pathexpand(var.vault_pub_key_path)
-  depends_on = [null_resource.decrypt_public_key]
-}
-
-resource "null_resource" "encrypt_pub_key" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/bin/flock --exclusive ${var.vault_pub_key_path} -c \"if cat ${var.vault_pub_key_path} | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.vault_pub_key_path} --vault-password-file=${var.tf_ansible_key}; fi;\""
-  }
-  depends_on = [data.local_file.id_rsa_template]
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-}
-
-resource "null_resource" "encrypt_pri_key" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/bin/flock --exclusive ${var.vault_pri_key_path} -c \"if cat ${var.vault_pri_key_path} | grep -q ANSIBLE_VAULT; then exit 0; else /usr/local/bin/ansible-vault encrypt ${var.vault_pri_key_path} --vault-password-file=${var.tf_ansible_key}; fi;\""
-  }
-  depends_on = [data.local_file.id_rsa_pub_template]
-  triggers = {
-    always_run = "${timestamp()}"
-  }
+  filename   = pathexpand(var.public_key_path)
+  depends_on = [var.public_key_path]
 }
 
 data "template_file" "user_data" {

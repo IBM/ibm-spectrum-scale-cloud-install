@@ -29,8 +29,6 @@ module "bastion_module" {
 }
 
 locals {
-  cloud_env               = true
-  cloud_platform          = "AWS"
   tf_input_json_root_path = abspath(path.cwd)
   tf_input_json_file_name = join(", ", fileset(local.tf_input_json_root_path, "*.tfvars*"))
 }
@@ -56,16 +54,14 @@ module "instances_module" {
   vpc_id                                   = module.vpc_module.vpc_id
   deploy_container_sec_group_id            = null
   tf_data_path                             = var.tf_data_path
-  tf_ansible_key                           = var.tf_ansible_key
   tf_input_json_root_path                  = local.tf_input_json_root_path
   tf_input_json_file_name                  = local.tf_input_json_file_name
   operator_email                           = var.operator_email
-  cloud_env                                = local.cloud_env
-  cloud_platform                           = local.cloud_platform
+  operating_env                            = var.operating_env
   bucket_name                              = var.bucket_name
   availability_zones                       = var.availability_zones
   create_scale_cluster                     = var.create_scale_cluster
   filesystem_mountpoint                    = var.filesystem_mountpoint
   filesystem_block_size                    = var.filesystem_block_size
-  ansible_scale_repo_clone_path            = var.ansible_scale_repo_clone_path
+  scale_infra_repo_clone_path              = var.scale_infra_repo_clone_path
 }

@@ -1,10 +1,10 @@
-output "cloud_env" {
-  value       = local.cloud_env
-  description = "Flag to represent cloud platform."
+output "operating_env" {
+  value       = var.operating_env
+  description = "Operating environement (valid: local)."
 }
 
 output "cloud_platform" {
-  value       = local.cloud_platform
+  value       = "AWS"
   description = "Flag to represent AWS cloud."
 }
 
@@ -50,7 +50,7 @@ output "compute_instance_desc_map" {
 
 output "compute_instance_desc_by_id" {
   value       = module.instances_module.compute_instance_desc_by_id
-  description = "AWS compute desc instance id." 
+  description = "AWS compute desc instance id."
 }
 
 output "storage_instance_ips_with_0_datadisks" {
