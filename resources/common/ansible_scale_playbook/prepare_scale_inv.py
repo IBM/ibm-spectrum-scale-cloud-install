@@ -68,7 +68,7 @@ def initialize_cluster_details(stack_name, region_name):
     """ Initialize cluster details.
     :args: cluster_name (string)
     """
-    CLUSTER_DEFINITION_JSON['scale_cluster_name'] = "%s-%s" % (stack_name, region_name)
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = "%s-%s" % (stack_name, region_name)
 
 
 def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, is_nsd_server,
