@@ -323,6 +323,7 @@ module "invoke_scale_playbook" {
   operating_env               = var.operating_env
   cloud_platform              = "AWS"
   avail_zones                 = jsonencode(var.availability_zones)
+  notification_arn            = module.email_notification.sns_topic_arn
 
   compute_instances_by_id                                 = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
   compute_instances_by_ip                                 = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)

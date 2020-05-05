@@ -22,7 +22,7 @@ import re
 import socket
 
 SCALE_CLUSTER_DEFINITION_PATH = "/vars/scale_clusterdefinition.json"
-CLUSTER_DEFINITION_JSON = {"node_details": [], "scale_storage": []}
+CLUSTER_DEFINITION_JSON = {"scale_cluster": {}, "node_details": [], "scale_storage": []}
 
 
 def read_tf_inv_file(tf_inv_path):
@@ -64,13 +64,19 @@ def parse_tf_in_json(tf_inv_list):
     return raw_body
 
 
+def initialize_cluster_details(stack_name, region_name):
+    """ Initialize cluster details.
+    :args: cluster_name (string)
+    """
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = "%s-%s" % (stack_name, region_name)
+
+
 def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, is_nsd_server,
                             is_quorum_node=False, is_manager_node=False, is_gui_node=False):
     """ Initialize node details for cluster definition.
     :args: json_data (json), fqdn (string), ip_address (string),
            is_nsd_server (bool), is_quorum_node (bool),
            is_manager_node (bool), is_gui_node (bool)
-    :return: json_data (json)
     """
     CLUSTER_DEFINITION_JSON['node_details'].append({'fqdn': fqdn,
                                                     'ip_address': ip_address,
@@ -119,6 +125,9 @@ if __name__ == "__main__":
 
     if ARGUMENTS.verbose:
         print("Total quorum count: ", quorum_count)
+
+    # Define cluster name
+    initialize_cluster_details(TF_INV['stack_name'], TF_INV['region'])
 
     # Storage/NSD nodes to be quorum nodes
     for each_ip in TF_INV['storage_instance_disk_map']:
