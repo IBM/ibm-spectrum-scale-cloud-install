@@ -38,8 +38,27 @@ data local_file "id_rsa_pub_template" {
 data "template_file" "user_data" {
   template = <<EOF
 #!/usr/bin/env bash
-yum install -y python3 git wget unzip
+if grep -q "Red Hat" /etc/os-release
+then
+    if grep -q "platform:el8" /etc/os-release
+    then
+        dnf install -y python3 git wget unzip
+    else
+        yum install -y python3 git wget unzip
+    fi
+elif grep -q "Ubuntu" /etc/os-release
+then
+    apt update
+    apt-get install -y python3 git wget unzip python3-pip
+elif grep -q "SLES" /etc/os-release
+then
+    zypper install -y python3 git wget unzip
+fi
 pip3 install -U awscli ansible boto3 PyYAML
+if [[ ! "$PATH" =~ "/usr/local/bin" ]]
+then
+    echo 'export PATH=$PATH:$HOME/bin:/usr/local/bin' >> ~/.bash_profile
+fi
 wget https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
 unzip terraform_0.12.24_linux_amd64.zip
 rm -rf terraform_0.12.24_linux_amd64.zip
