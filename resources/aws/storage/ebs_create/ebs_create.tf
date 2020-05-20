@@ -1,5 +1,5 @@
 /*
-    Creates spectified number of new AWS EBS Volumes per AZ.
+  Creates specified number of new AWS EBS Volumes per AZ.
 */
 
 variable "total_ebs_volumes" {
