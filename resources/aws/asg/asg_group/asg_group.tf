@@ -33,7 +33,9 @@ variable "asg_suspend_processes" {
 variable "asg_launch_config_name" {
   type = string
 }
+
 variable "asg_tags" {}
+
 
 resource "aws_autoscaling_group" "auto_scaling_group" {
   name_prefix               = var.asg_name_prefix
@@ -53,10 +55,33 @@ resource "aws_autoscaling_group" "auto_scaling_group" {
   }
 }
 
+data "aws_instances" "all_instances" {
+  depends_on = [aws_autoscaling_group.auto_scaling_group]
+
+  instance_tags = {
+    Name = var.asg_tags[0]["value"]
+  }
+}
+
+data "aws_instance" "instance_details" {
+  count       = var.asg_desired_size
+  depends_on  = [data.aws_instances.all_instances]
+  instance_id = data.aws_instances.all_instances.ids[count.index]
+}
+
+
 output "asg_arn" {
   value = aws_autoscaling_group.auto_scaling_group.arn
 }
 
 output "asg_instance_ids" {
   value = aws_autoscaling_group.auto_scaling_group.*.id
+}
+
+output "asg_instance_public_ip" {
+  value = data.aws_instance.instance_details.*.public_ip
+}
+
+output "asg_instance_private_ip" {
+  value = data.aws_instance.instance_details.*.private_ip
 }
