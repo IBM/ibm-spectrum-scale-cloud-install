@@ -18,6 +18,7 @@ Ensure that the following requirements are met on the server where this reposito
 
   * [Amazon Web Services (AWS)](docs/aws.md)
   * [Microsoft Azure (Azure)](docs/azure.md)
+  * [Google Cloud Platform (GCP)](docs/gcp.md)
 
 
 ### Reporting Issues and Feedback
