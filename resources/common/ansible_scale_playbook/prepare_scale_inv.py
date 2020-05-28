@@ -64,11 +64,11 @@ def parse_tf_in_json(tf_inv_list):
     return raw_body
 
 
-def initialize_cluster_details(stack_name, region_name):
+def initialize_cluster_details(cluster_name):
     """ Initialize cluster details.
     :args: cluster_name (string)
     """
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = stack_name
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = cluster_name
 
 
 def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, is_nsd_server,
@@ -127,27 +127,36 @@ if __name__ == "__main__":
         print("Total quorum count: ", quorum_count)
 
     # Define cluster name
-    initialize_cluster_details(TF_INV['stack_name'], TF_INV['region'])
+    initialize_cluster_details(TF_INV['stack_name'])
 
-    # Storage/NSD nodes to be quorum nodes
-    for each_ip in TF_INV['storage_instance_disk_map']:
-        if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (manager_count - 1):
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_nsd_server=True, is_quorum_node=True, is_manager_node=True)
-        else:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_nsd_server=True, is_quorum_node=True, is_manager_node=False)
-
-    # Compute desc node to be quorum nodes
+    # Compute desc node to be a quorum node (quorum = 1, manager = 1)
     for each_ip in TF_INV['compute_instance_desc_map']:
         initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                 ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                 is_nsd_server=True, is_quorum_node=True, is_manager_node=True)
 
-    quorums_left = quorum_count - len(TF_INV['storage_instance_disk_map'].keys()) - \
-        len(TF_INV['compute_instance_desc_map'].keys())
+    # Storage/NSD nodes to be quorum nodes (quorum_count - 2, manager - 2 as index starts from 0)
+    for each_ip in TF_INV['storage_instance_disk_map']:
+        if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (quorum_count - 2) and \
+                list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (manager_count - 2):
+            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                    is_nsd_server=True, is_quorum_node=True, is_manager_node=True)
+        elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (quorum_count - 2) and \
+                list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) > (manager_count - 2):
+            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                    is_nsd_server=True, is_quorum_node=True, is_manager_node=False)
+        else:
+            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                    is_nsd_server=True, is_quorum_node=False, is_manager_node=False)
+
+    if len(TF_INV['storage_instance_disk_map'].keys()) - len(TF_INV['compute_instance_desc_map'].keys()) > quorum_count:
+        quorums_left = quorum_count - len(TF_INV['storage_instance_disk_map'].keys()) - \
+            len(TF_INV['compute_instance_desc_map'].keys())
+    else:
+        quorums_left = 0
 
     if ARGUMENTS.verbose:
         print("Total quorums left and to be assigned to compute nodes: ", quorums_left)
