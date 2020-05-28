@@ -38,6 +38,13 @@ data local_file "id_rsa_pub_template" {
 data "template_file" "user_data" {
   template = <<EOF
 #!/usr/bin/env bash
+echo "${data.local_file.id_rsa_template.content}" > ~/.ssh/id_rsa
+echo "${data.local_file.id_rsa_pub_template.content}"  > ~/.ssh/id_rsa.pub
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
+chmod 600 ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa.pub
+chmod 600 ~/.ssh/authorized_keys
 if grep -q "Red Hat" /etc/os-release
 then
     if grep -q "platform:el8" /etc/os-release
@@ -63,13 +70,6 @@ wget https://releases.hashicorp.com/terraform/0.12.25/terraform_0.12.25_linux_am
 unzip terraform_0.12.25_linux_amd64.zip
 rm -rf terraform_0.12.25_linux_amd64.zip
 mv terraform /usr/bin
-echo "${data.local_file.id_rsa_template.content}" > ~/.ssh/id_rsa
-echo "${data.local_file.id_rsa_pub_template.content}"  > ~/.ssh/id_rsa.pub
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-chmod 600 ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa.pub
-chmod 600 ~/.ssh/authorized_keys
 EOF
 }
 
