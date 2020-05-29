@@ -62,6 +62,7 @@ locals {
   instance_ssh_wait_script_path = "${path.module}/wait_instance_ok_state.py"
   backup_to_backend_script_path = "${path.module}/backup_to_backend.py"
   send_message_script_path      = "${path.module}/send_sns_notification.py"
+  scale_tuning_param_path       = format("%s/%s", var.scale_infra_repo_clone_path, "scaleSNCParams.profile")
   scale_infra_path              = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
   cloud_playbook_path           = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
   infra_complete_message        = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
@@ -101,6 +102,14 @@ resource "null_resource" "dump_tf_inventory" {
   depends_on = [null_resource.remove_existing_tf_inv]
 }
 
+resource "null_resource" "create_scale_tuning_parameters" {
+  count = var.create_scale_cluster == true ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "echo \"%cluster:\" > ${local.scale_tuning_param_path}; echo \" maxblocksize=16M\" >> ${local.scale_tuning_param_path}; echo \" restripeOnDiskFailure=yes\" >> ${local.scale_tuning_param_path}; echo \" unmountOnDiskFail=meta\" >> ${local.scale_tuning_param_path}; echo \" readReplicaPolicy=local\" >> ${local.scale_tuning_param_path}; echo \" workerThreads=128\" >> ${local.scale_tuning_param_path}; echo \" maxStatCache=0\" >> ${local.scale_tuning_param_path}; echo \" maxFilesToCache=64k\" >> ${local.scale_tuning_param_path}; echo \" ignorePrefetchLUNCount=yes\" >> ${local.scale_tuning_param_path}; echo \" prefetchaggressivenesswrite=0\" >> ${local.scale_tuning_param_path}; echo \" prefetchaggressivenessread=2\" >> ${local.scale_tuning_param_path}"
+  }
+}
+
 resource "null_resource" "gitclone_ibm_spectrum_scale_install_infra" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
@@ -114,7 +123,7 @@ resource "null_resource" "prepare_ansible_inventory" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --ansible_scale_repo_path ${local.scale_infra_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --ansible_scale_repo_path ${local.scale_infra_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa --scale_tuning_profile_file ${local.scale_tuning_param_path}"
   }
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }
@@ -152,7 +161,7 @@ resource "null_resource" "call_scale_install_playbook" {
     interpreter = ["/bin/bash", "-c"]
     command     = "/usr/local/bin/ansible-playbook ${local.cloud_playbook_path}"
   }
-  depends_on = [null_resource.wait_for_instances_to_boot]
+  depends_on = [null_resource.wait_for_instances_to_boot, null_resource.create_scale_tuning_parameters]
 }
 
 resource "null_resource" "send_cluster_complete_message" {
