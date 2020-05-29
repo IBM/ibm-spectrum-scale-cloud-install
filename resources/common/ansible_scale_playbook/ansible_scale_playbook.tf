@@ -155,13 +155,22 @@ resource "null_resource" "wait_for_instances_to_boot" {
   depends_on = [null_resource.prepare_ansible_inventory]
 }
 
+resource "null_resource" "wait_for_metadata_execution" {
+  count = var.create_scale_cluster == true ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "sleep 60"
+  }
+  depends_on = [null_resource.wait_for_instances_to_boot]
+}
+
 resource "null_resource" "call_scale_install_playbook" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "/usr/local/bin/ansible-playbook ${local.cloud_playbook_path}"
   }
-  depends_on = [null_resource.wait_for_instances_to_boot, null_resource.create_scale_tuning_parameters]
+  depends_on = [null_resource.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
 }
 
 resource "null_resource" "send_cluster_complete_message" {
