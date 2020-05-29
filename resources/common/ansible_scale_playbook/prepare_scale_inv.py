@@ -64,19 +64,21 @@ def parse_tf_in_json(tf_inv_list):
     return raw_body
 
 
-def initialize_cluster_details(cluster_name):
+def initialize_cluster_details(cluster_name, scale_profile_file):
     """ Initialize cluster details.
-    :args: cluster_name (string)
+    :args: cluster_name (string), scale_profile_file (string)
     """
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = cluster_name
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_file).stem)
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(pathlib.PurePath(scale_profile_file).parent)
 
 
 def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, is_nsd_server,
-                            is_quorum_node=False, is_manager_node=False, is_gui_node=False):
+                            is_quorum_node=False, is_manager_node=False, is_gui_server=False):
     """ Initialize node details for cluster definition.
     :args: json_data (json), fqdn (string), ip_address (string),
            is_nsd_server (bool), is_quorum_node (bool),
-           is_manager_node (bool), is_gui_node (bool)
+           is_manager_node (bool), is_gui_server (bool)
     """
     CLUSTER_DEFINITION_JSON['node_details'].append({'fqdn': fqdn,
                                                     'ip_address': ip_address,
@@ -85,7 +87,7 @@ def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, is_n
                                                     'is_nsd_server': is_nsd_server,
                                                     'is_quorum_node': is_quorum_node,
                                                     'is_manager_node': is_manager_node,
-                                                    'is_gui_node': is_gui_node})
+                                                    'is_gui_server': is_gui_server})
 
 
 if __name__ == "__main__":
@@ -98,6 +100,8 @@ if __name__ == "__main__":
                         help='ibm-spectrum-scale-install-infra repository path')
     PARSER.add_argument('--ansible_ssh_private_key_file', required=True,
                         help='Ansible SSH private key file (Ex: /root/tf_data_path/id_rsa)')
+    PARSER.add_argument('--scale_tuning_profile_file', required=True,
+                        help='IBM Spectrum Scale SNC tuning profile file path')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
@@ -127,30 +131,41 @@ if __name__ == "__main__":
         print("Total quorum count: ", quorum_count)
 
     # Define cluster name
-    initialize_cluster_details(TF_INV['stack_name'])
+    initialize_cluster_details(TF_INV['stack_name'],
+                               ARGUMENTS.scale_tuning_profile_file)
 
     # Compute desc node to be a quorum node (quorum = 1, manager = 1)
     for each_ip in TF_INV['compute_instance_desc_map']:
         initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                 ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                is_nsd_server=True, is_quorum_node=True, is_manager_node=True)
+                                is_gui_server=True, is_nsd_server=True, is_quorum_node=True,
+                                is_manager_node=True)
 
     # Storage/NSD nodes to be quorum nodes (quorum_count - 2, manager - 2 as index starts from 0)
     for each_ip in TF_INV['storage_instance_disk_map']:
         if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (quorum_count - 2) and \
                 list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (manager_count - 2):
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_nsd_server=True, is_quorum_node=True, is_manager_node=True)
+            if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) != 0:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=False, is_nsd_server=True, is_quorum_node=True,
+                                        is_manager_node=True)
+            else:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=True, is_nsd_server=True, is_quorum_node=True,
+                                        is_manager_node=True)
         elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (quorum_count - 2) and \
                 list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) > (manager_count - 2):
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_nsd_server=True, is_quorum_node=True, is_manager_node=False)
+                                    is_gui_server=False, is_nsd_server=True, is_quorum_node=True,
+                                    is_manager_node=False)
         else:
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_nsd_server=True, is_quorum_node=False, is_manager_node=False)
+                                    is_gui_server=False, is_nsd_server=True, is_quorum_node=False,
+                                    is_manager_node=False)
 
     if len(TF_INV['storage_instance_disk_map'].keys()) - len(TF_INV['compute_instance_desc_map'].keys()) > quorum_count:
         quorums_left = quorum_count - len(TF_INV['storage_instance_disk_map'].keys()) - \
@@ -166,17 +181,20 @@ if __name__ == "__main__":
         for each_ip in TF_INV['compute_instances_by_ip'][0:quorums_left]:
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_nsd_server=False, is_quorum_node=True, is_manager_node=False)
+                                    is_gui_server=False, is_nsd_server=False, is_quorum_node=True,
+                                    is_manager_node=False)
         for each_ip in TF_INV['compute_instances_by_ip'][quorums_left:]:
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_nsd_server=False, is_quorum_node=False, is_manager_node=False)
+                                    is_gui_server=False, is_nsd_server=False, is_quorum_node=False,
+                                    is_manager_node=False)
 
     if not quorums_left:
         for each_ip in TF_INV['compute_instances_by_ip']:
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_nsd_server=False, is_quorum_node=False, is_manager_node=False)
+                                    is_gui_server=False, is_nsd_server=False, is_quorum_node=False,
+                                    is_manager_node=False)
 
     # Map storage nodes to failure groups based on AZ and subnet variations
     failure_group1, failure_group2 = [], []
