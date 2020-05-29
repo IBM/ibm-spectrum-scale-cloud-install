@@ -78,10 +78,9 @@ def aws_ec2_wait_running(region_name, instance_ids):
         print("[CLOUD-DEPLOY] Instance's did not obtain running-ok state. Existing!")
         print("%s: %s %s: %s" % ("stdout", out, "stderr", err))
         sys.exit(1)
-    else:
-        # User-data metadata could be still under execution, sleep for a minute
-        time.sleep(60)
-        print("[CLOUD-DEPLOY] Instance's obtained ok state.")
+    # User-data metadata could be still under execution, sleep for a minute
+    time.sleep(60)
+    print("[CLOUD-DEPLOY] Instance's user-data execution complete.")
 
 
 if __name__ == "__main__":
