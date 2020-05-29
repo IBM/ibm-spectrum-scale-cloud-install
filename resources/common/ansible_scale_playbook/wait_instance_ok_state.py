@@ -20,7 +20,6 @@ import json
 import re
 import subprocess
 import sys
-import time
 
 # Note: Use cloud_platform flag to alter the wait api per cloud.
 
@@ -78,10 +77,6 @@ def aws_ec2_wait_running(region_name, instance_ids):
         print("[CLOUD-DEPLOY] Instance's did not obtain running-ok state. Existing!")
         print("%s: %s %s: %s" % ("stdout", out, "stderr", err))
         sys.exit(1)
-    else:
-        # User-data metadata could be still under execution, sleep for a minute
-        time.sleep(60)
-        print("[CLOUD-DEPLOY] Instance's obtained ok state.")
 
 
 if __name__ == "__main__":
