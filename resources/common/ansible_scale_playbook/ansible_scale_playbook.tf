@@ -62,7 +62,7 @@ locals {
   instance_ssh_wait_script_path = "${path.module}/wait_instance_ok_state.py"
   backup_to_backend_script_path = "${path.module}/backup_to_backend.py"
   send_message_script_path      = "${path.module}/send_sns_notification.py"
-  scale_tuning_param_path       = format("%s/%s", var.scale_infra_repo_clone_path, "scaleSNCParams.profile")
+  scale_tuning_param_path       = format("%s/%s", var.scale_infra_repo_clone_path, "scalesncparams.profile")
   scale_infra_path              = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
   cloud_playbook_path           = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
   infra_complete_message        = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
