@@ -34,7 +34,7 @@ variable "public_subnets_cidr" {
        or ".tfvars.json"
     */
   type        = list(string)
-  default     = ["10.0.128.0/20", "10.0.144.0/20"]
+  default     = ["10.0.128.0/20", "10.0.144.0/20", "10.0.160.0/20"]
   description = "AWS Public subnet CIDR blocks."
 }
 
@@ -43,6 +43,6 @@ variable "private_subnets_cidr" {
        or ".tfvars.json"
     */
   type        = list(string)
-  default     = ["10.0.0.0/19", "10.0.32.0/19"]
+  default     = ["10.0.0.0/19", "10.0.32.0/19", "10.0.64.0/19"]
   description = "AWS Private subnet CIDR blocks."
 }

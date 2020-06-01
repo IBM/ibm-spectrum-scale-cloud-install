@@ -7,9 +7,9 @@
     3.  DHCP options association
     4.  Internet Gateway
     5.  Route tables (1 rt seperate for each AZ private, 1rt for all AZ public)
-    6.  PublicSubnet{1, 2 ..3}
-    7.  NAT{1, 2..3}EIP
-    8.  PrivateSubnet{1, 2 ..3}
+    6.  PublicSubnet {1, 2 ..3}
+    7.  NAT {1, 2..3} EIP
+    8.  PrivateSubnet {1, 2 ..3}
     9.  NAT gateway attachment
     10. VPC s3 endpoint
 */
