@@ -79,7 +79,7 @@ def initialize_scale_config_details(node_class, param_key, param_value):
     :args: node_class (string), param_key (string), param_value (string)
     """
     CLUSTER_DEFINITION_JSON['scale_config'].append({"nodeclass": node_class,
-                                                    "params": ["%s: %s" % (param_key, param_value)]})
+                                                    "params": [{param_key: param_value}]})
 
 
 def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, node_class,
