@@ -255,9 +255,13 @@ if __name__ == "__main__":
                        "usage": "descOnly", "pool": "system"})
 
     # Populate "scale_storage" list
+    if len(TF_INV['availability_zones']) == 3:
+        DATA_REPLICAS = len(TF_INV['availability_zones']) - 1
+    else:
+        DATA_REPLICAS = len(TF_INV['availability_zones'])
     CLUSTER_DEFINITION_JSON["scale_storage"].append({"filesystem": pathlib.PurePath(TF_INV['filesystem_mountpoint']).name,
                                                      "blockSize": TF_INV['filesystem_block_size'],
-                                                     "defaultDataReplicas": len(TF_INV['availability_zones']),
+                                                     "defaultDataReplicas": DATA_REPLICAS,
                                                      "defaultMetadataReplicas": 2,
                                                      "automaticMountOption": "true",
                                                      "defaultMountPoint": TF_INV['filesystem_mountpoint'],
