@@ -183,7 +183,7 @@ module "desc_compute_instance" {
   source          = "../../../resources/aws/compute/ec2"
   region          = var.region
   ami_id          = var.compute_ami_id
-  instance_type   = var.compute_instance_type
+  instance_type   = var.tiebreaker_instance_type
   key_name        = var.key_name
   total_ec2_count = var.total_compute_instances >= 1 ? 1 : 0
 

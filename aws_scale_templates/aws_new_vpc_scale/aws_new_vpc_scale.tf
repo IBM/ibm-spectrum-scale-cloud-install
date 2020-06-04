@@ -39,6 +39,7 @@ module "instances_module" {
   bastion_sec_group_id                     = module.bastion_module.bastion_sec_group_id
   compute_ami_id                           = var.compute_ami_id
   compute_instance_type                    = var.compute_instance_type
+  tiebreaker_instance_type                 = var.tiebreaker_instance_type
   storage_ami_id                           = var.storage_ami_id
   storage_instance_type                    = var.storage_instance_type
   root_volume_enable_delete_on_termination = true
