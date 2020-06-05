@@ -51,7 +51,8 @@ def parse_tf_in_json(tf_inv_list):
                 # Ex: "{10.0.7.157:[/dev/xvdf]}"
                 desc_match = re.match(r'{(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\[(.*)\]}',
                                       key_val_match.group(2))
-                raw_body[key_val_match.group(1)] = {desc_match.group(1): desc_match.group(2)}
+                if desc_match:
+                    raw_body[key_val_match.group(1)] = {desc_match.group(1): desc_match.group(2)}
             elif key_val_match.group(1) == "storage_instance_disk_map":
                 # Ex: "{10.0.30.220:[/dev/xvdf],10.0.8.162:[/dev/xvdf]}"}
                 raw_storage_disk_map = re.findall(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\[(.*?)\]',
@@ -121,9 +122,14 @@ if __name__ == "__main__":
     TF_INV = parse_tf_in_json(RAW_TF_INV)
     if ARGUMENTS.verbose:
         print("Parsed terraform output: %s" % json.dumps(TF_INV, indent=4))
-    total_node_count = len(TF_INV['compute_instances_by_ip']) + \
-        len(TF_INV['compute_instance_desc_map'].keys()) + \
-        len(TF_INV['storage_instance_disk_map'].keys())
+    if len(TF_INV['availability_zones']) > 1:
+        total_node_count = len(TF_INV['compute_instances_by_ip']) + \
+                len(TF_INV['compute_instance_desc_map'].keys()) + \
+                len(TF_INV['storage_instance_disk_map'].keys())
+    else:
+        total_node_count = len(TF_INV['compute_instances_by_ip']) + \
+                len(TF_INV['storage_instance_disk_map'].keys())
+
     if ARGUMENTS.verbose:
         print("Total node count: ", total_node_count)
 
@@ -145,16 +151,22 @@ if __name__ == "__main__":
     initialize_cluster_details(TF_INV['stack_name'],
                                ARGUMENTS.scale_tuning_profile_file)
 
-    # Compute desc node to be a quorum node (quorum = 1, manager = 1)
-    for each_ip in TF_INV['compute_instance_desc_map']:
-        initialize_node_details(socket.getfqdn(each_ip), each_ip,
-                                ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                is_gui_server=True, is_nsd_server=True, is_quorum_node=True,
-                                is_manager_node=False, node_class="computedescnodegrp")
+    if len(TF_INV['availability_zones']) > 1:
+        # Compute desc node to be a quorum node (quorum = 1, manager = 1)
+        for each_ip in TF_INV['compute_instance_desc_map']:
+            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                    is_gui_server=True, is_nsd_server=True, is_quorum_node=True,
+                                    is_manager_node=False, node_class="computedescnodegrp")
 
     # Storage/NSD nodes to be quorum nodes (quorum_count - 2, manager - 2 as index starts from 0)
+    if len(TF_INV['availability_zones']) > 1:
+        start_quorum_assign = quorum_count - 2
+    else:
+        start_quorum_assign = quorum_count
+
     for each_ip in TF_INV['storage_instance_disk_map']:
-        if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (quorum_count - 2) and \
+        if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (start_quorum_assign) and \
                 list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (manager_count - 1):
             if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) != 0:
                 initialize_node_details(socket.getfqdn(each_ip), each_ip,
@@ -166,7 +178,7 @@ if __name__ == "__main__":
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=True, is_nsd_server=True, is_quorum_node=True,
                                         is_manager_node=True, node_class="storagenodegrp")
-        elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (quorum_count - 2) and \
+        elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (start_quorum_assign) and \
                 list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) > (manager_count - 1):
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
@@ -178,11 +190,17 @@ if __name__ == "__main__":
                                     is_gui_server=False, is_nsd_server=True, is_quorum_node=False,
                                     is_manager_node=False, node_class="storagenodegrp")
 
-    if len(TF_INV['storage_instance_disk_map'].keys()) - len(TF_INV['compute_instance_desc_map'].keys()) > quorum_count:
-        quorums_left = quorum_count - len(TF_INV['storage_instance_disk_map'].keys()) - \
-            len(TF_INV['compute_instance_desc_map'].keys())
+    if len(TF_INV['availability_zones']) > 1:
+        if len(TF_INV['storage_instance_disk_map'].keys()) - len(TF_INV['compute_instance_desc_map'].keys()) > quorum_count:
+            quorums_left = quorum_count - len(TF_INV['storage_instance_disk_map'].keys()) - \
+                    len(TF_INV['compute_instance_desc_map'].keys())
+        else:
+            quorums_left = 0
     else:
-        quorums_left = 0
+        if len(TF_INV['storage_instance_disk_map'].keys()) > quorum_count:
+            quorums_left = 0
+        else:
+            quorums_left = quorum_count - len(TF_INV['storage_instance_disk_map'].keys())
 
     if ARGUMENTS.verbose:
         print("Total quorums left and to be assigned to compute nodes: ", quorums_left)
@@ -209,8 +227,9 @@ if __name__ == "__main__":
 
     # Define nodeclass specific GPFS config
     initialize_scale_config_details("computenodegrp", "pagepool", "1G")
-    initialize_scale_config_details("computedescnodegrp", "unmountOnDiskFail", "yes")
     initialize_scale_config_details("storagenodegrp", "pagepool", "1G")
+    if len(TF_INV['availability_zones']) > 1:
+        initialize_scale_config_details("computedescnodegrp", "unmountOnDiskFail", "yes")
 
     # Map storage nodes to failure groups based on AZ and subnet variations
     failure_group1, failure_group2 = [], []
@@ -248,11 +267,12 @@ if __name__ == "__main__":
                                    "usage": "dataAndMetadata", "pool": "system"})
 
     # Append "descOnly" disk details
-    disks_list.append({"device": list(TF_INV['compute_instance_desc_map'].values())[0],
-                       "nsd": "desconlynsd",
-                       "failureGroup": 3,
-                       "servers": list(TF_INV['compute_instance_desc_map'].keys())[0],
-                       "usage": "descOnly", "pool": "system"})
+    if len(TF_INV['availability_zones']) > 1:
+        disks_list.append({"device": list(TF_INV['compute_instance_desc_map'].values())[0],
+                           "nsd": "desconlynsd",
+                           "failureGroup": 3,
+                           "servers": list(TF_INV['compute_instance_desc_map'].keys())[0],
+                           "usage": "descOnly", "pool": "system"})
 
     # Populate "scale_storage" list
     if len(TF_INV['availability_zones']) == 3:
