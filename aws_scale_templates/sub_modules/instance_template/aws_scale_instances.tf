@@ -157,7 +157,7 @@ module "compute_instances" {
   ami_id          = var.compute_ami_id
   instance_type   = var.compute_instance_type
   key_name        = var.key_name
-  total_ec2_count = var.total_compute_instances >= 1 ? var.total_compute_instances - 1 : var.total_compute_instances
+  total_ec2_count = var.total_compute_instances
 
   enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
   enable_instance_termination_protection = var.enable_instance_termination_protection
@@ -185,7 +185,7 @@ module "desc_compute_instance" {
   ami_id          = var.compute_ami_id
   instance_type   = var.tiebreaker_instance_type
   key_name        = var.key_name
-  total_ec2_count = var.total_compute_instances >= 1 ? 1 : 0
+  total_ec2_count = length(var.private_instance_subnet_ids) > 1 ? 1 : 0
 
   enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
   enable_instance_termination_protection = var.enable_instance_termination_protection
@@ -204,7 +204,7 @@ module "desc_compute_instance" {
   private_key_path = module.generate_keys.private_key_path
   public_key_path  = module.generate_keys.public_key_path
 
-  instance_tags = { Name = "${var.stack_name}-compute-desc" }
+  instance_tags = { Name = "${var.stack_name}-tiebreaker-desc" }
 }
 
 module "storage_instances" {
