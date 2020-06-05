@@ -84,7 +84,13 @@ variable "compute_ami_id" {
 variable "compute_instance_type" {
   type        = string
   default     = "t2.medium"
-  description = "Instance type to use for the compute instance."
+  description = "Instance type to use for the compute instances."
+}
+
+variable "tiebreaker_instance_type" {
+  type        = string
+  default     = "t2.medium"
+  description = "Instance type to use for the tie breaker instance."
 }
 
 variable "total_compute_instances" {
@@ -113,7 +119,7 @@ variable "storage_ami_id" {
 variable "storage_instance_type" {
   type        = string
   default     = "t2.medium"
-  description = "Instance type to use for the storage instance."
+  description = "Instance type to use for the storage instances."
 }
 
 variable "total_storage_instances" {

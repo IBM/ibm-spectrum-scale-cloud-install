@@ -47,6 +47,12 @@ variable "compute_instance_type" {
   description = "Instance type to use for the compute instances."
 }
 
+variable "tiebreaker_instance_type" {
+  type        = string
+  default     = "t2.medium"
+  description = "Instance type to use for the tie breaker instance."
+}
+
 variable "total_storage_instances" {
   type        = string
   default     = 2
