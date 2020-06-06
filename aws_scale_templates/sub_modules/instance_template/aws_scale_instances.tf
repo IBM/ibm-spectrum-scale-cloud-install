@@ -32,6 +32,47 @@ module "cluster_host_iam_role" {
 EOF
 }
 
+module "cloudworkflows_iam_role" {
+  source           = "../../../resources/aws/compute/iam/iam_role_name"
+  role_name        = "${var.stack_name}-Scaleworkflows"
+  role_policy      = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "AWS": "${module.cluster_host_iam_role.iam_role_arn}"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+module "cloudworkflows_iam_policy" {
+  source                  = "../../../resources/aws/compute/iam/iam_role_policy"
+  role_policy_name_prefix = "${var.stack_name}-Scaleworkflows-"
+  iam_role_id             = module.cloudworkflows_iam_role.iam_role_id
+  iam_role_policy         = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Resource": "*",
+            "Effect": "Allow",
+            "Action": [
+                "cloudformation:DescribeStacks",
+                "s3:GetObject"
+            ]
+        }
+    ]
+}
+EOF
+}
+
 module "cluster_host_iam_policy" {
   source                  = "../../../resources/aws/compute/iam/iam_role_policy"
   role_policy_name_prefix = "${var.stack_name}-Cluster-"
