@@ -64,8 +64,15 @@ module "cloudworkflows_iam_policy" {
             "Resource": "*",
             "Effect": "Allow",
             "Action": [
-                "cloudformation:DescribeStacks",
-                "s3:GetObject"
+                "s3:GetObject",
+                "sns:Publish",
+                "ec2:DescribeIamInstanceProfileAssociations",
+                "sns:DeleteTopic",
+                "logs:DeleteLogGroup",
+                "ec2:DisassociateIamInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:DeleteRole",
+                "cloudformation:DescribeStacks"
             ]
         }
     ]
@@ -94,6 +101,7 @@ module "cluster_host_iam_policy" {
                 "ec2:Describe*",
                 "ec2:CreateTags*",
                 "ec2:ModifyInstanceAttribute",
+                "iam:GetRole",
                 "sns:DeleteTopic",
                 "sns:CreateTopic",
                 "sns:Unsubscribe",
