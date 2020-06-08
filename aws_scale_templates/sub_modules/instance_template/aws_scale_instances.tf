@@ -64,15 +64,27 @@ module "cloudworkflows_iam_policy" {
             "Resource": "*",
             "Effect": "Allow",
             "Action": [
-                "s3:GetObject",
-                "sns:Publish",
+                "iam:GetRole",
+                "ec2:TerminateInstances",
                 "ec2:DescribeIamInstanceProfileAssociations",
                 "sns:DeleteTopic",
                 "logs:DeleteLogGroup",
-                "ec2:DisassociateIamInstanceProfile",
+                "s3:DeleteObjectVersion",
+                "s3:ListBucketVersions",
                 "iam:RemoveRoleFromInstanceProfile",
                 "iam:DeleteRole",
-                "cloudformation:DescribeStacks"
+                "s3:ListBucket",
+                "s3:GetBucketVersioning",
+                "ec2:DescribeSecurityGroups",
+                "cloudformation:DescribeStacks",
+                "ec2:RevokeSecurityGroupIngress",
+                "s3:GetObject",
+                "sns:Publish",
+                "ec2:DisassociateIamInstanceProfile",
+                "iam:DeleteRolePolicy",
+                "ec2:DeleteSecurityGroup",
+                "ec2:ModifyInstanceAttribute",
+                "s3:GetObjectVersion"
             ]
         }
     ]
