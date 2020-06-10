@@ -32,6 +32,95 @@ module "cluster_host_iam_role" {
 EOF
 }
 
+module "cloudworkflows_iam_role" {
+  source           = "../../../resources/aws/compute/iam/iam_role_name"
+  role_name        = "${var.stack_name}-Scaleworkflows"
+  role_policy      = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "AWS": "${module.cluster_host_iam_role.iam_role_arn}"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+module "cloudworkflows_iam_policy" {
+  source                  = "../../../resources/aws/compute/iam/iam_role_policy"
+  role_policy_name_prefix = "${var.stack_name}-Scaleworkflows-"
+  iam_role_id             = module.cloudworkflows_iam_role.iam_role_id
+  iam_role_policy         = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Resource": "*",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:DescribeInstances",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:CreateRole",
+                "iam:PutRolePolicy",
+                "iam:AddRoleToInstanceProfile",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:DescribeVolumes",
+                "dynamodb:GetItem",
+                "ec2:DescribeAccountAttributes",
+                "sns:ListTagsForResource",
+                "iam:GetRole",
+                "dynamodb:PutItem",
+                "ec2:CreateTags",
+                "sns:CreateTopic",
+                "iam:DeleteRole",
+                "ec2:RunInstances",
+                "ec2:DescribeInstanceCreditSpecifications",
+                "cloudformation:DescribeStacks",
+                "ec2:RevokeSecurityGroupIngress",
+                "s3:PutObject",
+                "s3:GetObject",
+                "ec2:DisassociateIamInstanceProfile",
+                "iam:GetRolePolicy",
+                "iam:CreateInstanceProfile",
+                "sns:DeleteTopic",
+                "s3:DeleteObjectVersion",
+                "ec2:DescribeInstanceAttribute",
+                "s3:ListBucketVersions",
+                "s3:ListBucket",
+                "iam:ListInstanceProfilesForRole",
+                "iam:PassRole",
+                "sns:Publish",
+                "ec2:DescribeNetworkInterfaces",
+                "iam:DeleteRolePolicy",
+                "ec2:CreateSecurityGroup",
+                "ec2:ModifyInstanceAttribute",
+                "iam:DeleteInstanceProfile",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:TerminateInstances",
+                "sns:GetTopicAttributes",
+                "iam:GetInstanceProfile",
+                "ec2:DescribeIamInstanceProfileAssociations",
+                "logs:DeleteLogGroup",
+                "ec2:DescribeTags",
+                "s3:GetBucketVersioning",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeImages",
+                "ec2:DeleteSecurityGroup",
+                "s3:GetObjectVersion"
+            ]
+        }
+    ]
+}
+EOF
+}
+
 module "cluster_host_iam_policy" {
   source                  = "../../../resources/aws/compute/iam/iam_role_policy"
   role_policy_name_prefix = "${var.stack_name}-Cluster-"
@@ -53,10 +142,12 @@ module "cluster_host_iam_policy" {
                 "ec2:Describe*",
                 "ec2:CreateTags*",
                 "ec2:ModifyInstanceAttribute",
+                "iam:GetRole",
                 "sns:DeleteTopic",
                 "sns:CreateTopic",
                 "sns:Unsubscribe",
-                "sns:Subscribe"
+                "sns:Subscribe",
+                "sns:Publish"
             ]
         }
     ]
@@ -157,7 +248,7 @@ module "compute_instances" {
   ami_id          = var.compute_ami_id
   instance_type   = var.compute_instance_type
   key_name        = var.key_name
-  total_ec2_count = var.total_compute_instances >= 1 ? var.total_compute_instances - 1 : var.total_compute_instances
+  total_ec2_count = var.total_compute_instances
 
   enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
   enable_instance_termination_protection = var.enable_instance_termination_protection
@@ -185,7 +276,7 @@ module "desc_compute_instance" {
   ami_id          = var.compute_ami_id
   instance_type   = var.tiebreaker_instance_type
   key_name        = var.key_name
-  total_ec2_count = var.total_compute_instances >= 1 ? 1 : 0
+  total_ec2_count = length(var.private_instance_subnet_ids) > 1 ? 1 : 0
 
   enable_delete_on_termination           = var.root_volume_enable_delete_on_termination
   enable_instance_termination_protection = var.enable_instance_termination_protection
@@ -204,7 +295,7 @@ module "desc_compute_instance" {
   private_key_path = module.generate_keys.private_key_path
   public_key_path  = module.generate_keys.public_key_path
 
-  instance_tags = { Name = "${var.stack_name}-compute-desc" }
+  instance_tags = { Name = "${var.stack_name}-tiebreaker-desc" }
 }
 
 module "storage_instances" {
