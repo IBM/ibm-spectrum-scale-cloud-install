@@ -66,6 +66,7 @@ module "cloudworkflows_iam_policy" {
             "Action": [
                 "ec2:AuthorizeSecurityGroupIngress",
                 "ec2:DescribeInstances",
+                "ec2:DescribeInstanceStatus",
                 "iam:RemoveRoleFromInstanceProfile",
                 "iam:CreateRole",
                 "iam:PutRolePolicy",
