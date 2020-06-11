@@ -71,6 +71,7 @@ def initialize_cluster_details(cluster_name, scale_profile_file):
     :args: cluster_name (string), scale_profile_file (string)
     """
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = cluster_name
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "False"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_file).stem)
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(pathlib.PurePath(scale_profile_file).parent)
 
