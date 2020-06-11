@@ -63,7 +63,9 @@ then
 fi
 wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
 unzip awscli-exe-linux-x86_64.zip
-bash /root/aws/install
+cd aws/
+bash install
+cd -
 pip3 install -U ansible boto3 PyYAML
 if [[ ! "$PATH" =~ "/usr/local/bin" ]]
 then
