@@ -61,7 +61,12 @@ elif grep -q "SLES" /etc/os-release
 then
     zypper install -y python3 git wget unzip
 fi
-pip3 install -U awscli ansible boto3 PyYAML
+wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+unzip awscli-exe-linux-x86_64.zip
+cd aws/
+bash install
+cd -
+pip3 install -U ansible boto3 PyYAML
 if [[ ! "$PATH" =~ "/usr/local/bin" ]]
 then
     echo 'export PATH=$PATH:$HOME/bin:/usr/local/bin' >> ~/.bash_profile
