@@ -21,6 +21,7 @@ variable "private_key_path" {}
 variable "public_key_path" {}
 variable "instance_tags" {}
 variable "ebs_volume_type" {}
+variable "ebs_volume_iops" {}
 variable "ebs_volume_size" {}
 variable "total_ebs_volumes" {}
 variable "device_names" {}
@@ -94,13 +95,9 @@ resource "aws_instance" "main_with_0_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -123,13 +120,9 @@ resource "aws_instance" "main_with_1_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -141,6 +134,7 @@ resource "aws_instance" "main_with_1_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -158,13 +152,9 @@ resource "aws_instance" "main_with_2_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -176,12 +166,14 @@ resource "aws_instance" "main_with_2_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -199,13 +191,9 @@ resource "aws_instance" "main_with_3_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -217,18 +205,21 @@ resource "aws_instance" "main_with_3_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -246,13 +237,9 @@ resource "aws_instance" "main_with_4_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -264,24 +251,28 @@ resource "aws_instance" "main_with_4_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -299,13 +290,9 @@ resource "aws_instance" "main_with_5_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -317,30 +304,35 @@ resource "aws_instance" "main_with_5_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -358,13 +350,9 @@ resource "aws_instance" "main_with_6_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -376,36 +364,42 @@ resource "aws_instance" "main_with_6_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -423,13 +417,9 @@ resource "aws_instance" "main_with_7_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -441,42 +431,49 @@ resource "aws_instance" "main_with_7_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -494,13 +491,9 @@ resource "aws_instance" "main_with_8_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -512,50 +505,57 @@ resource "aws_instance" "main_with_8_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[7]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
-
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
   tags             = var.instance_tags
@@ -572,13 +572,9 @@ resource "aws_instance" "main_with_9_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -590,54 +586,63 @@ resource "aws_instance" "main_with_9_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[7]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[8]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -655,13 +660,9 @@ resource "aws_instance" "main_with_10_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -673,60 +674,70 @@ resource "aws_instance" "main_with_10_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[7]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[8]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[9]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -744,13 +755,9 @@ resource "aws_instance" "main_with_11_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -762,66 +769,77 @@ resource "aws_instance" "main_with_11_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[7]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[8]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[9]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[10]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -839,13 +857,9 @@ resource "aws_instance" "main_with_12_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -857,72 +871,84 @@ resource "aws_instance" "main_with_12_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[7]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[8]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[9]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[10]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[11]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -940,13 +966,9 @@ resource "aws_instance" "main_with_13_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -958,85 +980,99 @@ resource "aws_instance" "main_with_13_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
+
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[7]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[8]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[9]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[10]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[11]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[12]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
-
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
   tags             = var.instance_tags
@@ -1053,13 +1089,9 @@ resource "aws_instance" "main_with_14_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -1071,82 +1103,98 @@ resource "aws_instance" "main_with_14_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
+
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
+
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[7]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[8]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[9]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[10]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[11]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[12]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[13]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
@@ -1164,13 +1212,9 @@ resource "aws_instance" "main_with_15_data" {
   key_name                = var.key_name
   disable_api_termination = var.enable_instance_termination_protection
   security_groups         = var.instance_security_groups
-  /*
-        Don't covert below element syntax to HCL2, since element could only
-        avoid index overflow.
-    */
-  subnet_id            = element(var.instance_subnet_ids, count.index)
-  iam_instance_profile = var.instance_iam_instance_profile
-  placement_group      = var.instance_placement_group
+  subnet_id               = element(var.instance_subnet_ids, count.index)
+  iam_instance_profile    = var.instance_iam_instance_profile
+  placement_group         = var.instance_placement_group
 
   root_block_device {
     volume_size           = var.root_volume_size
@@ -1182,90 +1226,105 @@ resource "aws_instance" "main_with_15_data" {
     device_name = var.device_names[0]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[1]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[2]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[3]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[4]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[5]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[6]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[7]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[8]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[9]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[10]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[11]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[12]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[13]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   ebs_block_device {
     device_name = var.device_names[14]
     volume_size = var.ebs_volume_size
     volume_type = var.ebs_volume_type
+    iops        = var.ebs_volume_type == "gp2" ? null : var.ebs_volume_iops
   }
 
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
