@@ -263,6 +263,7 @@ module "compute_instances" {
   total_ebs_volumes = 0
   ebs_volume_type   = var.ebs_volume_type
   ebs_volume_size   = var.ebs_volume_size
+  ebs_volume_iops   = var.ebs_volume_iops
   device_names      = var.ebs_volume_device_names
 
   private_key_path = module.generate_keys.private_key_path
@@ -291,6 +292,7 @@ module "desc_compute_instance" {
   total_ebs_volumes = 1
   ebs_volume_type   = "gp2"
   ebs_volume_size   = 5
+  ebs_volume_iops   = var.ebs_volume_iops
   device_names      = var.ebs_volume_device_names
 
   private_key_path = module.generate_keys.private_key_path
@@ -319,6 +321,7 @@ module "storage_instances" {
   total_ebs_volumes = var.ebs_volumes_per_instance
   ebs_volume_type   = var.ebs_volume_type
   ebs_volume_size   = var.ebs_volume_size
+  ebs_volume_iops   = var.ebs_volume_iops
   device_names      = var.ebs_volume_device_names
 
   private_key_path = module.generate_keys.private_key_path
