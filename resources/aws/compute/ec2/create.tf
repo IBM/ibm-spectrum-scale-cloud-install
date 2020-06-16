@@ -54,6 +54,7 @@ then
     else
         yum install -y python3 git wget unzip
     fi
+    echo "exclude=kernel* redhat-release*" >> /etc/yum.conf
 elif grep -q "Ubuntu" /etc/os-release
 then
     apt update
