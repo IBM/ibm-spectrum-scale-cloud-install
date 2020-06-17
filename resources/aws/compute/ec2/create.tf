@@ -50,9 +50,9 @@ if grep -q "Red Hat" /etc/os-release
 then
     if grep -q "platform:el8" /etc/os-release
     then
-        dnf install -y python3 git wget unzip
+        dnf install -y python3 git wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
     else
-        yum install -y python3 git wget unzip
+        yum install -y python3 git wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
     fi
     echo "exclude=kernel* redhat-release*" >> /etc/yum.conf
 elif grep -q "Ubuntu" /etc/os-release
