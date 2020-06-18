@@ -252,25 +252,22 @@ if __name__ == "__main__":
                 failure_group2.append(each_ip)
 
     # Prepare dict of disks / NSD list
-    disks_list, nsd_index = [], 0
+    disks_list = []
     for each_ip, disk_per_ip in TF_INV['storage_instance_disk_map'].items():
         if each_ip in failure_group1:
             for each_disk in disk_per_ip:
-                nsd_index += 1
-                disks_list.append({"device": each_disk, "nsd": "nsd%s" % nsd_index,
+                disks_list.append({"device": each_disk,
                                    "failureGroup": 1, "servers": each_ip,
                                    "usage": "dataAndMetadata", "pool": "system"})
         if each_ip in failure_group2:
             for each_disk in disk_per_ip:
-                nsd_index += 1
-                disks_list.append({"device": each_disk, "nsd": "nsd%s" % nsd_index,
+                disks_list.append({"device": each_disk,
                                    "failureGroup": 2, "servers": each_ip,
                                    "usage": "dataAndMetadata", "pool": "system"})
 
     # Append "descOnly" disk details
     if len(TF_INV['availability_zones']) > 1:
         disks_list.append({"device": list(TF_INV['compute_instance_desc_map'].values())[0],
-                           "nsd": "desconlynsd",
                            "failureGroup": 3,
                            "servers": list(TF_INV['compute_instance_desc_map'].keys())[0],
                            "usage": "descOnly", "pool": "system"})
