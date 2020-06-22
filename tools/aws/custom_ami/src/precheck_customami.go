@@ -1,0 +1,181 @@
+package main
+
+import (
+	"bytes"
+	"flag"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"os/exec"
+	"regexp"
+	"runtime"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
+)
+
+var verbose bool
+var awsByol13Platforms = map[string]string{"Red Hat Enterprise Linux Server 7.7": "3.10.0-1062.el7.x86_64",
+	"Red Hat Enterprise Linux Server 7.8": "3.10.0-1127.el7.x86_64", "Red Hat Enterprise Linux 8.1": "4.18.0-147.el8.x86_64"}
+var scaleOSDepends = [8]string{"ksh", "libaio", "m4", "kernel-devel", "cpp", "gcc", "gcc-c", "kernel-headers"}
+var scaleFaq = "https://www.ibm.com/support/knowledgecenter/STXKQY/gpfsclustersfaq.html#linux__rhelkerntable"
+var utilityMessage = `======================================================================
+| Note:                                                              |
+| 1. This utility should only be used for initial screening of AWS   |
+|    custom AMI meant for deployment of IBM Specrum Stack BYOL 1.3   |
+|    release.                                                        |
+| 2. It is adivsed to follow the best practices for building AMI's.  |
+======================================================================`
+
+func getAWSinstanceID() (instanceid []byte) {
+	res, err := http.Get("http://169.254.169.254/latest/meta-data/instance-id")
+	if err != nil {
+		log.Fatalf("Could not identify AWS platform.\nReason: %v", err)
+	}
+	contents, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		log.Fatalf("Could not identify AWS platform.\nReason: %v", err)
+	} else {
+		instanceid = contents
+	}
+
+	return
+}
+
+func getOSplatform() (osPlatform string, osVersionid string) {
+	outBytes, err := ioutil.ReadFile("/etc/os-release")
+	if err != nil {
+		log.Fatalf("Reading file (/etc/release) failed: %v", err)
+	}
+
+	strOutput := string(outBytes)
+	reName := regexp.MustCompile("NAME=\"(.*)\"")
+	matchName := reName.FindStringSubmatch(strOutput)
+	if matchName != nil {
+		osPlatform = matchName[1]
+	} else {
+		log.Fatalf("Could not identify OS platform.")
+	}
+	reVersion := regexp.MustCompile("VERSION_ID=\"(.*)\"")
+	matchVersion := reVersion.FindStringSubmatch(strOutput)
+	if matchVersion != nil {
+		osVersionid = matchVersion[1]
+	} else {
+		log.Fatalf("Could not identify OS version")
+	}
+
+	return
+}
+
+func localCommandExecute(targetCmd string, targetCmdArgs []string) (cmdOut string) {
+	var stdout, stderr bytes.Buffer
+	cmd := exec.Command(targetCmd, targetCmdArgs...)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Executing command (%v) failed with (%v)\n", targetCmd, err)
+	}
+	outStr := string(stdout.Bytes())
+	cmdOut = strings.TrimSuffix(outStr, "\n")
+
+	return
+}
+
+func main() {
+	flag.BoolVar(&verbose, "verbose", false, "Sets verbose level to debug.")
+	flag.Parse()
+	if verbose {
+		log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+		log.SetLevel(log.InfoLevel)
+	}
+	fmt.Println(utilityMessage)
+	logfile, err := os.OpenFile("/var/log/precheck_customami.log", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatalf("Error opening log file: %v", err)
+	} else {
+		log.Info("Logging in to file: ", "/var/log/precheck_customami.log")
+	}
+	defer logfile.Close()
+	wrt := io.MultiWriter(os.Stdout, logfile)
+	log.SetOutput(wrt)
+
+	log.Info("1. Performing AWS platform check")
+	getAWSinstanceID()
+	log.Debug("Identified cloud platform: ", "AWS")
+
+	log.Info("2. Performing OS, arch check")
+	log.Debug("Identified OS flavor: ", runtime.GOOS)
+	log.Debug("Identified OS architecture: ", runtime.GOARCH)
+	if runtime.GOOS != "linux" {
+		log.Fatalf("IBM Spectrum Scale BYOL 1.3 release on AWS supports only \"%v\" flavor", runtime.GOOS)
+	}
+	if runtime.GOARCH != "amd64" {
+		log.Fatalf("IBM Spectrum Scale BYOL 1.3 release on AWS supports only \"%v\" achitecture", runtime.GOARCH)
+	}
+
+	log.Info("3. Performing OS platform, version, kernel check")
+	platform, version := getOSplatform()
+	log.Debug("Identified OS platform: ", platform)
+	log.Debug("Identified OS version id: ", version)
+	currentKernel := localCommandExecute("uname", []string{"-r"})
+	log.Debug("Identified kernel version: ", currentKernel)
+	value, isKeyPresent := awsByol13Platforms[platform+" "+version]
+	if isKeyPresent {
+		log.Debug("Identified OS platform (%v) is supported by BYOL 1.3 release", (platform + " " + version))
+		if value == currentKernel {
+			log.Debugf("Identified kernel version (%v) is supported by BYOL 1.3 release", currentKernel)
+		} else {
+			log.Infof("Supported OS vs. kernel matrix for BYOL 1.3 release: %v", awsByol13Platforms)
+			log.Info("For more details related to supported kernel levels, refer to ", scaleFaq)
+			log.Fatalf("Identified kernel version (%v) is NOT supported as AMI for BYOL 1.3 release", currentKernel)
+		}
+	} else {
+		log.Infof("Supported OS vs. kernel matrix for BYOL 1.3 release: %v", awsByol13Platforms)
+		log.Fatalf("Identified OS platform (%v) is NOT supported as AMI for BYOL 1.3 release", (platform + " " + version))
+	}
+
+	log.Info("4. Performing root volume size check")
+	rootVol := localCommandExecute("df", []string{"-h"})
+	reEBSpartitionName := regexp.MustCompile("/dev/xvd([a-z0-9]*)\\s+([0-9]*)G")
+	matchpartitionDetails := reEBSpartitionName.FindStringSubmatch(rootVol)
+	if matchpartitionDetails == nil {
+		log.Fatalf("Could not obtain root EBS parition.")
+	} else {
+		log.Debug("Identified root EBS parition: ", "/dev/xvd"+matchpartitionDetails[1])
+		log.Debugf("Identified root EBS size: %vG", matchpartitionDetails[2])
+	}
+	if matchpartitionDetails[2] > "100" {
+		log.Info("Supported root EBS size for BYOL 1.3 release: ", "100G")
+		log.Fatalf("Identified root EBS size: %vG", matchpartitionDetails[2])
+	}
+
+	log.Info("5. Performing OS dependencies (required for IBM Spectrum Scale) check")
+	allInstalledRPMs := localCommandExecute("rpm", []string{"-qa"})
+	for _, osdep := range scaleOSDepends {
+		rpmmatch, _ := regexp.MatchString(osdep, allInstalledRPMs)
+		if rpmmatch {
+			log.Debugf("OS dependency RPM (%v) installed", osdep)
+		} else {
+			log.Warnf("OS dependency RPM (%v) not installed (which could lead to deployment failure)", osdep)
+		}
+	}
+	log.Info("6. Performing IBM Spectrum Scale past installaions check")
+	gpfsrpmamtch, _ := regexp.MatchString("gpfs", allInstalledRPMs)
+	if gpfsrpmamtch {
+		log.Infof("Identified GPFS RPMs installation")
+		log.Fatalln("Any existing installation / version of GPFS RPMs are NOT supported inside of AMI for BYOL 1.3 release")
+	} else {
+		log.Debug("No versions of gpfs RPMs found.")
+	}
+	log.Info("=====================================================================")
+	log.Info(" All tests related to IBM Spectrum Scale AWS BYOL 1.3 are completed. ")
+	log.Info(" Kindly advised to follow the best practices for building AMI's. ")
+	log.Info("=====================================================================")
+}
