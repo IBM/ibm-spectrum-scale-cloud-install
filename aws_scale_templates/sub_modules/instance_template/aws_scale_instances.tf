@@ -257,7 +257,6 @@ module "compute_instances" {
   instance_placement_group               = null
   instance_security_groups               = [module.compute_security_group.sec_group_id[0]]
   instance_subnet_ids                    = length(var.private_instance_subnet_ids) >= 3 ? slice(var.private_instance_subnet_ids, 0, 2) : var.private_instance_subnet_ids
-  root_volume_size                       = var.compute_root_volume_size
   root_volume_type                       = var.compute_root_volume_type
 
   total_ebs_volumes = 0
@@ -286,7 +285,6 @@ module "desc_compute_instance" {
   instance_placement_group               = null
   instance_security_groups               = [module.compute_security_group.sec_group_id[0]]
   instance_subnet_ids                    = length(var.private_instance_subnet_ids) >= 3 ? list(var.private_instance_subnet_ids[2]) : var.private_instance_subnet_ids
-  root_volume_size                       = var.compute_root_volume_size
   root_volume_type                       = var.compute_root_volume_type
 
   total_ebs_volumes = 1
@@ -315,7 +313,6 @@ module "storage_instances" {
   instance_placement_group               = null
   instance_security_groups               = [module.storage_security_group.sec_group_id[0]]
   instance_subnet_ids                    = length(var.private_instance_subnet_ids) >= 3 ? slice(var.private_instance_subnet_ids, 0, 2) : var.private_instance_subnet_ids
-  root_volume_size                       = var.storage_root_volume_size
   root_volume_type                       = var.storage_root_volume_type
 
   total_ebs_volumes = var.ebs_volumes_per_instance
