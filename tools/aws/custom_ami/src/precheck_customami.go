@@ -143,19 +143,22 @@ func main() {
 
 	log.Info("4. Performing root volume size check")
 	rootVol := localCommandExecute("df", []string{"-h"})
-	reEBSpartitionName := regexp.MustCompile("/dev/xvd([a-z0-9]*)\\s+([0-9]*)G")
+	reEBSpartitionName := regexp.MustCompile("/dev/xvd([a-z0-9]*)\\s+([0-9]*)G\\s+(.*)G\\s+(.*)%\\s+\\/")
 	matchpartitionDetails := reEBSpartitionName.FindStringSubmatch(rootVol)
 	if matchpartitionDetails == nil {
 		log.Fatalf("Could not obtain root EBS parition.")
 	} else {
 		log.Debug("Identified root EBS parition: ", "/dev/xvd"+matchpartitionDetails[1])
 		log.Debugf("Identified root EBS size: %vG", matchpartitionDetails[2])
+		log.Debugf("Identified root EBS used size: %v%", matchpartitionDetails[4])
 	}
-	if matchpartitionDetails[2] > "100" {
-		log.Info("Supported root EBS size for BYOL 1.3 release: ", "100G")
-		log.Fatalf("Identified root EBS size: %vG", matchpartitionDetails[2])
+	if matchpartitionDetails[4] >= "90" {
+		log.Info("Identified root EBS used size is greater than 90%, which results in poor performance of IBM Spectrum Scale.")
+		log.Fatalln("It is recommended to keep atleast 40% of free space in root EBS volume for IBM Spectrum Scale installation.")
 	}
-
+	if matchpartitionDetails[4] >= "60" {
+		log.Warn("It is recommended to keep atleast 40% of free space in root EBS volume for IBM Spectrum Scale installation.")
+	}
 	log.Info("5. Performing OS dependencies (required for IBM Spectrum Scale) check")
 	allInstalledRPMs := localCommandExecute("rpm", []string{"-qa"})
 	for _, osdep := range scaleOSDepends {
