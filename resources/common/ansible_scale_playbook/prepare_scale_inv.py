@@ -86,11 +86,11 @@ def initialize_scale_config_details(node_class, param_key, param_value):
 
 def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, node_class,
                             is_nsd_server=False, is_quorum_node=False, is_manager_node=False,
-                            is_gui_server=False):
+                            is_collector_node=False, is_gui_server=False):
     """ Initialize node details for cluster definition.
     :args: json_data (json), fqdn (string), ip_address (string), node_class (string),
            is_nsd_server (bool), is_quorum_node (bool),
-           is_manager_node (bool), is_gui_server (bool)
+           is_manager_node (bool), is_collector_node (bool), is_gui_server (bool)
     """
     CLUSTER_DEFINITION_JSON['node_details'].append({'fqdn': fqdn,
                                                     'ip_address': ip_address,
@@ -99,6 +99,7 @@ def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, node
                                                     'is_nsd_server': is_nsd_server,
                                                     'is_quorum_node': is_quorum_node,
                                                     'is_manager_node': is_manager_node,
+                                                    'is_collector_node': is_collector_node,
                                                     'is_gui_server': is_gui_server,
                                                     'scale_nodeclass': [node_class]})
 
@@ -157,8 +158,9 @@ if __name__ == "__main__":
         for each_ip in TF_INV['compute_instance_desc_map']:
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_gui_server=True, is_nsd_server=True, is_quorum_node=True,
-                                    is_manager_node=False, node_class="computedescnodegrp")
+                                    is_gui_server=False, is_collector_node=False, is_nsd_server=True,
+                                    is_quorum_node=True, is_manager_node=False,
+                                    node_class="computedescnodegrp")
 
     # Storage/NSD nodes to be quorum nodes (quorum_count - 2, manager - 2 as index starts from 0)
     if len(TF_INV['availability_zones']) > 1:
@@ -169,22 +171,43 @@ if __name__ == "__main__":
     for each_ip in TF_INV['storage_instance_disk_map']:
         if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (start_quorum_assign) and \
                 list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (manager_count - 1):
-            if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) != 0:
+            if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) == 0:
                 initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                        is_gui_server=False, is_nsd_server=True, is_quorum_node=True,
-                                        is_manager_node=True, node_class="storagenodegrp")
+                                        is_gui_server=True, is_collector_node=True, is_nsd_server=True,
+                                        is_quorum_node=True, is_manager_node=True,
+                                        node_class="storagenodegrp")
+            elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) == 1:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=True, is_collector_node=True, is_nsd_server=True,
+                                        is_quorum_node=True, is_manager_node=True,
+                                        node_class="storagenodegrp")
             else:
                 initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                        is_gui_server=True, is_nsd_server=True, is_quorum_node=True,
-                                        is_manager_node=True, node_class="storagenodegrp")
+                                        is_gui_server=False, is_collector_node=False, is_nsd_server=True,
+                                        is_quorum_node=True, is_manager_node=True,
+                                        node_class="storagenodegrp")
         elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (start_quorum_assign) and \
                 list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) > (manager_count - 1):
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_gui_server=False, is_nsd_server=True, is_quorum_node=True,
-                                    is_manager_node=False, node_class="storagenodegrp")
+            if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) == 0:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=True, is_collector_node=True, is_nsd_server=True,
+                                        is_quorum_node=True, is_manager_node=False,
+                                        node_class="storagenodegrp")
+            if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) == 1:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=True, is_collector_node=True, is_nsd_server=True,
+                                        is_quorum_node=True, is_manager_node=False,
+                                        node_class="storagenodegrp")
+            else:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=False, is_nsd_server=True, is_quorum_node=True,
+                                        is_manager_node=False, node_class="storagenodegrp")
         else:
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
@@ -209,22 +232,47 @@ if __name__ == "__main__":
     # Additional quorums assign to compute nodes
     if quorums_left:
         for each_ip in TF_INV['compute_instances_by_ip'][0:quorums_left]:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_gui_server=False, is_nsd_server=False, is_quorum_node=True,
-                                    is_manager_node=False, node_class="computenodegrp")
+            if TF_INV['compute_instances_by_ip'].index(each_ip) != 0:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=False, is_collector_node=False, is_nsd_server=False,
+                                        is_quorum_node=True, is_manager_node=False,
+                                        node_class="computenodegrp")
+            else:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=False, is_collector_node=False, is_nsd_server=False,
+                                        is_quorum_node=True, is_manager_node=False,
+                                        node_class="computenodegrp")
+
         for each_ip in TF_INV['compute_instances_by_ip'][quorums_left:]:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_gui_server=False, is_nsd_server=False, is_quorum_node=False,
-                                    is_manager_node=False, node_class="computenodegrp")
+            if TF_INV['compute_instances_by_ip'].index(each_ip) != 0:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=False, is_collector_node=False, is_nsd_server=False,
+                                        is_quorum_node=False, is_manager_node=False,
+                                        node_class="computenodegrp")
+            else:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=False, is_collector_node=False, is_nsd_server=False,
+                                        is_quorum_node=False, is_manager_node=False,
+                                        node_class="computenodegrp")
 
     if not quorums_left:
         for each_ip in TF_INV['compute_instances_by_ip']:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                    is_gui_server=False, is_nsd_server=False, is_quorum_node=False,
-                                    is_manager_node=False, node_class="computenodegrp")
+            if TF_INV['compute_instances_by_ip'].index(each_ip) != 0:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=False, is_collector_node=False, is_nsd_server=False,
+                                        is_quorum_node=False, is_manager_node=False,
+                                        node_class="computenodegrp")
+            else:
+                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
+                                        is_gui_server=False, is_collector_node=False, is_nsd_server=False,
+                                        is_quorum_node=False, is_manager_node=False,
+                                        node_class="computenodegrp")
 
     # Define nodeclass specific GPFS config
     initialize_scale_config_details("computenodegrp", "pagepool", "1G")
