@@ -136,7 +136,9 @@ if __name__ == "__main__":
         print("Total node count: ", total_node_count)
 
     # Determine total number of quorum, manager nodes to be in the cluster
-    quorum_count, manager_count = 0, 3
+    # manager designates the node as part of the pool of nodes from which
+    # file system managers and token managers are selected.
+    quorum_count, manager_count = 0, 2
     if total_node_count < 4:
         quorum_count = total_node_count
     elif 4 <= total_node_count < 10:
