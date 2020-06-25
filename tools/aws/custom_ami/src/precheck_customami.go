@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -143,17 +144,36 @@ func main() {
 
 	log.Info("4. Performing root volume size check")
 	rootVol := localCommandExecute("df", []string{"-h"})
-	reEBSpartitionName := regexp.MustCompile("/dev/xvd([a-z0-9]*)\\s+([0-9]*)G")
+	reEBSpartitionName := regexp.MustCompile("/dev/xvd([a-z0-9]*)\\s+([0-9]*[GM])\\s+(.*[GM])\\s+([0-9]*[GM])\\s+(.*%)\\s+\\/")
 	matchpartitionDetails := reEBSpartitionName.FindStringSubmatch(rootVol)
 	if matchpartitionDetails == nil {
 		log.Fatalf("Could not obtain root EBS parition.")
 	} else {
 		log.Debug("Identified root EBS parition: ", "/dev/xvd"+matchpartitionDetails[1])
-		log.Debugf("Identified root EBS size: %vG", matchpartitionDetails[2])
+		log.Debug("Identified root EBS size: ", matchpartitionDetails[2])
+		log.Debug("Identified root EBS available size: ", matchpartitionDetails[4])
+		log.Debug("Identified root EBS use percentage: ", matchpartitionDetails[5])
 	}
-	if matchpartitionDetails[2] > "100" {
-		log.Info("Supported root EBS size for BYOL 1.3 release: ", "100G")
-		log.Fatalf("Identified root EBS size: %vG", matchpartitionDetails[2])
+	if strings.Contains(matchpartitionDetails[4], "G") {
+		sizeGB := strings.Trim(matchpartitionDetails[4], "G")
+		intsizeGB, _ := strconv.Atoi(sizeGB)
+		if intsizeGB <= 100 {
+			log.Info("Identified root EBS available size is less than 100G.")
+			log.Warn("It is recommended to keep atleast 100GB of free space in root EBS volume for IBM Spectrum Scale installation.")
+		} else if intsizeGB <= 10 {
+			log.Info("Identified root EBS available size is less than 10G.")
+			log.Fatalln("It is recommended to keep atleast 10GB of free space in root EBS volume for IBM Spectrum Scale installation.")
+		}
+	} else if strings.Contains(matchpartitionDetails[4], "M") {
+		sizeMB := strings.Trim(matchpartitionDetails[4], "M")
+		intsizeMB, _ := strconv.Atoi(sizeMB)
+		if intsizeMB <= 102400 {
+			log.Info("Identified root EBS available size is less than 100G.")
+			log.Warn("It is recommended to keep atleast 100GB of free space in root EBS volume for IBM Spectrum Scale installation.")
+		} else if intsizeMB <= 10240 {
+			log.Info("Identified root EBS available size is less than 10G.")
+			log.Fatalln("It is recommended to keep atleast 10GB of free space in root EBS volume for IBM Spectrum Scale installation.")
+		}
 	}
 
 	log.Info("5. Performing OS dependencies (required for IBM Spectrum Scale) check")
@@ -166,6 +186,7 @@ func main() {
 			log.Warnf("OS dependency RPM (%v) not installed (which could lead to deployment failure)", osdep)
 		}
 	}
+
 	log.Info("6. Performing IBM Spectrum Scale past installaions check")
 	gpfsrpmamtch, _ := regexp.MatchString("gpfs", allInstalledRPMs)
 	if gpfsrpmamtch {
