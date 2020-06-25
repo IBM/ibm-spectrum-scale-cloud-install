@@ -180,7 +180,7 @@ if __name__ == "__main__":
             elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) == 1:
                 initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                        is_gui_server=True, is_collector_node=True, is_nsd_server=True,
+                                        is_gui_server=False, is_collector_node=True, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True,
                                         node_class="storagenodegrp")
             else:
@@ -200,7 +200,7 @@ if __name__ == "__main__":
             if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) == 1:
                 initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
-                                        is_gui_server=True, is_collector_node=True, is_nsd_server=True,
+                                        is_gui_server=False, is_collector_node=True, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=False,
                                         node_class="storagenodegrp")
             else:
