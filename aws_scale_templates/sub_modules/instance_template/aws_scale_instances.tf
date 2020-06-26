@@ -34,7 +34,7 @@ EOF
 
 module "cloudworkflows_iam_role" {
   source           = "../../../resources/aws/compute/iam/iam_role_name"
-  role_name        = "${var.stack_name}-Scaleworkflows"
+  role_name        = "${var.stack_name}-${var.region}-Scaleworkflows"
   role_policy      = <<EOF
 {
   "Version": "2012-10-17",
