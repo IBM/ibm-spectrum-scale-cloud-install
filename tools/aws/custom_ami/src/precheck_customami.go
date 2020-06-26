@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"os/exec"
@@ -144,7 +145,7 @@ func main() {
 
 	log.Info("4. Performing root volume size check")
 	rootVol := localCommandExecute("df", []string{"-h"})
-	reEBSpartitionName := regexp.MustCompile("/dev/xvd([a-z0-9]*)\\s+([0-9]*[GM])\\s+(.*[GM])\\s+([0-9]*[GM])\\s+(.*%)\\s+\\/")
+	reEBSpartitionName := regexp.MustCompile("/dev/xvd([a-z0-9]*)\\s+([0-9]*[GM])\\s+(.*[GM])\\s+(.*[GM])\\s+(.*%)\\s+\\/")
 	matchpartitionDetails := reEBSpartitionName.FindStringSubmatch(rootVol)
 	if matchpartitionDetails == nil {
 		log.Fatalf("Could not obtain root EBS parition.")
@@ -156,23 +157,19 @@ func main() {
 	}
 	if strings.Contains(matchpartitionDetails[4], "G") {
 		sizeGB := strings.Trim(matchpartitionDetails[4], "G")
-		intsizeGB, _ := strconv.Atoi(sizeGB)
-		if intsizeGB <= 100 {
-			log.Info("Identified root EBS available size is less than 100G.")
-			log.Warn("It is recommended to keep atleast 100GB of free space in root EBS volume for IBM Spectrum Scale installation.")
-		} else if intsizeGB <= 10 {
-			log.Info("Identified root EBS available size is less than 10G.")
-			log.Fatalln("It is recommended to keep atleast 10GB of free space in root EBS volume for IBM Spectrum Scale installation.")
+		intsizeGB, _ := strconv.ParseFloat(sizeGB, 1)
+		if math.Ceil(intsizeGB) <= 10 {
+			fmt.Println("Identified root EBS available size is less than 10G.")
+			fmt.Println("It is recommended to keep atleast 10GB of free space in root EBS volume for IBM Spectrum Scale installation.")
+			fmt.Println("However it is advised to keep atleast 100GB of free space in root EBS volume for better performance.")
 		}
 	} else if strings.Contains(matchpartitionDetails[4], "M") {
 		sizeMB := strings.Trim(matchpartitionDetails[4], "M")
-		intsizeMB, _ := strconv.Atoi(sizeMB)
-		if intsizeMB <= 102400 {
-			log.Info("Identified root EBS available size is less than 100G.")
-			log.Warn("It is recommended to keep atleast 100GB of free space in root EBS volume for IBM Spectrum Scale installation.")
-		} else if intsizeMB <= 10240 {
-			log.Info("Identified root EBS available size is less than 10G.")
-			log.Fatalln("It is recommended to keep atleast 10GB of free space in root EBS volume for IBM Spectrum Scale installation.")
+		intsizeMB, _ := strconv.ParseFloat(sizeMB, 1)
+		if math.Ceil(intsizeMB) <= 10240 {
+			fmt.Println("Identified root EBS available size is less than 10G.")
+			fmt.Println("It is recommended to keep atleast 10GB of free space in root EBS volume for IBM Spectrum Scale installation.")
+			fmt.Println("However it is advised to keep atleast 100GB of free space in root EBS volume for better performance.")
 		}
 	}
 
