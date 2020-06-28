@@ -66,12 +66,13 @@ def parse_tf_in_json(tf_inv_list):
     return raw_body
 
 
-def initialize_cluster_details(cluster_name, scale_profile_file):
+def initialize_cluster_details(cluster_name, scale_profile_file, scale_replica_config):
     """ Initialize cluster details.
-    :args: cluster_name (string), scale_profile_file (string)
+    :args: cluster_name (string), scale_profile_file (string), scale_replica_config (bool)
     """
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = cluster_name
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "False"
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_file).stem)
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(pathlib.PurePath(scale_profile_file).parent)
 
@@ -152,8 +153,14 @@ if __name__ == "__main__":
         print("Total quorum count: ", quorum_count)
 
     # Define cluster name
-    initialize_cluster_details(TF_INV['stack_name'],
-                               ARGUMENTS.scale_tuning_profile_file)
+    if len(TF_INV['availability_zones']) > 1:
+        initialize_cluster_details(TF_INV['stack_name'],
+                                   ARGUMENTS.scale_tuning_profile_file,
+                                   "True")
+    else:
+        initialize_cluster_details(TF_INV['stack_name'],
+                                   ARGUMENTS.scale_tuning_profile_file,
+                                   "False")
 
     if len(TF_INV['availability_zones']) > 1:
         # Compute desc node to be a quorum node (quorum = 1, manager = 0)
