@@ -13,6 +13,7 @@ variable "instance_security_groups" {}
 variable "instance_subnet_ids" {}
 variable "instance_iam_instance_profile" {}
 variable "instance_placement_group" {}
+variable "root_volume_size" {}
 variable "root_volume_type" {}
 variable "enable_delete_on_termination" {}
 variable "enable_instance_termination_protection" {}
@@ -100,6 +101,7 @@ resource "aws_instance" "main_with_0_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -124,6 +126,7 @@ resource "aws_instance" "main_with_1_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -155,6 +158,7 @@ resource "aws_instance" "main_with_2_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -193,6 +197,7 @@ resource "aws_instance" "main_with_3_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -238,6 +243,7 @@ resource "aws_instance" "main_with_4_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -290,6 +296,7 @@ resource "aws_instance" "main_with_5_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -349,6 +356,7 @@ resource "aws_instance" "main_with_6_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -415,6 +423,7 @@ resource "aws_instance" "main_with_7_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -488,6 +497,7 @@ resource "aws_instance" "main_with_8_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -568,6 +578,7 @@ resource "aws_instance" "main_with_9_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -655,6 +666,7 @@ resource "aws_instance" "main_with_10_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -749,6 +761,7 @@ resource "aws_instance" "main_with_11_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -850,6 +863,7 @@ resource "aws_instance" "main_with_12_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -958,6 +972,7 @@ resource "aws_instance" "main_with_13_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -1080,6 +1095,7 @@ resource "aws_instance" "main_with_14_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
@@ -1202,6 +1218,7 @@ resource "aws_instance" "main_with_15_data" {
   placement_group         = var.instance_placement_group
 
   root_block_device {
+    volume_size           = var.root_volume_size
     volume_type           = var.root_volume_type
     delete_on_termination = var.enable_delete_on_termination
   }
