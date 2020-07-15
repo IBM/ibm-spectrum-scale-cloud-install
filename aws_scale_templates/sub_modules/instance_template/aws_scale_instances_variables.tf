@@ -162,7 +162,7 @@ variable "ebs_volume_device_names" {
   type = list(string)
   default = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
     "/dev/xvdk", "/dev/xvdl", "/dev/xvdm", "/dev/xvdn", "/dev/xvdo",
-  "/dev/xvdp", ]
+  "/dev/xvdp", "/dev/xvdq", "/dev/xvdr", "/dev/xvds", "/dev/xvdt"]
   description = "Name of the block device to mount on the instance"
 }
 
