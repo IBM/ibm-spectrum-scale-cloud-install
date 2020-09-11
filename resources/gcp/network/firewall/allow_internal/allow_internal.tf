@@ -44,7 +44,7 @@ output "firewall_id" {
 
 output "firewall_name" {
   value      = format("%s-allow-bastion", var.firewall_name_prefix)
-  depends_on = [google_compute_firewall.allow_internal.id]
+  depends_on = [google_compute_firewall.allow_internal]
 }
 
 output "firewall_uri" {

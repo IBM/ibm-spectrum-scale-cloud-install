@@ -1,6 +1,11 @@
 /*
-  Create
+  Create compute and storage GCP VMinstances
 */
+
+module "generate_keys" {
+  source       = "../../../resources/common/generate_keys"
+  tf_data_path = var.tf_data_path
+}
 
 module "compute_instances_firewall" {
   source               = "../../../resources/gcp/network/firewall/allow_internal"
@@ -11,7 +16,7 @@ module "compute_instances_firewall" {
 
 module "compute_instances" {
   source               = "../../../resources/gcp/compute_engine/vm_instance/vm_instance_multiple_zones"
-  total_instances      = var.total_compute_instances - 1
+  total_instances      = var.total_compute_instances
   zones                = var.zones
   machine_type         = var.compute_machine_type
   instance_name_prefix = "compute"
@@ -25,11 +30,13 @@ module "compute_instances" {
   scopes               = var.scopes
   ssh_user_name        = var.instances_ssh_user_name
   ssh_key_path         = var.instances_ssh_key_path
+  private_key_path     = module.generate_keys.private_key_path
+  public_key_path      = module.generate_keys.public_key_path
 }
 
 module "desc_compute_instance" {
   source                  = "../../../resources/gcp/compute_engine/vm_instance/vm_instance_1_disk"
-  zone                    = length(var.zones) == 2 ? var.zones.1 : var.zones.0
+  zone                    = length(var.zones) > 1 ? var.zones.1 : var.zones.0
   machine_type            = var.compute_machine_type
   instance_name_prefix    = "compute-desc"
   boot_disk_size          = var.compute_boot_disk_size
@@ -45,6 +52,8 @@ module "desc_compute_instance" {
   data_disk_type          = var.data_disk_type
   ssh_user_name           = var.instances_ssh_user_name
   ssh_key_path            = var.instances_ssh_key_path
+  private_key_path        = module.generate_keys.private_key_path
+  public_key_path         = module.generate_keys.public_key_path
   operator_email          = var.operator_email
   scopes                  = var.scopes
 }
@@ -77,7 +86,7 @@ module "create_data_disks_2A_zone" {
 
 module "storage_instances_1A_zone" {
   source               = "../../../resources/gcp/compute_engine/vm_instance/vm_instance_0_disk"
-  total_instances      = length(var.zones) == 1 ? var.total_storage_instances : var.total_storage_instances / 2
+  total_instances      = length(var.zones) > 1 ? var.total_storage_instances / 2 : var.total_storage_instances
   zone                 = var.zones.0
   instance_name_prefix = "storage"
   machine_type         = var.storage_machine_type
@@ -89,13 +98,15 @@ module "storage_instances_1A_zone" {
   subnet_name          = var.private_subnet_name
   ssh_user_name        = var.instances_ssh_user_name
   ssh_key_path         = var.instances_ssh_key_path
+  private_key_path     = module.generate_keys.private_key_path
+  public_key_path      = module.generate_keys.public_key_path
   operator_email       = var.operator_email
   scopes               = var.scopes
 }
 
 module "storage_instances_2A_zone" {
   source               = "../../../resources/gcp/compute_engine/vm_instance/vm_instance_0_disk"
-  total_instances      = length(var.zones) == 1 ? 0 : var.total_storage_instances / 2
+  total_instances      = length(var.zones) > 1 ? var.total_storage_instances / 2 : 0
   zone                 = var.zones.1
   instance_name_prefix = "storage"
   machine_type         = var.storage_machine_type
@@ -107,20 +118,22 @@ module "storage_instances_2A_zone" {
   subnet_name          = var.private_subnet_name
   ssh_user_name        = var.instances_ssh_user_name
   ssh_key_path         = var.instances_ssh_key_path
+  private_key_path     = module.generate_keys.private_key_path
+  public_key_path      = module.generate_keys.public_key_path
   operator_email       = var.operator_email
   scopes               = var.scopes
 }
 
 module "attach_data_disk_1A_zone" {
   source                 = "../../../resources/gcp/storage/compute_disk_attach"
-  total_disk_attachments = length(var.zones) == 1 ? local.total_nsd_disks : local.total_nsd_disks / 2
+  total_disk_attachments = length(var.zones) > 1 ? local.total_nsd_disks / 2 : local.total_nsd_disks
   data_disk_ids          = module.create_data_disks_1A_zone.data_disk_id
   instance_ids           = module.storage_instances_1A_zone.instance_ids
 }
 
 module "attach_data_disk_2A_zone" {
   source                 = "../../../resources/gcp/storage/compute_disk_attach"
-  total_disk_attachments = length(var.zones) == 1 ? 0 : local.total_nsd_disks / 2
+  total_disk_attachments = length(var.zones) > 1 ? local.total_nsd_disks / 2 : 0
   data_disk_ids          = module.create_data_disks_2A_zone.data_disk_id
   instance_ids           = module.storage_instances_2A_zone.instance_ids
 }

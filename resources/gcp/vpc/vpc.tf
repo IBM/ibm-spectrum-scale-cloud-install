@@ -31,7 +31,7 @@ resource "google_compute_network" "main" {
 
 output "vpc_name" {
   value      = format("%s-vpc", var.vpc_name_prefix)
-  depends_on = [google_compute_network.main.id]
+  depends_on = [google_compute_network.main]
 }
 
 output "vpc_id" {

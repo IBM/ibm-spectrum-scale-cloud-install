@@ -34,6 +34,12 @@ variable "vpc_name" {
   description = "GCP VPC name."
 }
 
+variable "tf_data_path" {
+  type        = string
+  default     = "~/tf_data_path"
+  description = "Data path to be used by terraform for storing ssh keys."
+}
+
 variable "private_subnet_name" {
   type        = string
   default     = "spectrum-scale-private-subnet"

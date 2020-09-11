@@ -23,7 +23,7 @@ resource "google_compute_instance" "bastion_instance" {
   zone         = var.zone
 
   allow_stopping_for_update = true
-  tags = var.vm_instance_tags
+  tags                      = var.vm_instance_tags
 
   boot_disk {
     auto_delete = true
@@ -65,7 +65,7 @@ output "bastion_instance_id" {
 
 output "bastion_instance_name" {
   value      = format("%s-%s", var.instance_name_prefix, "bastion")
-  depends_on = [google_compute_instance.bastion_instance.instance_id]
+  depends_on = [google_compute_instance.bastion_instance]
 }
 
 output "bastion_instance_uri" {

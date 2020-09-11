@@ -40,7 +40,7 @@ resource "google_compute_subnetwork" "subnet" {
 
 output "subnet_name" {
   value      = format("%s-subnet", var.subnet_name_prefix)
-  depends_on = [google_compute_subnetwork.subnet.id]
+  depends_on = [google_compute_subnetwork.subnet]
 }
 
 output "subnet_id" {
