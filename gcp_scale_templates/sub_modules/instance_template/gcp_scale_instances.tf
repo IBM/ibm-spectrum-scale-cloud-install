@@ -1,6 +1,10 @@
 /*
-  Create compute and storage GCP VMinstances
+  Create compute and storage GCP VM instances.
 */
+
+terraform {
+  backend "gcs" {}
+}
 
 module "generate_keys" {
   source       = "../../../resources/common/generate_keys"

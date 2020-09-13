@@ -5,6 +5,10 @@
     3. (Compute, Storage) Instances
 */
 
+terraform {
+  backend "gcs" {}
+}
+
 module "vpc_module" {
   source                = "../sub_modules/vpc_template"
   stack_name            = var.stack_name

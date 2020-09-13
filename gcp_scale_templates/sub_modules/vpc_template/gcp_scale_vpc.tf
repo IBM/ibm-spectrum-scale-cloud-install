@@ -5,6 +5,8 @@
     1.  VPC
     2.  PublicSubnet
     3.  PrivateSubnet
+    4.  Router
+    5.  Cloud NAT
 */
 
 module "vpc" {

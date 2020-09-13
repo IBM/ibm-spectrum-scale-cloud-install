@@ -43,7 +43,7 @@ variable "tf_data_path" {
 variable "private_subnet_name" {
   type        = string
   default     = "spectrum-scale-private-subnet"
-  description = ""
+  description = "Subnetwork of a Virtual Private Cloud network with one primary IP range"
 }
 
 variable "total_compute_instances" {
