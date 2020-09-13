@@ -31,3 +31,16 @@ module "private_subnet" {
   subnet_cidr_range     = var.private_subnet_cidr
   private_google_access = true
 }
+
+module "router" {
+  source      = "../../../resources/gcp/network/router"
+  router_name = format("%s-%s", var.stack_name, "router")
+  vpc_name    = module.vpc.vpc_name
+}
+
+module "cloud_nat" {
+  source              = "../../../resources/gcp/network/cloud_nat"
+  nat_name            = format("%s-%s", var.stack_name, "nat")
+  router_name         = module.router.router_name
+  private_subnet_name = module.private_subnet.subnet_name
+}
