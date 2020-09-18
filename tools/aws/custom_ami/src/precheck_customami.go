@@ -26,9 +26,9 @@ var scaleFaq = "https://www.ibm.com/support/knowledgecenter/STXKQY/gpfsclustersf
 var utilityMessage = `======================================================================
 | Note:                                                              |
 | 1. This utility should only be used for initial screening of AWS   |
-|    custom AMI meant for deployment of IBM Specrum Stack BYOL 1.3   |
+|    custom AMI meant for deployment of IBM Spectrum Stack BYOL 1.3   |
 |    release.                                                        |
-| 2. It is adivsed to follow the best practices for building AMI's.  |
+| 2. It is advised to follow the best practices for building AMI's.  |
 ======================================================================`
 
 func getAWSinstanceID() (instanceid []byte) {
@@ -184,7 +184,7 @@ func main() {
 		}
 	}
 
-	log.Info("6. Performing IBM Spectrum Scale past installaions check")
+	log.Info("6. Performing IBM Spectrum Scale past installations check")
 	gpfsrpmamtch, _ := regexp.MatchString("gpfs", allInstalledRPMs)
 	if gpfsrpmamtch {
 		log.Infof("Identified GPFS RPMs installation")
