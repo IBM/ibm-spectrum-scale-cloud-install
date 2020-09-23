@@ -17,8 +17,8 @@ variable "root_volume_size" {}
 variable "root_volume_type" {}
 variable "enable_delete_on_termination" {}
 variable "enable_instance_termination_protection" {}
-variable "private_key_path" {}
-variable "public_key_path" {}
+variable "private_key_ssm_name" {}
+variable "public_key_ssm_name" {}
 variable "instance_tags" {}
 variable "ebs_volume_type" {}
 variable "ebs_volume_iops" {}
@@ -26,27 +26,10 @@ variable "ebs_volume_size" {}
 variable "total_ebs_volumes" {}
 variable "device_names" {}
 
-data local_file "id_rsa_template" {
-  filename   = pathexpand(var.private_key_path)
-  depends_on = [var.private_key_path]
-}
-
-data local_file "id_rsa_pub_template" {
-  filename   = pathexpand(var.public_key_path)
-  depends_on = [var.public_key_path]
-}
 
 data "template_file" "user_data" {
   template = <<EOF
 #!/usr/bin/env bash
-echo "${data.local_file.id_rsa_template.content}" > ~/.ssh/id_rsa
-echo "${data.local_file.id_rsa_pub_template.content}"  > ~/.ssh/id_rsa.pub
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-exec > >(tee /var/log/spectrumscale-user-data.log)
-chmod 600 ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa.pub
-chmod 600 ~/.ssh/authorized_keys
 if grep -q "Red Hat" /etc/os-release
 then
     if grep -q "platform:el8" /etc/os-release
@@ -69,6 +52,13 @@ unzip awscli-exe-linux-x86_64.zip
 cd aws/
 bash install
 cd -
+aws ssm get-parameter --name "${var.private_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text > ~/.ssh/id_rsa
+aws ssm get-parameter --name "${var.public_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text > ~/.ssh/id_rsa.pub
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
+chmod 600 ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa.pub
+chmod 600 ~/.ssh/authorized_keys
 pip3 install -U ansible boto3 PyYAML
 if [[ ! "$PATH" =~ "/usr/local/bin" ]]
 then

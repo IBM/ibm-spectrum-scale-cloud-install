@@ -15,7 +15,7 @@
 */
 
 module "vpc" {
-  source       = "../../../resources/aws/vpc"
+  source       = "../../../resources/aws/network/vpc"
   vpc_name_tag = var.stack_name
   cidr_block   = var.cidr_block
 }

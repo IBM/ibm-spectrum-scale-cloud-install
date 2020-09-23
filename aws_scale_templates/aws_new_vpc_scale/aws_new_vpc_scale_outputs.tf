@@ -34,12 +34,12 @@ output "private_subnets" {
 }
 
 output "bastion_instance_public_ip" {
-  value = module.bastion_module.bastion_instance_public_ip
+  value       = module.bastion_module.bastion_instance_public_ip
   description = "AWS bastion instance public IP addresses."
 }
 
 output "bastion_instance_private_ip" {
-  value = module.bastion_module.bastion_instance_private_ip
+  value       = module.bastion_module.bastion_instance_private_ip
   description = "AWS bastion instance private IP addresses."
 }
 
