@@ -51,18 +51,28 @@ if grep -q "Red Hat" /etc/os-release
 then
     if grep -q "platform:el8" /etc/os-release
     then
-        dnf install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+        dnf install -y python3 wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
     else
-        yum install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+        yum install -y python3 wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
     fi
     echo "exclude=kernel* redhat-release*" >> /etc/yum.conf
 elif grep -q "Ubuntu" /etc/os-release
 then
     apt update
-    apt-get install -y python3 python3-pip
+    apt-get install -y python3 wget unzip python3-pip 
 elif grep -q "SLES" /etc/os-release
 then
-    zypper install -y python3 
+    zypper install -y python3 wget unzip 
+fi
+wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+unzip awscli-exe-linux-x86_64.zip
+cd aws/
+bash install
+cd -
+pip3 install -U ansible boto3 PyYAML
+if [[ ! "$PATH" =~ "/usr/local/bin" ]]
+then
+    echo 'export PATH=$PATH:$HOME/bin:/usr/local/bin' >> ~/.bash_profile
 fi
 EOF
 }
