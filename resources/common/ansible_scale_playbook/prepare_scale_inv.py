@@ -180,16 +180,54 @@ if __name__ == "__main__":
         # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
         start_quorum_assign = quorum_count - 1
 
-    for each_ip in TF_INV['storage_instance_disk_map']:
-        if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (start_quorum_assign) and \
-                list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (manager_count - 1):
-            if list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) == 0:
+    # Map storage nodes to failure groups based on AZ and subnet variations
+    failure_group1, failure_group2 = [], []
+    if len(TF_INV['availability_zones']) == 1:
+        # Single AZ, just split list equally
+        num_storage_nodes = len(list(TF_INV['storage_instance_disk_map']))
+        mid_index = num_storage_nodes//2
+        failure_group1 = list(TF_INV['storage_instance_disk_map'])[:mid_index]
+        failure_group2 = list(TF_INV['storage_instance_disk_map'])[mid_index:]
+    else:
+        # Multi AZ, split based on subnet match
+        subnet_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
+        subnet1A = subnet_pattern.findall(list(TF_INV['storage_instance_disk_map'])[0])
+        for each_ip in TF_INV['storage_instance_disk_map']:
+            current_subnet = subnet_pattern.findall(each_ip)
+            if current_subnet[0] == subnet1A[0]:
+                failure_group1.append(each_ip)
+            else:
+                failure_group2.append(each_ip)
+
+    if ARGUMENTS.verbose:
+        print("Storage Nodes in Failure Group 1 : {0}".format(failure_group1))
+        print("Storage Nodes in Failure Group 2 : {0}".format(failure_group2))
+
+    storage_instances = []
+    max_len = max(len(failure_group1), len(failure_group2))
+    idx = 0
+    while idx < max_len:
+        if idx < len(failure_group1):
+            storage_instances.append(failure_group1[idx])
+
+        if idx < len(failure_group2):
+            storage_instances.append(failure_group2[idx])
+
+        idx = idx + 1
+
+    if ARGUMENTS.verbose:
+        print("Merged Storage Nodes(alternating by FG) : {0}".format(storage_instances))
+
+    for each_ip in storage_instances:
+        if storage_instances.index(each_ip) <= (start_quorum_assign) and \
+           storage_instances.index(each_ip) <= (manager_count - 1):
+            if storage_instances.index(each_ip) == 0:
                 initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=True, is_collector_node=True, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                         node_class="storagenodegrp")
-            elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) == 1:
+            elif storage_instances.index(each_ip) == 1:
                 initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=False, is_collector_node=True, is_nsd_server=True,
@@ -201,8 +239,8 @@ if __name__ == "__main__":
                                         is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                         node_class="storagenodegrp")
-        elif list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) <= (start_quorum_assign) and \
-                list(TF_INV['storage_instance_disk_map'].keys()).index(each_ip) > (manager_count - 1):
+        elif storage_instances.index(each_ip) <= (start_quorum_assign) and \
+             storage_instances.index(each_ip) > (manager_count - 1):
             initialize_node_details(socket.getfqdn(each_ip), each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=True,
@@ -216,16 +254,16 @@ if __name__ == "__main__":
                                     node_class="storagenodegrp")
 
     if len(TF_INV['availability_zones']) > 1:
-        if len(TF_INV['storage_instance_disk_map'].keys()) - len(TF_INV['compute_instance_desc_map'].keys()) > quorum_count:
+        if len(storage_instances) - len(TF_INV['compute_instance_desc_map'].keys()) >= quorum_count:
             quorums_left = 0
         else:
-            quorums_left = quorum_count - len(TF_INV['storage_instance_disk_map'].keys()) - \
+            quorums_left = quorum_count - len(storage_instances) - \
                     len(TF_INV['compute_instance_desc_map'].keys())
     else:
         if len(TF_INV['storage_instance_disk_map'].keys()) > quorum_count:
             quorums_left = 0
         else:
-            quorums_left = quorum_count - len(TF_INV['storage_instance_disk_map'].keys())
+            quorums_left = quorum_count - len(storage_instances)
 
     if ARGUMENTS.verbose:
         print("Total quorums left and to be assigned to compute nodes: ", quorums_left)
@@ -259,25 +297,6 @@ if __name__ == "__main__":
     initialize_scale_config_details("storagenodegrp", "pagepool", "1G")
     if len(TF_INV['availability_zones']) > 1:
         initialize_scale_config_details("computedescnodegrp", "unmountOnDiskFail", "yes")
-
-    # Map storage nodes to failure groups based on AZ and subnet variations
-    failure_group1, failure_group2 = [], []
-    if len(TF_INV['availability_zones']) == 1:
-        # Single AZ, just split list equally
-        num_storage_nodes = len(list(TF_INV['storage_instance_disk_map']))
-        mid_index = num_storage_nodes//2
-        failure_group1 = list(TF_INV['storage_instance_disk_map'])[:mid_index]
-        failure_group2 = list(TF_INV['storage_instance_disk_map'])[mid_index:]
-    else:
-        # Multi AZ, split based on subnet match
-        subnet_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
-        subnet1A = subnet_pattern.findall(list(TF_INV['storage_instance_disk_map'])[0])
-        for each_ip in TF_INV['storage_instance_disk_map']:
-            current_subnet = subnet_pattern.findall(each_ip)
-            if current_subnet[0] == subnet1A[0]:
-                failure_group1.append(each_ip)
-            else:
-                failure_group2.append(each_ip)
 
     # Prepare dict of disks / NSD list
     disks_list = []
@@ -326,3 +345,4 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Completed writing cloud infrastructure details to: ",
               ARGUMENTS.ansible_scale_repo_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
+
