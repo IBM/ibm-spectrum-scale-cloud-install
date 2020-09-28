@@ -5,20 +5,18 @@
 variable "parameter_name" {}
 variable "parameter_value" {}
 variable "parameter_type" {}
+variable "region" {}
 
 
-resource "aws_ssm_parameter" "ssm_parameter" {
-  name  = var.parameter_name
-  type  = var.parameter_type
-  value = var.parameter_value
+resource "null_resource" "put_ssm_parameter" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "aws ssm put-parameter --name ${var.parameter_name} --value \"`cat ${var.parameter_value}`\" --type ${var.parameter_type} --overwrite --region ${var.region}"
+  }
 }
 
-output "ssm_parameter_arn" {
-  value = aws_ssm_parameter.ssm_parameter.arn
-}
 
 output "ssm_parameter_name" {
-  value      = aws_ssm_parameter.ssm_parameter.name
-  depends_on = [aws_ssm_parameter.ssm_parameter.arn]
+  value      = var.parameter_name
+  depends_on = [null_resource.put_ssm_parameter]
 }
-

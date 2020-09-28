@@ -243,15 +243,17 @@ module "generate_keys" {
 module "private_ssm_parameter" {
   source          = "../../../resources/aws/ssm"
   parameter_name  = format("%s-id_rsa", var.stack_name)
-  parameter_value = file(module.generate_keys.private_key_path)
+  parameter_value = module.generate_keys.private_key_path
   parameter_type  = "SecureString"
+  region          = var.region
 }
 
 module "public_ssm_parameter" {
   source          = "../../../resources/aws/ssm"
   parameter_name  = format("%s-id_rsa.pub", var.stack_name)
-  parameter_value = file(module.generate_keys.public_key_path)
+  parameter_value = module.generate_keys.public_key_path
   parameter_type  = "SecureString"
+  region          = var.region
 }
 
 module "email_notification" {
