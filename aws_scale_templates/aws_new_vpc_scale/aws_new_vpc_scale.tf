@@ -62,6 +62,7 @@ module "instances_module" {
   bucket_name                              = var.bucket_name
   availability_zones                       = var.availability_zones
   create_scale_cluster                     = var.create_scale_cluster
+  generate_ansible_inv                     = var.generate_ansible_inv
   filesystem_mountpoint                    = var.filesystem_mountpoint
   filesystem_block_size                    = var.filesystem_block_size
   scale_infra_repo_clone_path              = var.scale_infra_repo_clone_path

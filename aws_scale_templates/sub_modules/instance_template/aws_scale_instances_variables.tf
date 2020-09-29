@@ -211,6 +211,12 @@ variable "create_scale_cluster" {
   description = "Flag to represent whether to create scale cluster or not."
 }
 
+variable "generate_ansible_inv" {
+  type        = bool
+  default     = true
+  description = "Flag to represent whether to generate ansible inventory JSON or not."
+}
+
 variable "filesystem_mountpoint" {
   type        = string
   default     = "/gpfs/fs1"
