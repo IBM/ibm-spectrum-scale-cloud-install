@@ -32,13 +32,24 @@ data "template_file" "user_data" {
 #!/usr/bin/env bash
 if grep -q "Red Hat" /etc/os-release
 then
+    if ! grep -Fxq "enabled=1" /etc/yum.repos.d/redhat-rhui.repo
+    then
+        echo "No repository enabled. Enabling all repositories in redhat-rhui.repo"
+        sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/redhat-rhui.repo
+        status=$?
+        if [ $status -ne 0 ]
+        then
+            echo "Error: Failed to enable repositories in redhat-rhui.repo"
+        fi
+    fi
+
     if grep -q "platform:el8" /etc/os-release
     then
         dnf install -y python3 wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
     else
         yum install -y python3 wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
     fi
-    echo "exclude=kernel* redhat-release*" >> /etc/yum.conf
+    
 elif grep -q "Ubuntu" /etc/os-release
 then
     apt update
