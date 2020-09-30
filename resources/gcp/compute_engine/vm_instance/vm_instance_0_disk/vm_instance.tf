@@ -72,7 +72,7 @@ EOF
 
 resource "google_compute_instance" "instance_per_zone" {
   count        = var.total_instances
-  name         = format("%s-%s-%s", var.instance_name_prefix, "instance", count.index)
+  name         = format("%s-%s-%s", var.instance_name_prefix, "instance", count.index + 1)
   machine_type = var.machine_type
   zone         = var.zone
 

@@ -13,6 +13,7 @@ module "vpc_module" {
   source                = "../sub_modules/vpc_template"
   stack_name            = var.stack_name
   region                = var.region
+  gcp_project_id        = var.gcp_project_id
   vpc_routing_mode      = var.vpc_routing_mode
   vpc_description       = var.vpc_description
   public_subnet_cidr    = var.public_subnet_cidr
@@ -25,6 +26,7 @@ module "bastion_module" {
   bastion_zone                 = var.zones.0
   region                       = var.region
   stack_name                   = var.stack_name
+  gcp_project_id               = var.gcp_project_id
   vpc_name                     = module.vpc_module.vpc_name
   bastion_machine_type         = var.bastion_machine_type
   bastion_instance_name_prefix = "bastion"
@@ -46,6 +48,7 @@ module "instance_modules" {
   zones                               = var.zones
   region                              = var.region
   stack_name                          = var.stack_name
+  gcp_project_id                      = var.gcp_project_id
   vpc_name                            = module.vpc_module.vpc_name
   total_compute_instances             = var.total_compute_instances
   total_storage_instances             = var.total_storage_instances

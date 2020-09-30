@@ -13,7 +13,6 @@ variable "zones" {
 
 variable "gcp_project_id" {
   type        = string
-  default     = "spectrum-scale"
   description = "GCP project ID to manage resources."
 }
 
@@ -66,7 +65,7 @@ variable "compute_instance_name_prefix" {
 
 variable "compute_boot_disk_size" {
   type        = number
-  default     = 10
+  default     = 100
   description = "Compute instances boot disk size in gigabytes."
 }
 
@@ -113,7 +112,7 @@ variable "storage_instance_name_prefix" {
 
 variable "storage_boot_disk_size" {
   type        = number
-  default     = 10
+  default     = 100
   description = "Storage instances boot disk size in gigabytes."
 }
 
@@ -166,7 +165,7 @@ variable "data_disk_type" {
 
 variable "data_disk_size" {
   type        = string
-  default     = 5
+  default     = 500
   description = "Data disk size in gigabytes."
 }
 
