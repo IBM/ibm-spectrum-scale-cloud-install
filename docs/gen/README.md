@@ -1,6 +1,6 @@
 # Generated Documentation 
 
-| Warning: The content under this directory contains auto-generated documentation using [terraform-docs](https://github.com/segmentio/terraform-docs).  Changes made to any files under this directory are not gauranteed to be preserved. |
+| Warning: The content under this directory contains auto-generated documentation using [terraform-docs](https://github.com/segmentio/terraform-docs).  Changes made to any files under this directory are not guaranteed to be preserved. |
 |---|
 
 ## How-To Generate Docs

@@ -1,6 +1,6 @@
 # Cloud Install 
 
-This repository contains Terraform templates to provision public cloud infrastructure (i.e. AWS, Azure) where IBM Spectrum Scale can then be installed. 
+This repository contains Terraform templates to provision public cloud infrastructure (i.e. AWS, Azure, GCP) where IBM Spectrum Scale can then be installed. 
 
 ## Prerequisites
 
@@ -18,6 +18,7 @@ Ensure that the following requirements are met on the server where this reposito
 
   * [Amazon Web Services (AWS)](docs/aws.md)
   * [Microsoft Azure (Azure)](docs/azure.md)
+  * [Google Cloud Platform (GCP)](docs/gcp.md)
 
 
 ### Reporting Issues and Feedback
