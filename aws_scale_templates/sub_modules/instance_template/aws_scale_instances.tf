@@ -33,9 +33,9 @@ EOF
 }
 
 module "cloudworkflows_iam_role" {
-  source           = "../../../resources/aws/compute/iam/iam_role_name"
-  role_name        = "${var.stack_name}-${var.region}-Scaleworkflows"
-  role_policy      = <<EOF
+  source      = "../../../resources/aws/compute/iam/iam_role_name"
+  role_name   = "${var.stack_name}-${var.region}-Scaleworkflows"
+  role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -144,6 +144,10 @@ module "cluster_host_iam_policy" {
                 "ec2:CreateTags*",
                 "ec2:ModifyInstanceAttribute",
                 "iam:GetRole",
+                "ssm:DescribeParameters",
+                "ssm:PutParameter",
+                "ssm:GetParameter",
+                "ssm:DeleteParameters",
                 "sns:DeleteTopic",
                 "sns:CreateTopic",
                 "sns:Unsubscribe",
@@ -236,6 +240,22 @@ module "generate_keys" {
   tf_data_path = var.tf_data_path
 }
 
+module "private_ssm_parameter" {
+  source          = "../../../resources/aws/ssm"
+  parameter_name  = format("%s-id_rsa", var.stack_name)
+  parameter_value = module.generate_keys.private_key_path
+  parameter_type  = "SecureString"
+  region          = var.region
+}
+
+module "public_ssm_parameter" {
+  source          = "../../../resources/aws/ssm"
+  parameter_name  = format("%s-id_rsa.pub", var.stack_name)
+  parameter_value = module.generate_keys.public_key_path
+  parameter_type  = "SecureString"
+  region          = var.region
+}
+
 module "email_notification" {
   source         = "../../../resources/aws/sns"
   operator_email = var.operator_email
@@ -266,8 +286,8 @@ module "compute_instances" {
   ebs_volume_iops   = var.ebs_volume_iops
   device_names      = var.ebs_volume_device_names
 
-  private_key_path = module.generate_keys.private_key_path
-  public_key_path  = module.generate_keys.public_key_path
+  private_key_ssm_name = module.private_ssm_parameter.ssm_parameter_name
+  public_key_ssm_name  = module.public_ssm_parameter.ssm_parameter_name
 
   instance_tags = { Name = "${var.stack_name}-compute" }
 }
@@ -295,8 +315,8 @@ module "desc_compute_instance" {
   ebs_volume_iops   = var.ebs_volume_iops
   device_names      = var.ebs_volume_device_names
 
-  private_key_path = module.generate_keys.private_key_path
-  public_key_path  = module.generate_keys.public_key_path
+  private_key_ssm_name = module.private_ssm_parameter.ssm_parameter_name
+  public_key_ssm_name  = module.public_ssm_parameter.ssm_parameter_name
 
   instance_tags = { Name = "${var.stack_name}-tiebreaker-desc" }
 }
@@ -324,8 +344,8 @@ module "storage_instances" {
   ebs_volume_iops   = var.ebs_volume_iops
   device_names      = var.ebs_volume_device_names
 
-  private_key_path = module.generate_keys.private_key_path
-  public_key_path  = module.generate_keys.public_key_path
+  private_key_ssm_name = module.private_ssm_parameter.ssm_parameter_name
+  public_key_ssm_name  = module.public_ssm_parameter.ssm_parameter_name
 
   instance_tags = { Name = "${var.stack_name}-storage" }
 }

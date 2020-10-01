@@ -10,9 +10,6 @@ resource "null_resource" "check_tf_data_existence" {
     /* Note: Create the directory only if it does not exist. */
     command = "if [[ ! -d ${var.tf_data_path} ]]; then mkdir -p ${var.tf_data_path}; fi"
   }
-  triggers = {
-    always_run = "${timestamp()}"
-  }
 }
 
 resource "null_resource" "remove_orphan_ssh_keys" {
@@ -22,9 +19,6 @@ resource "null_resource" "remove_orphan_ssh_keys" {
     command = "if [[ ! -f ${var.tf_data_path}/id_rsa ]] || [[ ! -f ${var.tf_data_path}/id_rsa.pub ]]; then rm -rf ${var.tf_data_path}/id_rsa*; fi"
   }
   depends_on = [null_resource.check_tf_data_existence]
-  triggers = {
-    always_run = "${timestamp()}"
-  }
 }
 
 resource "null_resource" "generate_local_ssh_key" {
@@ -34,9 +28,6 @@ resource "null_resource" "generate_local_ssh_key" {
     command = "if [[ ! -f ${var.tf_data_path}/id_rsa ]] || [[ ! -f ${var.tf_data_path}/id_rsa.pub ]]; then echo -e 'n\n' | ssh-keygen -q -b 4096 -t rsa -N \"\" -f ${var.tf_data_path}/id_rsa; fi"
   }
   depends_on = [null_resource.remove_orphan_ssh_keys]
-  triggers = {
-    always_run = "${timestamp()}"
-  }
 }
 
 output "private_key_path" {
