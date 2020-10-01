@@ -25,7 +25,6 @@ variable "stack_name" {
 
 variable "gcp_project_id" {
   type        = string
-  default     = "spectrum-scale"
   description = "GCP project ID to manage resources."
 }
 
@@ -66,7 +65,7 @@ variable "bastion_machine_type" {
 
 variable "bastion_boot_disk_size" {
   type        = number
-  default     = 10
+  default     = 100
   description = "Bastion boot disk size in gigabytes."
 }
 
@@ -108,7 +107,7 @@ variable "compute_boot_image" {
 
 variable "compute_boot_disk_size" {
   type        = number
-  default     = 10
+  default     = 100
   description = "Compute instances boot disk size in gigabytes."
 }
 
@@ -138,7 +137,7 @@ variable "storage_machine_type" {
 
 variable "storage_boot_disk_size" {
   type        = number
-  default     = 10
+  default     = 100
   description = "Storage instances boot disk size in gigabytes."
 }
 
@@ -191,7 +190,7 @@ variable "data_disk_type" {
 
 variable "data_disk_size" {
   type        = string
-  default     = 5
+  default     = 500
   description = "Data disk size in gigabytes."
 }
 

@@ -2,6 +2,7 @@
   Creates specified number of GCP VM instance(s) with 1 data disk.
 */
 
+variable "total_instances" {}
 variable "zone" {}
 variable "machine_type" {}
 variable "subnet_name" {}
@@ -67,10 +68,6 @@ if [[ ! "$PATH" =~ "/usr/local/bin" ]]
 then
     echo 'export PATH=$PATH:$HOME/bin:/usr/local/bin' >> ~/.bash_profile
 fi
-wget https://releases.hashicorp.com/terraform/0.13.2/terraform_0.13.2_linux_amd64.zip
-unzip terraform_0.13.2_linux_amd64.zip
-rm -rf terraform_0.13.2_linux_amd64.zip
-mv terraform /usr/bin
 EOF
 }
 
@@ -85,6 +82,7 @@ resource "google_compute_disk" "data_disk" {
 
 
 resource "google_compute_instance" "main_with_1_data" {
+  count        = var.total_instances
   name         = format("%s-%s", var.instance_name_prefix, "instance")
   machine_type = var.machine_type
   zone         = var.zone
@@ -130,13 +128,13 @@ resource "google_compute_instance" "main_with_1_data" {
 
 
 output "instance_ids_with_1_datadisks" {
-  value = google_compute_instance.main_with_1_data.id
+  value = google_compute_instance.main_with_1_data.*.id
 }
 
 output "instance_uris_with_1_datadisks" {
-  value = google_compute_instance.main_with_1_data.self_link
+  value = google_compute_instance.main_with_1_data.*.self_link
 }
 
 output "instance_ips_with_1_datadisks" {
-  value = google_compute_instance.main_with_1_data.network_interface.0.network_ip
+  value = google_compute_instance.main_with_1_data.*.network_interface.0.network_ip
 }

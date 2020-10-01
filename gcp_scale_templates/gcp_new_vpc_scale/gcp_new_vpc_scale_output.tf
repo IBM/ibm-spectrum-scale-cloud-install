@@ -47,3 +47,18 @@ output "bastion_instance_private_ip" {
   value       = module.bastion_module.bastion_instance_private_ip
   description = "Private IP address of GCP storage instances."
 }
+
+output "compute_instance_desc_map" {
+  value       = module.instance_modules.compute_instance_desc_map
+  description = "Dictionary of compute desc instance ip vs. descriptor data disk device path."
+}
+
+output "storage_instance_1A_ips_device_names_map" {
+  value       = module.instance_modules.storage_instance_1A_ips_device_names_map
+  description = "GCP storage instance ids vs. data disk device path."
+}
+
+output "storage_instance_2A_ips_device_names_map" {
+  value       = module.instance_modules.storage_instance_2A_ips_device_names_map
+  description = "GCP storage instance ids vs. data disk device path."
+}

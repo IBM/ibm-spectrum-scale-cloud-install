@@ -63,10 +63,6 @@ if [[ ! "$PATH" =~ "/usr/local/bin" ]]
 then
     echo 'export PATH=$PATH:$HOME/bin:/usr/local/bin' >> ~/.bash_profile
 fi
-wget https://releases.hashicorp.com/terraform/0.13.2/terraform_0.13.2_linux_amd64.zip
-unzip terraform_0.13.2_linux_amd64.zip
-rm -rf terraform_0.13.2_linux_amd64.zip
-mv terraform /usr/bin
 EOF
 }
 

@@ -11,7 +11,6 @@ variable "stack_name" {
 
 variable "gcp_project_id" {
   type        = string
-  default     = "spectrum-scale"
   description = "GCP project ID to manage resources."
 }
 

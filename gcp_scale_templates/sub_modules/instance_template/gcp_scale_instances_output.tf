@@ -37,3 +37,18 @@ output "storage_instance_2A_zone_ips" {
   value       = module.storage_instances_2A_zone.instance_ips
   description = "Private IP address of GCP storage instances."
 }
+
+output "compute_instance_desc_map" {
+  value       = local.compute_instance_desc_map
+  description = "Dictionary of compute desc instance ip vs. descriptor data disk device path."
+}
+
+output "storage_instance_1A_ips_device_names_map" {
+  value       = local.storage_instance_1A_ips_device_names_map
+  description = "GCP storage instance ids vs. data disk device path."
+}
+
+output "storage_instance_2A_ips_device_names_map" {
+  value       = local.storage_instance_2A_ips_device_names_map
+  description = "GCP storage instance ids vs. data disk device path."
+}

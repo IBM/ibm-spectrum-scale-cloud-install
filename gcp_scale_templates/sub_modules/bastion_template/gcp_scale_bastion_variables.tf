@@ -10,7 +10,6 @@ variable "bastion_zone" {
 
 variable "gcp_project_id" {
   type        = string
-  default     = "spectrum-scale"
   description = "GCP project ID to manage resources."
 }
 
@@ -51,7 +50,7 @@ variable "bastion_instance_name_prefix" {
 
 variable "bastion_boot_disk_size" {
   type        = number
-  default     = 10
+  default     = 100
   description = "Bastion instance boot disk size in gigabytes."
 }
 

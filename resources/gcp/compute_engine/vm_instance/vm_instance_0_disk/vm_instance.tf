@@ -63,16 +63,12 @@ if [[ ! "$PATH" =~ "/usr/local/bin" ]]
 then
     echo 'export PATH=$PATH:$HOME/bin:/usr/local/bin' >> ~/.bash_profile
 fi
-wget https://releases.hashicorp.com/terraform/0.13.2/terraform_0.13.2_linux_amd64.zip
-unzip terraform_0.13.2_linux_amd64.zip
-rm -rf terraform_0.13.2_linux_amd64.zip
-mv terraform /usr/bin
 EOF
 }
 
 resource "google_compute_instance" "instance_per_zone" {
   count        = var.total_instances
-  name         = format("%s-%s-%s", var.instance_name_prefix, "instance", count.index)
+  name         = format("%s-%s-%s", var.instance_name_prefix, "instance", count.index + 1)
   machine_type = var.machine_type
   zone         = var.zone
 
