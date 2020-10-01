@@ -145,6 +145,15 @@ variable "instances_ssh_key_path" {
   description = "SSH public key local path, will be used to login bastion instance."
 }
 
+variable "data_disks_device_names" {
+  type = list(string)
+  default = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sde",
+    "/dev/sdf", "/dev/sdg", "/dev/sdh", "/dev/sdi",
+    "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm",
+  "/dev/sdn", "/dev/sdo", "/dev/sdp"]
+  description = "Name of the block device to mount on the instance."
+}
+
 variable "data_disks_per_instance" {
   type        = number
   default     = 1

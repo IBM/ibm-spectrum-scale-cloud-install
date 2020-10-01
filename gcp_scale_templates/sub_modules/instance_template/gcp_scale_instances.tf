@@ -40,7 +40,8 @@ module "compute_instances" {
 
 module "desc_compute_instance" {
   source                  = "../../../resources/gcp/compute_engine/vm_instance/vm_instance_1_disk"
-  zone                    = length(var.zones) > 1 ? var.zones.1 : var.zones.0
+  total_instances         = length(var.zones) >= 3 ? 1 : 0
+  zone                    = length(var.zones) >= 3 ? var.zones.2 : var.zones.0
   machine_type            = var.compute_machine_type
   instance_name_prefix    = "compute-desc"
   boot_disk_size          = var.compute_boot_disk_size
@@ -140,4 +141,25 @@ module "attach_data_disk_2A_zone" {
   total_disk_attachments = length(var.zones) > 1 ? local.total_nsd_disks / 2 : 0
   data_disk_ids          = module.create_data_disks_2A_zone.data_disk_id
   instance_ids           = module.storage_instances_2A_zone.instance_ids
+}
+
+locals {
+  compute_instance_desc_map = {
+    for instance in module.desc_compute_instance.instance_ips_with_1_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 1)
+  }
+  storage_instance_1A_ips_device_names_map = length(var.zones) == 1 ? {
+    for instance in module.storage_instances_1A_zone.instance_ips :
+    instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks)
+    } : {
+    for instance in module.storage_instances_1A_zone.instance_ips :
+    instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks / 2)
+  }
+  storage_instance_2A_ips_device_names_map = length(var.zones) == 1 ? {
+    for instance in module.storage_instances_2A_zone.instance_ips :
+    instance => slice(var.data_disks_device_names, 0, 0)
+    } : {
+    for instance in module.storage_instances_2A_zone.instance_ips :
+    instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks / 2)
+  }
 }
