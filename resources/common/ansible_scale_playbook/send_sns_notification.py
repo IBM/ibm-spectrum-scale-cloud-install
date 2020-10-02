@@ -55,6 +55,8 @@ def aws_send_sns_notification(region_name, message, topic_arn):
 
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Publish message to SNS ARN.')
+    PARSER.add_argument('--cloud_platform', required=True,
+                        help='Cloud platform')
     PARSER.add_argument('--message', required=True,
                         help='Message to be notified')
     PARSER.add_argument('--topic_arn', required=True,
@@ -63,6 +65,7 @@ if __name__ == "__main__":
                         help='Region name')
     ARGUMENTS = PARSER.parse_args()
 
-    aws_send_sns_notification(ARGUMENTS.region_name,
-                              ARGUMENTS.message,
-                              ARGUMENTS.topic_arn)
+    if ARGUMENTS.cloud_platform.upper() == 'AWS':
+        aws_send_sns_notification(ARGUMENTS.region_name,
+                                  ARGUMENTS.message,
+                                  ARGUMENTS.topic_arn)

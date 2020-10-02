@@ -62,6 +62,8 @@ def aws_s3_upload_object(bucket_name, obj_name, file_path):
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Backup local file to '
                                                  'specified backend.')
+    PARSER.add_argument('--cloud_platform', required=True,
+                        help='Cloud platform')
     PARSER.add_argument('--local_file_path', required=True,
                         help='Local file absolute path to back up')
     PARSER.add_argument('--bucket_name', required=True,
@@ -72,6 +74,7 @@ if __name__ == "__main__":
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
 
-    aws_s3_upload_object(ARGUMENTS.bucket_name,
-                         ARGUMENTS.obj_name,
-                         ARGUMENTS.local_file_path)
+    if ARGUMENTS.cloud_platform.upper() == 'AWS':
+        aws_s3_upload_object(ARGUMENTS.bucket_name,
+                             ARGUMENTS.obj_name,
+                             ARGUMENTS.local_file_path)

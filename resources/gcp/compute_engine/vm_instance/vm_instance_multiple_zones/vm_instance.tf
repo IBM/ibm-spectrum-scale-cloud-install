@@ -33,11 +33,12 @@ data local_file "id_rsa_pub_template" {
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
+mkdir -p ~/.ssh/
 echo "${data.local_file.id_rsa_template.content}" > ~/.ssh/id_rsa
 echo "${data.local_file.id_rsa_pub_template.content}" > ~/.ssh/id_rsa.pub
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
-exec > >(tee /var/log/spectrumscale-user-data.log)
+echo "PermitRootLogin yes" >> ~/.ssh/config
 chmod 600 ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa.pub
 chmod 600 ~/.ssh/authorized_keys
