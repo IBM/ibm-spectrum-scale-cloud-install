@@ -433,6 +433,7 @@ module "invoke_scale_playbook" {
   bucket_name                 = var.bucket_name
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
   create_scale_cluster        = var.create_scale_cluster
+  generate_ansible_inv        = var.generate_ansible_inv
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
   operating_env               = var.operating_env
