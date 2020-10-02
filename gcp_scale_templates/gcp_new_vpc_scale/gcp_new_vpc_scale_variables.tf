@@ -204,3 +204,38 @@ variable "scopes" {
   default     = ["cloud-platform"]
   description = "List of service scopes."
 }
+
+variable "create_scale_cluster" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to create scale cluster or not."
+}
+
+variable "filesystem_mountpoint" {
+  type        = string
+  default     = "/gpfs/fs1"
+  description = "Filesystem mount point."
+}
+
+variable "filesystem_block_size" {
+  type        = string
+  default     = "4M"
+  description = "Filesystem block size."
+}
+
+variable "scale_infra_repo_clone_path" {
+  type        = string
+  default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
+  description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
+}
+
+variable "bucket_name" {
+  type        = string
+  description = "s3 bucket name to be used for backing up ansible inventory file."
+}
+
+variable "generate_ansible_inv" {
+  type        = bool
+  default     = true
+  description = "Flag to represent whether to generate ansible inventory JSON or not."
+}

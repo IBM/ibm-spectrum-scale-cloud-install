@@ -1,3 +1,9 @@
+variable "operating_env" {
+  type        = string
+  default     = "local"
+  description = "Operating environement (valid: local)."
+}
+
 variable "region" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
@@ -37,6 +43,47 @@ variable "tf_data_path" {
   type        = string
   default     = "~/tf_data_path"
   description = "Data path to be used by terraform for storing ssh keys."
+}
+
+variable "tf_input_json_root_path" {
+  type        = string
+  default     = null
+  description = "Terraform module absolute path."
+}
+
+variable "tf_input_json_file_name" {
+  type        = string
+  default     = null
+  description = "Terraform module input variable defintion/json file name."
+}
+
+variable "bucket_name" {
+  type        = string
+  description = "s3 bucket name to be used for backing up ansible inventory file."
+}
+
+variable "scale_infra_repo_clone_path" {
+  type        = string
+  default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
+  description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
+}
+
+variable "create_scale_cluster" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to create scale cluster or not."
+}
+
+variable "filesystem_mountpoint" {
+  type        = string
+  default     = "/gpfs/fs1"
+  description = "Filesystem mount point."
+}
+
+variable "filesystem_block_size" {
+  type        = string
+  default     = "4M"
+  description = "Filesystem block size."
 }
 
 variable "private_subnet_name" {
@@ -187,4 +234,10 @@ variable "scopes" {
   type        = list(string)
   default     = ["cloud-platform"]
   description = "List of service scopes."
+}
+
+variable "generate_ansible_inv" {
+  type        = bool
+  default     = true
+  description = "Flag to represent whether to generate ansible inventory JSON or not."
 }

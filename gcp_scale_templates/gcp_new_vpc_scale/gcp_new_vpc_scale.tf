@@ -50,6 +50,12 @@ module "instance_modules" {
   stack_name                          = var.stack_name
   gcp_project_id                      = var.gcp_project_id
   vpc_name                            = module.vpc_module.vpc_name
+  bucket_name                         = var.bucket_name
+  create_scale_cluster                = var.create_scale_cluster
+  generate_ansible_inv                = var.generate_ansible_inv
+  filesystem_mountpoint               = var.filesystem_mountpoint
+  filesystem_block_size               = var.filesystem_block_size
+  scale_infra_repo_clone_path         = var.scale_infra_repo_clone_path
   total_compute_instances             = var.total_compute_instances
   total_storage_instances             = var.total_storage_instances
   compute_machine_type                = var.compute_machine_type

@@ -162,4 +162,163 @@ locals {
     for instance in module.storage_instances_2A_zone.instance_ips :
     instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks / 2)
   }
+
+  storage_instance_ips_with_0_datadisks  = var.data_disks_per_instance == 0 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_1_datadisks  = var.data_disks_per_instance == 1 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_2_datadisks  = var.data_disks_per_instance == 2 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_3_datadisks  = var.data_disks_per_instance == 3 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_4_datadisks  = var.data_disks_per_instance == 4 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_5_datadisks  = var.data_disks_per_instance == 5 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_6_datadisks  = var.data_disks_per_instance == 6 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_7_datadisks  = var.data_disks_per_instance == 7 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_8_datadisks  = var.data_disks_per_instance == 8 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_9_datadisks  = var.data_disks_per_instance == 9 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_10_datadisks = var.data_disks_per_instance == 10 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_11_datadisks = var.data_disks_per_instance == 11 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_12_datadisks = var.data_disks_per_instance == 12 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_13_datadisks = var.data_disks_per_instance == 13 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_14_datadisks = var.data_disks_per_instance == 14 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+  storage_instance_ips_with_15_datadisks = var.data_disks_per_instance == 15 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ips : concat(module.storage_instances_1A_zone.instance_ips, module.storage_instances_2A_zone.instance_ips)) : null
+
+  storage_instance_ids_with_0_datadisks  = var.data_disks_per_instance == 0 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_1_datadisks  = var.data_disks_per_instance == 1 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_2_datadisks  = var.data_disks_per_instance == 2 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_3_datadisks  = var.data_disks_per_instance == 3 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_4_datadisks  = var.data_disks_per_instance == 4 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_5_datadisks  = var.data_disks_per_instance == 5 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_6_datadisks  = var.data_disks_per_instance == 6 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_7_datadisks  = var.data_disks_per_instance == 7 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_8_datadisks  = var.data_disks_per_instance == 8 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_9_datadisks  = var.data_disks_per_instance == 9 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_10_datadisks = var.data_disks_per_instance == 10 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_11_datadisks = var.data_disks_per_instance == 11 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_12_datadisks = var.data_disks_per_instance == 12 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_13_datadisks = var.data_disks_per_instance == 13 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_14_datadisks = var.data_disks_per_instance == 14 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+  storage_instance_ids_with_15_datadisks = var.data_disks_per_instance == 15 ? (length(var.zones) == 1 ? module.storage_instances_1A_zone.instance_ids : concat(module.storage_instances_1A_zone.instance_ids, module.storage_instances_2A_zone.instance_ids)) : null
+
+  storage_instance_ips_0_datadisks_device_names_map = var.data_disks_per_instance == 0 ? {
+    for instance in local.storage_instance_ips_with_0_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 0)
+  } : null
+  storage_instance_ips_1_datadisks_device_names_map = var.data_disks_per_instance == 1 ? {
+    for instance in local.storage_instance_ips_with_1_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 1)
+  } : null
+  storage_instance_ips_2_datadisks_device_names_map = var.data_disks_per_instance == 2 ? {
+    for instance in local.storage_instance_ips_with_2_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 2)
+  } : null
+  storage_instance_ips_3_datadisks_device_names_map = var.data_disks_per_instance == 3 ? {
+    for instance in local.storage_instance_ips_with_3_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 3)
+  } : null
+  storage_instance_ips_4_datadisks_device_names_map = var.data_disks_per_instance == 4 ? {
+    for instance in local.storage_instance_ips_with_4_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 4)
+  } : null
+  storage_instance_ips_5_datadisks_device_names_map = var.data_disks_per_instance == 5 ? {
+    for instance in local.storage_instance_ips_with_5_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 5)
+  } : null
+  storage_instance_ips_6_datadisks_device_names_map = var.data_disks_per_instance == 6 ? {
+    for instance in local.storage_instance_ips_with_6_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 6)
+  } : null
+  storage_instance_ips_7_datadisks_device_names_map = var.data_disks_per_instance == 7 ? {
+    for instance in local.storage_instance_ips_with_7_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 7)
+  } : null
+  storage_instance_ips_8_datadisks_device_names_map = var.data_disks_per_instance == 8 ? {
+    for instance in local.storage_instance_ips_with_8_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 8)
+  } : null
+  storage_instance_ips_9_datadisks_device_names_map = var.data_disks_per_instance == 9 ? {
+    for instance in local.storage_instance_ips_with_9_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 9)
+  } : null
+  storage_instance_ips_10_datadisks_device_names_map = var.data_disks_per_instance == 10 ? {
+    for instance in local.storage_instance_ips_with_10_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 10)
+  } : null
+  storage_instance_ips_11_datadisks_device_names_map = var.data_disks_per_instance == 11 ? {
+    for instance in local.storage_instance_ips_with_11_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 11)
+  } : null
+  storage_instance_ips_12_datadisks_device_names_map = var.data_disks_per_instance == 12 ? {
+    for instance in local.storage_instance_ips_with_12_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 12)
+  } : null
+  storage_instance_ips_13_datadisks_device_names_map = var.data_disks_per_instance == 13 ? {
+    for instance in local.storage_instance_ips_with_13_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 13)
+  } : null
+  storage_instance_ips_14_datadisks_device_names_map = var.data_disks_per_instance == 14 ? {
+    for instance in local.storage_instance_ips_with_14_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 14)
+  } : null
+  storage_instance_ips_15_datadisks_device_names_map = var.data_disks_per_instance == 15 ? {
+    for instance in local.storage_instance_ips_with_15_datadisks :
+    instance => slice(var.data_disks_device_names, 0, 15)
+  } : null
+}
+
+module "invoke_scale_playbook" {
+  source     = "../../../resources/common/ansible_scale_playbook"
+  region     = var.region
+  stack_name = var.stack_name
+
+  tf_data_path            = var.tf_data_path
+  tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
+  tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
+
+  bucket_name                 = var.bucket_name
+  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  create_scale_cluster        = var.create_scale_cluster
+  generate_ansible_inv        = var.generate_ansible_inv
+  filesystem_mountpoint       = var.filesystem_mountpoint
+  filesystem_block_size       = var.filesystem_block_size
+  operating_env               = var.operating_env
+  cloud_platform              = "GCP"
+  avail_zones                 = jsonencode(var.zones)
+  notification_arn            = null
+
+  compute_instances_by_id   = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
+  compute_instances_by_ip   = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
+  compute_instance_desc_map = jsonencode(local.compute_instance_desc_map)
+  compute_instance_desc_id  = jsonencode(module.desc_compute_instance.instance_ids_with_1_datadisks)
+
+  storage_instance_ids_with_0_datadisks  = local.storage_instance_ids_with_0_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_0_datadisks)
+  storage_instance_ids_with_1_datadisks  = local.storage_instance_ids_with_1_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_1_datadisks)
+  storage_instance_ids_with_2_datadisks  = local.storage_instance_ids_with_2_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_2_datadisks)
+  storage_instance_ids_with_3_datadisks  = local.storage_instance_ids_with_3_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_3_datadisks)
+  storage_instance_ids_with_4_datadisks  = local.storage_instance_ids_with_4_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_4_datadisks)
+  storage_instance_ids_with_5_datadisks  = local.storage_instance_ids_with_5_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_5_datadisks)
+  storage_instance_ids_with_6_datadisks  = local.storage_instance_ids_with_6_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_6_datadisks)
+  storage_instance_ids_with_7_datadisks  = local.storage_instance_ids_with_7_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_7_datadisks)
+  storage_instance_ids_with_8_datadisks  = local.storage_instance_ids_with_8_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_8_datadisks)
+  storage_instance_ids_with_9_datadisks  = local.storage_instance_ids_with_9_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_9_datadisks)
+  storage_instance_ids_with_10_datadisks = local.storage_instance_ids_with_10_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_10_datadisks)
+  storage_instance_ids_with_11_datadisks = local.storage_instance_ids_with_11_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_11_datadisks)
+  storage_instance_ids_with_12_datadisks = local.storage_instance_ids_with_12_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_12_datadisks)
+  storage_instance_ids_with_13_datadisks = local.storage_instance_ids_with_13_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_13_datadisks)
+  storage_instance_ids_with_14_datadisks = local.storage_instance_ids_with_14_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_14_datadisks)
+  storage_instance_ids_with_15_datadisks = local.storage_instance_ids_with_15_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_15_datadisks)
+
+  storage_instance_ips_with_0_datadisks_device_names_map  = local.storage_instance_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_0_datadisks_device_names_map)
+  storage_instance_ips_with_1_datadisks_device_names_map  = local.storage_instance_ips_1_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_1_datadisks_device_names_map)
+  storage_instance_ips_with_2_datadisks_device_names_map  = local.storage_instance_ips_2_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_2_datadisks_device_names_map)
+  storage_instance_ips_with_3_datadisks_device_names_map  = local.storage_instance_ips_3_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_3_datadisks_device_names_map)
+  storage_instance_ips_with_4_datadisks_device_names_map  = local.storage_instance_ips_4_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_4_datadisks_device_names_map)
+  storage_instance_ips_with_5_datadisks_device_names_map  = local.storage_instance_ips_5_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_5_datadisks_device_names_map)
+  storage_instance_ips_with_6_datadisks_device_names_map  = local.storage_instance_ips_6_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_6_datadisks_device_names_map)
+  storage_instance_ips_with_7_datadisks_device_names_map  = local.storage_instance_ips_7_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_7_datadisks_device_names_map)
+  storage_instance_ips_with_8_datadisks_device_names_map  = local.storage_instance_ips_8_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_8_datadisks_device_names_map)
+  storage_instance_ips_with_9_datadisks_device_names_map  = local.storage_instance_ips_9_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_9_datadisks_device_names_map)
+  storage_instance_ips_with_10_datadisks_device_names_map = local.storage_instance_ips_10_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_10_datadisks_device_names_map)
+  storage_instance_ips_with_11_datadisks_device_names_map = local.storage_instance_ips_11_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_11_datadisks_device_names_map)
+  storage_instance_ips_with_12_datadisks_device_names_map = local.storage_instance_ips_12_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_12_datadisks_device_names_map)
+  storage_instance_ips_with_13_datadisks_device_names_map = local.storage_instance_ips_13_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_13_datadisks_device_names_map)
+  storage_instance_ips_with_14_datadisks_device_names_map = local.storage_instance_ips_14_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_14_datadisks_device_names_map)
+  storage_instance_ips_with_15_datadisks_device_names_map = local.storage_instance_ips_15_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_15_datadisks_device_names_map)
 }
