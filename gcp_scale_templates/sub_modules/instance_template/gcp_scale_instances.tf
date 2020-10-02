@@ -281,7 +281,7 @@ module "invoke_scale_playbook" {
   operating_env               = var.operating_env
   cloud_platform              = "GCP"
   avail_zones                 = jsonencode(var.zones)
-  notification_arn            = null
+  notification_arn            = "None"
 
   compute_instances_by_id   = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
   compute_instances_by_ip   = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
@@ -306,7 +306,8 @@ module "invoke_scale_playbook" {
   storage_instance_ids_with_15_datadisks = local.storage_instance_ids_with_15_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_15_datadisks)
 
   storage_instance_ips_with_0_datadisks_device_names_map  = local.storage_instance_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_0_datadisks_device_names_map)
-  storage_instance_ips_with_1_datadisks_device_names_map  = local.storage_instance_ips_1_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_1_datadisks_device_names_map)
+  storage_instance_ips_with_1_datadisks_device_names_map  = "[]"
+  #storage_instance_ips_with_1_datadisks_device_names_map  = local.storage_instance_ips_1_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_1_datadisks_device_names_map)
   storage_instance_ips_with_2_datadisks_device_names_map  = local.storage_instance_ips_2_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_2_datadisks_device_names_map)
   storage_instance_ips_with_3_datadisks_device_names_map  = local.storage_instance_ips_3_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_3_datadisks_device_names_map)
   storage_instance_ips_with_4_datadisks_device_names_map  = local.storage_instance_ips_4_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_4_datadisks_device_names_map)

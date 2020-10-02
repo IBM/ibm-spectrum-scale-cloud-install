@@ -81,6 +81,8 @@ def aws_ec2_wait_running(region_name, instance_ids):
 
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Wait for instances to achieve okay state.')
+    PARSER.add_argument('--cloud_platform', required=True,
+                        help='Cloud platform')
     PARSER.add_argument('--tf_inv_path', required=True,
                         help='Terraform inventory file path')
     PARSER.add_argument('--region_name', required=True,
@@ -94,7 +96,8 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Parsed terraform output: %s" % json.dumps(TF_INV, indent=4))
 
-    aws_ec2_wait_running(ARGUMENTS.region_name,
-                         TF_INV['compute_instances_by_id'] +
-                         TF_INV['compute_instance_desc_id'] +
-                         TF_INV['storage_instances_by_id'])
+    if ARGUMENTS.cloud_platform.upper() == 'AWS':
+        aws_ec2_wait_running(ARGUMENTS.region_name,
+                             TF_INV['compute_instances_by_id'] +
+                             TF_INV['compute_instance_desc_id'] +
+                             TF_INV['storage_instances_by_id'])
