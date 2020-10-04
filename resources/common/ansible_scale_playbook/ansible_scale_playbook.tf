@@ -134,7 +134,7 @@ resource "null_resource" "backup_ansible_inv" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.backup_to_backend_script_path} --local_file_path ${local.scale_infra_path}/vars/scale_clusterdefinition.json  --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-scale_clusterdefinition.json"
+    command     = "python3 ${local.backup_to_backend_script_path} --local_file_path ${local.scale_infra_path}/vars/scale_clusterdefinition.json --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-scale_clusterdefinition.json --cloud_platform ${var.cloud_platform}"
   }
   depends_on = [null_resource.prepare_ansible_inventory]
 }
@@ -143,7 +143,7 @@ resource "null_resource" "backup_tf_input_json" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.backup_to_backend_script_path} --local_file_path ${var.tf_input_json_root_path}/${var.tf_input_json_file_name} --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-${var.tf_input_json_file_name}"
+    command     = "python3 ${local.backup_to_backend_script_path} --local_file_path ${var.tf_input_json_root_path}/${var.tf_input_json_file_name} --bucket_name ${var.bucket_name} --obj_name ${var.stack_name}-${var.tf_input_json_file_name} --cloud_platform ${var.cloud_platform}"
   }
   depends_on = [null_resource.backup_ansible_inv]
 }
@@ -152,7 +152,7 @@ resource "null_resource" "wait_for_instances_to_boot" {
   count = var.create_scale_cluster == true ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.instance_ssh_wait_script_path} --tf_inv_path ${local.tf_inv_path} --region_name ${var.region}"
+    command     = "python3 ${local.instance_ssh_wait_script_path} --tf_inv_path ${local.tf_inv_path} --region_name ${var.region} --cloud_platform ${var.cloud_platform}"
   }
   depends_on = [null_resource.prepare_ansible_inventory]
 }
