@@ -35,7 +35,7 @@ variable "stack_name" {
 
 variable "vpc_name" {
   type        = string
-  default     = "spectrum-scale=vpc"
+  default     = "spectrum-scale-vpc"
   description = "GCP VPC name."
 }
 
