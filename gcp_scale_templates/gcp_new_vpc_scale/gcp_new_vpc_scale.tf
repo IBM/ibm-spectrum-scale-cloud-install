@@ -39,7 +39,7 @@ module "bastion_module" {
   operator_email               = var.operator_email
   scopes                       = var.scopes
   bastion_ssh_user_name        = var.instances_ssh_user_name
-  bastion_ssh_key_path         = var.instances_ssh_key_path
+  bastion_ssh_key_path         = var.instances_ssh_public_key_path
   credentials_file_path        = var.credentials_file_path
 }
 
@@ -53,6 +53,11 @@ module "instance_modules" {
   bucket_name                         = var.bucket_name
   create_scale_cluster                = var.create_scale_cluster
   generate_ansible_inv                = var.generate_ansible_inv
+  scale_version                       = var.scale_version
+  generate_jumphost_ssh_config        = var.generate_jumphost_ssh_config
+  instances_ssh_private_key_path      = var.instances_ssh_private_key_path
+  bastion_public_ip                   = module.bastion_module.bastion_instance_public_ip
+  private_subnet_cidr                 = var.private_subnet_cidr
   filesystem_mountpoint               = var.filesystem_mountpoint
   filesystem_block_size               = var.filesystem_block_size
   scale_infra_repo_clone_path         = var.scale_infra_repo_clone_path
@@ -73,7 +78,7 @@ module "instance_modules" {
   compute_instance_tags               = [module.vpc_module.private_subnet_name]
   private_subnet_name                 = module.vpc_module.private_subnet_name
   instances_ssh_user_name             = var.instances_ssh_user_name
-  instances_ssh_key_path              = var.instances_ssh_key_path
+  instances_ssh_public_key_path       = var.instances_ssh_public_key_path
   data_disks_per_instance             = var.data_disks_per_instance
   data_disk_type                      = var.data_disk_type
   data_disk_size                      = var.data_disk_size

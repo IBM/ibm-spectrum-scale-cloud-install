@@ -165,9 +165,14 @@ variable "instances_ssh_user_name" {
   description = "Name of the administrator to access the instances."
 }
 
-variable "instances_ssh_key_path" {
+variable "instances_ssh_public_key_path" {
   type        = string
-  description = "SSH public key local path, will be used to login instances."
+  description = "SSH public key local path."
+}
+
+variable "instances_ssh_private_key_path" {
+  type        = string
+  description = "SSH private key local path, will be used to login instances."
 }
 
 variable "data_disks_per_instance" {
@@ -231,11 +236,23 @@ variable "scale_infra_repo_clone_path" {
 
 variable "bucket_name" {
   type        = string
-  description = "s3 bucket name to be used for backing up ansible inventory file."
+  description = "GCS bucket name to be used for backing up ansible inventory file."
 }
 
 variable "generate_ansible_inv" {
   type        = bool
   default     = true
   description = "Flag to represent whether to generate ansible inventory JSON or not."
+}
+
+variable "generate_jumphost_ssh_config" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to generate jump host SSH config or not."
+}
+
+variable "scale_version" {
+  type        = string
+  default     = "5.0.5.0"
+  description = "IBM Spectrum Scale version."
 }
