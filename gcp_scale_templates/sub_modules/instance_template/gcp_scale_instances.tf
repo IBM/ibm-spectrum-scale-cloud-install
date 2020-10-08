@@ -81,7 +81,7 @@ module "create_data_disks_1A_zone" {
 module "create_data_disks_2A_zone" {
   source                    = "../../../resources/gcp/storage/compute_disk_create"
   total_data_disks          = length(var.zones) == 1 ? 0 : local.total_nsd_disks / 2
-  zone                      = var.zones.1
+  zone                      = length(var.zones) == 1 ? var.zones.0 : var.zones.1
   data_disk_description     = "Spectrum Scale NSD disk"
   data_disk_name_prefix     = "storage"
   data_disk_size            = var.data_disk_size
@@ -112,7 +112,7 @@ module "storage_instances_1A_zone" {
 module "storage_instances_2A_zone" {
   source               = "../../../resources/gcp/compute_engine/vm_instance/vm_instance_0_disk"
   total_instances      = length(var.zones) > 1 ? var.total_storage_instances / 2 : 0
-  zone                 = var.zones.1
+  zone                 = length(var.zones) == 1 ? var.zones.0 : var.zones.1
   instance_name_prefix = "storage"
   machine_type         = var.storage_machine_type
   boot_disk_size       = var.storage_boot_disk_size
