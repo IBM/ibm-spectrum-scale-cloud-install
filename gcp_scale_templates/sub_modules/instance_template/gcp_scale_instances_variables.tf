@@ -1,7 +1,7 @@
-variable "operating_env" {
-  type        = string
-  default     = "local"
-  description = "Operating environement (valid: local)."
+variable "generate_jumphost_ssh_config" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to generate jump host SSH config or not."
 }
 
 variable "region" {
@@ -187,9 +187,9 @@ variable "instances_ssh_user_name" {
   description = "Name of the administrator to access the bastion instance."
 }
 
-variable "instances_ssh_key_path" {
+variable "instances_ssh_public_key_path" {
   type        = string
-  description = "SSH public key local path, will be used to login bastion instance."
+  description = "SSH public key local path."
 }
 
 variable "data_disks_device_names" {
@@ -240,4 +240,26 @@ variable "generate_ansible_inv" {
   type        = bool
   default     = true
   description = "Flag to represent whether to generate ansible inventory JSON or not."
+}
+
+variable "instances_ssh_private_key_path" {
+  type        = string
+  description = "SSH private key local path, which will be used to login to bastion host."
+}
+
+variable "bastion_public_ip" {
+  type        = string
+  description = "Bastion public ip."
+}
+
+variable "scale_version" {
+  type        = string
+  default     = "5.0.5.0"
+  description = "IBM Spectrum Scale version."
+}
+
+variable "private_subnet_cidr" {
+  type        = string
+  default     = "192.168.1.0/24"
+  description = "Range of internal addresses."
 }

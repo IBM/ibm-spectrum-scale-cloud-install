@@ -33,7 +33,7 @@ module "compute_instances" {
   operator_email       = var.operator_email
   scopes               = var.scopes
   ssh_user_name        = var.instances_ssh_user_name
-  ssh_key_path         = var.instances_ssh_key_path
+  ssh_key_path         = var.instances_ssh_public_key_path
   private_key_path     = module.generate_keys.private_key_path
   public_key_path      = module.generate_keys.public_key_path
 }
@@ -56,7 +56,7 @@ module "desc_compute_instance" {
   data_disk_size          = 5
   data_disk_type          = var.data_disk_type
   ssh_user_name           = var.instances_ssh_user_name
-  ssh_key_path            = var.instances_ssh_key_path
+  ssh_key_path            = var.instances_ssh_public_key_path
   private_key_path        = module.generate_keys.private_key_path
   public_key_path         = module.generate_keys.public_key_path
   operator_email          = var.operator_email
@@ -102,7 +102,7 @@ module "storage_instances_1A_zone" {
   vm_instance_tags     = var.compute_instance_tags
   subnet_name          = var.private_subnet_name
   ssh_user_name        = var.instances_ssh_user_name
-  ssh_key_path         = var.instances_ssh_key_path
+  ssh_key_path         = var.instances_ssh_public_key_path
   private_key_path     = module.generate_keys.private_key_path
   public_key_path      = module.generate_keys.public_key_path
   operator_email       = var.operator_email
@@ -122,7 +122,7 @@ module "storage_instances_2A_zone" {
   vm_instance_tags     = var.compute_instance_tags
   subnet_name          = var.private_subnet_name
   ssh_user_name        = var.instances_ssh_user_name
-  ssh_key_path         = var.instances_ssh_key_path
+  ssh_key_path         = var.instances_ssh_public_key_path
   private_key_path     = module.generate_keys.private_key_path
   public_key_path      = module.generate_keys.public_key_path
   operator_email       = var.operator_email
@@ -272,16 +272,22 @@ module "invoke_scale_playbook" {
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
   tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
 
-  bucket_name                 = var.bucket_name
-  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
-  create_scale_cluster        = var.create_scale_cluster
-  generate_ansible_inv        = var.generate_ansible_inv
-  filesystem_mountpoint       = var.filesystem_mountpoint
-  filesystem_block_size       = var.filesystem_block_size
-  operating_env               = var.operating_env
-  cloud_platform              = "GCP"
-  avail_zones                 = jsonencode(var.zones)
-  notification_arn            = "None"
+  bucket_name                    = var.bucket_name
+  scale_infra_repo_clone_path    = var.scale_infra_repo_clone_path
+  create_scale_cluster           = var.create_scale_cluster
+  generate_ansible_inv           = var.generate_ansible_inv
+  scale_version                  = var.scale_version
+  filesystem_mountpoint          = var.filesystem_mountpoint
+  filesystem_block_size          = var.filesystem_block_size
+  generate_jumphost_ssh_config   = var.generate_jumphost_ssh_config
+  bastion_public_ip              = var.bastion_public_ip
+  instances_ssh_private_key_path = var.instances_ssh_private_key_path
+  instances_ssh_user_name        = var.instances_ssh_user_name
+  private_subnet_cidr            = var.private_subnet_cidr
+
+  cloud_platform   = "GCP"
+  avail_zones      = jsonencode(var.zones)
+  notification_arn = "None"
 
   compute_instances_by_id   = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
   compute_instances_by_ip   = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
@@ -305,8 +311,8 @@ module "invoke_scale_playbook" {
   storage_instance_ids_with_14_datadisks = local.storage_instance_ids_with_14_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_14_datadisks)
   storage_instance_ids_with_15_datadisks = local.storage_instance_ids_with_15_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_15_datadisks)
 
-  storage_instance_ips_with_0_datadisks_device_names_map  = local.storage_instance_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_0_datadisks_device_names_map)
-  storage_instance_ips_with_1_datadisks_device_names_map  = "[]"
+  storage_instance_ips_with_0_datadisks_device_names_map = local.storage_instance_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_0_datadisks_device_names_map)
+  storage_instance_ips_with_1_datadisks_device_names_map = "[]"
   #storage_instance_ips_with_1_datadisks_device_names_map  = local.storage_instance_ips_1_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_1_datadisks_device_names_map)
   storage_instance_ips_with_2_datadisks_device_names_map  = local.storage_instance_ips_2_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_2_datadisks_device_names_map)
   storage_instance_ips_with_3_datadisks_device_names_map  = local.storage_instance_ips_3_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_3_datadisks_device_names_map)
