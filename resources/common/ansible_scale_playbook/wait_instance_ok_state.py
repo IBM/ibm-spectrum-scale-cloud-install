@@ -69,10 +69,16 @@ def aws_ec2_wait_running(region_name, instance_ids):
     Wait for EC2 instances to obtain running-ok state.
     :args: region_name(string), instance_ids(list)
     """
-    print("[CLOUD-DEPLOY] Waiting for instance's to obtain running-ok state.")
-    aws_command = ["/usr/local/bin/aws", "ec2", "wait", "instance-status-ok",
-                   "--region", region_name, "--instance-ids"] + instance_ids
-    out, err, code = local_execution(aws_command)
+    MAX_RETRY = 2
+    retry_count = 0
+    code = 1
+    while (code and retry_count < MAX_RETRY):
+        print("[CLOUD-DEPLOY] Waiting for instance's to obtain running-ok state.")
+        aws_command = ["/usr/local/bin/aws", "ec2", "wait", "instance-status-ok",
+                       "--region", region_name, "--instance-ids"] + instance_ids
+        out, err, code = local_execution(aws_command)
+        retry_count = retry_count + 1
+
     if code:
         print("[CLOUD-DEPLOY] Instance's did not obtain running-ok state. Existing!")
         print("%s: %s %s: %s" % ("stdout", out, "stderr", err))

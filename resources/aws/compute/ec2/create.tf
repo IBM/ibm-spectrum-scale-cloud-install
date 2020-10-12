@@ -30,47 +30,117 @@ variable "device_names" {}
 data "template_file" "user_data" {
   template = <<EOF
 #!/usr/bin/env bash
+
+exec > >(tee /var/log/ibm_spectrumscale_user-data.log)
 if grep -q "Red Hat" /etc/os-release
 then
-    if ! grep -Fxq "enabled=1" /etc/yum.repos.d/redhat-rhui.repo
-    then
-        echo "No repository enabled. Enabling all repositories in redhat-rhui.repo"
-        sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/redhat-rhui.repo
-        status=$?
-        if [ $status -ne 0 ]
-        then
-            echo "Error: Failed to enable repositories in redhat-rhui.repo"
-        fi
-    fi
-
+    REQ_PKG_INSTALLED=0
     if grep -q "platform:el8" /etc/os-release
     then
-        dnf install -y python3 wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+        PACKAGE_MGR=dnf
     else
-        yum install -y python3 wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+        PACKAGE_MGR=yum
     fi
-    
+
+    RETRY_LIMIT=5
+    retry_count=0
+    pkg_installed=1
+
+    while [[ $pkg_installed -ne 0 && $retry_count -lt $RETRY_LIMIT ]]
+    do
+        # Install all required packages
+        echo "INFO: Attempting to install packages"
+        $PACKAGE_MGR install -y python3 unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+
+        # Check to ensure packages are installed
+        pkg_query=$($PACKAGE_MGR list installed unzip)
+        pkg_installed=$?
+
+        if [[ $pkg_installed -ne 0 ]]
+        then
+            # The minimum required packages have not been installed.
+            echo "WARN: Required packages not installed. Sleeping for 60 seconds and retrying..."
+            sleep 60
+            touch /var/log/scale-rerun-package-install
+
+            echo "INFO: Cleaning and repopulating repository data"
+            $PACKAGE_MGR clean all
+            $PACKAGE_MGR makecache
+        fi
+
+        retry_count=$(( $retry_count+1 ))
+    done
+
 elif grep -q "Ubuntu" /etc/os-release
 then
     apt update
-    apt-get install -y python3 wget unzip python3-pip 
+    apt-get install -y python3 wget unzip python3-pip
 elif grep -q "SLES" /etc/os-release
 then
-    zypper install -y python3 wget unzip 
+    zypper install -y python3 wget unzip
 fi
-wget https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-unzip awscli-exe-linux-x86_64.zip
-cd aws/
-bash install
-cd -
-aws ssm get-parameter --name "${var.private_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text > ~/.ssh/id_rsa
-aws ssm get-parameter --name "${var.public_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text > ~/.ssh/id_rsa.pub
+
+if [ ! -f /usr/local/bin/aws ]
+then
+    echo "INFO: Installing AWS CLI"
+    # Install AWS CLI
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    cd aws/
+    bash install
+    cd -
+else
+    echo "INFO: AWS CLI already installed"
+fi
+
+SSM_RETRY_LIMIT=6
+priv_retry_count=0
+get_priv_key_status=1
+while [[ $get_priv_key_status -ne 0 && $priv_retry_count -lt $SSM_RETRY_LIMIT ]]
+do
+    sleep 20
+    echo "INFO: Retrieving instance keys (1)"
+    private_key=$(aws ssm get-parameter --name "${var.private_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text)
+    get_priv_key_status=$?
+    if [[ $get_priv_key_status -eq 0 ]]
+    then
+        echo "Installing key (1)"
+        echo "$private_key" > ~/.ssh/id_rsa
+    fi
+    if [[ $priv_retry_count -gt 0 ]]
+    then
+        touch /var/log/scale-rerun-ssm-priv
+    fi
+    priv_retry_count=$(( $priv_retry_count+1 ))
+done
+
+pub_retry_count=0
+get_pub_key_status=1
+while [[ $get_pub_key_status -ne 0 && $pub_retry_count -lt $SSM_RETRY_LIMIT ]]
+do
+    sleep 20
+    echo "INFO: Retrieving instance keys (2)"
+    public_key=$(aws ssm get-parameter --name "${var.public_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text)
+    get_pub_key_status=$?
+    if [[ $get_pub_key_status -eq 0 ]]
+    then
+        echo "Installing key (2)"
+        echo "$public_key" > ~/.ssh/id_rsa.pub
+    fi
+    if [[ $pub_retry_count -gt 0 ]]
+    then
+        touch /var/log/scale-rerun-ssm-pub
+    fi
+    pub_retry_count=$(( $pub_retry_count+1 ))
+done
+
+
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 chmod 600 ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa.pub
 chmod 600 ~/.ssh/authorized_keys
-pip3 install -U ansible boto3 PyYAML
+pip3 install -U boto3 PyYAML
 if [[ ! "$PATH" =~ "/usr/local/bin" ]]
 then
     echo 'export PATH=$PATH:$HOME/bin:/usr/local/bin' >> ~/.bash_profile
@@ -110,6 +180,10 @@ resource "aws_instance" "main_with_0_data" {
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
   }
+
+  timeouts {
+    create = "15m"
+  }
 }
 
 resource "aws_instance" "main_with_1_data" {
@@ -141,6 +215,10 @@ resource "aws_instance" "main_with_1_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -180,6 +258,10 @@ resource "aws_instance" "main_with_2_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -226,6 +308,10 @@ resource "aws_instance" "main_with_3_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -279,6 +365,10 @@ resource "aws_instance" "main_with_4_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -339,6 +429,10 @@ resource "aws_instance" "main_with_5_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -406,6 +500,10 @@ resource "aws_instance" "main_with_6_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -480,6 +578,10 @@ resource "aws_instance" "main_with_7_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -561,6 +663,10 @@ resource "aws_instance" "main_with_8_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -649,6 +755,10 @@ resource "aws_instance" "main_with_9_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -744,6 +854,10 @@ resource "aws_instance" "main_with_10_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -846,6 +960,10 @@ resource "aws_instance" "main_with_11_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -955,6 +1073,10 @@ resource "aws_instance" "main_with_12_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -1079,6 +1201,10 @@ resource "aws_instance" "main_with_13_data" {
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
   }
+
+  timeouts {
+    create = "15m"
+  }
 }
 
 resource "aws_instance" "main_with_14_data" {
@@ -1201,6 +1327,10 @@ resource "aws_instance" "main_with_14_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
@@ -1331,6 +1461,10 @@ resource "aws_instance" "main_with_15_data" {
 
   lifecycle {
     ignore_changes = [user_data_base64, security_groups, subnet_id]
+  }
+
+  timeouts {
+    create = "15m"
   }
 }
 
