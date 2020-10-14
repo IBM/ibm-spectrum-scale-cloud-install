@@ -11,7 +11,7 @@ variable "region" {}
 resource "null_resource" "put_ssm_parameter" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "aws ssm put-parameter --name ${var.parameter_name} --value \"`cat ${var.parameter_value}`\" --type ${var.parameter_type} --overwrite --region ${var.region}"
+    command     = "/usr/local/bin/aws ssm put-parameter --name ${var.parameter_name} --value \"`cat ${var.parameter_value}`\" --type ${var.parameter_type} --overwrite --region ${var.region}"
   }
 }
 

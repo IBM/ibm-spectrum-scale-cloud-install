@@ -16,7 +16,7 @@ resource "aws_sns_topic" "email_topic" {
   name = var.sns_topic_name
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "aws sns subscribe --topic-arn ${aws_sns_topic.email_topic.arn} --protocol email --notification-endpoint ${var.operator_email} --region ${var.region}"
+    command     = "/usr/local/bin/aws sns subscribe --topic-arn ${aws_sns_topic.email_topic.arn} --protocol email --notification-endpoint ${var.operator_email} --region ${var.region}"
   }
 }
 
