@@ -100,7 +100,7 @@ while [[ $get_priv_key_status -ne 0 && $priv_retry_count -lt $SSM_RETRY_LIMIT ]]
 do
     sleep 20
     echo "INFO: Retrieving instance keys (1)"
-    private_key=$(aws ssm get-parameter --name "${var.private_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text)
+    private_key=$(/usr/local/bin/aws ssm get-parameter --name "${var.private_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text)
     get_priv_key_status=$?
     if [[ $get_priv_key_status -eq 0 ]]
     then
@@ -120,7 +120,7 @@ while [[ $get_pub_key_status -ne 0 && $pub_retry_count -lt $SSM_RETRY_LIMIT ]]
 do
     sleep 20
     echo "INFO: Retrieving instance keys (2)"
-    public_key=$(aws ssm get-parameter --name "${var.public_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text)
+    public_key=$(/usr/local/bin/aws ssm get-parameter --name "${var.public_key_ssm_name}" --region "${var.region}" --with-decryption --query 'Parameter.{Value:Value}' --output text)
     get_pub_key_status=$?
     if [[ $get_pub_key_status -eq 0 ]]
     then
