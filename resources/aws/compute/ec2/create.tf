@@ -63,6 +63,12 @@ then
             sleep 60
             touch /var/log/scale-rerun-package-install
 
+            if [ -f /usr/sbin/choose_repo.py ]
+            then
+                echo "INFO: Executing /usr/sbin/choose_repo.py to resetup the package repositories"
+                /usr/sbin/choose_repo.py
+            fi
+
             echo "INFO: Cleaning and repopulating repository data"
             $PACKAGE_MGR clean all
             $PACKAGE_MGR makecache
