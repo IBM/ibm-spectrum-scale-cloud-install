@@ -1,5 +1,5 @@
 /*
-  Creates new GCP firewall rule (allow all ports between compute instances)
+  Creates new GCP firewall rule (allow bastion host to access internal network)
 */
 
 variable "firewall_name_prefix" {
@@ -26,26 +26,27 @@ variable "source_range" {
 }
 
 
-resource "google_compute_firewall" "allow_internal" {
-  name          = format("%s-allow-internal", var.firewall_name_prefix)
+resource "google_compute_firewall" "allow_bastion_internal" {
+  name          = format("%s-allow-bastion-internal", var.firewall_name_prefix)
   network       = var.vpc_name
   description   = var.firewall_description
   source_ranges = var.source_range
   allow {
-    protocol = "all"
+    protocol = "tcp"
+    ports    = ["22"]
   }
 }
 
 
 output "firewall_id" {
-  value = google_compute_firewall.allow_internal.id
+  value = google_compute_firewall.allow_bastion_internal.id
 }
 
 output "firewall_name" {
-  value      = format("%s-allow-internal", var.firewall_name_prefix)
-  depends_on = [google_compute_firewall.allow_internal]
+  value      = format("%s-allow-bastion-internal", var.firewall_name_prefix)
+  depends_on = [google_compute_firewall.allow_bastion_internal]
 }
 
 output "firewall_uri" {
-  value = google_compute_firewall.allow_internal.self_link
+  value = google_compute_firewall.allow_bastion_internal.self_link
 }

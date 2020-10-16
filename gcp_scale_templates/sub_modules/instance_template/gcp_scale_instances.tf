@@ -11,9 +11,16 @@ module "generate_keys" {
   tf_data_path = var.tf_data_path
 }
 
+module "bastion_compute_instances_firewall" {
+  source               = "../../../resources/gcp/network/firewall/allow_bastion_internal"
+  source_range         = ["35.235.240.0/20"]
+  firewall_name_prefix = var.stack_name
+  vpc_name             = var.vpc_name
+}
+
 module "compute_instances_firewall" {
   source               = "../../../resources/gcp/network/firewall/allow_internal"
-  source_range         = ["35.235.240.0/20"]
+  source_range         = [var.private_subnet_cidr]
   firewall_name_prefix = var.stack_name
   vpc_name             = var.vpc_name
 }
