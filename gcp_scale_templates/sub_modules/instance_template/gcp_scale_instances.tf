@@ -11,9 +11,16 @@ module "generate_keys" {
   tf_data_path = var.tf_data_path
 }
 
+module "bastion_compute_instances_firewall" {
+  source               = "../../../resources/gcp/network/firewall/allow_bastion_internal"
+  source_range         = ["35.235.240.0/20"]
+  firewall_name_prefix = var.stack_name
+  vpc_name             = var.vpc_name
+}
+
 module "compute_instances_firewall" {
   source               = "../../../resources/gcp/network/firewall/allow_internal"
-  source_range         = ["35.235.240.0/20"]
+  source_range         = [var.private_subnet_cidr]
   firewall_name_prefix = var.stack_name
   vpc_name             = var.vpc_name
 }
@@ -150,7 +157,7 @@ locals {
   }
   storage_instance_1A_ips_device_names_map = length(var.zones) == 1 ? {
     for instance in module.storage_instances_1A_zone.instance_ips :
-    instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks)
+    instance => slice(var.data_disks_device_names, 0, var.data_disks_per_instance)
     } : {
     for instance in module.storage_instances_1A_zone.instance_ips :
     instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks / 2)
