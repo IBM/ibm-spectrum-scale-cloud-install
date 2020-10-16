@@ -150,7 +150,7 @@ locals {
   }
   storage_instance_1A_ips_device_names_map = length(var.zones) == 1 ? {
     for instance in module.storage_instances_1A_zone.instance_ips :
-    instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks)
+    instance => slice(var.data_disks_device_names, 0, var.data_disks_per_instance)
     } : {
     for instance in module.storage_instances_1A_zone.instance_ips :
     instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks / 2)
