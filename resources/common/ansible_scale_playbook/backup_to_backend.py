@@ -59,6 +59,30 @@ def aws_s3_upload_object(bucket_name, obj_name, file_path):
               "successfully." % (file_path, obj_name))
 
 
+def gcp_gcs_upload_object(bucket_name, obj_name, file_path):
+    """
+        This function performs upload of file as GCS object.
+
+        Args:
+            bucket_name (str): Bucket name
+            obj_name (str): Object name
+            file_path (str): File path used for object upload
+    """
+    print("[CLOUD-DEPLOY] Uploading inventory (%s) to bucket (%s) as object "
+          "(%s)." % (file_path, bucket_name, obj_name))
+    aws_command = ["/usr/local/bin/gsutil", "cp", file_path,
+                   "gs://%s/%s" % (bucket_name, obj_name)]
+    out, err, code = local_execution(aws_command)
+    if code:
+        print("[CLOUD-DEPLOY] Error while uploading file (%s) to bucket (%s). "
+              "Existing!" % (file_path, bucket_name))
+        print("%s: %s %s: %s" % ("stdout", out, "stderr", err))
+        sys.exit(1)
+    else:
+        print("[CLOUD-DEPLOY] Upload of file (%s) as object (%s) completed "
+              "successfully." % (file_path, obj_name))
+
+
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Backup local file to '
                                                  'specified backend.')
@@ -78,3 +102,7 @@ if __name__ == "__main__":
         aws_s3_upload_object(ARGUMENTS.bucket_name,
                              ARGUMENTS.obj_name,
                              ARGUMENTS.local_file_path)
+    elif ARGUMENTS.cloud_platform.upper() == 'GCP':
+        gcp_gcs_upload_object(ARGUMENTS.bucket_name,
+                              ARGUMENTS.obj_name,
+                              ARGUMENTS.local_file_path)
