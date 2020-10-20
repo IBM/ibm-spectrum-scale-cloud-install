@@ -18,6 +18,7 @@ limitations under the License.
 import argparse
 import subprocess
 import sys
+import time
 
 # Note: Use cloud_platform flag to alter the backend api per cloud.
 
@@ -44,7 +45,7 @@ def aws_ssm_put_parameter(param_name, local_file_path, param_type, region_name):
             param_type (str): SSM parameter type
             region_name (str): Region of operation
     """
-    param_value, max_retry, retry_count, code = None, 2, 0, 1
+    param_value, max_retry, retry_count, code = None, 3, 0, 1
     with open(local_file_path, 'r') as secret_file:
         param_value = secret_file.read()
 
@@ -59,6 +60,7 @@ def aws_ssm_put_parameter(param_name, local_file_path, param_type, region_name):
                        param_type, "--overwrite", "--region", region_name]
         out, err, code = local_execution(aws_command)
         retry_count += 1
+        time.sleep(30)
 
     if code:
         print("[CLOUD-DEPLOY] Error while uploading secret (%s) as parameter (%s). "
