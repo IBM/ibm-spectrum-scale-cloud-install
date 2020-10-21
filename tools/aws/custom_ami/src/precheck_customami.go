@@ -19,16 +19,17 @@ import (
 )
 
 var verbose bool
-var awsByol13Platforms = map[string]string{"Red Hat Enterprise Linux Server 7.7": "3.10.0-1062.el7.x86_64",
-	"Red Hat Enterprise Linux Server 7.8": "3.10.0-1127.el7.x86_64", "Red Hat Enterprise Linux 8.1": "4.18.0-147.el8.x86_64"}
+var check bool
+var awsByol13Platforms = [4]string{"Red Hat Enterprise Linux Server 7.7", "Red Hat Enterprise Linux Server 7.8",
+"Red Hat Enterprise Linux 8.1", "Red Hat Enterprise Linux 8.2"}
 var scaleOSDepends = [8]string{"ksh", "libaio", "m4", "kernel-devel", "cpp", "gcc", "gcc-c", "kernel-headers"}
 var scaleFaq = "https://www.ibm.com/support/knowledgecenter/STXKQY/gpfsclustersfaq.html#linux__rhelkerntable"
 var utilityMessage = `======================================================================
 | Note:                                                              |
 | 1. This utility should only be used for initial screening of AWS   |
-|    custom AMI meant for deployment of IBM Spectrum Stack BYOL 1.3   |
+|    custom AMI meant for deployment of IBM Spectrum Stack BYOL 1.3  |
 |    release.                                                        |
-| 2. It is advised to follow the best practices for building AMI's.  |
+| 2. It is advised to follow AWS best practices for building AMI's.  |
 ======================================================================`
 
 func getAWSinstanceID() (instanceid []byte) {
@@ -128,18 +129,16 @@ func main() {
 	log.Debug("Identified OS version id: ", version)
 	currentKernel := localCommandExecute("uname", []string{"-r"})
 	log.Debug("Identified kernel version: ", currentKernel)
-	value, isKeyPresent := awsByol13Platforms[platform+" "+version]
-	if isKeyPresent {
-		log.Debug("Identified OS platform (%v) is supported by BYOL 1.3 release", (platform + " " + version))
-		if value == currentKernel {
-			log.Debugf("Identified kernel version (%v) is supported by BYOL 1.3 release", currentKernel)
-		} else {
-			log.Infof("Supported OS vs. kernel matrix for BYOL 1.3 release: %v", awsByol13Platforms)
-			log.Info("For more details related to supported kernel levels, refer to ", scaleFaq)
-			log.Fatalf("Identified kernel version (%v) is NOT supported as AMI for BYOL 1.3 release", currentKernel)
+	for _, eachplatform := range awsByol13Platforms {
+		if eachplatform == platform+" "+version {
+			check = true
 		}
+	}
+	if check {
+		log.Debugf("Identified OS platform (%v) is supported by BYOL 1.3 release", (platform + " " + version))
+		log.Info("For more details related to supported kernel levels, refer to ", scaleFaq)
 	} else {
-		log.Infof("Supported OS vs. kernel matrix for BYOL 1.3 release: %v", awsByol13Platforms)
+		log.Info("For more details related to supported kernel levels, refer to ", scaleFaq)
 		log.Fatalf("Identified OS platform (%v) is NOT supported as AMI for BYOL 1.3 release", (platform + " " + version))
 	}
 
