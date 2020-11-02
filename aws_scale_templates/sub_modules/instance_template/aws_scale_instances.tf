@@ -430,16 +430,23 @@ module "invoke_scale_playbook" {
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
   tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
 
-  bucket_name                 = var.bucket_name
-  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
-  create_scale_cluster        = var.create_scale_cluster
-  generate_ansible_inv        = var.generate_ansible_inv
-  filesystem_mountpoint       = var.filesystem_mountpoint
-  filesystem_block_size       = var.filesystem_block_size
-  operating_env               = var.operating_env
-  cloud_platform              = "AWS"
-  avail_zones                 = jsonencode(var.availability_zones)
-  notification_arn            = module.email_notification.sns_topic_arn
+  bucket_name                  = var.bucket_name
+  scale_infra_repo_clone_path  = var.scale_infra_repo_clone_path
+  create_scale_cluster         = var.create_scale_cluster
+  generate_ansible_inv         = var.generate_ansible_inv
+  filesystem_mountpoint        = var.filesystem_mountpoint
+  filesystem_block_size        = var.filesystem_block_size
+  scale_version                = var.scale_version
+  generate_jumphost_ssh_config = var.generate_jumphost_ssh_config
+
+  bastion_public_ip              = var.bastion_public_ip
+  instances_ssh_private_key_path = var.instances_ssh_private_key_path
+  instances_ssh_user_name        = var.instances_ssh_user_name
+  private_subnet_cidr            = var.private_subnet_cidr
+
+  cloud_platform   = "AWS"
+  avail_zones      = jsonencode(var.availability_zones)
+  notification_arn = module.email_notification.sns_topic_arn
 
   compute_instances_by_id                                 = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
   compute_instances_by_ip                                 = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
