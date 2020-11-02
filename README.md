@@ -1,25 +1,25 @@
-# Cloud Install 
+# IBM Spectrum Scale Cloud Install
 
-This repository contains Terraform templates to provision public cloud infrastructure (i.e. AWS, Azure, GCP) where IBM Spectrum Scale can then be installed. 
+This repository contains Terraform templates to provision public cloud infrastructure (i.e. AWS, Azure, GCP, IBM Cloud) where IBM Spectrum Scale can then be installed.
 
 ## Prerequisites
 
-Ensure that the following requirements are met on the server where this repository is cloned. 
+Ensure that the following requirements are met on the server where this repository is cloned.
 
 * Install [Terraform](https://learn.hashicorp.com/terraform/getting-started/install.html) and validate:
 
     * `terraform -v`
 
-* Install [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and validate: 
+* Install [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and validate:
 
-    * `ansible --version` 
+    * `ansible --version`
 
 ## Usage
 
   * [Amazon Web Services (AWS)](docs/aws.md)
   * [Microsoft Azure (Azure)](docs/azure.md)
   * [Google Cloud Platform (GCP)](docs/gcp.md)
-
+  * [IBM Cloud](docs/ibmcloud.md)
 
 ### Reporting Issues and Feedback
 
