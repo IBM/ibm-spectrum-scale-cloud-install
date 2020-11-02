@@ -10,8 +10,13 @@
 Ensure that you have configured your GCP public cloud credentials:
 
 1. [Install gcloud CLI](https://cloud.google.com/sdk/gcloud)
-2. [Create service account](https://cloud.google.com/docs/authentication/getting-started)
-3. [Create or use a GCP project](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
+2. [Configure gsutil](https://cloud.google.com/storage/docs/gsutil_install#authenticate)
+3. [Create service account](https://cloud.google.com/docs/authentication/getting-started)
+   > GCP Console -> IAM & Admin -> Service Accounts -> Create Service Account (Ensure the created service account has sufficient permissions to create resources).
+   
+   > Select the created service account -> Actions -> Create key (Download key in JSON format. Make note of key path.)
+4. [Create or use a GCP project](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
+   > GCP Console -> IAM & Admin -> Manage Resources -> Create Project (Make note of project-id)
 
 ### Configure terraform GCS backend
 
