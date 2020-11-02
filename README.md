@@ -16,9 +16,7 @@ IBM Spectrum Scale offers different editions based on functional levels.
 - IBM Spectrum Scale Erasure Code Edition
 - IBM Spectrum Scale Developer Edition
 
-  | Learn, develop and test with IBM Spectrum Scale™, for `non-production use`. Developer edition provides all the features of the Data Management Edition and it is limited to 12 TB per cluster.
-  It can be downloaded from [IBM Market place](https://www.ibm.com/products/spectrum-scale) |
-  | --- |
+  > Learn, develop and test with IBM Spectrum Scale™, for `non-production use`. Developer edition provides all the features of the Data Management Edition and it is limited to 12 TB per cluster. It can be downloaded from [IBM Market place](https://www.ibm.com/products/spectrum-scale)
 
 ## Prerequisites
 
