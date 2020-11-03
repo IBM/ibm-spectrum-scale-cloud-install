@@ -4,7 +4,11 @@ IBM Spectrum Scale is a high-performance, highly available clustered file system
 
 ## IBM Spectrum Scale - Cluster Configuration
 
-IBM Spectrum Scale™ cluster can be configured in a variety of ways. The cluster can be a heterogeneous mix of hardware platforms, virtualized instances and operating systems.
+IBM Spectrum Scale™ cluster can be configured in a variety of ways. The cluster can be a heterogeneous mix of hardware platforms, virtualized instances and operating systems. Using these templates, Spectrum Scale cluster can be deployed in below architectures;
+
+- IBM Spectrum Scale Architecture (Single Availability zone)
+
+- IBM Spectrum Scale Architecture (Multi Availability zone)
 
 ## IBM Spectrum Scale - Product Editions
 
@@ -12,7 +16,7 @@ IBM Spectrum Scale offers different editions based on functional levels.
 - IBM Spectrum Scale Standard Edition
 - IBM Spectrum Scale Data Access Edition
 - IBM Spectrum Scale Advanced Edition
-- IBM Spectrum Scale Data Management Edition (Recommended for Cloud usecases)
+- IBM Spectrum Scale Data Management Edition (**Recommended for Cloud usecases**)
 - IBM Spectrum Scale Erasure Code Edition
 - IBM Spectrum Scale Developer Edition
 
