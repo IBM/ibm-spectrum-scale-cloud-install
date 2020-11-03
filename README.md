@@ -8,7 +8,11 @@ IBM Spectrum Scale™ cluster can be configured in a variety of ways. The cluste
 
 - IBM Spectrum Scale Architecture (Single Availability zone)
 
+
+
 - IBM Spectrum Scale Architecture (Multi Availability zone)
+
+
 
 ## IBM Spectrum Scale - Product Editions
 
