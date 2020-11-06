@@ -11,9 +11,16 @@ module "generate_keys" {
   tf_data_path = var.tf_data_path
 }
 
+module "bastion_compute_instances_firewall" {
+  source               = "../../../resources/gcp/network/firewall/allow_bastion_internal"
+  source_range         = ["35.235.240.0/20"]
+  firewall_name_prefix = var.stack_name
+  vpc_name             = var.vpc_name
+}
+
 module "compute_instances_firewall" {
   source               = "../../../resources/gcp/network/firewall/allow_internal"
-  source_range         = ["35.235.240.0/20"]
+  source_range         = [var.private_subnet_cidr]
   firewall_name_prefix = var.stack_name
   vpc_name             = var.vpc_name
 }
@@ -33,7 +40,7 @@ module "compute_instances" {
   operator_email       = var.operator_email
   scopes               = var.scopes
   ssh_user_name        = var.instances_ssh_user_name
-  ssh_key_path         = var.instances_ssh_key_path
+  ssh_key_path         = var.instances_ssh_public_key_path
   private_key_path     = module.generate_keys.private_key_path
   public_key_path      = module.generate_keys.public_key_path
 }
@@ -56,7 +63,7 @@ module "desc_compute_instance" {
   data_disk_size          = 5
   data_disk_type          = var.data_disk_type
   ssh_user_name           = var.instances_ssh_user_name
-  ssh_key_path            = var.instances_ssh_key_path
+  ssh_key_path            = var.instances_ssh_public_key_path
   private_key_path        = module.generate_keys.private_key_path
   public_key_path         = module.generate_keys.public_key_path
   operator_email          = var.operator_email
@@ -81,7 +88,7 @@ module "create_data_disks_1A_zone" {
 module "create_data_disks_2A_zone" {
   source                    = "../../../resources/gcp/storage/compute_disk_create"
   total_data_disks          = length(var.zones) == 1 ? 0 : local.total_nsd_disks / 2
-  zone                      = var.zones.1
+  zone                      = length(var.zones) == 1 ? var.zones.0 : var.zones.1
   data_disk_description     = "Spectrum Scale NSD disk"
   data_disk_name_prefix     = "storage"
   data_disk_size            = var.data_disk_size
@@ -102,7 +109,7 @@ module "storage_instances_1A_zone" {
   vm_instance_tags     = var.compute_instance_tags
   subnet_name          = var.private_subnet_name
   ssh_user_name        = var.instances_ssh_user_name
-  ssh_key_path         = var.instances_ssh_key_path
+  ssh_key_path         = var.instances_ssh_public_key_path
   private_key_path     = module.generate_keys.private_key_path
   public_key_path      = module.generate_keys.public_key_path
   operator_email       = var.operator_email
@@ -112,7 +119,7 @@ module "storage_instances_1A_zone" {
 module "storage_instances_2A_zone" {
   source               = "../../../resources/gcp/compute_engine/vm_instance/vm_instance_0_disk"
   total_instances      = length(var.zones) > 1 ? var.total_storage_instances / 2 : 0
-  zone                 = var.zones.1
+  zone                 = length(var.zones) == 1 ? var.zones.0 : var.zones.1
   instance_name_prefix = "storage"
   machine_type         = var.storage_machine_type
   boot_disk_size       = var.storage_boot_disk_size
@@ -122,7 +129,7 @@ module "storage_instances_2A_zone" {
   vm_instance_tags     = var.compute_instance_tags
   subnet_name          = var.private_subnet_name
   ssh_user_name        = var.instances_ssh_user_name
-  ssh_key_path         = var.instances_ssh_key_path
+  ssh_key_path         = var.instances_ssh_public_key_path
   private_key_path     = module.generate_keys.private_key_path
   public_key_path      = module.generate_keys.public_key_path
   operator_email       = var.operator_email
@@ -150,7 +157,7 @@ locals {
   }
   storage_instance_1A_ips_device_names_map = length(var.zones) == 1 ? {
     for instance in module.storage_instances_1A_zone.instance_ips :
-    instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks)
+    instance => slice(var.data_disks_device_names, 0, var.data_disks_per_instance)
     } : {
     for instance in module.storage_instances_1A_zone.instance_ips :
     instance => slice(var.data_disks_device_names, 0, local.total_nsd_disks / 2)
@@ -272,16 +279,22 @@ module "invoke_scale_playbook" {
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
   tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
 
-  bucket_name                 = var.bucket_name
-  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
-  create_scale_cluster        = var.create_scale_cluster
-  generate_ansible_inv        = var.generate_ansible_inv
-  filesystem_mountpoint       = var.filesystem_mountpoint
-  filesystem_block_size       = var.filesystem_block_size
-  operating_env               = var.operating_env
-  cloud_platform              = "GCP"
-  avail_zones                 = jsonencode(var.zones)
-  notification_arn            = "None"
+  bucket_name                    = var.bucket_name
+  scale_infra_repo_clone_path    = var.scale_infra_repo_clone_path
+  create_scale_cluster           = var.create_scale_cluster
+  generate_ansible_inv           = var.generate_ansible_inv
+  scale_version                  = var.scale_version
+  filesystem_mountpoint          = var.filesystem_mountpoint
+  filesystem_block_size          = var.filesystem_block_size
+  generate_jumphost_ssh_config   = var.generate_jumphost_ssh_config
+  bastion_public_ip              = var.bastion_public_ip
+  instances_ssh_private_key_path = var.instances_ssh_private_key_path
+  instances_ssh_user_name        = var.instances_ssh_user_name
+  private_subnet_cidr            = var.private_subnet_cidr
+
+  cloud_platform   = "GCP"
+  avail_zones      = jsonencode(var.zones)
+  notification_arn = "None"
 
   compute_instances_by_id   = module.compute_instances.instance_ids_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ids_with_0_datadisks)
   compute_instances_by_ip   = module.compute_instances.instance_ips_with_0_datadisks == null ? "[]" : jsonencode(module.compute_instances.instance_ips_with_0_datadisks)
@@ -305,8 +318,8 @@ module "invoke_scale_playbook" {
   storage_instance_ids_with_14_datadisks = local.storage_instance_ids_with_14_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_14_datadisks)
   storage_instance_ids_with_15_datadisks = local.storage_instance_ids_with_15_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_15_datadisks)
 
-  storage_instance_ips_with_0_datadisks_device_names_map  = local.storage_instance_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_0_datadisks_device_names_map)
-  storage_instance_ips_with_1_datadisks_device_names_map  = "[]"
+  storage_instance_ips_with_0_datadisks_device_names_map = local.storage_instance_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_0_datadisks_device_names_map)
+  storage_instance_ips_with_1_datadisks_device_names_map = "[]"
   #storage_instance_ips_with_1_datadisks_device_names_map  = local.storage_instance_ips_1_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_1_datadisks_device_names_map)
   storage_instance_ips_with_2_datadisks_device_names_map  = local.storage_instance_ips_2_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_2_datadisks_device_names_map)
   storage_instance_ips_with_3_datadisks_device_names_map  = local.storage_instance_ips_3_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_3_datadisks_device_names_map)

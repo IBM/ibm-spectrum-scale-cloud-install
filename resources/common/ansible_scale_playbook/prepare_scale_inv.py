@@ -19,7 +19,8 @@ import argparse
 import json
 import pathlib
 import re
-import socket
+
+# Note: Don't use socket for FQDN resolution.
 
 SCALE_CLUSTER_DEFINITION_PATH = "/vars/scale_clusterdefinition.json"
 CLUSTER_DEFINITION_JSON = {"scale_cluster": {}, "node_details": [], "scale_storage": [],
@@ -167,7 +168,7 @@ if __name__ == "__main__":
     if len(TF_INV['availability_zones']) > 1:
         # Compute desc node to be a quorum node (quorum = 1, manager = 0)
         for each_ip in TF_INV['compute_instance_desc_map']:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+            initialize_node_details(each_ip, each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                     is_quorum_node=True, is_manager_node=False, is_admin_node=False,
@@ -222,32 +223,32 @@ if __name__ == "__main__":
         if storage_instances.index(each_ip) <= (start_quorum_assign) and \
            storage_instances.index(each_ip) <= (manager_count - 1):
             if storage_instances.index(each_ip) == 0:
-                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                initialize_node_details(each_ip, each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=True, is_collector_node=True, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                         node_class="storagenodegrp")
             elif storage_instances.index(each_ip) == 1:
-                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                initialize_node_details(each_ip, each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=False, is_collector_node=True, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                         node_class="storagenodegrp")
             else:
-                initialize_node_details(socket.getfqdn(each_ip), each_ip,
+                initialize_node_details(each_ip, each_ip,
                                         ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                         node_class="storagenodegrp")
         elif storage_instances.index(each_ip) <= (start_quorum_assign) and \
              storage_instances.index(each_ip) > (manager_count - 1):
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+            initialize_node_details(each_ip, each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                     is_quorum_node=True, is_manager_node=False, is_admin_node=True,
                                     node_class="storagenodegrp")
         else:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+            initialize_node_details(each_ip, each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                     is_quorum_node=False, is_manager_node=False, is_admin_node=False,
@@ -271,14 +272,14 @@ if __name__ == "__main__":
     # Additional quorums assign to compute nodes
     if quorums_left > 0:
         for each_ip in TF_INV['compute_instances_by_ip'][0:quorums_left]:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+            initialize_node_details(each_ip, each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=False,
                                     is_quorum_node=True, is_manager_node=False, is_admin_node=True,
                                     node_class="computenodegrp")
 
         for each_ip in TF_INV['compute_instances_by_ip'][quorums_left:]:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+            initialize_node_details(each_ip, each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=False,
                                     is_quorum_node=False, is_manager_node=False, is_admin_node=False,
@@ -286,7 +287,7 @@ if __name__ == "__main__":
 
     if quorums_left == 0:
         for each_ip in TF_INV['compute_instances_by_ip']:
-            initialize_node_details(socket.getfqdn(each_ip), each_ip,
+            initialize_node_details(each_ip, each_ip,
                                     ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=False,
                                     is_quorum_node=False, is_manager_node=False, is_admin_node=False,
@@ -345,4 +346,3 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Completed writing cloud infrastructure details to: ",
               ARGUMENTS.ansible_scale_repo_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
-

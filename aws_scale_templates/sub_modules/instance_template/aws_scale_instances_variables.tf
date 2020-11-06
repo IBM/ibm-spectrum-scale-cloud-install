@@ -1,7 +1,7 @@
-variable "operating_env" {
-  type        = string
-  default     = "local"
-  description = "Operating environement (valid: local)."
+variable "generate_jumphost_ssh_config" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to generate jump host SSH config or not."
 }
 
 variable "region" {
@@ -227,4 +227,32 @@ variable "filesystem_block_size" {
   type        = string
   default     = "4M"
   description = "Filesystem block size."
+}
+
+variable "bastion_public_ip" {
+  type        = string
+  description = "Bastion public ip."
+}
+
+variable "scale_version" {
+  type        = string
+  default     = "5.0.5.0"
+  description = "IBM Spectrum Scale version."
+}
+
+variable "private_subnet_cidr" {
+  type        = string
+  default     = "10.0.0.0/19"
+  description = "Range of internal addresses."
+}
+
+variable "instances_ssh_private_key_path" {
+  type        = string
+  description = "SSH private key local path, which will be used to login to bastion host."
+}
+
+variable "instances_ssh_user_name" {
+  type        = string
+  default     = "ec2-user"
+  description = "Name of the administrator to access the bastion instance."
 }

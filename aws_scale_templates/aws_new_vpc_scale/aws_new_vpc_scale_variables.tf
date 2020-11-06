@@ -1,9 +1,3 @@
-variable "operating_env" {
-  type        = string
-  default     = "local"
-  description = "Operating environement (valid: local)."
-}
-
 variable "region" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
@@ -159,4 +153,33 @@ variable "scale_infra_repo_clone_path" {
 variable "bucket_name" {
   type        = string
   description = "s3 bucket name to be used for backing up ansible inventory file."
+}
+
+variable "generate_jumphost_ssh_config" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to generate jump host SSH config or not."
+}
+
+variable "scale_version" {
+  type        = string
+  default     = "5.0.5.0"
+  description = "IBM Spectrum Scale version."
+}
+
+variable "private_subnet_cidr" {
+  type        = string
+  default     = "10.0.0.0/19"
+  description = "Range of internal addresses."
+}
+
+variable "instances_ssh_private_key_path" {
+  type        = string
+  description = "SSH private key local path, which will be used to login to bastion host."
+}
+
+variable "instances_ssh_user_name" {
+  type        = string
+  default     = "ec2-user"
+  description = "Name of the administrator to access the bastion instance."
 }

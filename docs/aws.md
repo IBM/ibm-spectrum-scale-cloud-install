@@ -1,6 +1,6 @@
 # Usage - Amazon Web Services (AWS)
 
-## Template Parameters 
+## Template Parameters
 
   * [New VPC](gen/aws_new_vpc/README.md)
   * [Existing VPC](gen/aws_existing_vpc/README.md)
@@ -145,4 +145,3 @@ IBM Spectrum Scale Cloud deployment.
     | --- |
 
 4. Run `terraform init -backend-config=s3_backend_config` and `terraform apply -auto-approve` to provision resources.
-

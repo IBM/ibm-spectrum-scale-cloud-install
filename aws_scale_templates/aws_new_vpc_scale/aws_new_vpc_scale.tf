@@ -5,9 +5,9 @@
     3. (Compute, Storage) Instances along with EBS attachments to storage instances
 */
 
-terraform {
-  backend "s3" {}
-}
+#terraform {
+#  backend "s3" {}
+#}
 
 module "vpc_module" {
   source             = "../sub_modules/vpc_template"
@@ -58,7 +58,6 @@ module "instances_module" {
   tf_input_json_root_path                  = local.tf_input_json_root_path
   tf_input_json_file_name                  = local.tf_input_json_file_name
   operator_email                           = var.operator_email
-  operating_env                            = var.operating_env
   bucket_name                              = var.bucket_name
   availability_zones                       = var.availability_zones
   create_scale_cluster                     = var.create_scale_cluster
@@ -66,4 +65,10 @@ module "instances_module" {
   filesystem_mountpoint                    = var.filesystem_mountpoint
   filesystem_block_size                    = var.filesystem_block_size
   scale_infra_repo_clone_path              = var.scale_infra_repo_clone_path
+  scale_version                            = var.scale_version
+  generate_jumphost_ssh_config             = var.generate_jumphost_ssh_config
+  instances_ssh_private_key_path           = var.instances_ssh_private_key_path
+  bastion_public_ip                        = module.bastion_module.bastion_instance_public_ip.0
+  private_subnet_cidr                      = var.private_subnet_cidr
+  instances_ssh_user_name                  = var.instances_ssh_user_name
 }

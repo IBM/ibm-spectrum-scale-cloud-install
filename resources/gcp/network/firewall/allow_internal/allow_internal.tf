@@ -1,5 +1,5 @@
 /*
-  Creates new GCP firewall rule
+  Creates new GCP firewall rule (allow all ports between compute instances)
 */
 
 variable "firewall_name_prefix" {
@@ -32,8 +32,7 @@ resource "google_compute_firewall" "allow_internal" {
   description   = var.firewall_description
   source_ranges = var.source_range
   allow {
-    protocol = "tcp"
-    ports    = ["22"]
+    protocol = "all"
   }
 }
 
@@ -43,7 +42,7 @@ output "firewall_id" {
 }
 
 output "firewall_name" {
-  value      = format("%s-allow-bastion", var.firewall_name_prefix)
+  value      = format("%s-allow-internal", var.firewall_name_prefix)
   depends_on = [google_compute_firewall.allow_internal]
 }
 

@@ -1,8 +1,3 @@
-output "operating_env" {
-  value       = var.operating_env
-  description = "Operating environement (valid: local)."
-}
-
 output "cloud_platform" {
   value       = "AWS"
   description = "Flag to represent AWS cloud."

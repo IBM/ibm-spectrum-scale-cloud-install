@@ -21,10 +21,10 @@ These instructions will help you generate documentation for template parameters.
 
    ```
    # Usage:
-   ~/terraform-docs markdown <template_path> --no-providers --sort-by-required
+   ~/terraform-docs markdown <template_path> --hide providers --sort-by-required
 
    # Example:
-   ~/terraform-docs markdown ibm-spectrumscale-cloud-install/aws_scale_templates/aws_new_vpc_scale/ --no-providers --sort-by-required 
+   ~/terraform-docs markdown ibm-spectrumscale-cloud-install/aws_scale_templates/aws_new_vpc_scale/ --hide providers --sort-by-required
    ```
 
 4. Copy the documentation to the respective location `docs/gen/<cloud_vendor_name>_[new|existing]_<private_network_service_name>/README.md`.
