@@ -318,9 +318,8 @@ module "invoke_scale_playbook" {
   storage_instance_ids_with_14_datadisks = local.storage_instance_ids_with_14_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_14_datadisks)
   storage_instance_ids_with_15_datadisks = local.storage_instance_ids_with_15_datadisks == null ? "[]" : jsonencode(local.storage_instance_ids_with_15_datadisks)
 
-  storage_instance_ips_with_0_datadisks_device_names_map = local.storage_instance_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_0_datadisks_device_names_map)
-  storage_instance_ips_with_1_datadisks_device_names_map = "[]"
-  #storage_instance_ips_with_1_datadisks_device_names_map  = local.storage_instance_ips_1_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_1_datadisks_device_names_map)
+  storage_instance_ips_with_0_datadisks_device_names_map  = local.storage_instance_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_0_datadisks_device_names_map)
+  storage_instance_ips_with_1_datadisks_device_names_map  = local.storage_instance_ips_1_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_1_datadisks_device_names_map)
   storage_instance_ips_with_2_datadisks_device_names_map  = local.storage_instance_ips_2_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_2_datadisks_device_names_map)
   storage_instance_ips_with_3_datadisks_device_names_map  = local.storage_instance_ips_3_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_3_datadisks_device_names_map)
   storage_instance_ips_with_4_datadisks_device_names_map  = local.storage_instance_ips_4_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_instance_ips_4_datadisks_device_names_map)
