@@ -99,12 +99,6 @@ variable "total_compute_instances" {
   description = "Number of EC2 instances to be launched for compute instances."
 }
 
-variable "compute_root_volume_size" {
-  type        = string
-  default     = 100
-  description = "Size of root volume in gibibytes (GiB)."
-}
-
 variable "compute_root_volume_type" {
   type        = string
   default     = "gp2"
@@ -126,12 +120,6 @@ variable "total_storage_instances" {
   type        = string
   default     = "2"
   description = "Number of EC2 instances to be launched for storage instances."
-}
-
-variable "storage_root_volume_size" {
-  type        = string
-  default     = 100
-  description = "Size of root volume in gibibytes (GiB)."
 }
 
 variable "storage_root_volume_type" {
