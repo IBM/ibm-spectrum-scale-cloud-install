@@ -1,0 +1,56 @@
+{
+    "variables": {
+        "aws_access_key": "YOUR_AWS_ACCESS_KEY",
+        "aws_secret_key": "YOUR_AWS_SECRET_KEY",
+        "aws_region": "SOURCE_REGION",
+        "aws_instance_type": "INSTANCE_TYPE",
+        "aws_source_ami": "SOURCE_AMI_ID",
+        "aws_ami_name": "AMI_NAME",
+        "s3_spectrumscale_bucket": "SPECTRUMSCALE_REPO",
+        "volume_size": "200",
+        "volume_type": "gp2"
+    },
+    "builders": [{
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "region": "{{user `aws_region`}}",
+        "source_ami": "{{user `aws_source_ami`}}",
+        "instance_type": "{{user `aws_instance_type`}}",
+        "temporary_iam_instance_profile_policy_document": {
+            "Version": "2012-10-17",
+            "Statement": [
+            {
+               "Effect": "Allow",
+               "Action": "s3:*",
+               "Resource": "*"
+            }]
+        },
+        "ami_block_device_mappings": [{
+            "device_name": "/dev/xvda",
+            "volume_size": "{{user `volume_size`}}",
+            "volume_type": "{{user `volume_type`}}"
+        }],
+        "ssh_username": "ec2-user",
+        "ami_name": "{{user `aws_ami_name`}}",
+        "ami_description": "IBM Spectrum Scale AMI"
+    }],
+    "provisioners": [{
+        "type": "shell",
+        "inline": [
+            "sleep 30",
+            "sudo dnf install -y unzip @python36",
+            "sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`",
+            "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils",
+            "sudo curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip",
+            "sudo unzip awscliv2.zip",
+            "sudo ./aws/install",
+            "sudo rm -rf aws awscliv2.zip",
+            "sudo /usr/local/bin/aws s3 sync s3://\"{{user `s3_spectrumscale_bucket`}}\" .",
+            "sudo dnf install *.rpm -y",
+            "sudo rm -rf *.rpm",
+            "sudo /usr/lpp/mmfs/bin/mmbuildgpl",
+            "sudo sh -c \"echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc\""
+        ]
+    }]
+}
