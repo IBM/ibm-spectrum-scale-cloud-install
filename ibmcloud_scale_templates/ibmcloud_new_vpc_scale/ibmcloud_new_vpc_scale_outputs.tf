@@ -40,3 +40,19 @@ output "volume_1A_ids" {
 output "volume_2A_ids" {
   value = module.instances_module.volume_2A_ids
 }
+
+output "compute_vsi_ips" {
+  value = module.instances_module.compute_vsi_ips
+}
+
+output "desc_compute_vsi_ip" {
+  value = module.instances_module.desc_compute_vsi_ip
+}
+
+output "storage_vsi_1A_ips" {
+  value = module.instances_module.storage_vsi_1A_ips
+}
+
+output "storage_vsi_2A_ips" {
+  value = module.instances_module.storage_vsi_2A_ips
+}

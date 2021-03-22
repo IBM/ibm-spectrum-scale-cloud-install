@@ -73,8 +73,8 @@ module "desc_compute_vsi" {
   total_vsis                = length(var.zones) >= 3 ? 1 : 0
   vsi_name_prefix           = format("%s-tiebreaker-desc", var.stack_name)
   vpc_id                    = var.vpc_id
-  zone                      = var.zones.2
-  vsi_subnet_id             = var.private_subnet_ids.2
+  zone                      = length(var.zones) >= 3 ? var.zones.2 : var.zones.0
+  vsi_subnet_id             = length(var.zones) >= 3 ? var.private_subnet_ids.2 : var.private_subnet_ids.0
   vsi_security_group        = [module.instances_security_group.sec_group_id[0]]
   vsi_profile               = var.compute_vsi_profile
   vsi_image_id              = data.ibm_is_image.compute_instance_image.id
@@ -102,7 +102,7 @@ module "create_data_disks_1A_zone" {
 module "create_data_disks_2A_zone" {
   source             = "../../../resources/ibmcloud/storage"
   total_volumes      = length(var.zones) == 1 ? 0 : local.total_nsd_disks / 2
-  zone               = var.zones.1
+  zone               = length(var.zones) == 1 ? var.zones.0 : var.zones.1
   volume_name_prefix = format("%s-2a", var.stack_name)
   volume_profile     = var.volume_profile
   volume_iops        = var.volume_iops
@@ -129,10 +129,10 @@ module "storage_vsis_1A_zone" {
 module "storage_vsis_2A_zone" {
   source                    = "../../../resources/ibmcloud/compute/scale_vsi_multiple_vol"
   total_vsis                = length(var.zones) > 1 ? var.total_storage_instances / 2 : 0
-  zone                      = var.zones.1
+  zone                      = length(var.zones) == 1 ? var.zones.0 : var.zones.1
   vsi_name_prefix           = format("%s-storage-2a", var.stack_name)
   vpc_id                    = var.vpc_id
-  vsi_subnet_id             = var.private_subnet_ids.1
+  vsi_subnet_id             = length(var.zones) >= 3 ? var.private_subnet_ids.1 : var.private_subnet_ids.0
   vsi_security_group        = [module.instances_security_group.sec_group_id[0]]
   vsi_profile               = var.storage_vsi_profile
   vsi_image_id              = data.ibm_is_image.storage_instance_image.id

@@ -66,6 +66,6 @@ output "vsi_ids" {
   value = ibm_is_instance.vsi.*.id
 }
 
-output "vsi_nw_ids" {
-  value = ibm_is_instance.vsi.*.primary_network_interface[0]
+output "vsi_ips" {
+  value = ibm_is_instance.vsi[*].primary_network_interface[0]["primary_ipv4_address"]
 }
