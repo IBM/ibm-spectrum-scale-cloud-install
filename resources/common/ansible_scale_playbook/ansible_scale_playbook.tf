@@ -122,7 +122,7 @@ resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {
   count = (var.create_scale_cluster == true || var.generate_ansible_inv == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "cp ${var.scale_infra_path}/samples/playbook_cloud.yml ${var.scale_infra_path}/cloud_playbook.yml; cp ${var.scale_infra_path}/samples/set_json_variables.yml ${var.scale_infra_path}/set_json_variables.yml;"
+    command     = "cp ${local.scale_infra_path}/samples/playbook_cloud.yml ${local.scale_infra_path}/cloud_playbook.yml; cp ${local.scale_infra_path}/samples/set_json_variables.yml ${local.scale_infra_path}/set_json_variables.yml;"
   }
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }
