@@ -38,10 +38,33 @@ variable "addr_prefixes" {
   description = "IBM Cloud VPC address prefixes."
 }
 
-variable "cidr_block" {
+variable "primary_cidr_block" {
   type        = list(string)
   default     = ["10.241.0.0/24", "10.241.64.0/24", "10.241.128.0/24"]
-  description = "IBM Cloud VPC subnet CIDR blocks."
+  description = "IBM Cloud VPC primary subnet CIDR blocks."
+}
+
+variable "secondary_cidr_block" {
+  type        = list(string)
+  default     = ["10.241.1.0/24", "10.241.64.1/24", "10.241.128.1/24"]
+  description = "IBM Cloud VPC secondary subnet CIDR blocks."
+}
+
+variable "create_secondary_subnets" {
+  type        = bool
+  default     = true
+  description = "Choose if secondary subnets have to be created or not."
+}
+
+variable "dns_domain" {
+  type        = string
+  default     = "scale.com"
+  description = "IBM Cloud DNS domain name."
+}
+
+variable "resource_grp_id" {
+  type        = string
+  description = "IBM Cloud resource group id."
 }
 
 variable "zones" {

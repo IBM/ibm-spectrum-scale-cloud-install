@@ -12,30 +12,28 @@ resource "null_resource" "check_tf_data_existence" {
   }
 }
 
-resource "null_resource" "remove_orphan_ssh_keys" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    /* Note: Remove orphan SSH keys, we need a full pair to operate. */
-    command = "if [[ ! -f ${var.tf_data_path}/id_rsa ]] || [[ ! -f ${var.tf_data_path}/id_rsa.pub ]]; then rm -rf ${var.tf_data_path}/id_rsa*; fi"
-  }
+resource "tls_private_key" "generate_ssh_key" {
+  algorithm  = "RSA"
+  rsa_bits   = 4096
   depends_on = [null_resource.check_tf_data_existence]
 }
 
-resource "null_resource" "generate_local_ssh_key" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    /* Note: Don't overwrite of keys if both pub, private exists. */
-    command = "if [[ ! -f ${var.tf_data_path}/id_rsa ]] || [[ ! -f ${var.tf_data_path}/id_rsa.pub ]]; then echo -e 'n\n' | ssh-keygen -q -b 4096 -t rsa -N \"\" -f ${var.tf_data_path}/id_rsa; fi"
-  }
-  depends_on = [null_resource.remove_orphan_ssh_keys]
+resource "local_file" "write_ssh_key" {
+  content         = tls_private_key.generate_ssh_key.private_key_pem
+  filename        = format("%s/%s", pathexpand(var.tf_data_path), "id_rsa")
+  file_permission = "0600"
+  depends_on      = [tls_private_key.generate_ssh_key]
 }
 
 output "private_key_path" {
   value      = format("%s/%s", var.tf_data_path, "id_rsa")
-  depends_on = [null_resource.generate_local_ssh_key]
+  depends_on = [local_file.write_ssh_key]
 }
 
-output "public_key_path" {
-  value      = format("%s/%s", var.tf_data_path, "id_rsa.pub")
-  depends_on = [null_resource.generate_local_ssh_key]
+output "public_key" {
+  value = tls_private_key.generate_ssh_key.public_key_openssh
+}
+
+output "private_key" {
+  value = tls_private_key.generate_ssh_key.private_key_pem
 }

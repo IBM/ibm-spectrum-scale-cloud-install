@@ -3,30 +3,30 @@
 */
 
 variable "vnet_name" {
-    type = string
+  type = string
 }
 variable "location" {
-    type = string
+  type = string
 }
 variable "resource_group_name" {
-    type = string
+  type = string
 }
 variable "vnet_address_space" {
-    type = string
+  type = string
 }
 
 
 resource "azurerm_virtual_network" "vnet" {
-    name                = var.vnet_name
-    location            = var.location
-    resource_group_name = var.resource_group_name
-    address_space       = [var.vnet_address_space]
+  name                = var.vnet_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  address_space       = [var.vnet_address_space]
 }
 
 output "vnet_id" {
-    value = azurerm_virtual_network.vnet.id
+  value = azurerm_virtual_network.vnet.id
 }
 
 output "vnet_name" {
-    value = azurerm_virtual_network.vnet.name
+  value = azurerm_virtual_network.vnet.name
 }
