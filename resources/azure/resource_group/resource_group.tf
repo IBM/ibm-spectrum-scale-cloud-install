@@ -3,21 +3,21 @@
 */
 
 variable "resource_group_name" {
-    type = string
+  type = string
 }
 variable "location" {
-    type = string
+  type = string
 }
 
 resource "azurerm_resource_group" "group" {
-    name     = var.resource_group_name
-    location = var.location
+  name     = var.resource_group_name
+  location = var.location
 }
 
 output "resource_group_name" {
-    value = azurerm_resource_group.group.name
+  value = azurerm_resource_group.group.name
 }
 
 output "resource_location" {
-    value = azurerm_resource_group.group.location
+  value = azurerm_resource_group.group.location
 }

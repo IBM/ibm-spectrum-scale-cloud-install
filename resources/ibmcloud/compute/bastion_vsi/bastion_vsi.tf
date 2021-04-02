@@ -10,7 +10,7 @@ variable "vsi_subnet_id" {}
 variable "vsi_security_group" {}
 variable "vsi_profile" {}
 variable "vsi_image_id" {}
-variable "vsi_public_key" {}
+variable "vsi_user_public_key" {}
 
 
 resource "ibm_is_instance" "vsi" {
@@ -26,7 +26,7 @@ resource "ibm_is_instance" "vsi" {
 
   vpc  = var.vpc_id
   zone = element(var.zones, count.index)
-  keys = var.vsi_public_key
+  keys = var.vsi_user_public_key
 }
 
 output "vsi_ids" {
@@ -34,5 +34,5 @@ output "vsi_ids" {
 }
 
 output "vsi_nw_ids" {
-  value = ibm_is_instance.vsi.*.primary_network_interface[0]
+  value = ibm_is_instance.vsi[*].primary_network_interface[0]
 }
