@@ -281,6 +281,7 @@ module "invoke_scale_playbook" {
   scale_version                  = var.scale_version
   bastion_public_ip              = var.bastion_public_ip
   instances_ssh_private_key_path = var.instances_ssh_private_key_path
+
   instances_ssh_user_name        = var.instances_ssh_user
   private_subnet_cidr            = length(var.secondary_private_subnet_ids) == 0 ? var.primary_cidr_block : var.secondary_cidr_block
 
