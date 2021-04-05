@@ -42,7 +42,7 @@ module "instances_module" {
   region                         = var.region
   ibmcloud_api_key               = var.ibmcloud_api_key
   zones                          = var.zones
-  dns_instance_id                = module.vpc_module.dns_service_id
+  dns_service_id                 = module.vpc_module.dns_service_id
   dns_zone_id                    = module.vpc_module.dns_zone_id
   primary_cidr_block             = var.primary_cidr_block
   secondary_cidr_block           = var.secondary_cidr_block

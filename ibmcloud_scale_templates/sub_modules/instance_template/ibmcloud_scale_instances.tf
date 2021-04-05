@@ -49,7 +49,7 @@ module "compute_vsis" {
   vsi_name_prefix         = format("%s-compute", var.stack_name)
   vpc_id                  = var.vpc_id
   zones                   = var.zones
-  dns_instance_id         = var.dns_instance_id
+  dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
   vsi_primary_subnet_id   = var.primary_private_subnet_ids
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : var.secondary_private_subnet_ids
@@ -79,7 +79,7 @@ module "desc_compute_vsi" {
   zone                    = length(var.zones) >= 3 ? var.zones.2 : var.zones.0
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.2 : var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : length(var.zones) >= 3 ? var.secondary_private_subnet_ids.2 : var.secondary_private_subnet_ids.0
-  dns_instance_id         = var.dns_instance_id
+  dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.compute_vsi_profile
@@ -121,7 +121,7 @@ module "storage_vsis_1A_zone" {
   zone                    = var.zones.0
   vsi_name_prefix         = format("%s-storage-1a", var.stack_name)
   vpc_id                  = var.vpc_id
-  dns_instance_id         = var.dns_instance_id
+  dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
   vsi_primary_subnet_id   = var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : var.secondary_private_subnet_ids.0
@@ -141,7 +141,7 @@ module "storage_vsis_2A_zone" {
   zone                    = length(var.zones) == 1 ? var.zones.0 : var.zones.1
   vsi_name_prefix         = format("%s-storage-2a", var.stack_name)
   vpc_id                  = var.vpc_id
-  dns_instance_id         = var.dns_instance_id
+  dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.1 : var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : length(var.zones) >= 3 ? var.secondary_private_subnet_ids.1 : var.secondary_private_subnet_ids.0

@@ -6,7 +6,7 @@ variable "total_vsis" {}
 variable "vsi_name_prefix" {}
 variable "vpc_id" {}
 variable "zone" {}
-variable "dns_instance_id" {}
+variable "dns_service_id" {}
 variable "dns_zone_id" {}
 variable "vsi_primary_subnet_id" {}
 variable "vsi_secondary_subnet_id" {}
@@ -72,7 +72,7 @@ resource "ibm_is_instance" "vsi_1_nic" {
 
 resource "ibm_dns_resource_record" "a_1_nic_records" {
   count       = var.vsi_secondary_subnet_id == null ? var.total_vsis : 0
-  instance_id = var.dns_instance_id
+  instance_id = var.dns_service_id
   zone_id     = var.dns_zone_id
   type        = "A"
   name        = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
@@ -109,7 +109,7 @@ resource "ibm_is_instance" "vsi_2_nic" {
 
 resource "ibm_dns_resource_record" "a_2_nic_records" {
   count       = var.vsi_secondary_subnet_id == null ? 0 : var.total_vsis
-  instance_id = var.dns_instance_id
+  instance_id = var.dns_service_id
   zone_id     = var.dns_zone_id
   type        = "A"
   name        = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
