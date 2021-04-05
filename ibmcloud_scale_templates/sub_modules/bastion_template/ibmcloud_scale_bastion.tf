@@ -34,7 +34,7 @@ module "bastion_sg_outbound_rule" {
 }
 
 data ibm_is_ssh_key "bastion_ssh_key" {
-  name = var.bastion_key_name
+  name = var.bastion_ssh_key
 }
 
 data ibm_is_image "bastion_image" {
@@ -42,16 +42,16 @@ data ibm_is_image "bastion_image" {
 }
 
 module "bastion_vsi" {
-  source             = "../../../resources/ibmcloud/compute/bastion_vsi"
-  total_vsis         = 1
-  vsi_name_prefix    = format("%s-bastion", var.stack_name)
-  vpc_id             = var.vpc_id
-  zones              = var.zones
-  vsi_subnet_id      = var.bastion_subnet_id
-  vsi_security_group = [module.bastion_security_group.sec_group_id[0]]
-  vsi_profile        = var.bastion_vsi_profile
-  vsi_image_id       = data.ibm_is_image.bastion_image.id
-  vsi_public_key     = [data.ibm_is_ssh_key.bastion_ssh_key.id]
+  source              = "../../../resources/ibmcloud/compute/bastion_vsi"
+  total_vsis          = 1
+  vsi_name_prefix     = format("%s-bastion", var.stack_name)
+  vpc_id              = var.vpc_id
+  zones               = var.zones
+  vsi_subnet_id       = var.bastion_subnet_id
+  vsi_security_group  = [module.bastion_security_group.sec_group_id[0]]
+  vsi_profile         = var.bastion_vsi_profile
+  vsi_image_id        = data.ibm_is_image.bastion_image.id
+  vsi_user_public_key = [data.ibm_is_ssh_key.bastion_ssh_key.id]
 }
 
 module "bastion_attach_fip" {

@@ -37,12 +37,7 @@ variable "vpc_id" {
   description = "IBM Cloud VPC ID."
 }
 
-variable "cidr_block" {
-  type        = list(string)
-  description = "IBM Cloud VPC subnet CIDR blocks."
-}
-
-variable "compute_instance_osimage_name" {
+variable "compute_vsi_osimage_name" {
   type        = string
   default     = "ibm-redhat-7-6-minimal-amd64-1"
   description = "Compute instance OS image name."
@@ -54,7 +49,7 @@ variable "total_compute_instances" {
   description = "Total Compute instances."
 }
 
-variable "storage_instance_osimage_name" {
+variable "storage_vsi_osimage_name" {
   type        = string
   default     = "ibm-redhat-7-6-minimal-amd64-1"
   description = "Storage instance OS image name."
@@ -78,7 +73,7 @@ variable "storage_vsi_profile" {
   description = "Profile to be used for Storage virtual server instance."
 }
 
-variable "instance_key_name" {
+variable "instance_ssh_key" {
   type        = string
   description = "SSH key name to be used for Compute, Storage virtual server instance."
 }
@@ -190,7 +185,7 @@ variable "generate_ansible_inv" {
   description = "Flag to represent whether to generate ansible inventory JSON or not."
 }
 
-variable "instances_ssh_user_name" {
+variable "instances_ssh_user" {
   type        = string
   default     = "root"
   description = "Name of the administrator to access the bastion instance."

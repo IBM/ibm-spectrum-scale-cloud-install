@@ -1,8 +1,3 @@
-output "operating_env" {
-  value       = var.operating_env
-  description = "Operating environement (valid: local)."
-}
-
 output "cloud_platform" {
   value       = "IBMCloud"
   description = "Flag to represent IBM cloud."
@@ -18,17 +13,22 @@ output "vpc_id" {
   description = "IBM Cloud VPC ID."
 }
 
-output "private_subnets" {
-  value       = module.vpc_module.private_subnets
-  description = "IBM Cloud private subnet IDs."
+output "primary_private_subnets" {
+  value       = module.vpc_module.primary_private_subnets
+  description = "IBM Cloud primary private subnet IDs."
 }
 
-output "bastion_instance_public_ip" {
+output "secondary_private_subnets" {
+  value       = module.vpc_module.secondary_private_subnets
+  description = "IBM Cloud primary secondary subnet IDs."
+}
+
+output "bastion_vsi_public_ip" {
   value       = module.bastion_module.bastion_fip
   description = "IBM Cloud bastion instance public IP addresses."
 }
 
-output "bastion_instance_id" {
+output "bastion_vsi_id" {
   value       = module.bastion_module.bastion_vsi_id
   description = "IBM Cloud bastion instance ID."
 }
@@ -41,18 +41,34 @@ output "volume_2A_ids" {
   value = module.instances_module.volume_2A_ids
 }
 
-output "compute_vsi_ips" {
-  value = module.instances_module.compute_vsi_ips
+output "compute_vsi_primary_ips" {
+  value = module.instances_module.compute_vsi_primary_ips
 }
 
-output "desc_compute_vsi_ip" {
-  value = module.instances_module.desc_compute_vsi_ip
+output "compute_vsi_secondary_ips" {
+  value = module.instances_module.compute_vsi_secondary_ips
 }
 
-output "storage_vsi_1A_ips" {
-  value = module.instances_module.storage_vsi_1A_ips
+output "desc_compute_vsi_primary_ip" {
+  value = module.instances_module.desc_compute_vsi_primary_ip
 }
 
-output "storage_vsi_2A_ips" {
-  value = module.instances_module.storage_vsi_2A_ips
+output "desc_compute_vsi_secondary_ip" {
+  value = module.instances_module.desc_compute_vsi_secondary_ip
+}
+
+output "storage_vsi_1A_primary_ips" {
+  value = module.instances_module.storage_vsi_1A_primary_ips
+}
+
+output "storage_vsi_1A_secondary_ips" {
+  value = module.instances_module.storage_vsi_1A_secondary_ips
+}
+
+output "storage_vsi_2A_primary_ips" {
+  value = module.instances_module.storage_vsi_2A_primary_ips
+}
+
+output "storage_vsi_2A_secondary_ips" {
+  value = module.instances_module.storage_vsi_2A_secondary_ips
 }
