@@ -38,6 +38,16 @@ systemctl restart sshd
 chmod 600 ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa.pub
 chmod 600 ~/.ssh/authorized_keys
+if grep -q "Red Hat" /etc/os-release
+then
+    if grep -q "platform:el8" /etc/os-release
+    then
+        PKG_MGR=dnf
+    else
+        PKG_MGR=yum
+    fi
+fi
+$PKG_MGR install -y python3 unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 EOF
 }
 
