@@ -118,13 +118,22 @@ resource "null_resource" "gitclone_ibm_spectrum_scale_install_infra" {
   depends_on = [null_resource.dump_tf_inventory]
 }
 
+resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {
+  count = (var.create_scale_cluster == true || var.generate_ansible_inv == true) ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "cp ${var.scale_infra_path}/samples/playbook_cloud.yml ${var.scale_infra_path}/cloud_playbook.yml; cp ${var.scale_infra_path}/samples/set_json_variables.yml ${var.scale_infra_path}/set_json_variables.yml;"
+  }
+  depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
+}
+
 resource "null_resource" "create_scale_tuning_parameters" {
   count = (var.create_scale_cluster == true || var.generate_ansible_inv == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "echo \"%cluster:\" > ${local.scale_tuning_param_path}; echo \" maxblocksize=16M\" >> ${local.scale_tuning_param_path}; echo \" restripeOnDiskFailure=yes\" >> ${local.scale_tuning_param_path}; echo \" unmountOnDiskFail=meta\" >> ${local.scale_tuning_param_path}; echo \" readReplicaPolicy=local\" >> ${local.scale_tuning_param_path}; echo \" workerThreads=128\" >> ${local.scale_tuning_param_path}; echo \" maxStatCache=0\" >> ${local.scale_tuning_param_path}; echo \" maxFilesToCache=64k\" >> ${local.scale_tuning_param_path}; echo \" ignorePrefetchLUNCount=yes\" >> ${local.scale_tuning_param_path}; echo \" prefetchaggressivenesswrite=0\" >> ${local.scale_tuning_param_path}; echo \" prefetchaggressivenessread=2\" >> ${local.scale_tuning_param_path}; echo \" autoload=yes\" >> ${local.scale_tuning_param_path};"
   }
-  depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
+  depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra, null_resource.prepare_ibm_spectrum_scale_install_infra]
 }
 
 resource "null_resource" "prepare_ansible_inventory" {
@@ -185,7 +194,7 @@ resource "null_resource" "call_scale_install_playbook" {
   count = (var.create_scale_cluster == true && var.generate_jumphost_ssh_config == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/local/bin/ansible-playbook ${local.cloud_playbook_path}"
+    command     = "/usr/local/bin/ansible-playbook ${local.cloud_playbook_path} -e \"ansible_python_interpreter=/usr/bin/python3\""
   }
   depends_on = [null_resource.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
 }
@@ -194,7 +203,7 @@ resource "null_resource" "call_scale_install_playbook_sudo" {
   count = (var.create_scale_cluster == true && var.generate_jumphost_ssh_config == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/local/bin/ansible-playbook -b ${local.cloud_playbook_path} --extra-vars \"scale_version=${var.scale_version}\""
+    command     = "/usr/local/bin/ansible-playbook -b ${local.cloud_playbook_path} -e \"ansible_python_interpreter=/usr/bin/python3\" --extra-vars \"scale_version=${var.scale_version}\""
   }
   depends_on = [null_resource.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
 }
