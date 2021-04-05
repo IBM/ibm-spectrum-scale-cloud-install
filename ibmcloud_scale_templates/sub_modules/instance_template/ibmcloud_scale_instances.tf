@@ -16,7 +16,7 @@ module "instances_sg_cidr_rule" {
   source            = "../../../resources/ibmcloud/security/security_cidr_rule"
   security_group_id = module.instances_security_group.sec_group_id[0]
   sg_direction      = "inbound"
-  remote_cidr       = var.cidr_block
+  remote_cidr       = length(var.secondary_private_subnet_ids) == 0 ? (length(var.zones) >= 3 ? var.primary_cidr_block : [var.primary_cidr_block[0]]) : (length(var.zones) >= 3 ? concat(var.primary_cidr_block, var.secondary_cidr_block) : concat([var.primary_cidr_block[0]], [var.secondary_cidr_block[0]]))
 }
 
 module "instances_sg_outbound_rule" {
@@ -27,15 +27,15 @@ module "instances_sg_outbound_rule" {
 }
 
 data ibm_is_ssh_key "instance_ssh_key" {
-  name = var.instance_key_name
+  name = var.instance_ssh_key
 }
 
 data ibm_is_image "compute_instance_image" {
-  name = var.compute_instance_osimage_name
+  name = var.compute_vsi_osimage_name
 }
 
 data ibm_is_image "storage_instance_image" {
-  name = var.storage_instance_osimage_name
+  name = var.storage_vsi_osimage_name
 }
 
 module "generate_keys" {
@@ -281,7 +281,8 @@ module "invoke_scale_playbook" {
   scale_version                  = var.scale_version
   bastion_public_ip              = var.bastion_public_ip
   instances_ssh_private_key_path = var.instances_ssh_private_key_path
-  instances_ssh_user_name        = var.instances_ssh_user_name
+
+  instances_ssh_user_name        = var.instances_ssh_user
   private_subnet_cidr            = length(var.secondary_private_subnet_ids) == 0 ? var.primary_cidr_block : var.secondary_cidr_block
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path

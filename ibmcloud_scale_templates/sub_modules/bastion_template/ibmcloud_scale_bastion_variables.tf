@@ -6,6 +6,14 @@ variable "region" {
   description = "IBM Cloud region where the resources will be created."
 }
 
+variable "zones" {
+  /* Keep it empty, it will be propagated via command line or via ".tfvars"
+       or ".tfvars.json"
+    */
+  type        = list(string)
+  description = "IBM Cloud zone names."
+}
+
 variable "ibmcloud_api_key" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
@@ -55,7 +63,7 @@ variable "bastion_vsi_profile" {
   description = "Profile to be used for Bastion virtual server instance."
 }
 
-variable "bastion_key_name" {
+variable "bastion_ssh_key" {
   type        = string
   description = "SSH key name to be used for Bastion virtual server instance."
 }
@@ -63,12 +71,4 @@ variable "bastion_key_name" {
 variable "bastion_subnet_id" {
   type        = list(string)
   description = "Subnet id to be used for Bastion virtual server instance."
-}
-
-variable "zones" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
-  type        = list(string)
-  description = "IBM Cloud zone names."
 }

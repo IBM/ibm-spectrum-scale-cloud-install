@@ -6,6 +6,14 @@ variable "region" {
   description = "IBM Cloud region where the resources will be created."
 }
 
+variable "zones" {
+  /* Keep it empty, it will be propagated via command line or via ".tfvars"
+       or ".tfvars.json"
+    */
+  type        = list(string)
+  description = "IBM Cloud zone names."
+}
+
 variable "ibmcloud_api_key" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
@@ -65,12 +73,4 @@ variable "dns_domain" {
 variable "resource_grp_id" {
   type        = string
   description = "IBM Cloud resource group id."
-}
-
-variable "zones" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
-  type        = list(string)
-  description = "IBM Cloud zone names."
 }

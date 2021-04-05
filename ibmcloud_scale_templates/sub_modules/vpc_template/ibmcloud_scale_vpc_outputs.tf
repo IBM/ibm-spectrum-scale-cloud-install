@@ -11,7 +11,7 @@ output "primary_private_subnets" {
 }
 
 output "secondary_private_subnets" {
-  value = module.secondary_private_subnet[0].subnet_id
+  value = var.create_secondary_subnets == true ? module.secondary_private_subnet[0].subnet_id : []
 }
 
 output "dns_service_id" {
