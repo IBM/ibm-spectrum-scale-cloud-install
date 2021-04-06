@@ -146,12 +146,6 @@ variable "instance_ssh_key" {
   description = "SSH key name to be used for Compute, Storage virtual server instance."
 }
 
-variable "data_disks_per_instance" {
-  type        = number
-  default     = 1
-  description = "Number of data disks to be attached to each storage instance."
-}
-
 variable "volume_profile" {
   type        = string
   default     = "10iops-tier"
