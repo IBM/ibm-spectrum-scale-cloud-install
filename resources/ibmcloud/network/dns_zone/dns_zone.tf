@@ -3,13 +3,13 @@
 */
 
 variable "dns_domain" {}
-variable "dns_instance_id" {}
+variable "dns_service_id" {}
 variable "dns_label" {}
 
 
 resource "ibm_dns_zone" "zone" {
   name        = var.dns_domain
-  instance_id = var.dns_instance_id
+  instance_id = var.dns_service_id
   description = "Private DNS Zone for VPC DNS communication."
   label       = var.dns_label
 }

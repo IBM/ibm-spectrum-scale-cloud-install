@@ -73,13 +73,13 @@ module "dns_service" {
 module "dns_zone" {
   source          = "../../../resources/ibmcloud/network/dns_zone"
   dns_domain      = var.dns_domain
-  dns_instance_id = module.dns_service.resource_guid
+  dns_service_id  = module.dns_service.resource_guid
   dns_label       = var.stack_name
 }
 
 module "add_dns_permitted_network" {
   source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  dns_instance_id = module.dns_service.resource_guid
+  dns_service_id  = module.dns_service.resource_guid
   dns_zone_id     = module.dns_zone.dns_zone_id
   vpc_crn         = module.vpc.vpc_crn
 }

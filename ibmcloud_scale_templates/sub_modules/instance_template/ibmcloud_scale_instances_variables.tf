@@ -101,9 +101,9 @@ variable "secondary_cidr_block" {
   description = "IBM Cloud VPC secondary subnet CIDR blocks."
 }
 
-variable "dns_instance_id" {
+variable "dns_service_id" {
   type        = string
-  description = "IBM Cloud DNS resource instance id."
+  description = "IBM Cloud DNS service resource id."
 }
 
 variable "dns_zone_id" {
