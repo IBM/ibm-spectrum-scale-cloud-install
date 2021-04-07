@@ -48,6 +48,8 @@ module "primary_private_subnet" {
   subnet_name       = format("%s-private1", var.stack_name)
   subnet_cidr_block = var.primary_cidr_block
   public_gateway    = module.primary_public_gw.public_gw_id
+
+  depends_on = [module.vpc_addr_prefix]
 }
 
 module "secondary_private_subnet" {
@@ -59,6 +61,8 @@ module "secondary_private_subnet" {
   subnet_name       = format("%s-private2", var.stack_name)
   subnet_cidr_block = var.secondary_cidr_block
   public_gateway    = module.secondary_public_gw[0].public_gw_id
+
+  depends_on = [module.vpc_addr_prefix]
 }
 
 module "dns_service" {
