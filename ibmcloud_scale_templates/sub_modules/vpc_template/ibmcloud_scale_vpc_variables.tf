@@ -22,15 +22,6 @@ variable "ibmcloud_api_key" {
   description = "IBM Cloud api key."
 }
 
-variable "compute_generation" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
-  type        = string
-  default     = 2
-  description = "IBM Cloud compute generation."
-}
-
 variable "stack_name" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
