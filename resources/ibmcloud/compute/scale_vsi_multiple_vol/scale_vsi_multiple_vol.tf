@@ -52,7 +52,7 @@ EOF
 }
 
 resource "ibm_is_instance" "vsi_1_nic" {
-  count   = var.vsi_secondary_subnet_id == null ? var.total_vsis : 0
+  count   = var.vsi_secondary_subnet_id == [] ? var.total_vsis : 0
   name    = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
   image   = var.vsi_image_id
   profile = var.vsi_profile
@@ -71,7 +71,7 @@ resource "ibm_is_instance" "vsi_1_nic" {
 }
 
 resource "ibm_dns_resource_record" "a_1_nic_records" {
-  count       = var.vsi_secondary_subnet_id == null ? var.total_vsis : 0
+  count       = var.vsi_secondary_subnet_id == [] ? var.total_vsis : 0
   instance_id = var.dns_service_id
   zone_id     = var.dns_zone_id
   type        = "A"
@@ -81,7 +81,7 @@ resource "ibm_dns_resource_record" "a_1_nic_records" {
 }
 
 resource "ibm_is_instance" "vsi_2_nic" {
-  count   = var.vsi_secondary_subnet_id == null ? 0 : var.total_vsis
+  count   = var.vsi_secondary_subnet_id == [] ? 0 : var.total_vsis
   name    = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
   image   = var.vsi_image_id
   profile = var.vsi_profile
@@ -108,7 +108,7 @@ resource "ibm_is_instance" "vsi_2_nic" {
 }
 
 resource "ibm_dns_resource_record" "a_2_nic_records" {
-  count       = var.vsi_secondary_subnet_id == null ? 0 : var.total_vsis
+  count       = var.vsi_secondary_subnet_id == [] ? 0 : var.total_vsis
   instance_id = var.dns_service_id
   zone_id     = var.dns_zone_id
   type        = "A"
