@@ -181,13 +181,11 @@ resource "null_resource" "wait_for_instances_to_boot" {
   depends_on = [null_resource.prepare_ansible_inventory]
 }
 
-resource "null_resource" "wait_for_metadata_execution" {
+resource "time_sleep" "wait_for_metadata_execution" {
   count = var.create_scale_cluster == true ? 1 : 0
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "sleep 60"
-  }
+  
   depends_on = [null_resource.wait_for_instances_to_boot]
+  create_duration = "60s"
 }
 
 resource "null_resource" "call_scale_install_playbook" {
@@ -196,7 +194,7 @@ resource "null_resource" "call_scale_install_playbook" {
     interpreter = ["/bin/bash", "-c"]
     command     = "/usr/local/bin/ansible-playbook ${local.cloud_playbook_path} -e \"ansible_python_interpreter=/usr/bin/python3\""
   }
-  depends_on = [null_resource.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
+  depends_on = [time_sleep.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
 }
 
 resource "null_resource" "call_scale_install_playbook_sudo" {
@@ -205,7 +203,7 @@ resource "null_resource" "call_scale_install_playbook_sudo" {
     interpreter = ["/bin/bash", "-c"]
     command     = "/usr/local/bin/ansible-playbook -b ${local.cloud_playbook_path} -e \"ansible_python_interpreter=/usr/bin/python3\" --extra-vars \"scale_version=${var.scale_version}\""
   }
-  depends_on = [null_resource.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
+  depends_on = [time_sleep.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
 }
 
 resource "null_resource" "send_cluster_complete_message" {
