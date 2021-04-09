@@ -78,7 +78,7 @@ module "desc_compute_vsi" {
   vpc_id                  = var.vpc_id
   zone                    = length(var.zones) >= 3 ? var.zones.2 : var.zones.0
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.2 : var.primary_private_subnet_ids.0
-  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : length(var.zones) >= 3 ? var.secondary_private_subnet_ids.2 : var.secondary_private_subnet_ids.0
+  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) >= 3 ? var.secondary_private_subnet_ids.2 : var.secondary_private_subnet_ids.0)
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
@@ -124,7 +124,7 @@ module "storage_vsis_1A_zone" {
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
   vsi_primary_subnet_id   = var.primary_private_subnet_ids.0
-  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : var.secondary_private_subnet_ids.0
+  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : var.secondary_private_subnet_ids.0
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.storage_vsi_profile
   vsi_image_id            = data.ibm_is_image.storage_instance_image.id
@@ -144,7 +144,7 @@ module "storage_vsis_2A_zone" {
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.1 : var.primary_private_subnet_ids.0
-  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : length(var.zones) >= 3 ? var.secondary_private_subnet_ids.1 : var.secondary_private_subnet_ids.0
+  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) > 1 ? var.secondary_private_subnet_ids.1 : var.secondary_private_subnet_ids.0)
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.storage_vsi_profile
   vsi_image_id            = data.ibm_is_image.storage_instance_image.id

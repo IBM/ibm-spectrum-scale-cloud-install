@@ -204,7 +204,7 @@ resource "null_resource" "call_scale_install_playbook" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook --private-key ${local.instances_ssh_private_key_path} -e \"ansible_python_interpreter=/usr/bin/python3\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p ${var.instances_ssh_user_name}@${var.bastion_public_ip} -i ${local.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.cloud_playbook_path}"
   }
-  depends_on = [time_sleep.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
+  depends_on = [time_sleep.wait_for_metadata_execution, local_file.create_scale_tuning_parameters]
 }
 
 resource "null_resource" "send_cluster_complete_message" {
