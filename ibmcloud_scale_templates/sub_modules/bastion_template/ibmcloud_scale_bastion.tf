@@ -33,11 +33,11 @@ module "bastion_sg_outbound_rule" {
   remote_ip_addr    = "0.0.0.0/0"
 }
 
-data ibm_is_ssh_key "bastion_ssh_key" {
+data "ibm_is_ssh_key" "bastion_ssh_key" {
   name = var.bastion_ssh_key
 }
 
-data ibm_is_image "bastion_image" {
+data "ibm_is_image" "bastion_image" {
   name = var.bastion_osimage_name
 }
 

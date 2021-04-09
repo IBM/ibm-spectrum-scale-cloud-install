@@ -22,7 +22,7 @@ variable "scale_infra_repo_clone_path" {}
 variable "generate_jumphost_ssh_config" {}
 variable "cloud_platform" {}
 variable "bastion_public_ip" {}
-variable "instances_ssh_private_key_path" {}
+variable "instances_ssh_private_key" {}
 variable "instances_ssh_user_name" {}
 variable "private_subnet_cidr" {}
 variable "compute_instances_by_ip" {}
@@ -63,17 +63,17 @@ variable "storage_instance_ips_with_14_datadisks_device_names_map" {}
 variable "storage_instance_ips_with_15_datadisks_device_names_map" {}
 
 locals {
-  tf_inv_path                   = "${path.module}/tf_inventory"
-  ansible_inv_script_path       = "${path.module}/prepare_scale_inv.py"
-  jumphost_ssh_script_path      = "${path.module}/prepare_jumphost_config.py"
-  instance_ssh_wait_script_path = "${path.module}/wait_instance_ok_state.py"
-  backup_to_backend_script_path = "${path.module}/backup_to_backend.py"
-  send_message_script_path      = "${path.module}/send_sns_notification.py"
-  scale_tuning_param_path       = format("%s/%s", var.scale_infra_repo_clone_path, "scalesncparams.profile")
-  scale_infra_path              = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
-  cloud_playbook_path           = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
-  infra_complete_message        = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
-  cluster_complete_message      = "IBM Spectrum Scale cluster creation completed successfully."
+  tf_inv_path                    = "${path.module}/tf_inventory"
+  ansible_inv_script_path        = "${path.module}/prepare_scale_inv.py"
+  instance_ssh_wait_script_path  = "${path.module}/wait_instance_ok_state.py"
+  backup_to_backend_script_path  = "${path.module}/backup_to_backend.py"
+  send_message_script_path       = "${path.module}/send_sns_notification.py"
+  scale_tuning_param_path        = format("%s/%s", var.scale_infra_repo_clone_path, "scalesncparams.profile")
+  scale_infra_path               = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
+  cloud_playbook_path            = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
+  instances_ssh_private_key_path = format("%s/%s", "/tmp/.schematics", "id_rsa")
+  infra_complete_message         = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
+  cluster_complete_message       = "IBM Spectrum Scale cluster creation completed successfully."
 }
 
 resource "null_resource" "send_infra_complete_message" {
@@ -127,12 +127,23 @@ resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }
 
-resource "null_resource" "create_scale_tuning_parameters" {
-  count = (var.create_scale_cluster == true || var.generate_ansible_inv == true) ? 1 : 0
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "echo \"%cluster:\" > ${local.scale_tuning_param_path}; echo \" maxblocksize=16M\" >> ${local.scale_tuning_param_path}; echo \" restripeOnDiskFailure=yes\" >> ${local.scale_tuning_param_path}; echo \" unmountOnDiskFail=meta\" >> ${local.scale_tuning_param_path}; echo \" readReplicaPolicy=local\" >> ${local.scale_tuning_param_path}; echo \" workerThreads=128\" >> ${local.scale_tuning_param_path}; echo \" maxStatCache=0\" >> ${local.scale_tuning_param_path}; echo \" maxFilesToCache=64k\" >> ${local.scale_tuning_param_path}; echo \" ignorePrefetchLUNCount=yes\" >> ${local.scale_tuning_param_path}; echo \" prefetchaggressivenesswrite=0\" >> ${local.scale_tuning_param_path}; echo \" prefetchaggressivenessread=2\" >> ${local.scale_tuning_param_path}; echo \" autoload=yes\" >> ${local.scale_tuning_param_path};"
-  }
+resource "local_file" "create_scale_tuning_parameters" {
+  count      = (var.create_scale_cluster == true || var.generate_ansible_inv == true) ? 1 : 0
+  content    = <<EOT
+%cluster:
+ maxblocksize=16M
+ restripeOnDiskFailure=yes
+ unmountOnDiskFail=meta
+ readReplicaPolicy=local
+ workerThreads=128
+ maxStatCache=0
+ maxFilesToCache=64k
+ ignorePrefetchLUNCount=yes
+ prefetchaggressivenesswrite=0
+ prefetchaggressivenessread=2
+ autoload=yes
+EOT
+  filename   = local.scale_tuning_param_path
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra, null_resource.prepare_ibm_spectrum_scale_install_infra]
 }
 
@@ -145,13 +156,12 @@ resource "null_resource" "prepare_ansible_inventory" {
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }
 
-resource "null_resource" "prepare_jumphost_config" {
-  count = (var.create_scale_cluster == true && var.generate_jumphost_ssh_config == true) ? 1 : 0
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.jumphost_ssh_script_path} --bastion_public_ip ${var.bastion_public_ip} --instances_ssh_private_key_path ${var.instances_ssh_private_key_path} --instances_ssh_user_name ${var.instances_ssh_user_name} --instances_private_subnet_cidr ${var.private_subnet_cidr}"
-  }
-  depends_on = [null_resource.prepare_ansible_inventory]
+resource "local_file" "prepare_jumphost_config" {
+  count             = (var.create_scale_cluster == true && var.generate_jumphost_ssh_config == true) ? 1 : 0
+  sensitive_content = var.instances_ssh_private_key
+  filename          = local.instances_ssh_private_key_path
+  file_permission   = "0600"
+  depends_on        = [null_resource.prepare_ansible_inventory]
 }
 
 resource "null_resource" "backup_ansible_inv" {
@@ -183,27 +193,18 @@ resource "null_resource" "wait_for_instances_to_boot" {
 
 resource "time_sleep" "wait_for_metadata_execution" {
   count = var.create_scale_cluster == true ? 1 : 0
-  
-  depends_on = [null_resource.wait_for_instances_to_boot]
+
+  depends_on      = [null_resource.wait_for_instances_to_boot]
   create_duration = "60s"
 }
 
 resource "null_resource" "call_scale_install_playbook" {
-  count = (var.create_scale_cluster == true && var.generate_jumphost_ssh_config == false) ? 1 : 0
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/local/bin/ansible-playbook ${local.cloud_playbook_path} -e \"ansible_python_interpreter=/usr/bin/python3\""
-  }
-  depends_on = [time_sleep.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
-}
-
-resource "null_resource" "call_scale_install_playbook_sudo" {
   count = (var.create_scale_cluster == true && var.generate_jumphost_ssh_config == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/local/bin/ansible-playbook -b ${local.cloud_playbook_path} -e \"ansible_python_interpreter=/usr/bin/python3\" --extra-vars \"scale_version=${var.scale_version}\""
+    command     = "ansible-playbook --private-key ${local.instances_ssh_private_key_path} -e \"ansible_python_interpreter=/usr/bin/python3\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p ${var.instances_ssh_user_name}@${var.bastion_public_ip} -i ${local.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.cloud_playbook_path}"
   }
-  depends_on = [time_sleep.wait_for_metadata_execution, null_resource.create_scale_tuning_parameters]
+  depends_on = [time_sleep.wait_for_metadata_execution, local_file.create_scale_tuning_parameters]
 }
 
 resource "null_resource" "send_cluster_complete_message" {
