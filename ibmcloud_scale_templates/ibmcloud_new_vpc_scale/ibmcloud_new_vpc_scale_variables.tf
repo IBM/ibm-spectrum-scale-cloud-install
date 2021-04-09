@@ -67,12 +67,6 @@ variable "resource_group" {
   description = "IBM Cloud resource group name."
 }
 
-variable "tf_data_path" {
-  type        = string
-  default     = "~/tf_data_path"
-  description = "Data path to be used by terraform for storing ssh keys."
-}
-
 variable "bastion_incoming_remote" {
   type        = string
   default     = "0.0.0.0/0"
@@ -178,6 +172,18 @@ variable "filesystem_block_size" {
   description = "Filesystem block size."
 }
 
+variable "tf_data_path" {
+  type        = string
+  default     = "/tmp/.schematics/tf_data_path"
+  description = "Data path to be used by terraform for storing ssh keys."
+}
+
+variable "scale_infra_repo_clone_path" {
+  type        = string
+  default     = "/tmp/.schematics/IBM/ibm-spectrumscale-cloud-deploy"
+  description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
+}
+
 variable "create_scale_cluster" {
   type        = bool
   default     = false
@@ -208,7 +214,7 @@ variable "instances_ssh_user" {
   description = "Name of the administrator to access the bastion instance."
 }
 
-variable "instances_ssh_private_key_path" {
+variable "instances_ssh_private_key" {
   type        = string
-  description = "SSH private key local path, which will be used to login to bastion host."
+  description = "SSH private key, which will be used to login to bastion host."
 }

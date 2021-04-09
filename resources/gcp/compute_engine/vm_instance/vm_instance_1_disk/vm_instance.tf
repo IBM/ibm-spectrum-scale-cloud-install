@@ -25,12 +25,12 @@ variable "operator_email" {}
 variable "scopes" {}
 
 
-data local_file "id_rsa_template" {
+data "local_file" "id_rsa_template" {
   filename   = pathexpand(var.private_key_path)
   depends_on = [var.private_key_path]
 }
 
-data local_file "id_rsa_pub_template" {
+data "local_file" "id_rsa_pub_template" {
   filename   = pathexpand(var.public_key_path)
   depends_on = [var.public_key_path]
 }

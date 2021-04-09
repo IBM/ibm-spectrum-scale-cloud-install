@@ -26,15 +26,15 @@ module "instances_sg_outbound_rule" {
   remote_ip_addr    = "0.0.0.0/0"
 }
 
-data ibm_is_ssh_key "instance_ssh_key" {
+data "ibm_is_ssh_key" "instance_ssh_key" {
   name = var.instance_ssh_key
 }
 
-data ibm_is_image "compute_instance_image" {
+data "ibm_is_image" "compute_instance_image" {
   name = var.compute_vsi_osimage_name
 }
 
-data ibm_is_image "storage_instance_image" {
+data "ibm_is_image" "storage_instance_image" {
   name = var.storage_vsi_osimage_name
 }
 
@@ -277,10 +277,10 @@ module "invoke_scale_playbook" {
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
   tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
 
-  bucket_name                    = var.bucket_name
-  scale_version                  = var.scale_version
-  bastion_public_ip              = var.bastion_public_ip
-  instances_ssh_private_key_path = var.instances_ssh_private_key_path
+  bucket_name               = var.bucket_name
+  scale_version             = var.scale_version
+  bastion_public_ip         = var.bastion_public_ip
+  instances_ssh_private_key = var.instances_ssh_private_key
 
   instances_ssh_user_name = var.instances_ssh_user
   private_subnet_cidr     = length(var.secondary_private_subnet_ids) == 0 ? var.primary_cidr_block[0] : var.secondary_cidr_block[0]

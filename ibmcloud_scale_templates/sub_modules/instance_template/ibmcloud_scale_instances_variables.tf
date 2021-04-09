@@ -182,9 +182,9 @@ variable "instances_ssh_user" {
   description = "Name of the administrator to access the bastion instance."
 }
 
-variable "instances_ssh_private_key_path" {
+variable "instances_ssh_private_key" {
   type        = string
-  description = "SSH private key local path, which will be used to login to bastion host."
+  description = "SSH private key, which will be used to login to bastion host."
 }
 
 variable "bastion_public_ip" {
