@@ -127,12 +127,23 @@ resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }
 
-resource "null_resource" "create_scale_tuning_parameters" {
-  count = (var.create_scale_cluster == true || var.generate_ansible_inv == true) ? 1 : 0
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "echo \"%cluster:\" > ${local.scale_tuning_param_path}; echo \" maxblocksize=16M\" >> ${local.scale_tuning_param_path}; echo \" restripeOnDiskFailure=yes\" >> ${local.scale_tuning_param_path}; echo \" unmountOnDiskFail=meta\" >> ${local.scale_tuning_param_path}; echo \" readReplicaPolicy=local\" >> ${local.scale_tuning_param_path}; echo \" workerThreads=128\" >> ${local.scale_tuning_param_path}; echo \" maxStatCache=0\" >> ${local.scale_tuning_param_path}; echo \" maxFilesToCache=64k\" >> ${local.scale_tuning_param_path}; echo \" ignorePrefetchLUNCount=yes\" >> ${local.scale_tuning_param_path}; echo \" prefetchaggressivenesswrite=0\" >> ${local.scale_tuning_param_path}; echo \" prefetchaggressivenessread=2\" >> ${local.scale_tuning_param_path}; echo \" autoload=yes\" >> ${local.scale_tuning_param_path};"
-  }
+resource "local_file" "create_scale_tuning_parameters" {
+  count      = (var.create_scale_cluster == true || var.generate_ansible_inv == true) ? 1 : 0
+  content    = <<EOT
+%cluster:
+ maxblocksize=16M
+ restripeOnDiskFailure=yes
+ unmountOnDiskFail=meta
+ readReplicaPolicy=local
+ workerThreads=128
+ maxStatCache=0
+ maxFilesToCache=64k
+ ignorePrefetchLUNCount=yes
+ prefetchaggressivenesswrite=0
+ prefetchaggressivenessread=2
+ autoload=yes
+EOT
+  filename   = local.scale_tuning_param_path
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra, null_resource.prepare_ibm_spectrum_scale_install_infra]
 }
 
