@@ -14,14 +14,6 @@ variable "zones" {
   description = "IBM Cloud zone names."
 }
 
-variable "ibmcloud_api_key" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
-  type        = string
-  description = "IBM Cloud api key."
-}
-
 variable "stack_name" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
@@ -47,12 +39,6 @@ variable "secondary_cidr_block" {
   type        = list(string)
   default     = ["10.241.1.0/24", "10.241.64.1/24", "10.241.128.1/24"]
   description = "IBM Cloud VPC secondary subnet CIDR blocks."
-}
-
-variable "create_secondary_subnets" {
-  type        = bool
-  default     = true
-  description = "Choose if secondary subnets have to be created or not."
 }
 
 variable "dns_domain" {
@@ -131,24 +117,6 @@ variable "instance_ssh_key" {
   description = "SSH key name to be used for Compute, Storage virtual server instance."
 }
 
-variable "volume_profile" {
-  type        = string
-  default     = "10iops-tier"
-  description = "Profile to use for this volume."
-}
-
-variable "volume_iops" {
-  type        = number
-  default     = null
-  description = "Total input/output operations per second."
-}
-
-variable "volume_capacity" {
-  type        = number
-  default     = 100
-  description = "Capacity of the volume in gigabytes."
-}
-
 variable "scale_version" {
   type        = string
   default     = "5.0.5.0"
@@ -170,42 +138,6 @@ variable "filesystem_block_size" {
   type        = string
   default     = "4M"
   description = "Filesystem block size."
-}
-
-variable "tf_data_path" {
-  type        = string
-  default     = "/tmp/.schematics/tf_data_path"
-  description = "Data path to be used by terraform for storing ssh keys."
-}
-
-variable "scale_infra_repo_clone_path" {
-  type        = string
-  default     = "/tmp/.schematics/IBM/ibm-spectrumscale-cloud-deploy"
-  description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
-}
-
-variable "create_scale_cluster" {
-  type        = bool
-  default     = false
-  description = "Flag to represent whether to create scale cluster or not."
-}
-
-variable "generate_jumphost_ssh_config" {
-  type        = bool
-  default     = false
-  description = "Flag to represent whether to generate jump host SSH config or not."
-}
-
-variable "generate_ansible_inv" {
-  type        = bool
-  default     = true
-  description = "Flag to represent whether to generate ansible inventory JSON or not."
-}
-
-variable "block_volumes_per_instance" {
-  type        = number
-  default     = 1
-  description = "Number of block storage volumes/disks to be attached to each storage instance."
 }
 
 variable "instances_ssh_user" {

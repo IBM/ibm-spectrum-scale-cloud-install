@@ -6,14 +6,6 @@ variable "region" {
   description = "IBM Cloud region where the resources will be created."
 }
 
-variable "ibmcloud_api_key" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
-  type        = string
-  description = "IBM Cloud api key."
-}
-
 variable "stack_name" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
