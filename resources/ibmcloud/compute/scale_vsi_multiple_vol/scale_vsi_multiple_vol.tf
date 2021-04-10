@@ -118,15 +118,15 @@ resource "ibm_dns_resource_record" "a_2_nic_records" {
 }
 
 output "vsi_ids" {
-  value = var.vsi_secondary_subnet_id == null ? ibm_is_instance.vsi_1_nic.*.id : ibm_is_instance.vsi_2_nic.*.id
+  value = var.vsi_secondary_subnet_id == false ? ibm_is_instance.vsi_1_nic.*.id : ibm_is_instance.vsi_2_nic.*.id
 }
 
 output "vsi_primary_ips" {
-  value = var.vsi_secondary_subnet_id == null ? ibm_is_instance.vsi_1_nic[*].primary_network_interface[0]["primary_ipv4_address"] : ibm_is_instance.vsi_2_nic[*].primary_network_interface[0]["primary_ipv4_address"]
+  value = var.vsi_secondary_subnet_id == false ? ibm_is_instance.vsi_1_nic[*].primary_network_interface[0]["primary_ipv4_address"] : ibm_is_instance.vsi_2_nic[*].primary_network_interface[0]["primary_ipv4_address"]
 }
 
 output "vsi_secondary_ips" {
-  value = var.vsi_secondary_subnet_id == null ? null : ibm_is_instance.vsi_2_nic[*].network_interfaces[0]["primary_ipv4_address"]
+  value = var.vsi_secondary_subnet_id == false ? null : ibm_is_instance.vsi_2_nic[*].network_interfaces[0]["primary_ipv4_address"]
 }
 
 output "vsi_instance_storage_volumes" {
