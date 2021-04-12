@@ -148,5 +148,6 @@ variable "instances_ssh_user" {
 
 variable "instances_ssh_private_key" {
   type        = string
+  sensitive   = true
   description = "SSH private key, which will be used to login to bastion host."
 }
