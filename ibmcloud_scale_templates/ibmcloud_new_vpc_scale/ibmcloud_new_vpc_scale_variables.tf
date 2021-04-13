@@ -78,7 +78,7 @@ variable "bastion_ssh_key" {
 
 variable "compute_vsi_osimage_name" {
   type        = string
-  default     = "ibm-redhat-8-1-minimal-amd64-1"
+  default     = "ibm-redhat-8-3-minimal-amd64-2"
   description = "Compute instance OS image name."
 }
 
@@ -90,7 +90,7 @@ variable "total_compute_instances" {
 
 variable "storage_vsi_osimage_name" {
   type        = string
-  default     = "ibm-redhat-8-1-minimal-amd64-1"
+  default     = "ibm-redhat-8-3-minimal-amd64-2"
   description = "Storage instance OS image name."
 }
 
@@ -138,12 +138,6 @@ variable "filesystem_block_size" {
   type        = string
   default     = "4M"
   description = "Filesystem block size."
-}
-
-variable "instances_ssh_user" {
-  type        = string
-  default     = "root"
-  description = "Name of the administrator to access the bastion instance."
 }
 
 variable "instances_ssh_private_key" {

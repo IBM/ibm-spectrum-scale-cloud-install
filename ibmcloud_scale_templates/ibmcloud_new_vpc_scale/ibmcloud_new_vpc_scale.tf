@@ -54,7 +54,6 @@ module "instances_module" {
   compute_vsi_profile          = var.compute_vsi_profile
   storage_vsi_profile          = var.storage_vsi_profile
   instance_ssh_key             = var.instance_ssh_key
-  instances_ssh_user           = var.instances_ssh_user
   block_volumes_per_instance   = 0
   volume_profile               = "10iops-tier"
   volume_iops                  = null
