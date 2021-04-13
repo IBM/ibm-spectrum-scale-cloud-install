@@ -55,6 +55,10 @@ resource "ibm_is_instance" "vsi_1_nic" {
     security_groups = var.vsi_security_group
   }
 
+  boot_volume {
+    name = "${var.vsi_name_prefix}-vsi-${count.index + 1}-vol"
+  }
+
   vpc       = var.vpc_id
   zone      = element(var.zones, count.index)
   keys      = var.vsi_user_public_key
@@ -80,6 +84,10 @@ resource "ibm_is_instance" "vsi_2_nic" {
   primary_network_interface {
     subnet          = element(var.vsi_primary_subnet_id, count.index)
     security_groups = var.vsi_security_group
+  }
+
+  boot_volume {
+    name = "${var.vsi_name_prefix}-vsi-${count.index + 1}-vol"
   }
 
   network_interfaces {
