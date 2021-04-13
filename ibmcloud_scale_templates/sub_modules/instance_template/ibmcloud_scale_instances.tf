@@ -10,6 +10,7 @@ module "instances_security_group" {
   total_sec_groups = 1
   sec_group_name   = "${var.stack_name}-instances-sg"
   vpc_id           = var.vpc_id
+  resource_grp_id  = var.resource_grp_id
 }
 
 module "instances_sg_cidr_rule" {
@@ -51,6 +52,7 @@ module "compute_vsis" {
   zones                   = var.zones
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
+  resource_grp_id         = var.resource_grp_id
   vsi_primary_subnet_id   = var.primary_private_subnet_ids
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : var.secondary_private_subnet_ids
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
@@ -69,6 +71,7 @@ module "create_desc_disk" {
   volume_profile     = var.volume_profile
   volume_iops        = var.volume_iops
   volume_capacity    = var.volume_capacity
+  resource_grp_id    = var.resource_grp_id
 }
 
 module "desc_compute_vsi" {
@@ -76,6 +79,7 @@ module "desc_compute_vsi" {
   total_vsis              = length(var.zones) >= 3 ? 1 : 0
   vsi_name_prefix         = format("%s-tiebreaker-desc", var.stack_name)
   vpc_id                  = var.vpc_id
+  resource_grp_id         = var.resource_grp_id
   zone                    = length(var.zones) >= 3 ? var.zones.2 : var.zones.0
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.2 : var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) >= 3 ? var.secondary_private_subnet_ids.2 : var.secondary_private_subnet_ids.0)
@@ -103,6 +107,7 @@ module "create_data_disks_1A_zone" {
   volume_profile     = var.volume_profile
   volume_iops        = var.volume_iops
   volume_capacity    = var.volume_capacity
+  resource_grp_id    = var.resource_grp_id
 }
 
 module "create_data_disks_2A_zone" {
@@ -113,6 +118,7 @@ module "create_data_disks_2A_zone" {
   volume_profile     = var.volume_profile
   volume_iops        = var.volume_iops
   volume_capacity    = var.volume_capacity
+  resource_grp_id    = var.resource_grp_id
 }
 
 module "storage_vsis_1A_zone" {
@@ -123,6 +129,7 @@ module "storage_vsis_1A_zone" {
   vpc_id                  = var.vpc_id
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
+  resource_grp_id         = var.resource_grp_id
   vsi_primary_subnet_id   = var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : var.secondary_private_subnet_ids.0
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
@@ -143,6 +150,7 @@ module "storage_vsis_2A_zone" {
   vpc_id                  = var.vpc_id
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
+  resource_grp_id         = var.resource_grp_id
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.1 : var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) > 1 ? var.secondary_private_subnet_ids.1 : var.secondary_private_subnet_ids.0)
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]

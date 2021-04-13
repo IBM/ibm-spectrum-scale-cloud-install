@@ -10,6 +10,7 @@ module "bastion_security_group" {
   total_sec_groups = 1
   sec_group_name   = "${var.stack_name}-bastion-sg"
   vpc_id           = var.vpc_id
+  resource_grp_id  = var.resource_grp_id
 }
 
 module "bastion_sg_tcp_rule" {
@@ -47,6 +48,7 @@ module "bastion_vsi" {
   vsi_name_prefix     = format("%s-bastion", var.stack_name)
   vpc_id              = var.vpc_id
   zones               = var.zones
+  resource_grp_id     = var.resource_grp_id
   vsi_subnet_id       = var.bastion_subnet_id
   vsi_security_group  = [module.bastion_security_group.sec_group_id[0]]
   vsi_profile         = var.bastion_vsi_profile
@@ -58,4 +60,5 @@ module "bastion_attach_fip" {
   source           = "../../../resources/ibmcloud/network/floating_ip"
   floating_ip_name = "bastion-fip"
   vsi_nw_id        = module.bastion_vsi.vsi_nw_ids[0].id
+  resource_grp_id  = var.resource_grp_id
 }

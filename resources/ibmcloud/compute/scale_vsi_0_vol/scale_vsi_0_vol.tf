@@ -16,6 +16,7 @@ variable "vsi_image_id" {}
 variable "vsi_user_public_key" {}
 variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
+variable "resource_grp_id" {}
 
 
 data "template_file" "metadata_startup_script" {
@@ -45,20 +46,21 @@ EOF
 }
 
 resource "ibm_is_instance" "vsi_1_nic" {
-  count   = var.vsi_secondary_subnet_id == null ? var.total_vsis : 0
-  name    = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
-  image   = var.vsi_image_id
-  profile = var.vsi_profile
+  count         = var.vsi_secondary_subnet_id == null ? var.total_vsis : 0
+  name          = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
+  image         = var.vsi_image_id
+  profile       = var.vsi_profile
 
   primary_network_interface {
     subnet          = element(var.vsi_primary_subnet_id, count.index)
     security_groups = var.vsi_security_group
   }
 
-  vpc       = var.vpc_id
-  zone      = element(var.zones, count.index)
-  keys      = var.vsi_user_public_key
-  user_data = data.template_file.metadata_startup_script.rendered
+  vpc            = var.vpc_id
+  zone           = element(var.zones, count.index)
+  resource_group = var.resource_grp_id
+  keys           = var.vsi_user_public_key
+  user_data      = data.template_file.metadata_startup_script.rendered
 }
 
 resource "ibm_dns_resource_record" "a_1_nic_records" {
@@ -89,10 +91,11 @@ resource "ibm_is_instance" "vsi_2_nic" {
     allow_ip_spoofing = false
   }
 
-  vpc       = var.vpc_id
-  zone      = element(var.zones, count.index)
-  keys      = var.vsi_user_public_key
-  user_data = data.template_file.metadata_startup_script.rendered
+  vpc            = var.vpc_id
+  zone           = element(var.zones, count.index)
+  keys           = var.vsi_user_public_key
+  user_data      = data.template_file.metadata_startup_script.rendered
+  resource_group = var.resource_grp_id
 }
 
 /* Only secondary address will be registered to DNS */
