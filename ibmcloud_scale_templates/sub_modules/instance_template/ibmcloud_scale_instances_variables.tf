@@ -206,3 +206,8 @@ variable "filesystem_block_size" {
   default     = "4M"
   description = "Filesystem block size."
 }
+
+variable "resource_grp_id" {
+  type        = string
+  description = "IBM Cloud resource group id."
+}
