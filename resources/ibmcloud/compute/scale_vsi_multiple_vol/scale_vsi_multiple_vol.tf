@@ -72,7 +72,7 @@ resource "ibm_is_instance" "vsi_1_nic" {
   keys      = var.vsi_user_public_key
   user_data = data.template_file.metadata_startup_script.rendered
 
-  volumes        = var.vsi_data_volumes_count == 0 ? null : element(chunklist(var.vsi_volumes, var.vsi_data_volumes_count), count.index)
+  volumes = var.vsi_data_volumes_count == 0 ? null : element(chunklist(var.vsi_volumes, var.vsi_data_volumes_count), count.index)
 }
 
 resource "ibm_dns_resource_record" "a_1_nic_records" {
@@ -114,7 +114,7 @@ resource "ibm_is_instance" "vsi_2_nic" {
   resource_group = var.resource_grp_id
   user_data      = data.template_file.metadata_startup_script.rendered
 
-  volumes        = var.vsi_data_volumes_count == 0 ? null : element(chunklist(var.vsi_volumes, var.vsi_data_volumes_count), count.index)
+  volumes = var.vsi_data_volumes_count == 0 ? null : element(chunklist(var.vsi_volumes, var.vsi_data_volumes_count), count.index)
 }
 
 resource "ibm_dns_resource_record" "a_2_nic_records" {
