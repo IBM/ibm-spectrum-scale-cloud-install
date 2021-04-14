@@ -63,11 +63,14 @@ resource "ibm_is_instance" "vsi_1_nic" {
     security_groups = var.vsi_security_group
   }
 
-  vpc            = var.vpc_id
-  zone           = var.zone
-  keys           = var.vsi_user_public_key
-  resource_group = var.resource_grp_id
-  user_data      = data.template_file.metadata_startup_script.rendered
+  boot_volume {
+    name = "${var.vsi_name_prefix}-vsi-${count.index + 1}-vol"
+  }
+
+  vpc       = var.vpc_id
+  zone      = var.zone
+  keys      = var.vsi_user_public_key
+  user_data = data.template_file.metadata_startup_script.rendered
 
   volumes        = var.vsi_data_volumes_count == 0 ? null : element(chunklist(var.vsi_volumes, var.vsi_data_volumes_count), count.index)
 }
@@ -92,6 +95,10 @@ resource "ibm_is_instance" "vsi_2_nic" {
     subnet            = var.vsi_primary_subnet_id
     security_groups   = var.vsi_security_group
     allow_ip_spoofing = false
+  }
+
+  boot_volume {
+    name = "${var.vsi_name_prefix}-vsi-${count.index + 1}-vol"
   }
 
   network_interfaces {

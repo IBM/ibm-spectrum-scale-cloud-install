@@ -29,6 +29,10 @@ resource "ibm_is_instance" "vsi" {
   zone           = element(var.zones, count.index)
   resource_group = var.resource_grp_id
   keys           = var.vsi_user_public_key
+
+  boot_volume {
+    name = "${var.vsi_name_prefix}-vsi-${count.index + 1}-vol"
+  }
 }
 
 output "vsi_ids" {
