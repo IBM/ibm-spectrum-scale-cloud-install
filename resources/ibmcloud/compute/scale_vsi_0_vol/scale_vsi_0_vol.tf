@@ -46,10 +46,10 @@ EOF
 }
 
 resource "ibm_is_instance" "vsi_1_nic" {
-  count         = var.vsi_secondary_subnet_id == null ? var.total_vsis : 0
-  name          = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
-  image         = var.vsi_image_id
-  profile       = var.vsi_profile
+  count   = var.vsi_secondary_subnet_id == null ? var.total_vsis : 0
+  name    = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
+  image   = var.vsi_image_id
+  profile = var.vsi_profile
 
   primary_network_interface {
     subnet          = element(var.vsi_primary_subnet_id, count.index)

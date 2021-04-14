@@ -15,10 +15,10 @@ variable "resource_grp_id" {}
 
 
 resource "ibm_is_instance" "vsi" {
-  count          = var.total_vsis
-  name           = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
-  image          = var.vsi_image_id
-  profile        = var.vsi_profile
+  count   = var.total_vsis
+  name    = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
+  image   = var.vsi_image_id
+  profile = var.vsi_profile
 
   primary_network_interface {
     subnet          = element(var.vsi_subnet_id, count.index)

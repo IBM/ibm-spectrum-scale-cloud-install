@@ -6,6 +6,14 @@ variable "region" {
   description = "IBM Cloud region where the resources will be created."
 }
 
+variable "zones" {
+  /* Keep it empty, it will be propagated via command line or via ".tfvars"
+       or ".tfvars.json"
+    */
+  type        = list(string)
+  description = "IBM Cloud zone names."
+}
+
 variable "stack_name" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
@@ -94,17 +102,9 @@ variable "dns_zone_id" {
   description = "IBM Cloud DNS zone id."
 }
 
-variable "zones" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
-  type        = list(string)
-  description = "IBM Cloud zone names."
-}
-
 variable "tf_data_path" {
   type        = string
-  default     = "~/tf_data_path"
+  default     = "/tmp/.schematics/tf_data_path"
   description = "Data path to be used by terraform for storing ssh keys."
 }
 
@@ -122,7 +122,7 @@ variable "tf_input_json_file_name" {
 
 variable "block_volumes_per_instance" {
   type        = number
-  default     = 1
+  default     = 0
   description = "Number of block storage volumes/disks to be attached to each storage instance."
 }
 
@@ -134,7 +134,7 @@ variable "volume_profile" {
 
 variable "volume_iops" {
   type        = number
-  default     = 10000
+  default     = null
   description = "Total input/output operations per second."
 }
 
@@ -146,32 +146,8 @@ variable "volume_capacity" {
 
 variable "scale_infra_repo_clone_path" {
   type        = string
-  default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
+  default     = "/tmp/.schematics/IBM/ibm-spectrumscale-cloud-deploy"
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
-}
-
-variable "create_scale_cluster" {
-  type        = bool
-  default     = false
-  description = "Flag to represent whether to create scale cluster or not."
-}
-
-variable "generate_jumphost_ssh_config" {
-  type        = bool
-  default     = false
-  description = "Flag to represent whether to generate jump host SSH config or not."
-}
-
-variable "generate_ansible_inv" {
-  type        = bool
-  default     = true
-  description = "Flag to represent whether to generate ansible inventory JSON or not."
-}
-
-variable "instances_ssh_user" {
-  type        = string
-  default     = "root"
-  description = "Name of the administrator to access the bastion instance."
 }
 
 variable "instances_ssh_private_key" {
@@ -182,17 +158,6 @@ variable "instances_ssh_private_key" {
 variable "bastion_public_ip" {
   type        = string
   description = "Bastion public ip."
-}
-
-variable "scale_version" {
-  type        = string
-  default     = "5.0.5.0"
-  description = "IBM Spectrum Scale version."
-}
-
-variable "bucket_name" {
-  type        = string
-  description = "IBM COS bucket name to be used for backing up ansible inventory file."
 }
 
 variable "filesystem_mountpoint" {
