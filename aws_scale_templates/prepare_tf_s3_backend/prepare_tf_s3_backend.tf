@@ -51,5 +51,5 @@ output "bucket_arn" {
 
 output "dynamodb_table_name" {
   value      = var.dynamodb_table_name
-  depends_on = [aws_dynamodb_table.db_tf_state_lock.arn]
+  depends_on = [aws_dynamodb_table.db_tf_state_lock]
 }
