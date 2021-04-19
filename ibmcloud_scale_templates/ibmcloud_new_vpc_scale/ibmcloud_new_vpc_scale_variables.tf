@@ -63,6 +63,11 @@ variable "bastion_osimage_name" {
   type        = string
   default     = "ibm-ubuntu-18-04-1-minimal-amd64-2"
   description = "Bastion OS image name."
+
+  validation {
+    condition     = can(regex("redhat|centos", var.bastion_osimage_name))
+    error_message = "The image must be redhat or centos."
+  }
 }
 
 variable "bastion_vsi_profile" {
@@ -80,6 +85,11 @@ variable "compute_vsi_osimage_name" {
   type        = string
   default     = "ibm-redhat-8-1-minimal-amd64-1"
   description = "Compute instance OS image name."
+
+  validation {
+    condition     = can(regex("redhat|centos", var.compute_vsi_osimage_name))
+    error_message = "The image must be redhat or centos."
+  }
 }
 
 variable "total_compute_instances" {
@@ -92,6 +102,12 @@ variable "storage_vsi_osimage_name" {
   type        = string
   default     = "ibm-redhat-8-1-minimal-amd64-1"
   description = "Storage instance OS image name."
+
+  validation {
+    condition     = can(regex("redhat|centos", var.storage_vsi_osimage_name))
+    error_message = "The image must be redhat or centos."
+  }
+
 }
 
 variable "total_storage_instances" {

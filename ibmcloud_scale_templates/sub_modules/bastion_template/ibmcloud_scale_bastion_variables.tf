@@ -38,6 +38,12 @@ variable "bastion_osimage_name" {
   type        = string
   default     = "ibm-ubuntu-18-04-1-minimal-amd64-2"
   description = "Bastion OS image name."
+
+  validation {
+    condition     = can(regex("redhat|centos", var.bastion_osimage_name))
+    error_message = "The image must be redhat or centos."
+  }
+
 }
 
 variable "bastion_vsi_profile" {
