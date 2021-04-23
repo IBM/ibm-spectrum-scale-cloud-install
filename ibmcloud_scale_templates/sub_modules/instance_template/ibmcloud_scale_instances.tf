@@ -10,6 +10,7 @@ module "instances_security_group" {
   total_sec_groups = 1
   sec_group_name   = "${var.stack_name}-instances-sg"
   vpc_id           = var.vpc_id
+  resource_grp_id  = var.resource_grp_id
 }
 
 module "instances_sg_cidr_rule" {
@@ -51,6 +52,7 @@ module "compute_vsis" {
   zones                   = var.zones
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
+  resource_grp_id         = var.resource_grp_id
   vsi_primary_subnet_id   = var.primary_private_subnet_ids
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : var.secondary_private_subnet_ids
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
@@ -69,6 +71,7 @@ module "create_desc_disk" {
   volume_profile     = var.volume_profile
   volume_iops        = var.volume_iops
   volume_capacity    = var.volume_capacity
+  resource_grp_id    = var.resource_grp_id
 }
 
 module "desc_compute_vsi" {
@@ -76,6 +79,7 @@ module "desc_compute_vsi" {
   total_vsis              = length(var.zones) >= 3 ? 1 : 0
   vsi_name_prefix         = format("%s-tiebreaker-desc", var.stack_name)
   vpc_id                  = var.vpc_id
+  resource_grp_id         = var.resource_grp_id
   zone                    = length(var.zones) >= 3 ? var.zones.2 : var.zones.0
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.2 : var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) >= 3 ? var.secondary_private_subnet_ids.2 : var.secondary_private_subnet_ids.0)
@@ -104,6 +108,7 @@ module "create_data_disks_1A_zone" {
   volume_profile     = var.volume_profile
   volume_iops        = var.volume_iops
   volume_capacity    = var.volume_capacity
+  resource_grp_id    = var.resource_grp_id
 }
 
 module "create_data_disks_2A_zone" {
@@ -114,6 +119,7 @@ module "create_data_disks_2A_zone" {
   volume_profile     = var.volume_profile
   volume_iops        = var.volume_iops
   volume_capacity    = var.volume_capacity
+  resource_grp_id    = var.resource_grp_id
 }
 
 module "storage_vsis_1A_zone" {
@@ -124,6 +130,7 @@ module "storage_vsis_1A_zone" {
   vpc_id                  = var.vpc_id
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
+  resource_grp_id         = var.resource_grp_id
   vsi_primary_subnet_id   = var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : var.secondary_private_subnet_ids.0
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
@@ -144,6 +151,7 @@ module "storage_vsis_2A_zone" {
   vpc_id                  = var.vpc_id
   dns_service_id          = var.dns_service_id
   dns_zone_id             = var.dns_zone_id
+  resource_grp_id         = var.resource_grp_id
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.1 : var.primary_private_subnet_ids.0
   vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) > 1 ? var.secondary_private_subnet_ids.1 : var.secondary_private_subnet_ids.0)
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
@@ -185,88 +193,88 @@ locals {
   storage_vsi_ips_with_15_datadisks = var.block_volumes_per_instance == 15 ? (length(var.zones) == 1 ? local.storage_vsis_1A_by_ip : concat(local.storage_vsis_1A_by_ip, local.storage_vsis_2A_by_ip)) : null
 
   /* Block volumes per instance = 0, defaults to instance storage */
-  storage_vsi_ids_with_0_datadisks  = var.block_volumes_per_instance == 0 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_1_datadisks  = var.block_volumes_per_instance == 1 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_2_datadisks  = var.block_volumes_per_instance == 2 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_3_datadisks  = var.block_volumes_per_instance == 3 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_4_datadisks  = var.block_volumes_per_instance == 4 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_5_datadisks  = var.block_volumes_per_instance == 5 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_6_datadisks  = var.block_volumes_per_instance == 6 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_7_datadisks  = var.block_volumes_per_instance == 7 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_8_datadisks  = var.block_volumes_per_instance == 8 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_9_datadisks  = var.block_volumes_per_instance == 9 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_10_datadisks = var.block_volumes_per_instance == 10 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_11_datadisks = var.block_volumes_per_instance == 11 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_12_datadisks = var.block_volumes_per_instance == 12 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_13_datadisks = var.block_volumes_per_instance == 13 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_14_datadisks = var.block_volumes_per_instance == 14 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
-  storage_vsi_ids_with_15_datadisks = var.block_volumes_per_instance == 15 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : null
+  strg_vsi_ids_0_disks  = var.block_volumes_per_instance == 0 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_1_disks  = var.block_volumes_per_instance == 1 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_2_disks  = var.block_volumes_per_instance == 2 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_3_disks  = var.block_volumes_per_instance == 3 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_4_disks  = var.block_volumes_per_instance == 4 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_5_disks  = var.block_volumes_per_instance == 5 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_6_disks  = var.block_volumes_per_instance == 6 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_7_disks  = var.block_volumes_per_instance == 7 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_8_disks  = var.block_volumes_per_instance == 8 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_9_disks  = var.block_volumes_per_instance == 9 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_10_disks = var.block_volumes_per_instance == 10 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_11_disks = var.block_volumes_per_instance == 11 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_12_disks = var.block_volumes_per_instance == 12 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_13_disks = var.block_volumes_per_instance == 13 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_14_disks = var.block_volumes_per_instance == 14 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
+  strg_vsi_ids_15_disks = var.block_volumes_per_instance == 15 ? (length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_ids : concat(module.storage_vsis_1A_zone.vsi_ids, module.storage_vsis_2A_zone.vsi_ids)) : []
 
   /* Block volumes per instance = 0, defaults to instance storage */
-  storage_vsi_ips_0_datadisks_device_names_map = var.block_volumes_per_instance == 0 ? {
+  strg_vsi_ips_0_disks_dev_map = var.block_volumes_per_instance == 0 ? {
     for instance in local.storage_vsi_ips_with_0_datadisks :
     instance => length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_instance_storage_volumes : concat(module.storage_vsis_1A_zone.vsi_instance_storage_volumes, module.storage_vsis_2A_zone.vsi_instance_storage_volumes)
-  } : null
-  storage_vsi_ips_1_datadisks_device_names_map = var.block_volumes_per_instance == 1 ? {
+  } : {}
+  strg_vsi_ips_1_disks_dev_map = var.block_volumes_per_instance == 1 ? {
     for instance in local.storage_vsi_ips_with_1_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_2_datadisks_device_names_map = var.block_volumes_per_instance == 2 ? {
+  } : {}
+  strg_vsi_ips_2_disks_dev_map = var.block_volumes_per_instance == 2 ? {
     for instance in local.storage_vsi_ips_with_2_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_3_datadisks_device_names_map = var.block_volumes_per_instance == 3 ? {
+  } : {}
+  strg_vsi_ips_3_disks_dev_map = var.block_volumes_per_instance == 3 ? {
     for instance in local.storage_vsi_ips_with_3_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_4_datadisks_device_names_map = var.block_volumes_per_instance == 4 ? {
+  } : {}
+  strg_vsi_ips_4_disks_dev_map = var.block_volumes_per_instance == 4 ? {
     for instance in local.storage_vsi_ips_with_4_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_5_datadisks_device_names_map = var.block_volumes_per_instance == 5 ? {
+  } : {}
+  strg_vsi_ips_5_disks_dev_map = var.block_volumes_per_instance == 5 ? {
     for instance in local.storage_vsi_ips_with_5_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_6_datadisks_device_names_map = var.block_volumes_per_instance == 6 ? {
+  } : {}
+  strg_vsi_ips_6_disks_dev_map = var.block_volumes_per_instance == 6 ? {
     for instance in local.storage_vsi_ips_with_6_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_7_datadisks_device_names_map = var.block_volumes_per_instance == 7 ? {
+  } : {}
+  strg_vsi_ips_7_disks_dev_map = var.block_volumes_per_instance == 7 ? {
     for instance in local.storage_vsi_ips_with_7_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_8_datadisks_device_names_map = var.block_volumes_per_instance == 8 ? {
+  } : {}
+  strg_vsi_ips_8_disks_dev_map = var.block_volumes_per_instance == 8 ? {
     for instance in local.storage_vsi_ips_with_8_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_9_datadisks_device_names_map = var.block_volumes_per_instance == 9 ? {
+  } : {}
+  strg_vsi_ips_9_disks_dev_map = var.block_volumes_per_instance == 9 ? {
     for instance in local.storage_vsi_ips_with_9_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_10_datadisks_device_names_map = var.block_volumes_per_instance == 10 ? {
+  } : {}
+  strg_vsi_ips_10_disks_dev_map = var.block_volumes_per_instance == 10 ? {
     for instance in local.storage_vsi_ips_with_10_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_11_datadisks_device_names_map = var.block_volumes_per_instance == 11 ? {
+  } : {}
+  strg_vsi_ips_11_disks_dev_map = var.block_volumes_per_instance == 11 ? {
     for instance in local.storage_vsi_ips_with_11_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_12_datadisks_device_names_map = var.block_volumes_per_instance == 12 ? {
+  } : {}
+  strg_vsi_ips_12_disks_dev_map = var.block_volumes_per_instance == 12 ? {
     for instance in local.storage_vsi_ips_with_12_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_13_datadisks_device_names_map = var.block_volumes_per_instance == 13 ? {
+  } : {}
+  strg_vsi_ips_13_disks_dev_map = var.block_volumes_per_instance == 13 ? {
     for instance in local.storage_vsi_ips_with_13_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_14_datadisks_device_names_map = var.block_volumes_per_instance == 14 ? {
+  } : {}
+  strg_vsi_ips_14_disks_dev_map = var.block_volumes_per_instance == 14 ? {
     for instance in local.storage_vsi_ips_with_14_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
-  storage_vsi_ips_15_datadisks_device_names_map = var.block_volumes_per_instance == 15 ? {
+  } : {}
+  strg_vsi_ips_15_disks_dev_map = var.block_volumes_per_instance == 15 ? {
     for instance in local.storage_vsi_ips_with_15_datadisks :
     instance => length(var.zones) == 1 ? module.create_data_disks_1A_zone.volume_id : concat(module.create_data_disks_1A_zone.volume_id, module.create_data_disks_2A_zone)
-  } : null
+  } : {}
 }
 
 
@@ -279,62 +287,26 @@ module "invoke_scale_playbook" {
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
   tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
 
-  bucket_name               = var.bucket_name
-  scale_version             = var.scale_version
+  bucket_name               = "None"
   bastion_public_ip         = var.bastion_public_ip
   instances_ssh_private_key = var.instances_ssh_private_key
-
   instances_ssh_user_name =  local.user_name
-  private_subnet_cidr     = length(var.secondary_private_subnet_ids) == 0 ? var.primary_cidr_block[0] : var.secondary_cidr_block[0]
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
 
-  create_scale_cluster         = var.create_scale_cluster
-  generate_ansible_inv         = var.generate_ansible_inv
-  generate_jumphost_ssh_config = var.generate_jumphost_ssh_config
-
   cloud_platform   = "IBMCloud"
   avail_zones      = jsonencode(var.zones)
   notification_arn = "None"
 
-  compute_instances_by_id   = module.compute_vsis.vsi_ids == null ? "[]" : jsonencode(module.compute_vsis.vsi_ids)
-  compute_instances_by_ip   = local.compute_vsi_by_ip == null ? "[]" : jsonencode(local.compute_vsi_by_ip)
+  compute_instances_by_id = module.compute_vsis.vsi_ids == null ? jsonencode([]) : jsonencode(module.compute_vsis.vsi_ids)
+  compute_instances_by_ip = local.compute_vsi_by_ip == null ? jsonencode([]) : jsonencode(local.compute_vsi_by_ip)
+
   compute_instance_desc_map = jsonencode(local.compute_vsi_desc_map)
   compute_instance_desc_id  = jsonencode(module.desc_compute_vsi.vsi_ids)
 
-  storage_instance_ids_with_0_datadisks  = local.storage_vsi_ids_with_0_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_0_datadisks)
-  storage_instance_ids_with_1_datadisks  = local.storage_vsi_ids_with_1_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_1_datadisks)
-  storage_instance_ids_with_2_datadisks  = local.storage_vsi_ids_with_2_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_2_datadisks)
-  storage_instance_ids_with_3_datadisks  = local.storage_vsi_ids_with_3_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_3_datadisks)
-  storage_instance_ids_with_4_datadisks  = local.storage_vsi_ids_with_4_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_4_datadisks)
-  storage_instance_ids_with_5_datadisks  = local.storage_vsi_ids_with_5_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_5_datadisks)
-  storage_instance_ids_with_6_datadisks  = local.storage_vsi_ids_with_6_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_6_datadisks)
-  storage_instance_ids_with_7_datadisks  = local.storage_vsi_ids_with_7_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_7_datadisks)
-  storage_instance_ids_with_8_datadisks  = local.storage_vsi_ids_with_8_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_8_datadisks)
-  storage_instance_ids_with_9_datadisks  = local.storage_vsi_ids_with_9_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_9_datadisks)
-  storage_instance_ids_with_10_datadisks = local.storage_vsi_ids_with_10_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_10_datadisks)
-  storage_instance_ids_with_11_datadisks = local.storage_vsi_ids_with_11_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_11_datadisks)
-  storage_instance_ids_with_12_datadisks = local.storage_vsi_ids_with_12_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_12_datadisks)
-  storage_instance_ids_with_13_datadisks = local.storage_vsi_ids_with_13_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_13_datadisks)
-  storage_instance_ids_with_14_datadisks = local.storage_vsi_ids_with_14_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_14_datadisks)
-  storage_instance_ids_with_15_datadisks = local.storage_vsi_ids_with_15_datadisks == null ? "[]" : jsonencode(local.storage_vsi_ids_with_15_datadisks)
+  storage_instances_by_id = jsonencode(compact(concat(local.strg_vsi_ids_0_disks, local.strg_vsi_ids_1_disks, local.strg_vsi_ids_2_disks, local.strg_vsi_ids_3_disks, local.strg_vsi_ids_4_disks, local.strg_vsi_ids_5_disks, local.strg_vsi_ids_6_disks, local.strg_vsi_ids_7_disks, local.strg_vsi_ids_8_disks, local.strg_vsi_ids_9_disks, local.strg_vsi_ids_10_disks, local.strg_vsi_ids_11_disks, local.strg_vsi_ids_12_disks, local.strg_vsi_ids_13_disks, local.strg_vsi_ids_14_disks, local.strg_vsi_ids_15_disks)))
 
-  storage_instance_ips_with_0_datadisks_device_names_map  = local.storage_vsi_ips_0_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_0_datadisks_device_names_map)
-  storage_instance_ips_with_1_datadisks_device_names_map  = local.storage_vsi_ips_1_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_1_datadisks_device_names_map)
-  storage_instance_ips_with_2_datadisks_device_names_map  = local.storage_vsi_ips_2_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_2_datadisks_device_names_map)
-  storage_instance_ips_with_3_datadisks_device_names_map  = local.storage_vsi_ips_3_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_3_datadisks_device_names_map)
-  storage_instance_ips_with_4_datadisks_device_names_map  = local.storage_vsi_ips_4_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_4_datadisks_device_names_map)
-  storage_instance_ips_with_5_datadisks_device_names_map  = local.storage_vsi_ips_5_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_5_datadisks_device_names_map)
-  storage_instance_ips_with_6_datadisks_device_names_map  = local.storage_vsi_ips_6_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_6_datadisks_device_names_map)
-  storage_instance_ips_with_7_datadisks_device_names_map  = local.storage_vsi_ips_7_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_7_datadisks_device_names_map)
-  storage_instance_ips_with_8_datadisks_device_names_map  = local.storage_vsi_ips_8_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_8_datadisks_device_names_map)
-  storage_instance_ips_with_9_datadisks_device_names_map  = local.storage_vsi_ips_9_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_9_datadisks_device_names_map)
-  storage_instance_ips_with_10_datadisks_device_names_map = local.storage_vsi_ips_10_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_10_datadisks_device_names_map)
-  storage_instance_ips_with_11_datadisks_device_names_map = local.storage_vsi_ips_11_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_11_datadisks_device_names_map)
-  storage_instance_ips_with_12_datadisks_device_names_map = local.storage_vsi_ips_12_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_12_datadisks_device_names_map)
-  storage_instance_ips_with_13_datadisks_device_names_map = local.storage_vsi_ips_13_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_13_datadisks_device_names_map)
-  storage_instance_ips_with_14_datadisks_device_names_map = local.storage_vsi_ips_14_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_14_datadisks_device_names_map)
-  storage_instance_ips_with_15_datadisks_device_names_map = local.storage_vsi_ips_15_datadisks_device_names_map == null ? "[]" : jsonencode(local.storage_vsi_ips_15_datadisks_device_names_map)
+  storage_instance_disk_map = jsonencode(merge(local.strg_vsi_ips_0_disks_dev_map, local.strg_vsi_ips_1_disks_dev_map, local.strg_vsi_ips_2_disks_dev_map, local.strg_vsi_ips_3_disks_dev_map, local.strg_vsi_ips_4_disks_dev_map, local.strg_vsi_ips_5_disks_dev_map, local.strg_vsi_ips_6_disks_dev_map, local.strg_vsi_ips_7_disks_dev_map, local.strg_vsi_ips_8_disks_dev_map, local.strg_vsi_ips_9_disks_dev_map, local.strg_vsi_ips_10_disks_dev_map, local.strg_vsi_ips_11_disks_dev_map, local.strg_vsi_ips_12_disks_dev_map, local.strg_vsi_ips_13_disks_dev_map, local.strg_vsi_ips_14_disks_dev_map, local.strg_vsi_ips_15_disks_dev_map))
 }

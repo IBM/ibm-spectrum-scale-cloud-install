@@ -55,3 +55,8 @@ variable "bastion_subnet_id" {
   type        = list(string)
   description = "Subnet id to be used for Bastion virtual server instance."
 }
+
+variable "resource_grp_id" {
+  type        = string
+  description = "IBM Cloud resource group id."
+}

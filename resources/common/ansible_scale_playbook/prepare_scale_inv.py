@@ -28,44 +28,10 @@ CLUSTER_DEFINITION_JSON = {"scale_cluster": {}, "node_details": [], "scale_stora
 
 
 def read_tf_inv_file(tf_inv_path):
-    """ Read the terraform inventory file """
-    tf_inv_list = open(tf_inv_path).read().splitlines()
-    return tf_inv_list
-
-
-def parse_tf_in_json(tf_inv_list):
-    """ Parse terraform inventory and prepare dict """
-    raw_body, compute_ips, storage_disk_map, az_list = {}, [], {}, []
-    for each_line in tf_inv_list:
-        key_val_match = re.match('(.*)=(.*)', each_line)
-        if key_val_match:
-            if key_val_match.group(1) == "availability_zones":
-                # Ex: "[sa-east-1a,sa-east-1b]"
-                az_list = re.findall(r'(\w+-\w+-\w+)', key_val_match.group(2))
-                raw_body[key_val_match.group(1)] = az_list
-            elif key_val_match.group(1) == "compute_instances_by_ip":
-                # Ex: "[10.0.2.214,10.0.2.216]"
-                compute_ips = re.findall(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})',
-                                         key_val_match.group(2))
-                raw_body[key_val_match.group(1)] = compute_ips
-            elif key_val_match.group(1) == "compute_instance_desc_map":
-                # Ex: "{10.0.7.157:[/dev/xvdf]}"
-                desc_match = re.match(r'{(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\[(.*)\]}',
-                                      key_val_match.group(2))
-                if desc_match:
-                    raw_body[key_val_match.group(1)] = {desc_match.group(1): desc_match.group(2)}
-            elif key_val_match.group(1) == "storage_instance_disk_map":
-                # Ex: "{10.0.30.220:[/dev/xvdf],10.0.8.162:[/dev/xvdf]}"}
-                raw_storage_disk_map = re.findall(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\[(.*?)\]',
-                                                  key_val_match.group(2))
-                for each_storage_instance in raw_storage_disk_map:
-                    storage_disk_map[each_storage_instance[0]] = each_storage_instance[1].split(",")
-                raw_body[key_val_match.group(1)] = storage_disk_map
-            else:
-                raw_body[key_val_match.group(1)] = key_val_match.group(2)
-
-    return raw_body
-
+    """ Read the terraform inventory json file """
+    with open(tf_inv_path) as json_handler:
+        tf_inv = json.load(json_handler)
+    return tf_inv
 
 def initialize_cluster_details(cluster_name, scale_profile_file, scale_replica_config):
     """ Initialize cluster details.
@@ -124,8 +90,7 @@ if __name__ == "__main__":
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
 
-    RAW_TF_INV = read_tf_inv_file(ARGUMENTS.tf_inv_path)
-    TF_INV = parse_tf_in_json(RAW_TF_INV)
+    TF_INV = read_tf_inv_file(ARGUMENTS.tf_inv_path)
     if ARGUMENTS.verbose:
         print("Parsed terraform output: %s" % json.dumps(TF_INV, indent=4))
     if len(TF_INV['availability_zones']) > 1:

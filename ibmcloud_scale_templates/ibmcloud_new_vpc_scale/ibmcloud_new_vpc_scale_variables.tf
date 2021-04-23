@@ -117,17 +117,6 @@ variable "instance_ssh_key" {
   description = "SSH key name to be used for Compute, Storage virtual server instance."
 }
 
-variable "scale_version" {
-  type        = string
-  default     = "5.0.5.0"
-  description = "IBM Spectrum Scale version."
-}
-
-variable "bucket_name" {
-  type        = string
-  description = "IBM COS bucket name to be used for backing up ansible inventory file."
-}
-
 variable "filesystem_mountpoint" {
   type        = string
   default     = "/gpfs/fs1"

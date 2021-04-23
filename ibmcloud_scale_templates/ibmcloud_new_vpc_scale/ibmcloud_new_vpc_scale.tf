@@ -33,6 +33,7 @@ module "bastion_module" {
   bastion_vsi_profile     = var.bastion_vsi_profile
   bastion_ssh_key         = var.bastion_ssh_key
   bastion_subnet_id       = module.vpc_module.primary_private_subnets
+  resource_grp_id         = data.ibm_resource_group.group.id
 }
 
 module "instances_module" {
@@ -60,13 +61,9 @@ module "instances_module" {
   volume_capacity              = 100
   tf_data_path                 = "/tmp/.schematics/tf_data_path"
   scale_infra_repo_clone_path  = "/tmp/.schematics/IBM/ibm-spectrumscale-cloud-deploy"
-  create_scale_cluster         = true
-  generate_jumphost_ssh_config = true
-  generate_ansible_inv         = true
   bastion_public_ip            = module.bastion_module.bastion_fip
-  scale_version                = var.scale_version
-  bucket_name                  = var.bucket_name
   filesystem_mountpoint        = var.filesystem_mountpoint
   filesystem_block_size        = var.filesystem_block_size
   instances_ssh_private_key    = var.instances_ssh_private_key
+  resource_grp_id              = data.ibm_resource_group.group.id
 }

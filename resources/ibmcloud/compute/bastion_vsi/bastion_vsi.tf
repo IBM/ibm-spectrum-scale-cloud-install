@@ -11,6 +11,7 @@ variable "vsi_security_group" {}
 variable "vsi_profile" {}
 variable "vsi_image_id" {}
 variable "vsi_user_public_key" {}
+variable "resource_grp_id" {}
 
 
 data "template_file" "metadata_startup_script" {
@@ -46,13 +47,15 @@ resource "ibm_is_instance" "vsi" {
     security_groups = var.vsi_security_group
   }
 
+  vpc            = var.vpc_id
+  zone           = element(var.zones, count.index)
+  resource_group = var.resource_grp_id
+  keys           = var.vsi_user_public_key
+
   boot_volume {
     name = "${var.vsi_name_prefix}-vsi-${count.index + 1}-vol"
   }
 
-  vpc       = var.vpc_id
-  zone      = element(var.zones, count.index)
-  keys      = var.vsi_user_public_key
   user_data = data.template_file.metadata_startup_script.rendered
 }
 

@@ -18,6 +18,7 @@ variable "vsi_image_id" {}
 variable "vsi_user_public_key" {}
 variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
+variable "resource_grp_id" {}
 
 
 locals {
@@ -103,10 +104,11 @@ resource "ibm_is_instance" "vsi_2_nic" {
     allow_ip_spoofing = false
   }
 
-  vpc       = var.vpc_id
-  zone      = var.zone
-  keys      = var.vsi_user_public_key
-  user_data = data.template_file.metadata_startup_script.rendered
+  vpc            = var.vpc_id
+  zone           = var.zone
+  keys           = var.vsi_user_public_key
+  resource_group = var.resource_grp_id
+  user_data      = data.template_file.metadata_startup_script.rendered
 
   volumes = var.vsi_data_volumes_count == 0 ? null : element(chunklist(var.vsi_volumes, var.vsi_data_volumes_count), count.index)
 }
