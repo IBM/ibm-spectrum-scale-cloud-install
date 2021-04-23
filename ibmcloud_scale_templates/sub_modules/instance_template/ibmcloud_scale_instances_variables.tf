@@ -30,7 +30,7 @@ variable "vpc_id" {
 
 variable "compute_vsi_osimage_name" {
   type        = string
-  default     = "ibm-redhat-8-3-minimal-amd64-1"
+  default     = "ibm-redhat-8-3-minimal-amd64-2"
   description = "Compute instance OS image name."
 }
 
@@ -42,7 +42,7 @@ variable "total_compute_instances" {
 
 variable "storage_vsi_osimage_name" {
   type        = string
-  default     = "ibm-redhat-8-3-minimal-amd64-1"
+  default     = "ibm-redhat-8-3-minimal-amd64-2"
   description = "Storage instance OS image name."
 }
 

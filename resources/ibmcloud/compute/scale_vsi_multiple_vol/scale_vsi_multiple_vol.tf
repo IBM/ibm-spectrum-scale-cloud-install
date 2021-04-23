@@ -29,25 +29,21 @@ locals {
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
-mkdir -p ~/.ssh/
-echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
-echo "${var.vsi_meta_public_key}" > ~/.ssh/id_rsa.pub
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-sed -i 's/PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
-systemctl restart sshd
-chmod 600 ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa.pub
-chmod 600 ~/.ssh/authorized_keys
 if grep -q "Red Hat" /etc/os-release
 then
+    USER=vpcuser
     if grep -q "platform:el8" /etc/os-release
     then
         PKG_MGR=dnf
     else
         PKG_MGR=yum
     fi
+elif grep -q "Ubuntu" /etc/os-release
+then
+    USER=ubuntu
+    PKG_MGR=apt-get
 fi
+sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" /root/.ssh/authorized_keys
 $PKG_MGR install -y python3 unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 EOF
 }
