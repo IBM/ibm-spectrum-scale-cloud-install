@@ -44,7 +44,7 @@ then
     PKG_MGR=apt-get
 fi
 sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" /root/.ssh/authorized_keys
-$PKG_MGR install -y python3 unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+$PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 EOF
 }
 

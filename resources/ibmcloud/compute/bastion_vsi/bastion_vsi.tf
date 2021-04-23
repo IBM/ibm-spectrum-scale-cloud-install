@@ -32,7 +32,7 @@ then
     PKG_MGR=apt-get
 fi
 sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" /root/.ssh/authorized_keys
-$PKG_MGR install -y python3 unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+$PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 EOF
 }
 
@@ -51,12 +51,11 @@ resource "ibm_is_instance" "vsi" {
   zone           = element(var.zones, count.index)
   resource_group = var.resource_grp_id
   keys           = var.vsi_user_public_key
+  user_data      = data.template_file.metadata_startup_script.rendered
 
   boot_volume {
     name = "${var.vsi_name_prefix}-vsi-${count.index + 1}-vol"
   }
-
-  user_data = data.template_file.metadata_startup_script.rendered
 }
 
 output "vsi_ids" {

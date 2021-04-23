@@ -97,7 +97,6 @@ module "desc_compute_vsi" {
 
 locals {
   total_nsd_disks = var.block_volumes_per_instance * var.total_storage_instances
-  user_name = can(regex("redhat|centos", var.compute_vsi_osimage_name))? "vpcuser" : "ubuntu"
 }
 
 module "create_data_disks_1A_zone" {
@@ -277,7 +276,6 @@ locals {
   } : {}
 }
 
-
 module "invoke_scale_playbook" {
   source     = "../../../resources/common/ansible_scale_playbook"
   region     = var.region
@@ -290,7 +288,6 @@ module "invoke_scale_playbook" {
   bucket_name               = "None"
   bastion_public_ip         = var.bastion_public_ip
   instances_ssh_private_key = var.instances_ssh_private_key
-  instances_ssh_user_name =  local.user_name
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
   filesystem_mountpoint       = var.filesystem_mountpoint
