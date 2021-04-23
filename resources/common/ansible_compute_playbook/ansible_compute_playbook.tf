@@ -4,8 +4,8 @@
 */
 
 variable "region" {}
-variable "invoke_count" {}
 variable "stack_name" {}
+variable "invoke_count" {}
 variable "avail_zones" {}
 variable "cloud_platform" {}
 variable "tf_data_path" {}
@@ -13,28 +13,22 @@ variable "tf_input_json_root_path" {}
 variable "tf_input_json_file_name" {}
 variable "bucket_name" {}
 variable "notification_arn" {}
-variable "filesystem_mountpoint" {}
-variable "filesystem_block_size" {}
 variable "scale_infra_repo_clone_path" {}
 variable "bastion_public_ip" {}
 variable "instances_ssh_private_key" {}
 variable "compute_instances_by_ip" {}
 variable "compute_instances_by_id" {}
-variable "compute_instance_desc_map" {}
-variable "compute_instance_desc_id" {}
-variable "storage_instances_by_id" {}
-variable "storage_instance_disk_map" {}
 
 locals {
-  tf_inv_path                    = format("%s/%s", "/tmp/.schematics", "tf_inventory.json")
+  tf_inv_path                    = format("%s/%s", "/tmp/.schematics/IBM", "compute_tf_inventory.json")
   ansible_inv_script_path        = "${path.module}/prepare_scale_inv.py"
   instance_ssh_wait_script_path  = "${path.module}/wait_instance_ok_state.py"
   backup_to_backend_script_path  = "${path.module}/backup_to_backend.py"
   send_message_script_path       = "${path.module}/send_sns_notification.py"
-  scale_tuning_param_path        = format("%s/%s", var.scale_infra_repo_clone_path, "scalesncparams.profile")
+  scale_tuning_param_path        = format("%s/%s", var.scale_infra_repo_clone_path, "computesncparams.profile")
   scale_infra_path               = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
   cloud_playbook_path            = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
-  instances_ssh_private_key_path = format("%s/%s", "/tmp/.schematics", "id_rsa")
+  instances_ssh_private_key_path = format("%s/%s", var.tf_data_path, "id_rsa")
   infra_complete_message         = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
   cluster_complete_message       = "IBM Spectrum Scale cluster creation completed successfully."
 }
@@ -45,7 +39,7 @@ resource "null_resource" "send_infra_complete_message" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.send_message_script_path} --cloud_platform ${var.cloud_platform} --message \"${local.infra_complete_message}\" --topic_arn ${var.notification_arn} --region_name ${var.region}"
   }
-  depends_on = [var.compute_instances_by_ip, var.storage_instances_by_id, var.storage_instance_disk_map]
+  depends_on = [var.compute_instances_by_ip]
 }
 
 resource "null_resource" "remove_existing_tf_inv" {
@@ -56,22 +50,22 @@ resource "null_resource" "remove_existing_tf_inv" {
   }
 }
 
-resource "local_file" "dump_tf_inventory" {
+resource "local_file" "dump_compute_tf_inventory" {
   count      = var.invoke_count == 1 ? 1 : 0
   content    = <<EOT
 {
     "cloud_platform": "${var.cloud_platform}",
     "stack_name": "${var.stack_name}",
     "region": "${var.region}",
-    "filesystem_mountpoint": "${var.filesystem_mountpoint}",
-    "filesystem_block_size": "${var.filesystem_block_size}",
+    "filesystem_mountpoint": "None",
+    "filesystem_block_size": "None",
     "availability_zones": ${var.avail_zones},
     "compute_instances_by_ip": ${var.compute_instances_by_ip},
     "compute_instances_by_id": ${var.compute_instances_by_id},
-    "compute_instance_desc_map": ${var.compute_instance_desc_map},
-    "compute_instance_desc_id": ${var.compute_instance_desc_id},
-    "storage_instances_by_id": ${var.storage_instances_by_id},
-    "storage_instance_disk_map": ${var.storage_instance_disk_map}
+    "compute_instance_desc_map": {},
+    "compute_instance_desc_id": [],
+    "storage_instances_by_id": [],
+    "storage_instance_disk_map": {}
 }
 EOT
   filename   = local.tf_inv_path
@@ -84,7 +78,7 @@ resource "null_resource" "gitclone_ibm_spectrum_scale_install_infra" {
     interpreter = ["/bin/bash", "-c"]
     command     = "if [ ! -d ${var.scale_infra_repo_clone_path} ]; then mkdir -p ${var.scale_infra_repo_clone_path}; cd ${var.scale_infra_repo_clone_path}; git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git; fi;"
   }
-  depends_on = [local_file.dump_tf_inventory]
+  depends_on = [local_file.dump_compute_tf_inventory]
 }
 
 resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {

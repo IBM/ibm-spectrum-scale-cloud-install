@@ -104,7 +104,7 @@ variable "dns_zone_id" {
 
 variable "tf_data_path" {
   type        = string
-  default     = "/tmp/.schematics/tf_data_path"
+  default     = "/tmp/.schematics/IBM/tf_data_path"
   description = "Data path to be used by terraform for storing ssh keys."
 }
 
