@@ -278,10 +278,15 @@ locals {
 }
 
 module "invoke_compute_playbook" {
-  source       = "../../../resources/common/ansible_compute_playbook"
+  source       = "../../../resources/common/ansible_scale_playbook"
   invoke_count = local.cluster_namespace == "multi" ? 1 : 0
   region       = var.region
   stack_name   = format("%s.%s", var.stack_name, "compute")
+
+  total_compute_instances = var.total_compute_instances
+  tf_inv_path  = format("%s/%s", "/tmp/.schematics/IBM", "compute_tf_inventory.json")
+  scale_tuning_param_path        = format("%s/%s", var.scale_infra_repo_clone_path, "computesncparams.profile")
+  instances_ssh_private_key_path = format("%s/%s", var.tf_data_path, "id_rsa")
 
   tf_data_path            = var.tf_data_path
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
@@ -296,6 +301,13 @@ module "invoke_compute_playbook" {
   cloud_platform   = "IBMCloud"
   avail_zones      = jsonencode(var.zones)
   notification_arn = "None"
+ 
+  filesystem_mountpoint     = "None"
+  filesystem_block_size     = "None"
+  compute_instance_desc_id  = []
+  compute_instance_desc_map = {}
+  storage_instance_disk_map = {}
+  storage_instances_by_id   = []
 
   compute_instances_by_id = module.compute_vsis.vsi_ids == null ? jsonencode([]) : jsonencode(module.compute_vsis.vsi_ids)
   compute_instances_by_ip = local.compute_vsi_by_ip == null ? jsonencode([]) : jsonencode(local.compute_vsi_by_ip)
@@ -305,7 +317,7 @@ module "invoke_storage_playbook" {
   source       = "../../../resources/common/ansible_storage_playbook"
   invoke_count = local.cluster_namespace == "multi" ? 1 : 0
   region       = var.region
-  stack_name   = format("%s.%s", var.stack_name, "compute")
+  stack_name   = format("%s.%s", var.stack_name, "storage")
 
   tf_data_path            = var.tf_data_path
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
@@ -336,6 +348,10 @@ module "invoke_scale_playbook" {
   invoke_count = local.cluster_namespace == "single" ? 1 : 0
   region       = var.region
   stack_name   = var.stack_name
+  total_compute_instances = var.total_compute_instances
+  tf_inv_path  = format("%s/%s", "/tmp/.schematics", "tf_inventory.json")
+  scale_tuning_param_path = format("%s/%s", var.scale_infra_repo_clone_path, "scalesncparams.profile")
+  instances_ssh_private_key_path = format("%s/%s", "/tmp/.schematics", "id_rsa")
 
   tf_data_path            = var.tf_data_path
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
