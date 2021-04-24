@@ -24,17 +24,18 @@ variable "compute_instance_desc_map" {}
 variable "compute_instance_desc_id" {}
 variable "storage_instances_by_id" {}
 variable "storage_instance_disk_map" {}
+variable "total_compute_instances" {}
+variable "tf_inv_path" {}
+variable "scale_tuning_param_path" {}
+variable "instances_ssh_private_key_path" {}
 
 locals {
-  tf_inv_path                    = format("%s/%s", "/tmp/.schematics", "tf_inventory.json")
   ansible_inv_script_path        = "${path.module}/prepare_scale_inv.py"
   instance_ssh_wait_script_path  = "${path.module}/wait_instance_ok_state.py"
   backup_to_backend_script_path  = "${path.module}/backup_to_backend.py"
   send_message_script_path       = "${path.module}/send_sns_notification.py"
-  scale_tuning_param_path        = format("%s/%s", var.scale_infra_repo_clone_path, "scalesncparams.profile")
   scale_infra_path               = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
   cloud_playbook_path            = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
-  instances_ssh_private_key_path = format("%s/%s", "/tmp/.schematics", "id_rsa")
   infra_complete_message         = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
   cluster_complete_message       = "IBM Spectrum Scale cluster creation completed successfully."
 }
@@ -52,12 +53,34 @@ resource "null_resource" "remove_existing_tf_inv" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "rm -rf ${local.tf_inv_path}"
+    command     = "rm -rf ${var.tf_inv_path}"
   }
 }
 
+resource "local_file" "dump_compute_tf_inventory" {
+  count = (var.cloud_platform == "IBMCloud" && var.invoke_count == 1 && var.total_compute_instances > 0) ? 1 : 0
+  content    = <<EOT
+{
+    "cloud_platform": "${var.cloud_platform}",
+    "stack_name": "${var.stack_name}",
+    "region": "${var.region}",
+    "filesystem_mountpoint": "None",
+    "filesystem_block_size": "None",
+    "availability_zones": ${var.avail_zones},
+    "compute_instances_by_ip": ${var.compute_instances_by_ip},
+    "compute_instances_by_id": ${var.compute_instances_by_id},
+    "compute_instance_desc_map": {},
+    "compute_instance_desc_id": [],
+    "storage_instances_by_id": [],
+    "storage_instance_disk_map": {}
+}
+EOT
+  filename   = var.tf_inv_path
+  depends_on = [null_resource.remove_existing_tf_inv]
+}
+
 resource "local_file" "dump_tf_inventory" {
-  count      = var.invoke_count == 1 ? 1 : 0
+  count      = var.invoke_count == 1 ? 0 : 1
   content    = <<EOT
 {
     "cloud_platform": "${var.cloud_platform}",
@@ -74,7 +97,7 @@ resource "local_file" "dump_tf_inventory" {
     "storage_instance_disk_map": ${var.storage_instance_disk_map}
 }
 EOT
-  filename   = local.tf_inv_path
+  filename   = var.tf_inv_path
   depends_on = [null_resource.remove_existing_tf_inv]
 }
 
@@ -84,7 +107,7 @@ resource "null_resource" "gitclone_ibm_spectrum_scale_install_infra" {
     interpreter = ["/bin/bash", "-c"]
     command     = "if [ ! -d ${var.scale_infra_repo_clone_path} ]; then mkdir -p ${var.scale_infra_repo_clone_path}; cd ${var.scale_infra_repo_clone_path}; git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git; fi;"
   }
-  depends_on = [local_file.dump_tf_inventory]
+  depends_on = [local_file.dump_tf_inventory, local_file.dump_compute_tf_inventory]
 }
 
 resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {
@@ -112,7 +135,7 @@ resource "local_file" "create_scale_tuning_parameters" {
  prefetchaggressivenessread=2
  autoload=yes
 EOT
-  filename   = local.scale_tuning_param_path
+  filename   = var.scale_tuning_param_path
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra, null_resource.prepare_ibm_spectrum_scale_install_infra]
 }
 
@@ -120,7 +143,7 @@ resource "null_resource" "prepare_ansible_inventory" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --ansible_scale_repo_path ${local.scale_infra_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa --scale_tuning_profile_file ${local.scale_tuning_param_path}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.tf_inv_path} --ansible_scale_repo_path ${local.scale_infra_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa --scale_tuning_profile_file ${var.scale_tuning_param_path}"
   }
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }
@@ -128,7 +151,7 @@ resource "null_resource" "prepare_ansible_inventory" {
 resource "local_file" "prepare_jumphost_config" {
   count             = var.invoke_count == 1 ? 1 : 0
   sensitive_content = var.instances_ssh_private_key
-  filename          = local.instances_ssh_private_key_path
+  filename          = var.instances_ssh_private_key_path
   file_permission   = "0600"
   depends_on        = [null_resource.prepare_ansible_inventory]
 }
@@ -155,7 +178,7 @@ resource "null_resource" "wait_for_instances_to_boot" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.instance_ssh_wait_script_path} --tf_inv_path ${local.tf_inv_path} --region_name ${var.region} --cloud_platform ${var.cloud_platform}"
+    command     = "python3 ${local.instance_ssh_wait_script_path} --tf_inv_path ${var.tf_inv_path} --region_name ${var.region} --cloud_platform ${var.cloud_platform}"
   }
   depends_on = [null_resource.prepare_ansible_inventory]
 }
@@ -170,7 +193,7 @@ resource "null_resource" "call_scale_install_playbook" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "ansible-playbook --private-key ${local.instances_ssh_private_key_path} -e \"ansible_python_interpreter=/usr/bin/python3\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p root@${var.bastion_public_ip} -i ${local.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.cloud_playbook_path}"
+    command     = "ansible-playbook --private-key ${var.instances_ssh_private_key_path} -e \"ansible_python_interpreter=/usr/bin/python3\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p root@${var.bastion_public_ip} -i ${var.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.cloud_playbook_path}"
   }
   depends_on = [time_sleep.wait_for_metadata_execution, local_file.create_scale_tuning_parameters]
 }
