@@ -39,9 +39,16 @@ data "ibm_is_image" "storage_instance_image" {
   name = var.storage_vsi_osimage_name
 }
 
-module "generate_keys" {
+module "compute_cluster_ssh_keys" {
   source       = "../../../resources/common/generate_keys"
-  tf_data_path = var.tf_data_path
+  invoke_count = var.total_compute_instances > 0 ? 1 : 0
+  tf_data_path = format("%s/compute", var.tf_data_path)
+}
+
+module "storage_cluster_ssh_keys" {
+  source       = "../../../resources/common/generate_keys"
+  invoke_count = var.total_storage_instances > 0 ? 1 : 0
+  tf_data_path = format("%s/storage", var.tf_data_path)
 }
 
 module "compute_vsis" {
@@ -59,8 +66,8 @@ module "compute_vsis" {
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = data.ibm_is_image.compute_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
-  vsi_meta_private_key    = module.generate_keys.private_key
-  vsi_meta_public_key     = module.generate_keys.public_key
+  vsi_meta_private_key    = module.compute_cluster_ssh_keys.private_key
+  vsi_meta_public_key     = module.compute_cluster_ssh_keys.public_key
 }
 
 module "create_desc_disk" {
@@ -89,8 +96,8 @@ module "desc_compute_vsi" {
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = data.ibm_is_image.compute_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
-  vsi_meta_private_key    = module.generate_keys.private_key
-  vsi_meta_public_key     = module.generate_keys.public_key
+  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key
+  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_data_volumes_count  = 1
   vsi_volumes             = module.create_desc_disk.volume_id
 }
@@ -136,8 +143,8 @@ module "storage_vsis_1A_zone" {
   vsi_profile             = var.storage_vsi_profile
   vsi_image_id            = data.ibm_is_image.storage_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
-  vsi_meta_private_key    = module.generate_keys.private_key
-  vsi_meta_public_key     = module.generate_keys.public_key
+  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key
+  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_volumes             = module.create_data_disks_1A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
 }
@@ -157,8 +164,8 @@ module "storage_vsis_2A_zone" {
   vsi_profile             = var.storage_vsi_profile
   vsi_image_id            = data.ibm_is_image.storage_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
-  vsi_meta_private_key    = module.generate_keys.private_key
-  vsi_meta_public_key     = module.generate_keys.public_key
+  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key
+  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_volumes             = module.create_data_disks_2A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
 }

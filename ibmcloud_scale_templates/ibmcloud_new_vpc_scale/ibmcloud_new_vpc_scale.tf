@@ -5,6 +5,11 @@
     3. (Compute, Storage) Instances/VSI along with volume attachments to storage instances
 */
 
+locals {
+  tf_data_path                 = "/tmp/.schematics/IBM/tf_data_path"
+  scale_infra_repo_clone_path  = "/tmp/.schematics/IBM/ibm-spectrumscale-cloud-deploy"
+}
+
 data "ibm_resource_group" "group" {
   name = var.resource_group
 }
@@ -59,8 +64,8 @@ module "instances_module" {
   volume_profile               = "10iops-tier"
   volume_iops                  = null
   volume_capacity              = 100
-  tf_data_path                 = "/tmp/.schematics/tf_data_path"
-  scale_infra_repo_clone_path  = "/tmp/.schematics/IBM/ibm-spectrumscale-cloud-deploy"
+  tf_data_path                 = local.tf_data_path
+  scale_infra_repo_clone_path  = local.scale_infra_repo_clone_path
   bastion_public_ip            = module.bastion_module.bastion_fip
   filesystem_mountpoint        = var.filesystem_mountpoint
   filesystem_block_size        = var.filesystem_block_size
