@@ -27,10 +27,11 @@ variable "storage_instance_disk_map" {}
 
 locals {
   tf_inv_path                    = format("%s/%s", "/tmp/.schematics", "tf_inventory.json")
-  ansible_inv_script_path        = "${path.module}/prepare_scale_inv.py"
-  instance_ssh_wait_script_path  = "${path.module}/wait_instance_ok_state.py"
-  backup_to_backend_script_path  = "${path.module}/backup_to_backend.py"
-  send_message_script_path       = "${path.module}/send_sns_notification.py"
+  scripts_path                   = replace(path.module, "ansible_scale_playbook", "scripts")
+  ansible_inv_script_path        = "${local.scripts_path}/prepare_scale_inv.py"
+  instance_ssh_wait_script_path  = "${local.scripts_path}/wait_instance_ok_state.py"
+  backup_to_backend_script_path  = "${local.scripts_path}/backup_to_backend.py"
+  send_message_script_path       = "${local.scripts_path}/send_sns_notification.py"
   scale_tuning_param_path        = format("%s/%s", var.scale_infra_repo_clone_path, "scalesncparams.profile")
   scale_infra_path               = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
   cloud_playbook_path            = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
