@@ -12,7 +12,7 @@ output "vpc_id" {
   value       = module.vpc_module.vpc_id
   description = "IBM Cloud VPC ID."
 }
-
+/*
 output "primary_private_subnets" {
   value       = module.vpc_module.primary_private_subnets
   description = "IBM Cloud primary private subnet IDs."
@@ -22,7 +22,7 @@ output "secondary_private_subnets" {
   value       = module.vpc_module.secondary_private_subnets
   description = "IBM Cloud primary secondary subnet IDs."
 }
-
+*/
 output "bastion_vsi_public_ip" {
   value       = module.bastion_module.bastion_fip
   description = "IBM Cloud bastion instance public IP addresses."
@@ -32,7 +32,7 @@ output "bastion_vsi_id" {
   value       = module.bastion_module.bastion_vsi_id
   description = "IBM Cloud bastion instance ID."
 }
-
+/*
 output "volume_1A_ids" {
   value = module.instances_module.volume_1A_ids
 }
@@ -72,3 +72,4 @@ output "storage_vsi_2A_primary_ips" {
 output "storage_vsi_2A_secondary_ips" {
   value = module.instances_module.storage_vsi_2A_secondary_ips
 }
+*/

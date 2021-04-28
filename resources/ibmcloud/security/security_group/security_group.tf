@@ -10,7 +10,7 @@ variable "resource_grp_id" {}
 
 resource "ibm_is_security_group" "new_sec_grp" {
   count          = var.total_sec_groups
-  name           = "${var.sec_group_name}-${count.index + 1}"
+  name           = element(var.sec_group_name, count.index)
   vpc            = var.vpc_id
   resource_group = var.resource_grp_id
 }

@@ -69,37 +69,36 @@ variable "instance_ssh_key" {
   description = "SSH key name to be used for Compute, Storage virtual server instance."
 }
 
-variable "primary_private_subnet_ids" {
+variable "compute_private_subnets" {
   type        = list(string)
-  description = "Subnet id to be used for Compute, Storage virtual server instance."
+  description = "Subnet id to be used for Compute virtual server instance."
 }
 
-variable "secondary_private_subnet_ids" {
+variable "storage_private_subnets" {
   type        = list(string)
-  default     = []
-  description = "Subnet id to be used for Compute, Storage virtual server instance."
+  description = "Subnet id to be used for Storage virtual server instance."
 }
 
-variable "primary_cidr_block" {
+variable "compute_cidr_block" {
   type        = list(string)
   default     = ["10.241.0.0/24", "10.241.64.0/24", "10.241.128.0/24"]
-  description = "IBM Cloud VPC primary subnet CIDR blocks."
+  description = "IBM Cloud VPC primary compute subnet CIDR blocks."
 }
 
-variable "secondary_cidr_block" {
+variable "storage_cidr_block" {
   type        = list(string)
   default     = ["10.241.1.0/24", "10.241.64.1/24", "10.241.128.1/24"]
-  description = "IBM Cloud VPC secondary subnet CIDR blocks."
+  description = "IBM Cloud VPC primary storage subnet CIDR blocks."
 }
 
-variable "dns_service_id" {
-  type        = string
-  description = "IBM Cloud DNS service resource id."
+variable "dns_service_ids" {
+  type        = list(string)
+  description = "IBM Cloud DNS service resource ids."
 }
 
-variable "dns_zone_id" {
-  type        = string
-  description = "IBM Cloud DNS zone id."
+variable "dns_zone_ids" {
+  type        = list(string)
+  description = "IBM Cloud DNS zone ids."
 }
 
 variable "tf_data_path" {

@@ -6,7 +6,7 @@ variable "tf_data_path" {}
 variable "invoke_count" {}
 
 resource "null_resource" "check_tf_data_existence" {
-  count      = var.invoke_count == 1 ? 1 : 0
+  count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     /* Note: Create the directory only if it does not exist. */
