@@ -5,26 +5,30 @@
     3. Reserve floating ip
 */
 
+locals {
+  secondary_private_subnet_ids = []
+}
+
 module "instances_security_group" {
   source           = "../../../resources/ibmcloud/security/security_group"
-  total_sec_groups = 1
-  sec_group_name   = "${var.stack_name}-instances-sg"
+  total_sec_groups = (length(var.compute_private_subnets) > 0 && length(var.storage_private_subnets) > 0) ? 2 : 1
+  sec_group_name   = (length(var.compute_private_subnets) > 0 && length(var.storage_private_subnets) > 0) ? ["${var.stack_name}-strg-sg", "${var.stack_name}-comp-sg"] : (length(var.compute_private_subnets) == 0 ? ["${var.stack_name}-strg-sg"] : ["${var.stack_name}-comp-sg"])
   vpc_id           = var.vpc_id
   resource_grp_id  = var.resource_grp_id
 }
 
 module "instances_sg_cidr_rule" {
-  source            = "../../../resources/ibmcloud/security/security_cidr_rule"
-  security_group_id = module.instances_security_group.sec_group_id[0]
-  sg_direction      = "inbound"
-  remote_cidr       = length(var.secondary_private_subnet_ids) == 0 ? (length(var.zones) >= 3 ? var.primary_cidr_block : [var.primary_cidr_block[0]]) : (length(var.zones) >= 3 ? concat(var.primary_cidr_block, var.secondary_cidr_block) : concat([var.primary_cidr_block[0]], [var.secondary_cidr_block[0]]))
+  source             = "../../../resources/ibmcloud/security/security_cidr_rule"
+  security_group_ids = module.instances_security_group.sec_group_id
+  sg_direction       = "inbound"
+  remote_cidr        = length(module.instances_security_group.sec_group_id) == 1 ? [var.storage_cidr_block.0] : [var.compute_cidr_block.0]
 }
 
 module "instances_sg_outbound_rule" {
-  source            = "../../../resources/ibmcloud/security/security_allow_all"
-  security_group_id = module.instances_security_group.sec_group_id[0]
-  sg_direction      = "outbound"
-  remote_ip_addr    = "0.0.0.0/0"
+  source             = "../../../resources/ibmcloud/security/security_allow_all"
+  security_group_ids = module.instances_security_group.sec_group_id
+  sg_direction       = "outbound"
+  remote_ip_addr     = "0.0.0.0/0"
 }
 
 data "ibm_is_ssh_key" "instance_ssh_key" {
@@ -52,22 +56,25 @@ module "storage_cluster_ssh_keys" {
 }
 
 module "compute_vsis" {
-  source                  = "../../../resources/ibmcloud/compute/scale_vsi_0_vol"
-  total_vsis              = var.total_compute_instances
-  vsi_name_prefix         = format("%s-compute", var.stack_name)
-  vpc_id                  = var.vpc_id
-  zones                   = var.zones
-  dns_service_id          = var.dns_service_id
-  dns_zone_id             = var.dns_zone_id
+  source          = "../../../resources/ibmcloud/compute/scale_vsi_0_vol"
+  total_vsis      = var.total_compute_instances
+  vsi_name_prefix = format("%s-compute", var.stack_name)
+  vpc_id          = var.vpc_id
+  zones           = var.zones
+  /* dns_service_ids = list(storage dns service id, compute dns service id) */
+  dns_service_id          = length(var.dns_service_ids) == 1 ? var.dns_service_ids.0 : var.dns_service_ids.1
+  dns_zone_id             = length(var.dns_zone_ids) == 1 ? var.dns_zone_ids.0 : var.dns_zone_ids.1
   resource_grp_id         = var.resource_grp_id
-  vsi_primary_subnet_id   = var.primary_private_subnet_ids
-  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? null : var.secondary_private_subnet_ids
-  vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
+  vsi_primary_subnet_id   = length(var.compute_private_subnets) == 0 ? var.storage_private_subnets : var.compute_private_subnets
+  vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? null : local.secondary_private_subnet_ids
+  vsi_security_group      = length(module.instances_security_group.sec_group_id) == 1 ? [module.instances_security_group.sec_group_id[0]] : [module.instances_security_group.sec_group_id[1]]
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = data.ibm_is_image.compute_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
   vsi_meta_private_key    = module.compute_cluster_ssh_keys.private_key
   vsi_meta_public_key     = module.compute_cluster_ssh_keys.public_key
+
+  depends_on = [module.instances_sg_cidr_rule]
 }
 
 module "create_desc_disk" {
@@ -88,10 +95,10 @@ module "desc_compute_vsi" {
   vpc_id                  = var.vpc_id
   resource_grp_id         = var.resource_grp_id
   zone                    = length(var.zones) >= 3 ? var.zones.2 : var.zones.0
-  vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.2 : var.primary_private_subnet_ids.0
-  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) >= 3 ? var.secondary_private_subnet_ids.2 : var.secondary_private_subnet_ids.0)
-  dns_service_id          = var.dns_service_id
-  dns_zone_id             = var.dns_zone_id
+  vsi_primary_subnet_id   = var.storage_private_subnets.0
+  vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) >= 3 ? local.secondary_private_subnet_ids.2 : local.secondary_private_subnet_ids.0)
+  dns_service_id          = var.dns_service_ids.0
+  dns_zone_id             = var.dns_zone_ids.0
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = data.ibm_is_image.compute_instance_image.id
@@ -100,6 +107,7 @@ module "desc_compute_vsi" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_data_volumes_count  = 1
   vsi_volumes             = module.create_desc_disk.volume_id
+  depends_on              = [module.instances_sg_cidr_rule]
 }
 
 locals {
@@ -134,11 +142,11 @@ module "storage_vsis_1A_zone" {
   zone                    = var.zones.0
   vsi_name_prefix         = format("%s-storage-1a", var.stack_name)
   vpc_id                  = var.vpc_id
-  dns_service_id          = var.dns_service_id
-  dns_zone_id             = var.dns_zone_id
+  dns_service_id          = var.dns_service_ids.0
+  dns_zone_id             = var.dns_zone_ids.0
   resource_grp_id         = var.resource_grp_id
-  vsi_primary_subnet_id   = var.primary_private_subnet_ids.0
-  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : var.secondary_private_subnet_ids.0
+  vsi_primary_subnet_id   = var.storage_private_subnets.0
+  vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? false : local.secondary_private_subnet_ids.0
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.storage_vsi_profile
   vsi_image_id            = data.ibm_is_image.storage_instance_image.id
@@ -147,6 +155,7 @@ module "storage_vsis_1A_zone" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_volumes             = module.create_data_disks_1A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
+  depends_on              = [module.instances_sg_cidr_rule]
 }
 
 module "storage_vsis_2A_zone" {
@@ -155,11 +164,11 @@ module "storage_vsis_2A_zone" {
   zone                    = length(var.zones) == 1 ? var.zones.0 : var.zones.1
   vsi_name_prefix         = format("%s-storage-2a", var.stack_name)
   vpc_id                  = var.vpc_id
-  dns_service_id          = var.dns_service_id
-  dns_zone_id             = var.dns_zone_id
+  dns_service_id          = var.dns_service_ids.0
+  dns_zone_id             = var.dns_zone_ids.0
   resource_grp_id         = var.resource_grp_id
-  vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.primary_private_subnet_ids.1 : var.primary_private_subnet_ids.0
-  vsi_secondary_subnet_id = length(var.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) > 1 ? var.secondary_private_subnet_ids.1 : var.secondary_private_subnet_ids.0)
+  vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.storage_private_subnets.1 : var.storage_private_subnets.0
+  vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) > 1 ? local.secondary_private_subnet_ids.1 : local.secondary_private_subnet_ids.0)
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.storage_vsi_profile
   vsi_image_id            = data.ibm_is_image.storage_instance_image.id
@@ -168,18 +177,19 @@ module "storage_vsis_2A_zone" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_volumes             = module.create_data_disks_2A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
+  depends_on              = [module.instances_sg_cidr_rule]
 }
 
 locals {
   cluster_namespace      = "multi"
-  compute_vsi_by_ip      = length(var.secondary_private_subnet_ids) == 0 ? module.compute_vsis.vsi_primary_ips : module.compute_vsis.vsi_secondary_ips
-  desc_compute_vsi_by_ip = length(var.zones) == 1 ? (length(var.secondary_private_subnet_ids) == 0 ? module.desc_compute_vsi.vsi_primary_ips : module.desc_compute_vsi.vsi_secondary_ips) : []
+  compute_vsi_by_ip      = length(local.secondary_private_subnet_ids) == 0 ? module.compute_vsis.vsi_primary_ips : module.compute_vsis.vsi_secondary_ips
+  desc_compute_vsi_by_ip = length(var.zones) == 1 ? (length(local.secondary_private_subnet_ids) == 0 ? module.desc_compute_vsi.vsi_primary_ips : module.desc_compute_vsi.vsi_secondary_ips) : []
   compute_vsi_desc_map = {
     for instance in local.desc_compute_vsi_by_ip :
     instance => module.create_desc_disk.volume_id
   }
-  storage_vsis_1A_by_ip = length(var.secondary_private_subnet_ids) == 0 ? module.storage_vsis_1A_zone.vsi_primary_ips : module.storage_vsis_1A_zone.vsi_secondary_ips
-  storage_vsis_2A_by_ip = length(var.secondary_private_subnet_ids) == 0 ? module.storage_vsis_2A_zone.vsi_primary_ips : module.storage_vsis_2A_zone.vsi_secondary_ips
+  storage_vsis_1A_by_ip = length(local.secondary_private_subnet_ids) == 0 ? module.storage_vsis_1A_zone.vsi_primary_ips : module.storage_vsis_1A_zone.vsi_secondary_ips
+  storage_vsis_2A_by_ip = length(local.secondary_private_subnet_ids) == 0 ? module.storage_vsis_2A_zone.vsi_primary_ips : module.storage_vsis_2A_zone.vsi_secondary_ips
 
   /* Block volumes per instance = 0, defaults to instance storage */
   storage_vsi_ips_with_0_datadisks  = var.block_volumes_per_instance == 0 ? (length(var.zones) == 1 ? local.storage_vsis_1A_by_ip : concat(local.storage_vsis_1A_by_ip, local.storage_vsis_2A_by_ip)) : null
