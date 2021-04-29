@@ -43,7 +43,11 @@ then
     USER=ubuntu
     PKG_MGR=apt-get
 fi
-sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" /root/.ssh/authorized_keys
+sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" ~/.ssh/authorized_keys
+echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa
+echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
 $PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 EOF
 }
