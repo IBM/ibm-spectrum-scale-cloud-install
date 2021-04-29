@@ -17,11 +17,22 @@ module "instances_security_group" {
   resource_grp_id  = var.resource_grp_id
 }
 
-module "instances_sg_cidr_rule" {
+module "compute_instances_sg_cidr_rule" {
   source             = "../../../resources/ibmcloud/security/security_cidr_rule"
-  security_group_ids = module.instances_security_group.sec_group_id
+  /* num of sec_group_id = 2, both strg, comp exits,
+     num of sec_group_id = 1, then only strg exists */
+  total_cidr_rules   = length(module.instances_security_group.sec_group_id) == 1 ? 0 : 2
+  security_group_ids = module.instances_security_group.sec_group_id.1
   sg_direction       = "inbound"
-  remote_cidr        = length(module.instances_security_group.sec_group_id) == 1 ? [var.storage_cidr_block.0] : [var.compute_cidr_block.0]
+  remote_cidr        = [var.storage_cidr_block.0, var.compute_cidr_block.0]
+}
+
+module "storage_instances_sg_cidr_rule" {
+  source             = "../../../resources/ibmcloud/security/security_cidr_rule"
+  total_cidr_rules   = length(module.instances_security_group.sec_group_id) == 1 ? 1 : 2
+  security_group_ids = module.instances_security_group.sec_group_id.0
+  sg_direction       = "inbound"
+  remote_cidr        = length(module.instances_security_group.sec_group_id) == 1 ? [var.storage_cidr_block.0] : [var.storage_cidr_block.0, var.compute_cidr_block.0]
 }
 
 module "instances_sg_outbound_rule" {
@@ -74,7 +85,7 @@ module "compute_vsis" {
   vsi_meta_private_key    = module.compute_cluster_ssh_keys.private_key
   vsi_meta_public_key     = module.compute_cluster_ssh_keys.public_key
 
-  depends_on = [module.instances_sg_cidr_rule]
+  depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
 
 module "create_desc_disk" {
@@ -107,7 +118,7 @@ module "desc_compute_vsi" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_data_volumes_count  = 1
   vsi_volumes             = module.create_desc_disk.volume_id
-  depends_on              = [module.instances_sg_cidr_rule]
+  depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
 
 locals {
@@ -155,7 +166,7 @@ module "storage_vsis_1A_zone" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_volumes             = module.create_data_disks_1A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
-  depends_on              = [module.instances_sg_cidr_rule]
+  depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
 
 module "storage_vsis_2A_zone" {
@@ -177,7 +188,7 @@ module "storage_vsis_2A_zone" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
   vsi_volumes             = module.create_data_disks_2A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
-  depends_on              = [module.instances_sg_cidr_rule]
+  depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
 
 locals {
