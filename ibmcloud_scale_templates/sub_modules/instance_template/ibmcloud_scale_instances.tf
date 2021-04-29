@@ -82,8 +82,8 @@ module "compute_vsis" {
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = data.ibm_is_image.compute_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
-  vsi_meta_private_key    = module.compute_cluster_ssh_keys.private_key
-  vsi_meta_public_key     = module.compute_cluster_ssh_keys.public_key
+  vsi_meta_private_key    = module.compute_cluster_ssh_keys.private_key.0
+  vsi_meta_public_key     = module.compute_cluster_ssh_keys.public_key.0
 
   depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
@@ -114,8 +114,8 @@ module "desc_compute_vsi" {
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = data.ibm_is_image.compute_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
-  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key
-  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
+  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key.0
+  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_data_volumes_count  = 1
   vsi_volumes             = module.create_desc_disk.volume_id
   depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
@@ -162,8 +162,8 @@ module "storage_vsis_1A_zone" {
   vsi_profile             = var.storage_vsi_profile
   vsi_image_id            = data.ibm_is_image.storage_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
-  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key
-  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
+  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key.0
+  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_volumes             = module.create_data_disks_1A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
   depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
@@ -184,8 +184,8 @@ module "storage_vsis_2A_zone" {
   vsi_profile             = var.storage_vsi_profile
   vsi_image_id            = data.ibm_is_image.storage_instance_image.id
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
-  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key
-  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key
+  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key.0
+  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_volumes             = module.create_data_disks_2A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
   depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
