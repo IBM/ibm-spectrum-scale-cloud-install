@@ -22,6 +22,8 @@ variable "compute_instance_desc_map" {}
 variable "compute_instance_desc_id" {}
 variable "storage_instances_by_id" {}
 variable "storage_instance_disk_map" {}
+variable "enable_data_replication" {}
+variable "enable_metadata_replication" {}
 
 locals {
   tf_inv_path                    = format("%s/%s", "/tmp/.schematics/IBM", "storage_tf_inventory.json")
@@ -119,7 +121,7 @@ resource "null_resource" "prepare_ansible_inventory" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --ansible_scale_repo_path ${local.scale_infra_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa --scale_tuning_profile_file ${local.scale_tuning_param_path}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --ansible_scale_repo_path ${local.scale_infra_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa --scale_tuning_profile_file ${local.scale_tuning_param_path} ${var.enable_data_replication} ${var.enable_metadata_replication}"
   }
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }

@@ -181,6 +181,8 @@ module "storage_vsis_2A_zone" {
 }
 
 locals {
+  enable_data_replication     = 0
+  enable_metadata_replication = 0 
   cluster_namespace      = "multi"
   compute_vsi_by_ip      = length(local.secondary_private_subnet_ids) == 0 ? module.compute_vsis.vsi_primary_ips : module.compute_vsis.vsi_secondary_ips
   desc_compute_vsi_by_ip = length(var.zones) == 1 ? (length(local.secondary_private_subnet_ids) == 0 ? module.desc_compute_vsi.vsi_primary_ips : module.desc_compute_vsi.vsi_secondary_ips) : []
@@ -324,6 +326,8 @@ module "invoke_storage_playbook" {
   region       = var.region
   stack_name   = format("%s.%s", var.stack_name, "compute")
 
+  enable_data_replication = local.enable_data_replication == 1 ? "--enable_data_replication" : ""
+  enable_metadata_replication = local.enable_metadata_replication == 1 ? "--enable_metadata_replication" : ""
   tf_data_path            = var.tf_data_path
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
   tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
