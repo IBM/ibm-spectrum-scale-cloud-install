@@ -86,6 +86,12 @@ if __name__ == "__main__":
                         help='Ansible SSH private key file (Ex: /root/tf_data_path/id_rsa)')
     PARSER.add_argument('--scale_tuning_profile_file', required=True,
                         help='IBM Spectrum Scale SNC tuning profile file path')
+    PARSER.add_argument('--enable_data_replication', action='store_true', 
+                        default=False,
+                        help='Enable data replication')
+    PARSER.add_argument('--enable_metadata_replication', action='store_true',
+                        default=False,
+                        help='Enable metadata replication')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
@@ -286,14 +292,21 @@ if __name__ == "__main__":
                            "usage": "descOnly", "pool": "system"})
 
     # Populate "scale_storage" list
-    if len(TF_INV['availability_zones']) == 3:
+    if ARGUMENTS.enable_data_replication:
+        DATA_REPLICAS = 2
+    elif len(TF_INV['availability_zones']) == 3:
         DATA_REPLICAS = len(TF_INV['availability_zones']) - 1
     else:
         DATA_REPLICAS = len(TF_INV['availability_zones'])
+
+    if ARGUMENTS.enable_metadata_replication:
+        METADATA_REPLICAS = 2
+    else:
+        METADATA_REPLICAS = 1 
     CLUSTER_DEFINITION_JSON["scale_storage"].append({"filesystem": pathlib.PurePath(TF_INV['filesystem_mountpoint']).name,
                                                      "blockSize": TF_INV['filesystem_block_size'],
                                                      "defaultDataReplicas": DATA_REPLICAS,
-                                                     "defaultMetadataReplicas": 2,
+                                                     "defaultMetadataReplicas": METADATA_REPLICAS,
                                                      "automaticMountOption": "true",
                                                      "defaultMountPoint": TF_INV['filesystem_mountpoint'],
                                                      "disks": disks_list})
