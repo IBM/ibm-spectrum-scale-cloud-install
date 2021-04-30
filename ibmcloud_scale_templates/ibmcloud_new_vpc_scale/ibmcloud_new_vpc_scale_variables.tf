@@ -49,7 +49,7 @@ variable "storage_cidr_block" {
 
 variable "dns_domains" {
   type        = list(string)
-  default     = ["compscale.com", "strgscale.com"]
+  default     = ["strgscale.com", "compscale.com"]
   description = "IBM Cloud DNS domain names."
 }
 

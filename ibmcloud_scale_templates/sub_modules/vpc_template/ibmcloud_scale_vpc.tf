@@ -81,14 +81,5 @@ module "dns_zone" {
   dns_domain     = var.dns_domains
   dns_service_id = module.dns_service.resource_guid
   dns_label      = var.stack_name
-}
-
-module "add_dns_permitted_network" {
-  source              = "../../../resources/ibmcloud/network/dns_permitted_network"
-  dns_permitted_count = var.create_seperate_subnets == true ? 2 : 1
-  dns_service_id      = module.dns_service.resource_guid
-  dns_zone_id         = module.dns_zone.dns_zone_id
-  vpc_crn             = module.vpc.vpc_crn
-
-  depends_on = [module.dns_zone]
+  vpc_crn        = module.vpc.vpc_crn
 }
