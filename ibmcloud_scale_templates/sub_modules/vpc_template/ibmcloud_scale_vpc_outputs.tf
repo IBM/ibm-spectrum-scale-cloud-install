@@ -19,5 +19,5 @@ output "dns_service_ids" {
 }
 
 output "dns_zone_ids" {
-  value = module.dns_zone.dns_zone_id
+  value = module.dns_zone.dns_zone_ids
 }
