@@ -333,7 +333,7 @@ module "invoke_storage_playbook" {
   source       = "../../../resources/common/ansible_storage_playbook"
   invoke_count = local.cluster_namespace == "multi" ? 1 : 0
   region       = var.region
-  stack_name   = format("%s.%s", var.stack_name, "compute")
+  stack_name   = format("%s.%s", var.stack_name, "storage")
 
   tf_data_path            = var.tf_data_path
   tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path

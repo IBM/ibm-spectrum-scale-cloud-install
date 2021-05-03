@@ -122,7 +122,7 @@ resource "null_resource" "prepare_ansible_inventory" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --scale_cluster_def_path ${local.scale_cluster_def_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa --scale_tuning_profile_file ${local.scale_tuning_param_path}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --scale_cluster_def_path ${local.scale_cluster_def_path} --scale_tuning_profile_file ${local.scale_tuning_param_path}"
   }
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }
