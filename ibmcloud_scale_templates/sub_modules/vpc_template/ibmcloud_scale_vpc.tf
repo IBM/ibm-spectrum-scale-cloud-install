@@ -23,18 +23,9 @@ module "vpc_addr_prefix" {
   cidr_block          = var.addr_prefixes
 }
 
-module "storage_public_gw" {
+module "common_public_gw" {
   source          = "../../../resources/ibmcloud/network/public_gw"
-  public_gw_name  = format("%s-gw1", var.stack_name)
-  resource_grp_id = var.resource_grp_id
-  vpc_id          = module.vpc.vpc_id
-  zones           = var.zones
-}
-
-module "compute_public_gw" {
-  source          = "../../../resources/ibmcloud/network/public_gw"
-  count           = var.create_seperate_subnets == true ? 1 : 0
-  public_gw_name  = format("%s-gw2", var.stack_name)
+  public_gw_name  = format("%s-gw", var.stack_name)
   resource_grp_id = var.resource_grp_id
   vpc_id          = module.vpc.vpc_id
   zones           = var.zones
@@ -47,7 +38,7 @@ module "storage_private_subnet" {
   zones             = var.zones
   subnet_name       = format("%s-strg-pvt", var.stack_name)
   subnet_cidr_block = var.storage_cidr_block
-  public_gateway    = module.storage_public_gw.public_gw_id
+  public_gateway    = module.common_public_gw.public_gw_id
 
   depends_on = [module.vpc_addr_prefix]
 }
@@ -60,7 +51,7 @@ module "compute_private_subnet" {
   zones             = var.zones
   subnet_name       = format("%s-comp-pvt", var.stack_name)
   subnet_cidr_block = var.compute_cidr_block
-  public_gateway    = module.compute_public_gw[0].public_gw_id
+  public_gateway    = module.common_public_gw.public_gw_id
 
   depends_on = [module.vpc_addr_prefix]
 }
