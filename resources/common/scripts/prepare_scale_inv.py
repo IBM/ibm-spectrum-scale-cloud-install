@@ -21,7 +21,7 @@ import pathlib
 import re
 
 # Note: Don't use socket for FQDN resolution.
-CLUSTER_DEFINITION_JSON = {}
+CLUSTER_DEFINITION_JSON = {'node_details': []}
 
 def read_tf_inv_file(tf_inv_path):
     """ Read the terraform inventory json file """
@@ -59,7 +59,6 @@ def initialize_node_details(fqdn, ip_address, node_class, is_nsd_server=False,
            is_manager_node (bool), is_collector_node (bool), is_gui_server (bool),
            is_admin_node (bool)
     """
-    CLUSTER_DEFINITION_JSON['node_details'] = []
     CLUSTER_DEFINITION_JSON['node_details'].append({'fqdn': fqdn,
                                                     'ip_address': ip_address,
                                                     'state': 'present',
@@ -227,10 +226,16 @@ if __name__ == "__main__":
     # Additional quorums assign to compute nodes
     if quorums_left > 0:
         for each_ip in TF_INV['compute_instances_by_ip'][0:quorums_left]:
-            initialize_node_details(each_ip, each_ip,
-                                    is_gui_server=False, is_collector_node=False, is_nsd_server=False,
-                                    is_quorum_node=True, is_manager_node=False, is_admin_node=True,
-                                    node_class="computenodegrp")
+            if len(TF_INV['storage_instance_disk_map'].keys()) == 0:
+                initialize_node_details(each_ip, each_ip,
+                                     is_gui_server=True, is_collector_node=False, is_nsd_server=False,
+                                     is_quorum_node=True, is_manager_node=False, is_admin_node=True,
+                                     node_class="computenodegrp")
+            else:
+                initialize_node_details(each_ip, each_ip,
+                                        is_gui_server=False, is_collector_node=False, is_nsd_server=False,
+                                        is_quorum_node=True, is_manager_node=False, is_admin_node=True,
+                                        node_class="computenodegrp")
 
         for each_ip in TF_INV['compute_instances_by_ip'][quorums_left:]:
             initialize_node_details(each_ip, each_ip,
