@@ -21,10 +21,7 @@ import pathlib
 import re
 
 # Note: Don't use socket for FQDN resolution.
-
-CLUSTER_DEFINITION_JSON = {"scale_cluster": {}, "node_details": [], "scale_storage": [],
-                           "scale_config": []}
-
+CLUSTER_DEFINITION_JSON = {}
 
 def read_tf_inv_file(tf_inv_path):
     """ Read the terraform inventory json file """
@@ -36,6 +33,7 @@ def initialize_cluster_details(cluster_name, scale_profile_file, scale_replica_c
     """ Initialize cluster details.
     :args: cluster_name (string), scale_profile_file (string), scale_replica_config (bool)
     """
+    CLUSTER_DEFINITION_JSON['scale_cluster'] = {}
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = cluster_name
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "False"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
@@ -47,12 +45,13 @@ def initialize_scale_config_details(node_class, param_key, param_value):
     """ Initialize cluster details.
     :args: node_class (string), param_key (string), param_value (string)
     """
+    CLUSTER_DEFINITION_JSON['scale_config'] = []
     CLUSTER_DEFINITION_JSON['scale_config'].append({"nodeclass": node_class,
                                                     "params": [{param_key: param_value}]})
 
 
-def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, node_class,
-                            is_nsd_server=False, is_quorum_node=False, is_manager_node=False,
+def initialize_node_details(fqdn, ip_address, node_class, is_nsd_server=False,
+                            is_quorum_node=False, is_manager_node=False,
                             is_collector_node=False, is_gui_server=False, is_admin_node=True):
     """ Initialize node details for cluster definition.
     :args: json_data (json), fqdn (string), ip_address (string), node_class (string),
@@ -60,9 +59,9 @@ def initialize_node_details(fqdn, ip_address, ansible_ssh_private_key_file, node
            is_manager_node (bool), is_collector_node (bool), is_gui_server (bool),
            is_admin_node (bool)
     """
+    CLUSTER_DEFINITION_JSON['node_details'] = []
     CLUSTER_DEFINITION_JSON['node_details'].append({'fqdn': fqdn,
                                                     'ip_address': ip_address,
-                                                    'ansible_ssh_private_key_file': ansible_ssh_private_key_file,
                                                     'state': 'present',
                                                     'is_nsd_server': is_nsd_server,
                                                     'is_quorum_node': is_quorum_node,
@@ -81,8 +80,6 @@ if __name__ == "__main__":
                         help='Terraform inventory file path')
     PARSER.add_argument('--scale_cluster_def_path', required=True,
                         help='Spectrum Scale cluster definition json path')
-    PARSER.add_argument('--ansible_ssh_private_key_file', required=True,
-                        help='Ansible SSH private key file (Ex: /root/tf_data_path/id_rsa)')
     PARSER.add_argument('--scale_tuning_profile_file', required=True,
                         help='IBM Spectrum Scale SNC tuning profile file path')
     PARSER.add_argument('--verbose', action='store_true',
@@ -133,7 +130,6 @@ if __name__ == "__main__":
         # Compute desc node to be a quorum node (quorum = 1, manager = 0)
         for each_ip in TF_INV['compute_instance_desc_map']:
             initialize_node_details(each_ip, each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                     is_quorum_node=True, is_manager_node=False, is_admin_node=False,
                                     node_class="computedescnodegrp")
@@ -188,32 +184,27 @@ if __name__ == "__main__":
            storage_instances.index(each_ip) <= (manager_count - 1):
             if storage_instances.index(each_ip) == 0:
                 initialize_node_details(each_ip, each_ip,
-                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=True, is_collector_node=True, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                         node_class="storagenodegrp")
             elif storage_instances.index(each_ip) == 1:
                 initialize_node_details(each_ip, each_ip,
-                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=False, is_collector_node=True, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                         node_class="storagenodegrp")
             else:
                 initialize_node_details(each_ip, each_ip,
-                                        ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                         is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                         node_class="storagenodegrp")
         elif storage_instances.index(each_ip) <= (start_quorum_assign) and \
              storage_instances.index(each_ip) > (manager_count - 1):
             initialize_node_details(each_ip, each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                     is_quorum_node=True, is_manager_node=False, is_admin_node=True,
                                     node_class="storagenodegrp")
         else:
             initialize_node_details(each_ip, each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=True,
                                     is_quorum_node=False, is_manager_node=False, is_admin_node=False,
                                     node_class="storagenodegrp")
@@ -237,14 +228,12 @@ if __name__ == "__main__":
     if quorums_left > 0:
         for each_ip in TF_INV['compute_instances_by_ip'][0:quorums_left]:
             initialize_node_details(each_ip, each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=False,
                                     is_quorum_node=True, is_manager_node=False, is_admin_node=True,
                                     node_class="computenodegrp")
 
         for each_ip in TF_INV['compute_instances_by_ip'][quorums_left:]:
             initialize_node_details(each_ip, each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=False,
                                     is_quorum_node=False, is_manager_node=False, is_admin_node=False,
                                     node_class="computenodegrp")
@@ -252,14 +241,15 @@ if __name__ == "__main__":
     if quorums_left == 0:
         for each_ip in TF_INV['compute_instances_by_ip']:
             initialize_node_details(each_ip, each_ip,
-                                    ansible_ssh_private_key_file=ARGUMENTS.ansible_ssh_private_key_file,
                                     is_gui_server=False, is_collector_node=False, is_nsd_server=False,
                                     is_quorum_node=False, is_manager_node=False, is_admin_node=False,
                                     node_class="computenodegrp")
 
     # Define nodeclass specific GPFS config
-    initialize_scale_config_details("computenodegrp", "pagepool", "1G")
-    initialize_scale_config_details("storagenodegrp", "pagepool", "1G")
+    if len(TF_INV['compute_instances_by_ip']):
+        initialize_scale_config_details("computenodegrp", "pagepool", "1G")
+    if len(TF_INV['storage_instance_disk_map'].keys()):
+        initialize_scale_config_details("storagenodegrp", "pagepool", "1G")
     if len(TF_INV['availability_zones']) > 1:
         initialize_scale_config_details("computedescnodegrp", "unmountOnDiskFail", "yes")
 
@@ -289,13 +279,16 @@ if __name__ == "__main__":
         DATA_REPLICAS = len(TF_INV['availability_zones']) - 1
     else:
         DATA_REPLICAS = len(TF_INV['availability_zones'])
-    CLUSTER_DEFINITION_JSON["scale_storage"].append({"filesystem": pathlib.PurePath(TF_INV['filesystem_mountpoint']).name,
-                                                     "blockSize": TF_INV['filesystem_block_size'],
-                                                     "defaultDataReplicas": DATA_REPLICAS,
-                                                     "defaultMetadataReplicas": 2,
-                                                     "automaticMountOption": "true",
-                                                     "defaultMountPoint": TF_INV['filesystem_mountpoint'],
-                                                     "disks": disks_list})
+
+    if len(TF_INV['storage_instance_disk_map'].keys()):
+        CLUSTER_DEFINITION_JSON['scale_storage'] = []
+        CLUSTER_DEFINITION_JSON["scale_storage"].append({"filesystem": pathlib.PurePath(TF_INV['filesystem_mountpoint']).name,
+                                                         "blockSize": TF_INV['filesystem_block_size'],
+                                                         "defaultDataReplicas": DATA_REPLICAS,
+                                                         "defaultMetadataReplicas": 2,
+                                                         "automaticMountOption": "true",
+                                                         "defaultMountPoint": TF_INV['filesystem_mountpoint'],
+                                                         "disks": disks_list})
 
     if ARGUMENTS.verbose:
         print("Content of scale_clusterdefinition.json: ",
