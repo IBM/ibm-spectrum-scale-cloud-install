@@ -1,11 +1,11 @@
 /*
     Creates Ansible inventory and excutes ansible playbook to
-    install IBM Spectrum Scale.
+    install IBM Spectrum Scale storage cluster.
 */
 
 variable "region" {}
-variable "invoke_count" {}
 variable "stack_name" {}
+variable "invoke_count" {}
 variable "avail_zones" {}
 variable "cloud_platform" {}
 variable "tf_data_path" {}
@@ -32,6 +32,7 @@ locals {
   send_message_script_path       = "${local.scripts_path}/send_sns_notification.py"
   scale_tuning_param_path        = format("%s/%s", var.scale_infra_repo_clone_path, "storagesncparams.profile")
   scale_infra_path               = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
+  scale_cluster_def_path         = format("%s/%s/%s", local.scale_infra_path,  "vars", "storage_clusterdefinition.json")
   cloud_playbook_path            = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
   instances_ssh_private_key_path = format("%s/%s", var.tf_data_path, "id_rsa")
   infra_complete_message         = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
@@ -119,7 +120,7 @@ resource "null_resource" "prepare_ansible_inventory" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --ansible_scale_repo_path ${local.scale_infra_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa --scale_tuning_profile_file ${local.scale_tuning_param_path}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --scale_cluster_def_path ${local.scale_cluster_def_path} --ansible_ssh_private_key_file ${var.tf_data_path}/id_rsa --scale_tuning_profile_file ${local.scale_tuning_param_path}"
   }
   depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }

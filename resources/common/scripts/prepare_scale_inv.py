@@ -22,7 +22,6 @@ import re
 
 # Note: Don't use socket for FQDN resolution.
 
-SCALE_CLUSTER_DEFINITION_PATH = "/vars/scale_clusterdefinition.json"
 CLUSTER_DEFINITION_JSON = {"scale_cluster": {}, "node_details": [], "scale_storage": [],
                            "scale_config": []}
 
@@ -80,8 +79,8 @@ if __name__ == "__main__":
                                                  'install and configuration.')
     PARSER.add_argument('--tf_inv_path', required=True,
                         help='Terraform inventory file path')
-    PARSER.add_argument('--ansible_scale_repo_path', required=True,
-                        help='ibm-spectrum-scale-install-infra repository path')
+    PARSER.add_argument('--scale_cluster_def_path', required=True,
+                        help='Spectrum Scale cluster definition json path')
     PARSER.add_argument('--ansible_ssh_private_key_file', required=True,
                         help='Ansible SSH private key file (Ex: /root/tf_data_path/id_rsa)')
     PARSER.add_argument('--scale_tuning_profile_file', required=True,
@@ -304,10 +303,9 @@ if __name__ == "__main__":
 
     # Write json content
     if ARGUMENTS.verbose:
-        print("Writing cloud infrastructure details to: ",
-              ARGUMENTS.ansible_scale_repo_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
-    with open(ARGUMENTS.ansible_scale_repo_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH, 'w') as json_fh:
+        print("Writing cloud infrastructure details to: ", ARGUMENTS.scale_cluster_def_path)
+    with open(ARGUMENTS.scale_cluster_def_path, 'w') as json_fh:
         json.dump(CLUSTER_DEFINITION_JSON, json_fh, indent=4)
     if ARGUMENTS.verbose:
         print("Completed writing cloud infrastructure details to: ",
-              ARGUMENTS.ansible_scale_repo_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
+              ARGUMENTS.scale_cluster_def_path)
