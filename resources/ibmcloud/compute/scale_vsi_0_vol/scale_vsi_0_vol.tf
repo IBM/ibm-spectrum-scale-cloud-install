@@ -16,8 +16,13 @@ variable "vsi_image_id" {}
 variable "vsi_user_public_key" {}
 variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
+variable "vsi_tuning_file_path" {}
 variable "resource_grp_id" {}
 
+
+data "local_file" "tuned_config" {
+  filename = var.vsi_tuning_file_path
+}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -41,6 +46,9 @@ echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
+mkdir -p "/usr/lib/tuned/virtual-gpfs-guest"
+echo "${data.local_file.tuned_config.content}" > "/usr/lib/tuned/virtual-gpfs-guest/tuned.conf"
+tuned-adm profile virtual-gpfs-guest
 $PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 EOF
 }
