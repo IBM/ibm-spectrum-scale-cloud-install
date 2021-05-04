@@ -397,3 +397,12 @@ module "invoke_scale_playbook" {
 
   storage_instance_disk_map = jsonencode(merge(local.strg_vsi_ips_0_disks_dev_map, local.strg_vsi_ips_1_disks_dev_map, local.strg_vsi_ips_2_disks_dev_map, local.strg_vsi_ips_3_disks_dev_map, local.strg_vsi_ips_4_disks_dev_map, local.strg_vsi_ips_5_disks_dev_map, local.strg_vsi_ips_6_disks_dev_map, local.strg_vsi_ips_7_disks_dev_map, local.strg_vsi_ips_8_disks_dev_map, local.strg_vsi_ips_9_disks_dev_map, local.strg_vsi_ips_10_disks_dev_map, local.strg_vsi_ips_11_disks_dev_map, local.strg_vsi_ips_12_disks_dev_map, local.strg_vsi_ips_13_disks_dev_map, local.strg_vsi_ips_14_disks_dev_map, local.strg_vsi_ips_15_disks_dev_map))
 }
+
+module "invoke_remote_mount" {
+  source       = "../../../resources/common/ansible_remote_mount_playbook"
+  invoke_count = local.cluster_namespace == "multi" ? 1 : 0
+  filesystem_mountpoint       = var.filesystem_mountpoint
+  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+ 
+   depends_on = [module.invoke_compute_playbook, module.invoke_storage_playbook]
+}
