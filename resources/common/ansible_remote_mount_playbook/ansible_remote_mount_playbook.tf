@@ -3,18 +3,26 @@ variable "invoke_count" {}
 variable "scale_infra_repo_clone_path" {}
 
 locals {
-  tf_inv_path                    = format("%s/%s", "/tmp/.schematics/IBM", "remote_mount_tf_inventory.json")
-  scripts_path                  = replace(path.module, "ansible_remote_mount_playbook", "scripts")
-  ansible_inv_script_path       = "${local.scripts_path}/prepare_remote_mount_inv.py"
-  scale_infra_path               = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
-  remote_mount_def_path         = format("%s/%s/%s", local.scale_infra_path,  "vars", "remote_mount.json")
-  compute_def_path              = format("%s/%s/%s", local.scale_infra_path,  "vars", "compute_clusterdefinition.json")
-  storage_def_path              = format("%s/%s/%s", local.scale_infra_path,  "vars", "storage_clusterdefinition.json")
+  tf_inv_path             = format("%s/%s", "/tmp/.schematics/IBM", "remote_mount_tf_inventory.json")
+  scripts_path            = replace(path.module, "ansible_remote_mount_playbook", "scripts")
+  ansible_inv_script_path = "${local.scripts_path}/prepare_remote_mount_inv.py"
+  scale_infra_path        = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
+  remote_mount_def_path   = format("%s/%s/%s", local.scale_infra_path, "vars", "remote_mount.json")
+  compute_def_path        = format("%s/%s/%s", local.scale_infra_path, "vars", "compute_clusterdefinition.json")
+  storage_def_path        = format("%s/%s/%s", local.scale_infra_path, "vars", "storage_clusterdefinition.json")
 }
 
-resource "local_file" "create_remote_mount" {
-   count      = var.invoke_count == 1 ? 1 : 0
-   content    = <<EOT
+resource "null_resource" "remove_existing_tf_inv" {
+  count = var.invoke_count == 1 ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "rm -rf ${local.tf_inv_path}"
+  }
+}
+
+resource "local_file" "remote_mount_dump_tf_inventory" {
+  count      = var.invoke_count == 1 ? 1 : 0
+  content    = <<EOT
  {
     "client_gui_username": "admin",
     "client_gui_password": "admin001",
@@ -26,6 +34,7 @@ resource "local_file" "create_remote_mount" {
  }
  EOT
   filename   = local.tf_inv_path
+  depends_on = [null_resource.remove_existing_tf_inv]
 }
 
 resource "null_resource" "prepare_ansible_inventory" {

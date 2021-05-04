@@ -405,10 +405,10 @@ module "invoke_scale_playbook" {
 }
 
 module "invoke_remote_mount" {
-  source       = "../../../resources/common/ansible_remote_mount_playbook"
-  invoke_count = local.cluster_namespace == "multi" ? 1 : 0
+  source                      = "../../../resources/common/ansible_remote_mount_playbook"
+  invoke_count                = local.cluster_namespace == "multi" ? 1 : 0
   filesystem_mountpoint       = var.filesystem_mountpoint
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
- 
-   depends_on = [module.invoke_compute_playbook, module.invoke_storage_playbook]
+
+  depends_on = [module.invoke_compute_playbook, module.invoke_storage_playbook]
 }
