@@ -67,12 +67,11 @@ module "storage_cluster_ssh_keys" {
 }
 
 module "compute_vsis" {
-  source          = "../../../resources/ibmcloud/compute/scale_vsi_0_vol"
-  total_vsis      = var.total_compute_instances
-  vsi_name_prefix = format("%s-compute", var.stack_name)
-  vpc_id          = var.vpc_id
-  zones           = var.zones
-  /* dns_service_ids = list(storage dns service id, compute dns service id) */
+  source                  = "../../../resources/ibmcloud/compute/scale_vsi_0_vol"
+  total_vsis              = var.total_compute_instances
+  vsi_name_prefix         = format("%s-compute", var.stack_name)
+  vpc_id                  = var.vpc_id
+  zones                   = var.zones
   dns_service_id          = length(var.dns_service_ids) == 1 ? var.dns_service_ids.0 : var.dns_service_ids.1
   dns_zone_id             = length(var.dns_zone_ids) == 1 ? var.dns_zone_ids.0 : var.dns_zone_ids.1
   resource_grp_id         = var.resource_grp_id
@@ -84,6 +83,7 @@ module "compute_vsis" {
   vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
   vsi_meta_private_key    = module.compute_cluster_ssh_keys.private_key.0
   vsi_meta_public_key     = module.compute_cluster_ssh_keys.public_key.0
+  vsi_tuning_file_path    = format("%s/%s/%s", abspath(path.module), "tuned_profiles/compute", "tuned.conf")
 
   depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
@@ -118,7 +118,9 @@ module "desc_compute_vsi" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_data_volumes_count  = 1
   vsi_volumes             = module.create_desc_disk.volume_id
-  depends_on              = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
+  vsi_tuning_file_path    = format("%s/%s/%s", abspath(path.module), "tuned_profiles/storage", "tuned.conf")
+
+  depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
 
 locals {
@@ -166,7 +168,9 @@ module "storage_vsis_1A_zone" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_volumes             = module.create_data_disks_1A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
-  depends_on              = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
+  vsi_tuning_file_path    = format("%s/%s/%s", abspath(path.module), "tuned_profiles/storage", "tuned.conf")
+
+  depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
 
 module "storage_vsis_2A_zone" {
@@ -188,7 +192,9 @@ module "storage_vsis_2A_zone" {
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_volumes             = module.create_data_disks_2A_zone.volume_id
   vsi_data_volumes_count  = var.block_volumes_per_instance
-  depends_on              = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
+  vsi_tuning_file_path    = format("%s/%s/%s", abspath(path.module), "tuned_profiles/storage", "tuned.conf")
+
+  depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
 }
 
 locals {
