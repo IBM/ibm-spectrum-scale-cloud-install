@@ -26,20 +26,21 @@ variable "storage_instances_by_id" {}
 variable "storage_instance_disk_map" {}
 
 locals {
-  tf_inv_path                    = format("%s/%s", "/tmp/.schematics/IBM", "storage_tf_inventory.json")
-  scripts_path                   = replace(path.module, "ansible_storage_playbook", "scripts")
-  ansible_inv_script_path        = "${local.scripts_path}/prepare_scale_inv.py"
-  instance_ssh_wait_script_path  = "${local.scripts_path}/wait_instance_ok_state.py"
-  backup_to_backend_script_path  = "${local.scripts_path}/backup_to_backend.py"
-  send_message_script_path       = "${local.scripts_path}/send_sns_notification.py"
-  scale_tuning_param_path        = format("%s/%s", var.scale_infra_repo_clone_path, "storagesncparams.profile")
-  scale_infra_path               = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
-  scale_cluster_def_path         = format("%s/%s/%s", local.scale_infra_path, "vars", "storage_clusterdefinition.json")
-  cloud_playbook_path            = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
-  instances_ssh_private_key_path = format("%s/%s", var.tf_data_path, "id_rsa")
-  infra_complete_message         = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
-  cluster_complete_message       = "IBM Spectrum Scale cluster creation completed successfully."
-  bastion_user                   = var.cloud_platform == "IBMCloud" ? (length(regexall("ubuntu", var.bastion_os_flavor)) > 0 ? "ubuntu" : "vpcuser") : "ec2-user"
+  tf_inv_path                     = format("%s/%s", "/tmp/.schematics/IBM", "storage_tf_inventory.json")
+  scripts_path                    = replace(path.module, "ansible_storage_playbook", "scripts")
+  ansible_inv_script_path         = "${local.scripts_path}/prepare_scale_inv.py"
+  instance_ssh_wait_script_path   = "${local.scripts_path}/wait_instance_ok_state.py"
+  backup_to_backend_script_path   = "${local.scripts_path}/backup_to_backend.py"
+  send_message_script_path        = "${local.scripts_path}/send_sns_notification.py"
+  scale_tuning_param_path         = format("%s/%s", var.scale_infra_repo_clone_path, "storagesncparams.profile")
+  scale_infra_path                = format("%s/%s", var.scale_infra_repo_clone_path, "ibm-spectrum-scale-install-infra")
+  scale_cluster_def_path          = format("%s/%s/%s", local.scale_infra_path, "vars", "storage_clusterdefinition.json")
+  cloud_playbook_path             = format("%s/%s", local.scale_infra_path, "cloud_playbook.yml")
+  instances_ssh_private_key_path  = format("%s/%s", var.tf_data_path, "id_rsa")
+  storage_instances_root_key_path = format("%s/%s/%s", var.tf_data_path, "storage", "id_rsa")
+  infra_complete_message          = "Provisioning infrastructure required for IBM Spectrum Scale deployment completed successfully."
+  cluster_complete_message        = "IBM Spectrum Scale cluster creation completed successfully."
+  bastion_user                    = var.cloud_platform == "IBMCloud" ? (length(regexall("ubuntu", var.bastion_os_flavor)) > 0 ? "ubuntu" : "vpcuser") : "ec2-user"
 }
 
 resource "null_resource" "send_infra_complete_message" {
@@ -173,7 +174,7 @@ resource "null_resource" "call_scale_install_playbook" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "ansible-playbook --private-key ${local.instances_ssh_private_key_path} -e \"ansible_python_interpreter=/usr/bin/python3\" -e \"scale_version=${var.scale_version}\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p ${local.bastion_user}@${var.bastion_public_ip} -i ${local.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.cloud_playbook_path}"
+    command     = "ansible-playbook --private-key ${local.storage_instances_root_key_path} -e \"ansible_python_interpreter=/usr/bin/python3\" -e \"scale_version=${var.scale_version}\" -e \"scale_cluster_definition_path=${local.scale_cluster_def_path}\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p ${local.bastion_user}@${var.bastion_public_ip} -i ${local.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.cloud_playbook_path}"
   }
   depends_on = [time_sleep.wait_for_metadata_execution, local_file.create_scale_tuning_parameters]
 }
