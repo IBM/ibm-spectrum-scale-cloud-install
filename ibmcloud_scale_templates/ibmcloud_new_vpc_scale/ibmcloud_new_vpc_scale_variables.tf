@@ -123,6 +123,11 @@ variable "instance_ssh_key" {
   description = "SSH key name to be used for Compute, Storage virtual server instance."
 }
 
+variable "scale_version" {
+  type        = string
+  description = "IBM Spectrum Scale version."
+}
+
 variable "filesystem_mountpoint" {
   type        = string
   default     = "/gpfs/fs1"

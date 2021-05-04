@@ -159,6 +159,11 @@ variable "bastion_public_ip" {
   description = "Bastion public ip."
 }
 
+variable "bastion_os_flavor" {
+  type        = string
+  description = "Bastion OS image flavor."
+}
+
 variable "filesystem_mountpoint" {
   type        = string
   default     = "/gpfs/fs1"
@@ -174,4 +179,9 @@ variable "filesystem_block_size" {
 variable "resource_grp_id" {
   type        = string
   description = "IBM Cloud resource group id."
+}
+
+variable "scale_version" {
+  type        = string
+  description = "IBM Spectrum Scale version."
 }

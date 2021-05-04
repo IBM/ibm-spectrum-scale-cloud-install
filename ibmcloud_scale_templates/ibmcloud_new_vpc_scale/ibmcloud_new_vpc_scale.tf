@@ -68,6 +68,8 @@ module "instances_module" {
   tf_data_path                = local.tf_data_path
   scale_infra_repo_clone_path = local.scale_infra_repo_clone_path
   bastion_public_ip           = module.bastion_module.bastion_fip
+  bastion_os_flavor           = module.bastion_module.bastion_os_flavor
+  scale_version               = var.scale_version
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
   instances_ssh_private_key   = var.instances_ssh_private_key

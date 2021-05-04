@@ -317,9 +317,11 @@ module "invoke_compute_playbook" {
 
   bucket_name               = "None"
   bastion_public_ip         = var.bastion_public_ip
+  bastion_os_flavor         = var.bastion_os_flavor
   instances_ssh_private_key = var.instances_ssh_private_key
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  scale_version               = var.scale_version
 
   cloud_platform   = "IBMCloud"
   avail_zones      = jsonencode(var.zones)
@@ -341,9 +343,11 @@ module "invoke_storage_playbook" {
 
   bucket_name               = "None"
   bastion_public_ip         = var.bastion_public_ip
+  bastion_os_flavor         = var.bastion_os_flavor
   instances_ssh_private_key = var.instances_ssh_private_key
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  scale_version               = var.scale_version
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
 
@@ -371,9 +375,11 @@ module "invoke_scale_playbook" {
 
   bucket_name               = "None"
   bastion_public_ip         = var.bastion_public_ip
+  bastion_os_flavor         = var.bastion_os_flavor
   instances_ssh_private_key = var.instances_ssh_private_key
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  scale_version               = var.scale_version
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
 
