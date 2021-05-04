@@ -13,3 +13,7 @@ output "bastion_vsi_id" {
 output "bastion_fip" {
   value = module.bastion_attach_fip.floating_ip_addr
 }
+
+output "bastion_os_flavor" {
+  value = data.ibm_is_image.bastion_image.os
+}
