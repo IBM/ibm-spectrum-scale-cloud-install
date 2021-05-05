@@ -58,7 +58,7 @@ module "compute_private_subnet" {
 
 module "dns_service" {
   source                 = "../../../resources/ibmcloud/resource_instance"
-  dns_service_count      = var.create_seperate_subnets == true ? 2 : 1
+  service_count          = var.create_seperate_subnets == true ? 2 : 1
   resource_instance_name = [format("%s-strgdns", var.stack_name), format("%s-compdns", var.stack_name)]
   resource_grp_id        = var.resource_grp_id
   target_location        = "global"

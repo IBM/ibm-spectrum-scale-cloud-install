@@ -183,5 +183,13 @@ variable "resource_grp_id" {
 
 variable "scale_version" {
   type        = string
+  default     = "5.1.1"
   description = "IBM Spectrum Scale version."
 }
+
+variable "activity_tracker_plan_type" {
+  type        = string
+  default     = "lite"
+  description = "IBM Cloud activity tracker plan type (Valid: lite, 7-day, 14-day, 30-day, hipaa-30-day)."
+}
+
