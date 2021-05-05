@@ -54,6 +54,16 @@ data "ibm_is_image" "storage_instance_image" {
   name = var.storage_vsi_osimage_name
 }
 
+module "activity_tracker" {
+  source                 = "../../../resources/ibmcloud/resource_instance"
+  service_count          = 1
+  resource_instance_name = [format("%s-act_track", var.stack_name)]
+  resource_grp_id        = var.resource_grp_id
+  service_name           = "logdnaat"
+  plan_type              = var.activity_tracker_plan_type
+  target_location        = var.region
+}
+
 module "compute_cluster_ssh_keys" {
   source       = "../../../resources/common/generate_keys"
   invoke_count = var.total_compute_instances > 0 ? 1 : 0
