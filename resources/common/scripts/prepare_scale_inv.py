@@ -22,12 +22,19 @@ import re
 
 # Note: Don't use socket for FQDN resolution.
 CLUSTER_DEFINITION_JSON = {'node_details': []}
+GUI_IP = {'client_gui_hostname': None, 'storage_gui_hostname': None}
 
-def read_tf_inv_file(tf_inv_path):
-    """ Read the terraform inventory json file """
-    with open(tf_inv_path) as json_handler:
+def read_json_file(json_path):
+    """ Read inventory as json file """
+    with open(json_path) as json_handler:
         tf_inv = json.load(json_handler)
     return tf_inv
+
+def write_json_file(json_data, json_path):
+    """ Write inventory to json file """
+    with open(json_path, 'w') as json_handler:
+        json.dump(json_data, json_handler, indent=4)
+
 
 def initialize_cluster_details(cluster_name, scale_profile_file, scale_replica_config):
     """ Initialize cluster details.
@@ -85,7 +92,7 @@ if __name__ == "__main__":
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
 
-    TF_INV = read_tf_inv_file(ARGUMENTS.tf_inv_path)
+    TF_INV = read_json_file(ARGUMENTS.tf_inv_path)
     if ARGUMENTS.verbose:
         print("Parsed terraform output: %s" % json.dumps(TF_INV, indent=4))
     if len(TF_INV['availability_zones']) > 1:
@@ -182,6 +189,7 @@ if __name__ == "__main__":
         if storage_instances.index(each_ip) <= (start_quorum_assign) and \
            storage_instances.index(each_ip) <= (manager_count - 1):
             if storage_instances.index(each_ip) == 0:
+                GUI_IP['storage_gui_hostname'] = each_ip
                 initialize_node_details(each_ip, each_ip,
                                         is_gui_server=True, is_collector_node=True, is_nsd_server=True,
                                         is_quorum_node=True, is_manager_node=True, is_admin_node=True,
@@ -227,6 +235,7 @@ if __name__ == "__main__":
     if quorums_left > 0:
         for each_ip in TF_INV['compute_instances_by_ip'][0:quorums_left]:
             if len(TF_INV['storage_instance_disk_map'].keys()) == 0:
+                GUI_IP['client_gui_hostname'] = each_ip
                 initialize_node_details(each_ip, each_ip,
                                      is_gui_server=True, is_collector_node=False, is_nsd_server=False,
                                      is_quorum_node=True, is_manager_node=False, is_admin_node=True,
@@ -302,8 +311,18 @@ if __name__ == "__main__":
     # Write json content
     if ARGUMENTS.verbose:
         print("Writing cloud infrastructure details to: ", ARGUMENTS.scale_cluster_def_path)
-    with open(ARGUMENTS.scale_cluster_def_path, 'w') as json_fh:
-        json.dump(CLUSTER_DEFINITION_JSON, json_fh, indent=4)
+    write_json_file(CLUSTER_DEFINITION_JSON, ARGUMENTS.scale_cluster_def_path)
     if ARGUMENTS.verbose:
         print("Completed writing cloud infrastructure details to: ",
               ARGUMENTS.scale_cluster_def_path)
+
+    if ARGUMENTS.verbose:
+        print("Updating terraform inventory with gui details: ", ARGUMENTS.tf_inv_path)
+    if GUI_IP['client_gui_hostname']:
+        TF_INV['client_gui_hostname'] = GUI_IP['client_gui_hostname']
+    elif GUI_IP['storage_gui_hostname']:
+        TF_INV['storage_gui_hostname'] = GUI_IP['storage_gui_hostname']
+    write_json_file(TF_INV, ARGUMENTS.tf_inv_path)
+    if ARGUMENTS.verbose:
+        print("Completed writing terraform infrastructure details to: ",
+              ARGUMENTS.tf_inv_path)
