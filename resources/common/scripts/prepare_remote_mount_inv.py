@@ -30,8 +30,12 @@ def read_tf_inv_file(tf_inv_path):
 
 def find_gui_hostname(tf_inv_file):
     """ Find the GUI hostname from inventory json file """
-    hostname = "10.10.10.10"
-    return hostname
+    gui_hostname = ""
+    for entry in tf_inv_file['node_details']:
+        if entry['is_gui_server']:
+            gui_hostname = entry['ip_address']
+            return gui_hostname
+    return gui_hostname
 
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Convert terraform inventory '
