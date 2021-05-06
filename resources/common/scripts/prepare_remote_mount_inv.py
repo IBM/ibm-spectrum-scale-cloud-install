@@ -28,24 +28,13 @@ def read_tf_inv_file(tf_inv_path):
         tf_inv = json.load(json_handler)
     return tf_inv
 
-def find_gui_hostname(tf_inv_file):
-    """ Find the GUI hostname from inventory json file """
-    gui_hostname = ""
-    for entry in tf_inv_file['node_details']:
-        if entry['is_gui_server']:
-            gui_hostname = entry['ip_address']
-            return gui_hostname
-    return gui_hostname
-
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Convert terraform inventory '
                                                  'to ansible inventory format '
                                                  'install and configuration.')
-    PARSER.add_argument('--tf_inv_path', required=True,
-                        help='Terraform remote mount inventory file path')
-    PARSER.add_argument('--computetf_inv_path', required=True,
+    PARSER.add_argument('--compute_tf_inv_path', required=True,
                         help='Terraform compute inventory file path')
-    PARSER.add_argument('--storagetf_inv_path', required=True,
+    PARSER.add_argument('--storage_tf_inv_path', required=True,
                         help='Terraform storage inventory file path')
     PARSER.add_argument('--remote_mount_def_path', required=True,
                         help='Spectrum Scale remote mount json path')
@@ -53,21 +42,26 @@ if __name__ == "__main__":
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
 
-    TF_INV = read_tf_inv_file(ARGUMENTS.tf_inv_path)
-    COMPUTETF_INV = read_tf_inv_file(ARGUMENTS.computetf_inv_path)
-    STORAGETF_INV = read_tf_inv_file(ARGUMENTS.storagetf_inv_path)
+    COMPUTETF_INV = read_tf_inv_file(ARGUMENTS.compute_tf_inv_path)
+    STORAGETF_INV = read_tf_inv_file(ARGUMENTS.storage_tf_inv_path)
 
     if ARGUMENTS.verbose:
-        print("Parsed terraform output: %s" % json.dumps(TF_INV, indent=4))
         print("Parsed terraform output: %s" % json.dumps(COMPUTETF_INV, indent=4))
         print("Parsed terraform output: %s" % json.dumps(STORAGETF_INV, indent=4))
 
-    compute_hostname = find_gui_hostname(COMPUTETF_INV)
-    storage_hostname = find_gui_hostname(STORAGETF_INV)
 
-    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount'] = []
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount'] = {}
 
-    REMOTE_MOUNT_DEFINITION_JSON["scale_remotemount"].append({"client_gui_username": TF_INV['client_gui_username'], "client_gui_password": TF_INV['client_gui_password'], "client_gui_hostname": compute_hostname, "client_filesystem_name": TF_INV['client_filesystem_name'], "client_remotemount_path": TF_INV['client_remotemount_path'], "storage_gui_username": TF_INV['storage_gui_username'], "storage_gui_password": TF_INV['storage_gui_password'], "storage_gui_hostname": storage_hostname, "storage_filesystem_name": pathlib.PurePath(TF_INV['storage_filesystem_mountpoint']).name})
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_username'] = "SEC"
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_password'] = "Storage@Scale1"
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_hostname'] = COMPUTETF_INV['client_gui_hostname']
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_filesystem_name'] = "remotefs1"
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_remotemount_path'] = "/mnt"
+
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['storage_gui_username'] = "SEC"
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['storage_gui_password'] = "Storage@Scale1"
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['storage_gui_hostname'] = STORAGETF_INV['storage_gui_hostname']
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['storage_filesystem_name'] = pathlib.PurePath(STORAGETF_INV['filesystem_mountpoint']).name
 
     if ARGUMENTS.verbose:
         print("Content of remote_mount_definition.json: ",
