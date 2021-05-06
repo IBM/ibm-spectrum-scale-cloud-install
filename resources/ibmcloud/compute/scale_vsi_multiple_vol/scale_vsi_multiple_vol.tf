@@ -23,8 +23,12 @@ variable "resource_grp_id" {}
 
 
 locals {
-  instance_storage_1volume_profiles = ["mx2d-2x16", "mx2d-4x32", "mx2d-8x64", "mx2d-16x128"]
-  instance_storage_2volume_profiles = ["mx2d-32x256", "mx2d-48x384"]
+  instance_storage_1volume_profiles = ["bx2d-2x8", "bx2d-4x16", "bx2d-8x32", "bx2d-16x64",
+                                       "cx2d-2x4", "cx2d-4x8", "cx2d-8x16", "cx2d-16x32",
+                                       "mx2d-2x16", "mx2d-4x32", "mx2d-8x64", "mx2d-16x128"]
+  instance_storage_2volume_profiles = ["cx2d-32x64", "cx2d-48x96", "cx2d-64x128", "cx2d-96x192", "cx2d-128x256",
+                                       "bx2d-32x128", "bx2d-48x192", "bx2d-64x256", "bx2d-96x384", "bx2d-128x512",
+                                       "mx2d-32x256", "mx2d-48x384", "mx2d-64x512", "mx2d-96x768", "mx2d-128x1024"]
 }
 
 data "local_file" "tuned_config" {
