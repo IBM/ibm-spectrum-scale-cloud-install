@@ -14,6 +14,7 @@ variable "tf_input_json_file_name" {}
 variable "bucket_name" {}
 variable "notification_arn" {}
 variable "scale_infra_repo_clone_path" {}
+variable "clone_complete" {}
 variable "bastion_public_ip" {}
 variable "bastion_os_flavor" {}
 variable "scale_version" {}
@@ -57,7 +58,7 @@ resource "null_resource" "remove_existing_tf_inv" {
 }
 
 resource "local_file" "dump_compute_tf_inventory" {
-  count      = var.invoke_count == 1 ? 1 : 0
+  count      = (var.invoke_count == 1 && var.clone_complete == true) ? 1 : 0
   content    = <<EOT
 {
     "cloud_platform": "${var.cloud_platform}",
@@ -78,22 +79,12 @@ EOT
   depends_on = [null_resource.remove_existing_tf_inv]
 }
 
-resource "null_resource" "gitclone_ibm_spectrum_scale_install_infra" {
-  count = var.invoke_count == 1 ? 1 : 0
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "if [ ! -d ${var.scale_infra_repo_clone_path} ]; then mkdir -p ${var.scale_infra_repo_clone_path}; cd ${var.scale_infra_repo_clone_path}; git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git; fi;"
-  }
-  depends_on = [local_file.dump_compute_tf_inventory]
-}
-
 resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {
-  count = var.invoke_count == 1 ? 1 : 0
+  count = (var.invoke_count == 1 && var.clone_complete == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "mkdir -p ${local.scale_infra_path}/vars; cp ${local.scale_infra_path}/samples/playbook_cloud.yml ${local.scale_infra_path}/cloud_playbook.yml; cp ${local.scale_infra_path}/samples/set_json_variables.yml ${local.scale_infra_path}/set_json_variables.yml;"
   }
-  depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
 }
 
 resource "local_file" "create_scale_tuning_parameters" {
@@ -113,7 +104,7 @@ resource "local_file" "create_scale_tuning_parameters" {
  autoload=yes
 EOT
   filename   = local.scale_tuning_param_path
-  depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra, null_resource.prepare_ibm_spectrum_scale_install_infra]
+  depends_on = [null_resource.prepare_ibm_spectrum_scale_install_infra]
 }
 
 resource "null_resource" "prepare_ansible_inventory" {
@@ -122,7 +113,7 @@ resource "null_resource" "prepare_ansible_inventory" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${local.tf_inv_path} --scale_cluster_def_path ${local.scale_cluster_def_path} --scale_tuning_profile_file ${local.scale_tuning_param_path}"
   }
-  depends_on = [null_resource.gitclone_ibm_spectrum_scale_install_infra]
+  depends_on = [local_file.dump_compute_tf_inventory]
 }
 
 resource "local_file" "prepare_jumphost_config" {

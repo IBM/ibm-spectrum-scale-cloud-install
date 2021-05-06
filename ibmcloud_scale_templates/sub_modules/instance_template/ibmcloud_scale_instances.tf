@@ -321,6 +321,13 @@ locals {
   } : {}
 }
 
+module "prepare_ansible_repo" {
+  source     = "../../../resources/common/git_utils"
+  branch     = "scale_cloud"
+  tag        = null
+  clone_path = var.scale_infra_repo_clone_path
+}
+
 module "invoke_compute_playbook" {
   source       = "../../../resources/common/ansible_compute_playbook"
   invoke_count = local.cluster_namespace == "multi" ? 1 : 0
@@ -337,6 +344,7 @@ module "invoke_compute_playbook" {
   instances_ssh_private_key = var.instances_ssh_private_key
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  clone_complete              = module.prepare_ansible_repo.clone_complete
   scale_version               = var.scale_version
 
   cloud_platform   = "IBMCloud"
@@ -363,6 +371,7 @@ module "invoke_storage_playbook" {
   instances_ssh_private_key = var.instances_ssh_private_key
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  clone_complete              = module.prepare_ansible_repo.clone_complete
   scale_version               = var.scale_version
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
@@ -395,6 +404,7 @@ module "invoke_scale_playbook" {
   instances_ssh_private_key = var.instances_ssh_private_key
 
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  clone_complete              = module.prepare_ansible_repo.clone_complete
   scale_version               = var.scale_version
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
@@ -418,6 +428,7 @@ module "invoke_remote_mount" {
   source                      = "../../../resources/common/ansible_remote_mount_playbook"
   invoke_count                = local.cluster_namespace == "multi" ? 1 : 0
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  clone_complete              = module.prepare_ansible_repo.clone_complete
 
   depends_on = [module.invoke_compute_playbook, module.invoke_storage_playbook]
 }
