@@ -54,6 +54,19 @@ data "ibm_is_image" "storage_instance_image" {
   name = var.storage_vsi_osimage_name
 }
 
+locals {
+  resource_map = {
+    instance_ssh_key         = data.ibm_is_ssh_key.instance_ssh_key.id == null ? "False" : data.ibm_is_ssh_key.instance_ssh_key.id
+    compute_vsi_osimage_name = data.ibm_is_image.compute_instance_image.id == null ? "False" : data.ibm_is_image.compute_instance_image.id
+    storage_vsi_osimage_name = data.ibm_is_image.storage_instance_image.id == null ? "False" : data.ibm_is_image.storage_instance_image.id
+  }
+}
+
+module "check_resource_existance" {
+  source       = "../../../resources/common/resource_check"
+  resource_map = local.resource_map
+}
+
 module "activity_tracker" {
   source                 = "../../../resources/ibmcloud/resource_instance"
   service_count          = 1
@@ -89,8 +102,8 @@ module "compute_vsis" {
   vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? null : local.secondary_private_subnet_ids
   vsi_security_group      = length(module.instances_security_group.sec_group_id) == 1 ? [module.instances_security_group.sec_group_id[0]] : [module.instances_security_group.sec_group_id[1]]
   vsi_profile             = var.compute_vsi_profile
-  vsi_image_id            = data.ibm_is_image.compute_instance_image.id
-  vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
+  vsi_image_id            = module.check_resource_existance.compute_vsi_osimage_id
+  vsi_user_public_key     = [module.check_resource_existance.instance_ssh_key_id]
   vsi_meta_private_key    = module.compute_cluster_ssh_keys.private_key.0
   vsi_meta_public_key     = module.compute_cluster_ssh_keys.public_key.0
   vsi_tuning_file_path    = format("%s/%s/%s", abspath(path.module), "tuned_profiles/compute", "tuned.conf")
@@ -122,8 +135,8 @@ module "desc_compute_vsi" {
   dns_zone_id             = var.dns_zone_ids.0
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.compute_vsi_profile
-  vsi_image_id            = data.ibm_is_image.compute_instance_image.id
-  vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
+  vsi_image_id            = module.check_resource_existance.storage_vsi_osimage_id
+  vsi_user_public_key     = [module.check_resource_existance.instance_ssh_key_id]
   vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key.0
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_data_volumes_count  = 1
@@ -172,8 +185,8 @@ module "storage_vsis_1A_zone" {
   vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? false : local.secondary_private_subnet_ids.0
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.storage_vsi_profile
-  vsi_image_id            = data.ibm_is_image.storage_instance_image.id
-  vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
+  vsi_image_id            = module.check_resource_existance.storage_vsi_osimage_id
+  vsi_user_public_key     = [module.check_resource_existance.instance_ssh_key_id]
   vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key.0
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_volumes             = module.create_data_disks_1A_zone.volume_id
@@ -196,8 +209,8 @@ module "storage_vsis_2A_zone" {
   vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) > 1 ? local.secondary_private_subnet_ids.1 : local.secondary_private_subnet_ids.0)
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.storage_vsi_profile
-  vsi_image_id            = data.ibm_is_image.storage_instance_image.id
-  vsi_user_public_key     = [data.ibm_is_ssh_key.instance_ssh_key.id]
+  vsi_image_id            = module.check_resource_existance.storage_vsi_osimage_id
+  vsi_user_public_key     = [module.check_resource_existance.instance_ssh_key_id]
   vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key.0
   vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_volumes             = module.create_data_disks_2A_zone.volume_id
@@ -209,6 +222,7 @@ module "storage_vsis_2A_zone" {
 
 locals {
   cluster_namespace      = "multi"
+  cloud_platform         = "IBMCloud"
   compute_vsi_by_ip      = length(local.secondary_private_subnet_ids) == 0 ? module.compute_vsis.vsi_primary_ips : module.compute_vsis.vsi_secondary_ips
   desc_compute_vsi_by_ip = length(var.zones) == 1 ? (length(local.secondary_private_subnet_ids) == 0 ? module.desc_compute_vsi.vsi_primary_ips : module.desc_compute_vsi.vsi_secondary_ips) : []
   compute_vsi_desc_map = {
@@ -347,7 +361,7 @@ module "invoke_compute_playbook" {
   clone_complete              = module.prepare_ansible_repo.clone_complete
   scale_version               = var.scale_version
 
-  cloud_platform   = "IBMCloud"
+  cloud_platform   = local.cloud_platform
   avail_zones      = jsonencode(var.zones)
   notification_arn = "None"
 
@@ -376,7 +390,7 @@ module "invoke_storage_playbook" {
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
 
-  cloud_platform   = "IBMCloud"
+  cloud_platform   = local.cloud_platform
   avail_zones      = jsonencode(var.zones)
   notification_arn = "None"
 
@@ -409,7 +423,7 @@ module "invoke_scale_playbook" {
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
 
-  cloud_platform   = "IBMCloud"
+  cloud_platform   = local.cloud_platform
   avail_zones      = jsonencode(var.zones)
   notification_arn = "None"
 

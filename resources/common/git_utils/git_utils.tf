@@ -45,6 +45,6 @@ resource "null_resource" "clone_repo_tag" {
 }
 
 output "clone_complete" {
-  value = true
+  value      = true
   depends_on = [null_resource.clone_repo_branch, null_resource.clone_repo_tag]
 }
