@@ -60,6 +60,10 @@ module "instances_module" {
   storage_vsi_osimage_name    = var.storage_vsi_osimage_name
   compute_vsi_profile         = var.compute_vsi_profile
   storage_vsi_profile         = var.storage_vsi_profile
+  compute_gui_username        = var.compute_gui_username
+  storage_gui_username        = var.storage_gui_username
+  compute_gui_password        = var.compute_gui_password
+  storage_gui_password        = var.storage_gui_password
   instance_ssh_key            = var.instance_ssh_key
   block_volumes_per_instance  = local.block_volumes_per_instance
   volume_profile              = "10iops-tier"

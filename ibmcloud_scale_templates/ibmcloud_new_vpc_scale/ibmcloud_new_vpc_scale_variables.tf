@@ -84,7 +84,7 @@ variable "bastion_ssh_key" {
 
 variable "compute_vsi_osimage_name" {
   type        = string
-  default     = "ibm-redhat-8-3-minimal-amd64-2"
+  default     = "ibm-redhat-8-3-minimal-amd64-3"
   description = "Compute instance OS image name."
 }
 
@@ -96,7 +96,7 @@ variable "total_compute_instances" {
 
 variable "storage_vsi_osimage_name" {
   type        = string
-  default     = "ibm-redhat-8-3-minimal-amd64-2"
+  default     = "ibm-redhat-8-3-minimal-amd64-3"
   description = "Storage instance OS image name."
 }
 
@@ -116,6 +116,30 @@ variable "storage_vsi_profile" {
   type        = string
   default     = "cx2-2x4"
   description = "Profile to be used for Storage virtual server instance."
+}
+
+variable "compute_gui_username" {
+  type        = string
+  default     = "SEC"
+  description = "Username for Compute cluster GUI"
+}
+
+variable "storage_gui_username" {
+  type        = string
+  default     = "SEC"
+  description = "Username for Storage cluster GUI"
+}
+
+variable "compute_gui_password" {
+  type        = string
+  default     = "Storage@Scale1"
+  description = "Password for Compute cluster GUI"
+}
+
+variable "storage_gui_password" {
+  type        = string
+  default     = "Storage@Scale1"
+  description = "Password for Storage cluster GUI"
 }
 
 variable "instance_ssh_key" {

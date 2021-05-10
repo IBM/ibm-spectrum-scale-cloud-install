@@ -64,6 +64,30 @@ variable "storage_vsi_profile" {
   description = "Profile to be used for Storage virtual server instance."
 }
 
+variable "compute_gui_username" {
+  type        = string
+  default     = "SEC"
+  description = "Username for Compute cluster GUI"
+}
+
+variable "storage_gui_username" {
+  type        = string
+  default     = "SEC"
+  description = "Username for Storage cluster GUI"
+}
+
+variable "compute_gui_password" {
+  type        = string
+  default     = "Storage@Scale1"
+  description = "Password for Compute cluster GUI"
+}
+
+variable "storage_gui_password" {
+  type        = string
+  default     = "Storage@Scale1"
+  description = "Password for Storage cluster GUI"
+}
+
 variable "instance_ssh_key" {
   type        = string
   description = "SSH key name to be used for Compute, Storage virtual server instance."
