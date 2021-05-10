@@ -25,6 +25,8 @@ variable "compute_instance_desc_map" {}
 variable "compute_instance_desc_id" {}
 variable "storage_instances_by_id" {}
 variable "storage_instance_disk_map" {}
+variable "storage_gui_username" {}
+variable "storage_gui_password" {}
 
 locals {
   tf_inv_path                     = format("%s/%s", "/tmp/.schematics/IBM", "storage_tf_inventory.json")
@@ -76,7 +78,9 @@ resource "local_file" "dump_strg_tf_inventory" {
     "compute_instance_desc_map": ${var.compute_instance_desc_map},
     "compute_instance_desc_id": ${var.compute_instance_desc_id},
     "storage_instances_by_id": ${var.storage_instances_by_id},
-    "storage_instance_disk_map": ${var.storage_instance_disk_map}
+    "storage_instance_disk_map": ${var.storage_instance_disk_map},
+    "storage_gui_username": "${var.storage_gui_username}",
+    "storage_gui_password": "${var.storage_gui_password}"
 }
 EOT
   filename   = local.tf_inv_path

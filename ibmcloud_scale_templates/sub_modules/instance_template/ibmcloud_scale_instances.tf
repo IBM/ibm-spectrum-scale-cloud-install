@@ -361,7 +361,11 @@ module "invoke_compute_playbook" {
   clone_complete              = module.prepare_ansible_repo.clone_complete
   scale_version               = var.scale_version
 
+  compute_gui_username = var.compute_gui_username
+  compute_gui_password = var.compute_gui_password
+
   cloud_platform   = local.cloud_platform
+
   avail_zones      = jsonencode(var.zones)
   notification_arn = "None"
 
@@ -389,6 +393,9 @@ module "invoke_storage_playbook" {
   scale_version               = var.scale_version
   filesystem_mountpoint       = var.filesystem_mountpoint
   filesystem_block_size       = var.filesystem_block_size
+
+  storage_gui_username = var.storage_gui_username
+  storage_gui_password = var.storage_gui_password
 
   cloud_platform   = local.cloud_platform
   avail_zones      = jsonencode(var.zones)
