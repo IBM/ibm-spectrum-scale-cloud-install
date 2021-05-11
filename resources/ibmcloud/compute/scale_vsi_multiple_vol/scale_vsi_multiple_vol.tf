@@ -66,6 +66,7 @@ systemctl restart NetworkManager
 $PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
+firewall-offline-cmd -–zone=public –-add-port=60000-61000/tcp
 systemctl start firewalld
 EOF
 }

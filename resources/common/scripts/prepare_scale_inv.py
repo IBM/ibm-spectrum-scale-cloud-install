@@ -43,6 +43,7 @@ def initialize_cluster_details(cluster_name, scale_profile_file, scale_replica_c
     CLUSTER_DEFINITION_JSON['scale_cluster'] = {}
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = cluster_name
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "False"
+    CLUSTER_DEFINITION_JSON['scale_cluster']['ephemeral_port_range'] = "60000-61000"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_file).stem)
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(pathlib.PurePath(scale_profile_file).parent)
