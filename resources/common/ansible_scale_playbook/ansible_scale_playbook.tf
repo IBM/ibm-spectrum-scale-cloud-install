@@ -16,6 +16,7 @@ variable "notification_arn" {}
 variable "filesystem_mountpoint" {}
 variable "filesystem_block_size" {}
 variable "scale_infra_repo_clone_path" {}
+variable "scale_install_directory_pkg_path" {}
 variable "clone_complete" {}
 variable "bastion_public_ip" {}
 variable "bastion_os_flavor" {}
@@ -166,7 +167,7 @@ resource "null_resource" "call_scale_install_playbook" {
   count = var.invoke_count == 1 ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "ansible-playbook --private-key ${local.instances_ssh_private_key_path} -e \"ansible_python_interpreter=/usr/bin/python3\"  -e \"scale_version=${var.scale_version}\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p ${local.bastion_user}@${var.bastion_public_ip} -i ${local.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.cloud_playbook_path}"
+    command     = "ansible-playbook --private-key ${local.instances_ssh_private_key_path} -e \"ansible_python_interpreter=/usr/bin/python3\"  -e \"scale_version=${var.scale_version}\" -e \"scale_install_directory_pkg_path=${var.scale_install_directory_pkg_path}\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p ${local.bastion_user}@${var.bastion_public_ip} -i ${local.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.cloud_playbook_path}"
   }
   depends_on = [time_sleep.wait_for_metadata_execution, local_file.create_scale_tuning_parameters]
 }
