@@ -95,6 +95,7 @@ module "compute_vsis" {
   vsi_name_prefix         = format("%s-compute", var.stack_name)
   vpc_id                  = var.vpc_id
   zones                   = var.zones
+  dns_domain              = length(var.dns_service_ids) == 1 ? var.dns_domains.0 : var.dns_domains.1
   dns_service_id          = length(var.dns_service_ids) == 1 ? var.dns_service_ids.0 : var.dns_service_ids.1
   dns_zone_id             = length(var.dns_zone_ids) == 1 ? var.dns_zone_ids.0 : var.dns_zone_ids.1
   resource_grp_id         = var.resource_grp_id
@@ -133,6 +134,7 @@ module "desc_compute_vsi" {
   vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) >= 3 ? local.secondary_private_subnet_ids.2 : local.secondary_private_subnet_ids.0)
   dns_service_id          = var.dns_service_ids.0
   dns_zone_id             = var.dns_zone_ids.0
+  dns_domain              = var.dns_domains.0
   vsi_security_group      = [module.instances_security_group.sec_group_id[0]]
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = module.check_resource_existance.storage_vsi_osimage_id
@@ -180,6 +182,7 @@ module "storage_vsis_1A_zone" {
   vpc_id                  = var.vpc_id
   dns_service_id          = var.dns_service_ids.0
   dns_zone_id             = var.dns_zone_ids.0
+  dns_domain              = var.dns_domains.0
   resource_grp_id         = var.resource_grp_id
   vsi_primary_subnet_id   = var.storage_private_subnets.0
   vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? false : local.secondary_private_subnet_ids.0
@@ -204,6 +207,7 @@ module "storage_vsis_2A_zone" {
   vpc_id                  = var.vpc_id
   dns_service_id          = var.dns_service_ids.0
   dns_zone_id             = var.dns_zone_ids.0
+  dns_domain              = var.dns_domains.0
   resource_grp_id         = var.resource_grp_id
   vsi_primary_subnet_id   = length(var.zones) >= 3 ? var.storage_private_subnets.1 : var.storage_private_subnets.0
   vsi_secondary_subnet_id = length(local.secondary_private_subnet_ids) == 0 ? false : (length(var.zones) > 1 ? local.secondary_private_subnet_ids.1 : local.secondary_private_subnet_ids.0)
@@ -364,7 +368,7 @@ module "invoke_compute_playbook" {
   compute_gui_username = var.compute_gui_username
   compute_gui_password = var.compute_gui_password
 
-  cloud_platform   = local.cloud_platform
+  cloud_platform = local.cloud_platform
 
   avail_zones      = jsonencode(var.zones)
   notification_arn = "None"

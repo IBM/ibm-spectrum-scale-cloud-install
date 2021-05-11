@@ -48,6 +48,7 @@ module "instances_module" {
   zones                       = var.zones
   dns_service_ids             = module.vpc_module.dns_service_ids
   dns_zone_ids                = module.vpc_module.dns_zone_ids
+  dns_domains                 = var.dns_domains
   compute_cidr_block          = var.compute_cidr_block
   storage_cidr_block          = var.storage_cidr_block
   compute_private_subnets     = module.vpc_module.compute_private_subnets

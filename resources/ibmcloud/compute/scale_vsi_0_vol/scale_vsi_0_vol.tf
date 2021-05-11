@@ -8,6 +8,7 @@ variable "vpc_id" {}
 variable "zones" {}
 variable "dns_service_id" {}
 variable "dns_zone_id" {}
+variable "dns_domain" {}
 variable "vsi_primary_subnet_id" {}
 variable "vsi_secondary_subnet_id" {}
 variable "vsi_security_group" {}
@@ -49,6 +50,8 @@ echo "StrictHostKeyChecking no" >> ~/.ssh/config
 mkdir -p "/usr/lib/tuned/virtual-gpfs-guest"
 echo "${data.local_file.tuned_config.content}" > "/usr/lib/tuned/virtual-gpfs-guest/tuned.conf"
 tuned-adm profile virtual-gpfs-guest
+echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+systemctl restart NetworkManager
 $PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 EOF
 }
@@ -83,6 +86,17 @@ resource "ibm_dns_resource_record" "a_1_nic_records" {
   name        = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
   rdata       = element(ibm_is_instance.vsi_1_nic[*].primary_network_interface[0]["primary_ipv4_address"], count.index)
   ttl         = 300
+}
+
+resource "ibm_dns_resource_record" "ptr_1_nic_records" {
+  count       = var.vsi_secondary_subnet_id == null ? var.total_vsis : 0
+  instance_id = var.dns_service_id
+  zone_id     = var.dns_zone_id
+  type        = "PTR"
+  name        = element(ibm_is_instance.vsi_1_nic[*].primary_network_interface[0]["primary_ipv4_address"], count.index)
+  rdata       = format("%s.%s", element(ibm_is_instance.vsi_1_nic.*.name, count.index), var.dns_domain)
+  ttl         = 300
+  depends_on  = [ibm_dns_resource_record.a_1_nic_records]
 }
 
 resource "ibm_is_instance" "vsi_2_nic" {
@@ -123,6 +137,17 @@ resource "ibm_dns_resource_record" "a_2_nic_records" {
   name        = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
   rdata       = element(ibm_is_instance.vsi_2_nic[*].primary_network_interface[0]["primary_ipv4_address"], count.index)
   ttl         = 300
+}
+
+resource "ibm_dns_resource_record" "ptr_2_nic_records" {
+  count       = var.vsi_secondary_subnet_id == null ? 0 : var.total_vsis
+  instance_id = var.dns_service_id
+  zone_id     = var.dns_zone_id
+  type        = "PTR"
+  name        = element(ibm_is_instance.vsi_2_nic[*].primary_network_interface[0]["primary_ipv4_address"], count.index)
+  rdata       = format("%s.%s", element(ibm_is_instance.vsi_2_nic.*.name, count.index), var.dns_domain)
+  ttl         = 300
+  depends_on  = [ibm_dns_resource_record.a_2_nic_records]
 }
 
 output "vsi_ids" {

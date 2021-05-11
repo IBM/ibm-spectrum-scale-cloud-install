@@ -125,6 +125,12 @@ variable "dns_zone_ids" {
   description = "IBM Cloud DNS zone ids."
 }
 
+variable "dns_domains" {
+  type        = list(string)
+  default     = ["strgscale.com", "compscale.com"]
+  description = "IBM Cloud DNS domain names."
+}
+
 variable "tf_data_path" {
   type        = string
   default     = "/tmp/.schematics/IBM/tf_data_path"
