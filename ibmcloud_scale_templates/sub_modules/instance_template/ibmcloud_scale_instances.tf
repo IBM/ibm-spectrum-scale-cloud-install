@@ -6,7 +6,8 @@
 */
 
 locals {
-  secondary_private_subnet_ids = []
+  secondary_private_subnet_ids     = []
+  scale_install_directory_pkg_path = "/opt/IBM/gpfs_cloud_rpms"
 }
 
 module "instances_security_group" {
@@ -361,9 +362,10 @@ module "invoke_compute_playbook" {
   bastion_os_flavor         = var.bastion_os_flavor
   instances_ssh_private_key = var.instances_ssh_private_key
 
-  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
-  clone_complete              = module.prepare_ansible_repo.clone_complete
-  scale_version               = var.scale_version
+  scale_infra_repo_clone_path      = var.scale_infra_repo_clone_path
+  scale_install_directory_pkg_path = local.scale_install_directory_pkg_path
+  clone_complete                   = module.prepare_ansible_repo.clone_complete
+  scale_version                    = var.scale_version
 
   compute_gui_username = var.compute_gui_username
   compute_gui_password = var.compute_gui_password
@@ -392,11 +394,12 @@ module "invoke_storage_playbook" {
   bastion_os_flavor         = var.bastion_os_flavor
   instances_ssh_private_key = var.instances_ssh_private_key
 
-  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
-  clone_complete              = module.prepare_ansible_repo.clone_complete
-  scale_version               = var.scale_version
-  filesystem_mountpoint       = var.filesystem_mountpoint
-  filesystem_block_size       = var.filesystem_block_size
+  scale_infra_repo_clone_path      = var.scale_infra_repo_clone_path
+  scale_install_directory_pkg_path = local.scale_install_directory_pkg_path
+  clone_complete                   = module.prepare_ansible_repo.clone_complete
+  scale_version                    = var.scale_version
+  filesystem_mountpoint            = var.filesystem_mountpoint
+  filesystem_block_size            = var.filesystem_block_size
 
   storage_gui_username = var.storage_gui_username
   storage_gui_password = var.storage_gui_password
@@ -428,11 +431,12 @@ module "invoke_scale_playbook" {
   bastion_os_flavor         = var.bastion_os_flavor
   instances_ssh_private_key = var.instances_ssh_private_key
 
-  scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
-  clone_complete              = module.prepare_ansible_repo.clone_complete
-  scale_version               = var.scale_version
-  filesystem_mountpoint       = var.filesystem_mountpoint
-  filesystem_block_size       = var.filesystem_block_size
+  scale_infra_repo_clone_path      = var.scale_infra_repo_clone_path
+  scale_install_directory_pkg_path = local.scale_install_directory_pkg_path
+  clone_complete                   = module.prepare_ansible_repo.clone_complete
+  scale_version                    = var.scale_version
+  filesystem_mountpoint            = var.filesystem_mountpoint
+  filesystem_block_size            = var.filesystem_block_size
 
   cloud_platform   = local.cloud_platform
   avail_zones      = jsonencode(var.zones)
