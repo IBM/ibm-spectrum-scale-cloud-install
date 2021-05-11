@@ -348,109 +348,86 @@ module "prepare_ansible_repo" {
 }
 
 module "invoke_compute_playbook" {
-  source       = "../../../resources/common/ansible_compute_playbook"
-  invoke_count = local.cluster_namespace == "multi" ? 1 : 0
-  region       = var.region
-  stack_name   = format("%s.%s", var.stack_name, "compute")
-
-  tf_data_path            = var.tf_data_path
-  tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
-  tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
-
-  bucket_name               = "None"
-  bastion_public_ip         = var.bastion_public_ip
-  bastion_os_flavor         = var.bastion_os_flavor
-  instances_ssh_private_key = var.instances_ssh_private_key
-
+  source                           = "../../../resources/common/ansible_compute_playbook"
+  invoke_count                     = local.cluster_namespace == "multi" ? 1 : 0
+  region                           = var.region
+  stack_name                       = format("%s.%s", var.stack_name, "compute")
+  tf_data_path                     = var.tf_data_path
+  tf_input_json_root_path          = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
+  tf_input_json_file_name          = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
+  bucket_name                      = "None"
+  bastion_public_ip                = var.bastion_public_ip
+  bastion_os_flavor                = var.bastion_os_flavor
+  instances_ssh_private_key        = var.instances_ssh_private_key
   scale_infra_repo_clone_path      = var.scale_infra_repo_clone_path
   scale_install_directory_pkg_path = local.scale_install_directory_pkg_path
   clone_complete                   = module.prepare_ansible_repo.clone_complete
   scale_version                    = var.scale_version
-
-  compute_gui_username = var.compute_gui_username
-  compute_gui_password = var.compute_gui_password
-
-  cloud_platform = local.cloud_platform
-
-  avail_zones      = jsonencode(var.zones)
-  notification_arn = "None"
-
-  compute_instances_by_id = module.compute_vsis.vsi_ids == null ? jsonencode([]) : jsonencode(module.compute_vsis.vsi_ids)
-  compute_instances_by_ip = local.compute_vsi_by_ip == null ? jsonencode([]) : jsonencode(local.compute_vsi_by_ip)
+  compute_gui_username             = var.compute_gui_username
+  compute_gui_password             = var.compute_gui_password
+  cloud_platform                   = local.cloud_platform
+  avail_zones                      = jsonencode(var.zones)
+  notification_arn                 = "None"
+  compute_instances_by_id          = module.compute_vsis.vsi_ids == null ? jsonencode([]) : jsonencode(module.compute_vsis.vsi_ids)
+  compute_instances_by_ip          = local.compute_vsi_by_ip == null ? jsonencode([]) : jsonencode(local.compute_vsi_by_ip)
 }
 
 module "invoke_storage_playbook" {
-  source       = "../../../resources/common/ansible_storage_playbook"
-  invoke_count = local.cluster_namespace == "multi" ? 1 : 0
-  region       = var.region
-  stack_name   = format("%s.%s", var.stack_name, "storage")
-
-  tf_data_path            = var.tf_data_path
-  tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
-  tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
-
-  bucket_name               = "None"
-  bastion_public_ip         = var.bastion_public_ip
-  bastion_os_flavor         = var.bastion_os_flavor
-  instances_ssh_private_key = var.instances_ssh_private_key
-
+  source                           = "../../../resources/common/ansible_storage_playbook"
+  invoke_count                     = local.cluster_namespace == "multi" ? 1 : 0
+  region                           = var.region
+  stack_name                       = format("%s.%s", var.stack_name, "storage")
+  tf_data_path                     = var.tf_data_path
+  tf_input_json_root_path          = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
+  tf_input_json_file_name          = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
+  bucket_name                      = "None"
+  bastion_public_ip                = var.bastion_public_ip
+  bastion_os_flavor                = var.bastion_os_flavor
+  instances_ssh_private_key        = var.instances_ssh_private_key
   scale_infra_repo_clone_path      = var.scale_infra_repo_clone_path
   scale_install_directory_pkg_path = local.scale_install_directory_pkg_path
   clone_complete                   = module.prepare_ansible_repo.clone_complete
   scale_version                    = var.scale_version
   filesystem_mountpoint            = var.filesystem_mountpoint
   filesystem_block_size            = var.filesystem_block_size
-
-  storage_gui_username = var.storage_gui_username
-  storage_gui_password = var.storage_gui_password
-
-  cloud_platform   = local.cloud_platform
-  avail_zones      = jsonencode(var.zones)
-  notification_arn = "None"
-
-  compute_instance_desc_map = jsonencode(local.compute_vsi_desc_map)
-  compute_instance_desc_id  = jsonencode(module.desc_compute_vsi.vsi_ids)
-
-  storage_instances_by_id = jsonencode(compact(concat(local.strg_vsi_ids_0_disks, local.strg_vsi_ids_1_disks, local.strg_vsi_ids_2_disks, local.strg_vsi_ids_3_disks, local.strg_vsi_ids_4_disks, local.strg_vsi_ids_5_disks, local.strg_vsi_ids_6_disks, local.strg_vsi_ids_7_disks, local.strg_vsi_ids_8_disks, local.strg_vsi_ids_9_disks, local.strg_vsi_ids_10_disks, local.strg_vsi_ids_11_disks, local.strg_vsi_ids_12_disks, local.strg_vsi_ids_13_disks, local.strg_vsi_ids_14_disks, local.strg_vsi_ids_15_disks)))
-
-  storage_instance_disk_map = jsonencode(merge(local.strg_vsi_ips_0_disks_dev_map, local.strg_vsi_ips_1_disks_dev_map, local.strg_vsi_ips_2_disks_dev_map, local.strg_vsi_ips_3_disks_dev_map, local.strg_vsi_ips_4_disks_dev_map, local.strg_vsi_ips_5_disks_dev_map, local.strg_vsi_ips_6_disks_dev_map, local.strg_vsi_ips_7_disks_dev_map, local.strg_vsi_ips_8_disks_dev_map, local.strg_vsi_ips_9_disks_dev_map, local.strg_vsi_ips_10_disks_dev_map, local.strg_vsi_ips_11_disks_dev_map, local.strg_vsi_ips_12_disks_dev_map, local.strg_vsi_ips_13_disks_dev_map, local.strg_vsi_ips_14_disks_dev_map, local.strg_vsi_ips_15_disks_dev_map))
+  storage_gui_username             = var.storage_gui_username
+  storage_gui_password             = var.storage_gui_password
+  cloud_platform                   = local.cloud_platform
+  avail_zones                      = jsonencode(var.zones)
+  notification_arn                 = "None"
+  compute_instance_desc_map        = jsonencode(local.compute_vsi_desc_map)
+  compute_instance_desc_id         = jsonencode(module.desc_compute_vsi.vsi_ids)
+  storage_instances_by_id          = jsonencode(compact(concat(local.strg_vsi_ids_0_disks, local.strg_vsi_ids_1_disks, local.strg_vsi_ids_2_disks, local.strg_vsi_ids_3_disks, local.strg_vsi_ids_4_disks, local.strg_vsi_ids_5_disks, local.strg_vsi_ids_6_disks, local.strg_vsi_ids_7_disks, local.strg_vsi_ids_8_disks, local.strg_vsi_ids_9_disks, local.strg_vsi_ids_10_disks, local.strg_vsi_ids_11_disks, local.strg_vsi_ids_12_disks, local.strg_vsi_ids_13_disks, local.strg_vsi_ids_14_disks, local.strg_vsi_ids_15_disks)))
+  storage_instance_disk_map        = jsonencode(merge(local.strg_vsi_ips_0_disks_dev_map, local.strg_vsi_ips_1_disks_dev_map, local.strg_vsi_ips_2_disks_dev_map, local.strg_vsi_ips_3_disks_dev_map, local.strg_vsi_ips_4_disks_dev_map, local.strg_vsi_ips_5_disks_dev_map, local.strg_vsi_ips_6_disks_dev_map, local.strg_vsi_ips_7_disks_dev_map, local.strg_vsi_ips_8_disks_dev_map, local.strg_vsi_ips_9_disks_dev_map, local.strg_vsi_ips_10_disks_dev_map, local.strg_vsi_ips_11_disks_dev_map, local.strg_vsi_ips_12_disks_dev_map, local.strg_vsi_ips_13_disks_dev_map, local.strg_vsi_ips_14_disks_dev_map, local.strg_vsi_ips_15_disks_dev_map))
 }
 
 module "invoke_scale_playbook" {
-  source       = "../../../resources/common/ansible_scale_playbook"
-  invoke_count = local.cluster_namespace == "single" ? 1 : 0
-  region       = var.region
-  stack_name   = var.stack_name
-
-  tf_data_path            = var.tf_data_path
-  tf_input_json_root_path = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
-  tf_input_json_file_name = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
-
-  bucket_name               = "None"
-  bastion_public_ip         = var.bastion_public_ip
-  bastion_os_flavor         = var.bastion_os_flavor
-  instances_ssh_private_key = var.instances_ssh_private_key
-
+  source                           = "../../../resources/common/ansible_scale_playbook"
+  invoke_count                     = local.cluster_namespace == "single" ? 1 : 0
+  region                           = var.region
+  stack_name                       = var.stack_name
+  tf_data_path                     = var.tf_data_path
+  tf_input_json_root_path          = var.tf_input_json_root_path == null ? abspath(path.cwd) : var.tf_input_json_root_path
+  tf_input_json_file_name          = var.tf_input_json_file_name == null ? join(", ", fileset(abspath(path.cwd), "*.tfvars*")) : var.tf_input_json_file_name
+  bucket_name                      = "None"
+  bastion_public_ip                = var.bastion_public_ip
+  bastion_os_flavor                = var.bastion_os_flavor
+  instances_ssh_private_key        = var.instances_ssh_private_key
   scale_infra_repo_clone_path      = var.scale_infra_repo_clone_path
   scale_install_directory_pkg_path = local.scale_install_directory_pkg_path
   clone_complete                   = module.prepare_ansible_repo.clone_complete
   scale_version                    = var.scale_version
   filesystem_mountpoint            = var.filesystem_mountpoint
   filesystem_block_size            = var.filesystem_block_size
-
-  cloud_platform   = local.cloud_platform
-  avail_zones      = jsonencode(var.zones)
-  notification_arn = "None"
-
-  compute_instances_by_id = module.compute_vsis.vsi_ids == null ? jsonencode([]) : jsonencode(module.compute_vsis.vsi_ids)
-  compute_instances_by_ip = local.compute_vsi_by_ip == null ? jsonencode([]) : jsonencode(local.compute_vsi_by_ip)
-
-  compute_instance_desc_map = jsonencode(local.compute_vsi_desc_map)
-  compute_instance_desc_id  = jsonencode(module.desc_compute_vsi.vsi_ids)
-
-  storage_instances_by_id = jsonencode(compact(concat(local.strg_vsi_ids_0_disks, local.strg_vsi_ids_1_disks, local.strg_vsi_ids_2_disks, local.strg_vsi_ids_3_disks, local.strg_vsi_ids_4_disks, local.strg_vsi_ids_5_disks, local.strg_vsi_ids_6_disks, local.strg_vsi_ids_7_disks, local.strg_vsi_ids_8_disks, local.strg_vsi_ids_9_disks, local.strg_vsi_ids_10_disks, local.strg_vsi_ids_11_disks, local.strg_vsi_ids_12_disks, local.strg_vsi_ids_13_disks, local.strg_vsi_ids_14_disks, local.strg_vsi_ids_15_disks)))
-
-  storage_instance_disk_map = jsonencode(merge(local.strg_vsi_ips_0_disks_dev_map, local.strg_vsi_ips_1_disks_dev_map, local.strg_vsi_ips_2_disks_dev_map, local.strg_vsi_ips_3_disks_dev_map, local.strg_vsi_ips_4_disks_dev_map, local.strg_vsi_ips_5_disks_dev_map, local.strg_vsi_ips_6_disks_dev_map, local.strg_vsi_ips_7_disks_dev_map, local.strg_vsi_ips_8_disks_dev_map, local.strg_vsi_ips_9_disks_dev_map, local.strg_vsi_ips_10_disks_dev_map, local.strg_vsi_ips_11_disks_dev_map, local.strg_vsi_ips_12_disks_dev_map, local.strg_vsi_ips_13_disks_dev_map, local.strg_vsi_ips_14_disks_dev_map, local.strg_vsi_ips_15_disks_dev_map))
+  cloud_platform                   = local.cloud_platform
+  avail_zones                      = jsonencode(var.zones)
+  notification_arn                 = "None"
+  compute_instances_by_id          = module.compute_vsis.vsi_ids == null ? jsonencode([]) : jsonencode(module.compute_vsis.vsi_ids)
+  compute_instances_by_ip          = local.compute_vsi_by_ip == null ? jsonencode([]) : jsonencode(local.compute_vsi_by_ip)
+  compute_instance_desc_map        = jsonencode(local.compute_vsi_desc_map)
+  compute_instance_desc_id         = jsonencode(module.desc_compute_vsi.vsi_ids)
+  storage_instances_by_id          = jsonencode(compact(concat(local.strg_vsi_ids_0_disks, local.strg_vsi_ids_1_disks, local.strg_vsi_ids_2_disks, local.strg_vsi_ids_3_disks, local.strg_vsi_ids_4_disks, local.strg_vsi_ids_5_disks, local.strg_vsi_ids_6_disks, local.strg_vsi_ids_7_disks, local.strg_vsi_ids_8_disks, local.strg_vsi_ids_9_disks, local.strg_vsi_ids_10_disks, local.strg_vsi_ids_11_disks, local.strg_vsi_ids_12_disks, local.strg_vsi_ids_13_disks, local.strg_vsi_ids_14_disks, local.strg_vsi_ids_15_disks)))
+  storage_instance_disk_map        = jsonencode(merge(local.strg_vsi_ips_0_disks_dev_map, local.strg_vsi_ips_1_disks_dev_map, local.strg_vsi_ips_2_disks_dev_map, local.strg_vsi_ips_3_disks_dev_map, local.strg_vsi_ips_4_disks_dev_map, local.strg_vsi_ips_5_disks_dev_map, local.strg_vsi_ips_6_disks_dev_map, local.strg_vsi_ips_7_disks_dev_map, local.strg_vsi_ips_8_disks_dev_map, local.strg_vsi_ips_9_disks_dev_map, local.strg_vsi_ips_10_disks_dev_map, local.strg_vsi_ips_11_disks_dev_map, local.strg_vsi_ips_12_disks_dev_map, local.strg_vsi_ips_13_disks_dev_map, local.strg_vsi_ips_14_disks_dev_map, local.strg_vsi_ips_15_disks_dev_map))
 }
 
 module "invoke_remote_mount" {
@@ -458,6 +435,5 @@ module "invoke_remote_mount" {
   invoke_count                = local.cluster_namespace == "multi" ? 1 : 0
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
   clone_complete              = module.prepare_ansible_repo.clone_complete
-
-  depends_on = [module.invoke_compute_playbook, module.invoke_storage_playbook]
+  depends_on                  = [module.invoke_compute_playbook, module.invoke_storage_playbook]
 }
