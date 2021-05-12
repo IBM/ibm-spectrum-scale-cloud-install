@@ -54,9 +54,9 @@ if __name__ == "__main__":
 
     REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_username'] = COMPUTETF_INV['compute_gui_username']
     REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_password'] = COMPUTETF_INV['compute_gui_password']
-    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_hostname'] = COMPUTETF_INV['client_gui_hostname']
-    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_filesystem_name'] = "remotefs1"
-    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_remotemount_path'] = "/mnt"
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_hostname'] = COMPUTETF_INV['compute_gui_hostname']
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_filesystem_name'] = pathlib.PurePath(COMPUTETF_INV['filesystem_mountpoint']).name
+    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_remotemount_path'] = COMPUTETF_INV['filesystem_mountpoint']
 
     REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['storage_gui_username'] = STORAGETF_INV['storage_gui_username']
     REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['storage_gui_password'] = STORAGETF_INV['storage_gui_password']

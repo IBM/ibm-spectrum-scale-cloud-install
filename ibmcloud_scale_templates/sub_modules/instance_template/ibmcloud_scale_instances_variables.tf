@@ -64,27 +64,27 @@ variable "storage_vsi_profile" {
   description = "Profile to be used for Storage virtual server instance."
 }
 
-variable "compute_gui_username" {
+variable "compute_cluster_gui_username" {
   type        = string
-  default     = "SEC"
-  description = "Username for Compute cluster GUI"
+  sensitive   = true
+  description = "GUI user to perform system management and monitoring tasks on compute cluster."
 }
 
-variable "storage_gui_username" {
+variable "compute_cluster_gui_password" {
   type        = string
-  default     = "SEC"
-  description = "Username for Storage cluster GUI"
-}
-
-variable "compute_gui_password" {
-  type        = string
-  default     = "Storage@Scale1"
+  sensitive   = true
   description = "Password for Compute cluster GUI"
 }
 
-variable "storage_gui_password" {
+variable "storage_cluster_gui_username" {
   type        = string
-  default     = "Storage@Scale1"
+  sensitive   = true
+  description = "GUI user to perform system management and monitoring tasks on storage cluster."
+}
+
+variable "storage_cluster_gui_password" {
+  type        = string
+  sensitive   = true
   description = "Password for Storage cluster GUI"
 }
 
@@ -197,7 +197,13 @@ variable "bastion_os_flavor" {
 variable "filesystem_mountpoint" {
   type        = string
   default     = "/gpfs/fs1"
-  description = "Filesystem mount point."
+  description = "Storage cluster (owningCluster) Filesystem mount point."
+}
+
+variable "compute_filesystem_mountpoint" {
+  type        = string
+  default     = "/gpfs/fs1"
+  description = "Compute cluster (accessingCluster) Filesystem mount point."
 }
 
 variable "filesystem_block_size" {
