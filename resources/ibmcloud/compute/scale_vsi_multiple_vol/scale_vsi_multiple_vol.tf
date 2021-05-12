@@ -67,6 +67,18 @@ $PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
 firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
+firewall-offline-cmd --zone=public --add-port=47080/tcp
+firewall-offline-cmd --zone=public --add-port=47080/udp
+firewall-offline-cmd --zone=public --add-port=47443/tcp
+firewall-offline-cmd --zone=public --add-port=47443/udp
+firewall-offline-cmd --zone=public --add-port=4444/tcp
+firewall-offline-cmd --zone=public --add-port=4444/udp
+firewall-offline-cmd --zone=public --add-port=4739/udp
+firewall-offline-cmd --zone=public --add-port=4739/tcp
+firewall-offline-cmd --zone=public --add-port=9084/tcp
+firewall-offline-cmd --zone=public --add-port=9085/tcp
+firewall-offline-cmd --zone=public --add-service=http
+firewall-offline-cmd --zone=public --add-service=https
 systemctl start firewalld
 EOF
 }
