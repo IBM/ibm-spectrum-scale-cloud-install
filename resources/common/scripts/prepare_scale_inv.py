@@ -36,13 +36,18 @@ def write_json_file(json_data, json_path):
         json.dump(json_data, json_handler, indent=4)
 
 
-def initialize_cluster_details(cluster_name, scale_profile_file, scale_replica_config):
+def initialize_cluster_details(cluster_name, gui_username, gui_password,
+                               scale_profile_file, scale_replica_config):
     """ Initialize cluster details.
-    :args: cluster_name (string), scale_profile_file (string), scale_replica_config (bool)
+    :args: cluster_name (string), gui_username (string), gui_password (string),
+           scale_profile_file (string), scale_replica_config (bool)
     """
     CLUSTER_DEFINITION_JSON['scale_cluster'] = {}
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_name'] = cluster_name
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "False"
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "True"
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_user'] = gui_username
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_password'] = gui_password
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_role'] = "SystemAdmin"
     CLUSTER_DEFINITION_JSON['scale_cluster']['ephemeral_port_range'] = "60000-61000"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_file).stem)
@@ -126,10 +131,14 @@ if __name__ == "__main__":
     # Define cluster name
     if len(TF_INV['availability_zones']) > 1:
         initialize_cluster_details(TF_INV['stack_name'],
+                                   TF_INV['gui_username'],
+                                   TF_INV['gui_password'],
                                    ARGUMENTS.scale_tuning_profile_file,
                                    "True")
     else:
         initialize_cluster_details(TF_INV['stack_name'],
+                                   TF_INV['gui_username'],
+                                   TF_INV['gui_password'],
                                    ARGUMENTS.scale_tuning_profile_file,
                                    "False")
 
@@ -236,11 +245,17 @@ if __name__ == "__main__":
     if quorums_left > 0:
         for each_ip in TF_INV['compute_instances_by_ip'][0:quorums_left]:
             if len(TF_INV['storage_instance_disk_map'].keys()) == 0:
-                GUI_IP['compute_gui_hostname'] = each_ip
-                initialize_node_details(each_ip, each_ip,
-                                     is_gui_server=True, is_collector_node=False, is_nsd_server=False,
-                                     is_quorum_node=True, is_manager_node=False, is_admin_node=True,
-                                     node_class="computenodegrp")
+                if TF_INV['compute_instances_by_ip'].index(each_ip) == 0:
+                    GUI_IP['compute_gui_hostname'] = each_ip
+                    initialize_node_details(each_ip, each_ip,
+                                            is_gui_server=True, is_collector_node=True, is_nsd_server=False,
+                                            is_quorum_node=True, is_manager_node=True, is_admin_node=True,
+                                            node_class="computenodegrp")
+                elif TF_INV['compute_instances_by_ip'].index(each_ip) == 1:
+                    initialize_node_details(each_ip, each_ip,
+                                            is_gui_server=False, is_collector_node=True, is_nsd_server=False,
+                                            is_quorum_node=True, is_manager_node=True, is_admin_node=True,
+                                            node_class="computenodegrp")
             else:
                 initialize_node_details(each_ip, each_ip,
                                         is_gui_server=False, is_collector_node=False, is_nsd_server=False,
@@ -320,9 +335,9 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Updating terraform inventory with gui details: ", ARGUMENTS.tf_inv_path)
     if GUI_IP['compute_gui_hostname']:
-        TF_INV['compute_gui_hostname'] = GUI_IP['compute_gui_hostname']
+        TF_INV['gui_hostname'] = GUI_IP['compute_gui_hostname']
     elif GUI_IP['storage_gui_hostname']:
-        TF_INV['storage_gui_hostname'] = GUI_IP['storage_gui_hostname']
+        TF_INV['gui_hostname'] = GUI_IP['storage_gui_hostname']
     write_json_file(TF_INV, ARGUMENTS.tf_inv_path)
     if ARGUMENTS.verbose:
         print("Completed writing terraform infrastructure details to: ",

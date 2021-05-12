@@ -77,8 +77,8 @@ resource "local_file" "dump_compute_tf_inventory" {
     "compute_instance_desc_id": [],
     "storage_instances_by_id": [],
     "storage_instance_disk_map": {},
-    "compute_gui_username": "${var.compute_cluster_gui_username}",
-    "compute_gui_password": "${var.compute_cluster_gui_password}"
+    "gui_username": "${var.compute_cluster_gui_username}",
+    "gui_password": "${var.compute_cluster_gui_password}"
 }
 EOT
   filename   = local.tf_inv_path

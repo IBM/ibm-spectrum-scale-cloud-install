@@ -80,8 +80,8 @@ resource "local_file" "dump_strg_tf_inventory" {
     "compute_instance_desc_id": ${var.compute_instance_desc_id},
     "storage_instances_by_id": ${var.storage_instances_by_id},
     "storage_instance_disk_map": ${var.storage_instance_disk_map},
-    "storage_gui_username": "${var.storage_cluster_gui_username}",
-    "storage_gui_password": "${var.storage_cluster_gui_password}"
+    "gui_username": "${var.storage_cluster_gui_username}",
+    "gui_password": "${var.storage_cluster_gui_password}"
 }
 EOT
   filename   = local.tf_inv_path
