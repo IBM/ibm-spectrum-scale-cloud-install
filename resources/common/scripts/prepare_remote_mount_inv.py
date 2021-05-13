@@ -18,7 +18,6 @@ limitations under the License.
 import argparse
 import json
 import pathlib
-import re
 
 REMOTE_MOUNT_DEFINITION_JSON = {}
 
@@ -31,7 +30,7 @@ def read_tf_inv_file(tf_inv_path):
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Convert terraform inventory '
                                                  'to ansible inventory format '
-                                                 'install and configuration.')
+                                                 'used for remote mount.')
     PARSER.add_argument('--compute_tf_inv_path', required=True,
                         help='Terraform compute inventory file path')
     PARSER.add_argument('--storage_tf_inv_path', required=True,
