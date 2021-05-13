@@ -28,7 +28,7 @@ variable "compute_cluster_gui_password" {}
 
 locals {
   tf_inv_path                     = format("%s/%s", "/tmp/.schematics/IBM", "compute_tf_inventory.json")
-  scripts_path                    = format("%s/%s", path.root, "scripts")
+  scripts_path                    = replace(path.module, "ansible_compute_playbook", "scripts")
   ansible_inv_script_path         = "${local.scripts_path}/prepare_scale_inv.py"
   instance_ssh_wait_script_path   = "${local.scripts_path}/wait_instance_ok_state.py"
   backup_to_backend_script_path   = "${local.scripts_path}/backup_to_backend.py"
