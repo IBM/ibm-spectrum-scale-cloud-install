@@ -28,7 +28,7 @@ variable "compute_cluster_gui_password" {}
 
 locals {
   tf_inv_path                     = format("%s/%s", "/tmp/.schematics/IBM", "compute_tf_inventory.json")
-  scripts_path                    = replace(path.module, "ansible_compute_playbook", "scripts")
+  scripts_path                    = format("%s/%s", path.root, "scripts")
   ansible_inv_script_path         = "${local.scripts_path}/prepare_scale_inv.py"
   instance_ssh_wait_script_path   = "${local.scripts_path}/wait_instance_ok_state.py"
   backup_to_backend_script_path   = "${local.scripts_path}/backup_to_backend.py"
@@ -85,17 +85,9 @@ EOT
   depends_on = [null_resource.remove_existing_tf_inv]
 }
 
-resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {
-  count = (var.invoke_count == 1 && var.clone_complete == true) ? 1 : 0
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "mkdir -p ${local.scale_infra_path}/vars; cp ${local.scale_infra_path}/samples/playbook_cloud.yml ${local.scale_infra_path}/cloud_playbook.yml; cp ${local.scale_infra_path}/samples/set_json_variables.yml ${local.scale_infra_path}/set_json_variables.yml;"
-  }
-}
-
 resource "local_file" "create_scale_tuning_parameters" {
-  count      = var.invoke_count == 1 ? 1 : 0
-  content    = <<EOT
+  count    = (var.invoke_count == 1 && var.clone_complete == true) ? 1 : 0
+  content  = <<EOT
 %cluster:
  maxblocksize=16M
  restripeOnDiskFailure=yes
@@ -109,8 +101,7 @@ resource "local_file" "create_scale_tuning_parameters" {
  prefetchaggressivenessread=2
  autoload=yes
 EOT
-  filename   = local.scale_tuning_param_path
-  depends_on = [null_resource.prepare_ibm_spectrum_scale_install_infra]
+  filename = local.scale_tuning_param_path
 }
 
 resource "null_resource" "prepare_ansible_inventory" {

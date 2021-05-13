@@ -44,7 +44,15 @@ resource "null_resource" "clone_repo_tag" {
   depends_on = [null_resource.create_clone_path]
 }
 
+resource "null_resource" "prepare_ibm_spectrum_scale_install_infra" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "mkdir -p ${var.clone_path}/ibm-spectrum-scale-install-infra/vars; cp ${var.clone_path}/ibm-spectrum-scale-install-infra/samples/playbook_cloud.yml ${var.clone_path}/ibm-spectrum-scale-install-infra/cloud_playbook.yml; cp ${var.clone_path}/ibm-spectrum-scale-install-infra/samples/set_json_variables.yml ${var.clone_path}/ibm-spectrum-scale-install-infra/set_json_variables.yml;"
+  }
+  depends_on = [null_resource.clone_repo_branch, null_resource.clone_repo_tag]
+}
+
 output "clone_complete" {
   value      = true
-  depends_on = [null_resource.clone_repo_branch, null_resource.clone_repo_tag]
+  depends_on = [null_resource.clone_repo_branch, null_resource.clone_repo_tag, null_resource.prepare_ibm_spectrum_scale_install_infra]
 }
