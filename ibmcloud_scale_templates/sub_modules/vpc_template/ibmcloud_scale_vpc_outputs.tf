@@ -7,7 +7,7 @@ output "vpc_id" {
 }
 
 output "compute_private_subnets" {
-  value = var.create_seperate_subnets == true ? module.compute_private_subnet[0].subnet_id : []
+  value = var.create_separate_subnets == true ? module.compute_private_subnet[0].subnet_id : []
 }
 
 output "storage_private_subnets" {

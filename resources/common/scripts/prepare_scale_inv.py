@@ -47,7 +47,7 @@ def initialize_cluster_details(cluster_name, gui_username, gui_password,
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "True"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_user'] = gui_username
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_password'] = gui_password
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_role'] = "SystemAdmin"
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_role'] = "Administrator"
     CLUSTER_DEFINITION_JSON['scale_cluster']['ephemeral_port_range'] = "60000-61000"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_file).stem)
@@ -256,11 +256,11 @@ if __name__ == "__main__":
                                             is_gui_server=False, is_collector_node=True, is_nsd_server=False,
                                             is_quorum_node=True, is_manager_node=True, is_admin_node=True,
                                             node_class="computenodegrp")
-            else:
-                initialize_node_details(each_ip, each_ip,
-                                        is_gui_server=False, is_collector_node=False, is_nsd_server=False,
-                                        is_quorum_node=True, is_manager_node=False, is_admin_node=True,
-                                        node_class="computenodegrp")
+                else:
+                    initialize_node_details(each_ip, each_ip,
+                                            is_gui_server=False, is_collector_node=False, is_nsd_server=False,
+                                            is_quorum_node=True, is_manager_node=False, is_admin_node=True,
+                                            node_class="computenodegrp")
 
         for each_ip in TF_INV['compute_instances_by_ip'][quorums_left:]:
             initialize_node_details(each_ip, each_ip,

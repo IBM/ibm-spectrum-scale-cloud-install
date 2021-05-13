@@ -21,7 +21,7 @@ module "vpc_module" {
   zones                   = var.zones
   compute_cidr_block      = var.compute_cidr_block
   storage_cidr_block      = var.storage_cidr_block
-  create_seperate_subnets = var.create_seperate_subnets
+  create_separate_subnets = var.create_separate_subnets
   dns_domains             = var.dns_domains
   stack_name              = var.stack_name
   addr_prefixes           = var.addr_prefixes
@@ -38,7 +38,7 @@ module "bastion_module" {
   bastion_osimage_name    = var.bastion_osimage_name
   bastion_vsi_profile     = var.bastion_vsi_profile
   bastion_ssh_key         = var.bastion_ssh_key
-  bastion_subnet_id       = var.create_seperate_subnets == true ? module.vpc_module.compute_private_subnets : module.vpc_module.storage_private_subnets
+  bastion_subnet_id       = var.create_separate_subnets == true ? module.vpc_module.compute_private_subnets : module.vpc_module.storage_private_subnets
   resource_grp_id         = data.ibm_resource_group.group.id
 }
 
