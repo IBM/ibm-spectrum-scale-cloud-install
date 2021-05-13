@@ -19,7 +19,7 @@ import argparse
 import json
 import pathlib
 
-REMOTE_MOUNT_DEFINITION_JSON = {}
+REMOTE_MOUNT_DEFINITION_JSON = {'scale_remotemount': {}, 'node_details': []}
 
 def read_tf_inv_file(tf_inv_path):
     """ Read the terraform inventory json file """
@@ -48,8 +48,15 @@ if __name__ == "__main__":
         print("Parsed terraform output: %s" % json.dumps(COMPUTETF_INV, indent=4))
         print("Parsed terraform output: %s" % json.dumps(STORAGETF_INV, indent=4))
 
-
-    REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount'] = {}
+    REMOTE_MOUNT_DEFINITION_JSON['node_details'].append({"fqdn": STORAGETF_INV['gui_hostname'],
+                                                         "ip_address": STORAGETF_INV['gui_hostname'],
+                                                         "is_protocol_node": False,
+                                                         "is_nsd_server": False,
+                                                         "is_quorum_node": False,
+                                                         "is_manager_node": False,
+                                                         "is_gui_server": False,
+                                                         "is_callhome_node": False,
+                                                         "scale_zimon_collector": False})
 
     REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_username'] = COMPUTETF_INV['gui_username']
     REMOTE_MOUNT_DEFINITION_JSON['scale_remotemount']['client_gui_password'] = COMPUTETF_INV['gui_password']
