@@ -435,6 +435,10 @@ module "invoke_remote_mount" {
   source                      = "../../../resources/common/ansible_remote_mount_playbook"
   invoke_count                = local.cluster_namespace == "multi" ? 1 : 0
   scale_infra_repo_clone_path = var.scale_infra_repo_clone_path
+  cloud_platform              = local.cloud_platform
+  tf_data_path                = var.tf_data_path
+  bastion_public_ip           = var.bastion_public_ip
+  bastion_os_flavor           = var.bastion_os_flavor
   clone_complete              = module.prepare_ansible_repo.clone_complete
   depends_on                  = [module.invoke_compute_playbook, module.invoke_storage_playbook]
 }
