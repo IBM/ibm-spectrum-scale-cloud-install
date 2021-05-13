@@ -41,10 +41,10 @@ variable "storage_cidr_block" {
   description = "IBM Cloud VPC primary storage subnet CIDR blocks."
 }
 
-variable "create_seperate_subnets" {
+variable "create_separate_subnets" {
   type        = bool
   default     = true
-  description = "Flag to select if seperate subnets to be created for compute and storage."
+  description = "Flag to select if separate subnets to be created for compute and storage."
 }
 
 variable "dns_domains" {

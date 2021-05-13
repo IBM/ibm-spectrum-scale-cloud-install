@@ -29,10 +29,10 @@ variable "addr_prefixes" {
   description = "IBM Cloud VPC address prefixes."
 }
 
-variable "create_seperate_subnets" {
+variable "create_separate_subnets" {
   type        = bool
   default     = true
-  description = "Flag to select if seperate subnets to be created for compute and storage."
+  description = "Flag to select if separate subnets to be created for compute and storage."
 }
 
 variable "compute_cidr_block" {

@@ -99,7 +99,7 @@ resource "ibm_dns_resource_record" "a_1_nic_records" {
   instance_id = var.dns_service_id
   zone_id     = var.dns_zone_id
   type        = "A"
-  name        = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
+  name        = element(ibm_is_instance.vsi_1_nic.*.name, count.index)
   rdata       = element(ibm_is_instance.vsi_1_nic[*].primary_network_interface[0]["primary_ipv4_address"], count.index)
   ttl         = 300
 }
@@ -150,7 +150,7 @@ resource "ibm_dns_resource_record" "a_2_nic_records" {
   instance_id = var.dns_service_id
   zone_id     = var.dns_zone_id
   type        = "A"
-  name        = "${var.vsi_name_prefix}-vsi-${count.index + 1}"
+  name        = element(ibm_is_instance.vsi_2_nic.*.name, count.index)
   rdata       = element(ibm_is_instance.vsi_2_nic[*].primary_network_interface[0]["primary_ipv4_address"], count.index)
   ttl         = 300
 }
