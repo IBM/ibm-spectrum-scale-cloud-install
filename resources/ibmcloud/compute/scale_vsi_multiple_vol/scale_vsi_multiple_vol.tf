@@ -63,7 +63,7 @@ echo "${data.local_file.tuned_config.content}" > "/usr/lib/tuned/virtual-gpfs-gu
 tuned-adm profile virtual-gpfs-guest
 echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 systemctl restart NetworkManager
-$PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+$PKG_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) make cpp gcc gcc-c++ elfutils-libelf-devel
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
 firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
