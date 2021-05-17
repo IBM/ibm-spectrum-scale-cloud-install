@@ -340,6 +340,26 @@ locals {
   } : {}
 }
 
+module "compute_remote_copy_rpms" {
+  source              = "../../../resources/common/remote_copy"
+  target_ips          = local.compute_vsi_by_ip
+  target_user         = "root"
+  ssh_private_key     = module.compute_cluster_ssh_keys.private_key.0
+  bastion_ip          = var.bastion_public_ip
+  bastion_user        = local.cloud_platform == "IBMCloud" ? (length(regexall("ubuntu", var.bastion_os_flavor)) > 0 ? "ubuntu" : "vpcuser") : "ec2-user"
+  bastion_private_key = var.instances_ssh_private_key
+}
+
+module "storage_remote_copy_rpms" {
+  source              = "../../../resources/common/remote_copy"
+  target_ips          = local.storage_vsis_1A_by_ip
+  target_user         = "root"
+  ssh_private_key     = module.storage_cluster_ssh_keys.private_key.0
+  bastion_ip          = var.bastion_public_ip
+  bastion_user        = local.cloud_platform == "IBMCloud" ? (length(regexall("ubuntu", var.bastion_os_flavor)) > 0 ? "ubuntu" : "vpcuser") : "ec2-user"
+  bastion_private_key = var.instances_ssh_private_key
+}
+
 module "prepare_ansible_repo" {
   source     = "../../../resources/common/git_utils"
   branch     = "scale_cloud"
@@ -371,6 +391,7 @@ module "invoke_compute_playbook" {
   notification_arn                 = "None"
   compute_instances_by_id          = module.compute_vsis.vsi_ids == null ? jsonencode([]) : jsonencode(module.compute_vsis.vsi_ids)
   compute_instances_by_ip          = local.compute_vsi_by_ip == null ? jsonencode([]) : jsonencode(local.compute_vsi_by_ip)
+  depends_on                       = [module.compute_remote_copy_rpms]
 }
 
 module "invoke_storage_playbook" {
@@ -400,6 +421,7 @@ module "invoke_storage_playbook" {
   compute_instance_desc_id         = jsonencode(module.desc_compute_vsi.vsi_ids)
   storage_instances_by_id          = jsonencode(compact(concat(local.strg_vsi_ids_0_disks, local.strg_vsi_ids_1_disks, local.strg_vsi_ids_2_disks, local.strg_vsi_ids_3_disks, local.strg_vsi_ids_4_disks, local.strg_vsi_ids_5_disks, local.strg_vsi_ids_6_disks, local.strg_vsi_ids_7_disks, local.strg_vsi_ids_8_disks, local.strg_vsi_ids_9_disks, local.strg_vsi_ids_10_disks, local.strg_vsi_ids_11_disks, local.strg_vsi_ids_12_disks, local.strg_vsi_ids_13_disks, local.strg_vsi_ids_14_disks, local.strg_vsi_ids_15_disks)))
   storage_instance_disk_map        = jsonencode(merge(local.strg_vsi_ips_0_disks_dev_map, local.strg_vsi_ips_1_disks_dev_map, local.strg_vsi_ips_2_disks_dev_map, local.strg_vsi_ips_3_disks_dev_map, local.strg_vsi_ips_4_disks_dev_map, local.strg_vsi_ips_5_disks_dev_map, local.strg_vsi_ips_6_disks_dev_map, local.strg_vsi_ips_7_disks_dev_map, local.strg_vsi_ips_8_disks_dev_map, local.strg_vsi_ips_9_disks_dev_map, local.strg_vsi_ips_10_disks_dev_map, local.strg_vsi_ips_11_disks_dev_map, local.strg_vsi_ips_12_disks_dev_map, local.strg_vsi_ips_13_disks_dev_map, local.strg_vsi_ips_14_disks_dev_map, local.strg_vsi_ips_15_disks_dev_map))
+  depends_on                       = [module.storage_remote_copy_rpms]
 }
 
 module "invoke_scale_playbook" {
