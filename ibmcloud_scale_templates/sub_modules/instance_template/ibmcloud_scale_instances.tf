@@ -140,8 +140,8 @@ module "desc_compute_vsi" {
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = module.check_resource_existance.storage_vsi_osimage_id
   vsi_user_public_key     = [module.check_resource_existance.instance_ssh_key_id]
-  vsi_meta_private_key    = var.total_compute_instances > 0 ? module.compute_cluster_ssh_keys.private_key.0 : ""
-  vsi_meta_public_key     = var.total_compute_instances > 0 ? module.compute_cluster_ssh_keys.public_key.0 : ""
+  vsi_meta_private_key    = module.storage_cluster_ssh_keys.private_key.0
+  vsi_meta_public_key     = module.storage_cluster_ssh_keys.public_key.0
   vsi_data_volumes_count  = 1
   vsi_volumes             = module.create_desc_disk.volume_id
   vsi_tuning_file_path    = format("%s/%s/%s", abspath(path.module), "tuned_profiles/storage", "tuned.conf")
