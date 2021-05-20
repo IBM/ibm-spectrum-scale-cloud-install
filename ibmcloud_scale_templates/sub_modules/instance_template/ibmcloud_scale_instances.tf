@@ -106,8 +106,8 @@ module "compute_vsis" {
   vsi_profile             = var.compute_vsi_profile
   vsi_image_id            = module.check_resource_existance.compute_vsi_osimage_id
   vsi_user_public_key     = [module.check_resource_existance.instance_ssh_key_id]
-  vsi_meta_private_key    = module.compute_cluster_ssh_keys.private_key.0
-  vsi_meta_public_key     = module.compute_cluster_ssh_keys.public_key.0
+  vsi_meta_private_key    = var.total_compute_instances > 0 ? module.compute_cluster_ssh_keys.private_key.0 : ""
+  vsi_meta_public_key     = var.total_compute_instances > 0 ? module.compute_cluster_ssh_keys.public_key.0 : ""
   vsi_tuning_file_path    = format("%s/%s/%s", abspath(path.module), "tuned_profiles/compute", "tuned.conf")
 
   depends_on = [module.compute_instances_sg_cidr_rule, module.storage_instances_sg_cidr_rule]
@@ -344,7 +344,7 @@ module "compute_remote_copy_rpms" {
   source              = "../../../resources/common/remote_copy"
   target_ips          = local.compute_vsi_by_ip
   target_user         = "root"
-  ssh_private_key     = module.compute_cluster_ssh_keys.private_key.0
+  ssh_private_key     = var.total_compute_instances > 0 ? module.compute_cluster_ssh_keys.private_key.0 : ""
   bastion_ip          = var.bastion_public_ip
   bastion_user        = local.cloud_platform == "IBMCloud" ? (length(regexall("ubuntu", var.bastion_os_flavor)) > 0 ? "ubuntu" : "vpcuser") : "ec2-user"
   bastion_private_key = var.instances_ssh_private_key
@@ -461,6 +461,7 @@ module "invoke_remote_mount" {
   tf_data_path                = var.tf_data_path
   bastion_public_ip           = var.bastion_public_ip
   bastion_os_flavor           = var.bastion_os_flavor
+  total_compute_instances     = var.total_compute_instances
   clone_complete              = module.prepare_ansible_repo.clone_complete
   depends_on                  = [module.invoke_compute_playbook, module.invoke_storage_playbook]
 }
