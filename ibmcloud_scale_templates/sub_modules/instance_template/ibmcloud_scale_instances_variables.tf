@@ -32,6 +32,11 @@ variable "compute_vsi_osimage_name" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"
   description = "Compute instance OS image name."
+
+  validation {
+    condition     = can(regex("ibm-redhat-8-3|ibm-redhat-7-9", var.compute_vsi_osimage_name))
+    error_message = "The image must be Redhat 7.9 or 8.3 only."
+  }
 }
 
 variable "total_compute_instances" {
@@ -44,6 +49,12 @@ variable "storage_vsi_osimage_name" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"
   description = "Storage instance OS image name."
+
+  validation {
+    condition     = can(regex("ibm-redhat-8-3|ibm-redhat-7-9", var.storage_vsi_osimage_name))
+    error_message = "The image must be Redhat 7.9 or 8.3 only."
+  }
+
 }
 
 variable "total_storage_instances" {
