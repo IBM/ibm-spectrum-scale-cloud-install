@@ -11,6 +11,7 @@ variable "bastion_os_flavor" {}
 variable "bastion_public_ip" {}
 variable "scale_infra_repo_clone_path" {}
 variable "total_compute_instances" {}
+variable "total_storage_instances" {}
 
 locals {
   scripts_path                    = replace(path.module, "ansible_remote_mount_playbook", "scripts")
@@ -26,7 +27,7 @@ locals {
 }
 
 resource "null_resource" "prepare_remote_mount_ansible_inv" {
-  count = (var.total_compute_instances > 0 && var.invoke_count == 1 && var.clone_complete) ? 1 : 0
+  count = (var.total_compute_instances > 0 && var.total_storage_instances > 0 && var.invoke_count == 1 && var.clone_complete) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --compute_tf_inv_path ${local.compute_tf_inv_path} --storage_tf_inv_path ${local.storage_tf_inv_path} --remote_mount_def_path ${local.remote_mount_def_path}"
@@ -34,13 +35,13 @@ resource "null_resource" "prepare_remote_mount_ansible_inv" {
 }
 
 resource "time_sleep" "wait_for_gui_db_initializion" {
-  count           = (var.total_compute_instances > 0 && var.invoke_count == 1 && var.clone_complete) ? 1 : 0
+  count           = (var.total_compute_instances > 0 && var.total_storage_instances > 0 && var.invoke_count == 1 && var.clone_complete) ? 1 : 0
   depends_on      = [null_resource.prepare_remote_mount_ansible_inv]
   create_duration = "90s"
 }
 
 resource "null_resource" "call_remote_mnt_playbook" {
-  count = (var.total_compute_instances > 0 && var.invoke_count == 1 && var.clone_complete) ? 1 : 0
+  count = (var.total_compute_instances > 0 && var.total_storage_instances > 0 && var.invoke_count == 1 && var.clone_complete) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook --private-key ${local.storage_instances_root_key_path} -e \"scale_cluster_definition_path=${local.remote_mount_def_path}\" --ssh-common-args \"-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\\\"ssh -W %h:%p ${local.bastion_user}@${var.bastion_public_ip} -i ${local.instances_ssh_private_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\\\"\" ${local.rmt_mnt_playbook_path}"
