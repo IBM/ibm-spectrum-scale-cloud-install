@@ -34,6 +34,11 @@ variable "total_compute_instances" {
   type        = string
   default     = 2
   description = "Total Compute instances."
+
+  validation {
+    condition     = var.total_compute_instances <= 100
+    error_message = "Input \"total_compute_instances\" must be <= 100."
+  }
 }
 
 variable "storage_vsi_osimage_name" {
@@ -46,18 +51,33 @@ variable "total_storage_instances" {
   type        = string
   default     = 2
   description = "Total Storage instances."
+ 
+  validation {
+    condition     = var.total_storage_instances <= 34
+    error_message = "Input \"total_storage_instances\" must be <= 34."
+  }
 }
 
 variable "compute_vsi_profile" {
   type        = string
   default     = "cx2-2x4"
   description = "Profile to be used for Compute virtual server instance."
+
+  validation {
+    condition     = can(regex("^[^\\s]+-[0-9]+x[0-9]+", var.compute_vsi_profile))
+    error_message = "The profile must be a valid profile name."
+  }
 }
 
 variable "storage_vsi_profile" {
   type        = string
   default     = "cx2-2x4"
   description = "Profile to be used for Storage virtual server instance."
+
+  validation {
+    condition     = can(regex("^[^\\s]+-[0-9]+x[0-9]+", var.storage_vsi_profile))
+    error_message = "The profile must be a valid profile name."
+  }
 }
 
 variable "compute_cluster_gui_username" {
