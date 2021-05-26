@@ -12,6 +12,11 @@ variable "stack_name" {
   type        = string
   default     = "spectrum-scale"
   description = "IBM Cloud stack name (keep all lower case), it will be used as resource prefix."
+
+   validation {
+    condition     = lower(var.stack_name) == var.stack_name
+    error_message = "IBM Cloud stack name should be all lower case."
+  }
 }
 
 variable "vpc_addr_prefixes" {
