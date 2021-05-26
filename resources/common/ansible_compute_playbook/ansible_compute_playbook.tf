@@ -19,7 +19,7 @@ variable "clone_complete" {}
 variable "bastion_public_ip" {}
 variable "bastion_os_flavor" {}
 variable "scale_version" {}
-variable "instances_ssh_private_key" {}
+variable "bastion_ssh_private_key_content" {}
 variable "compute_instances_by_ip" {}
 variable "compute_instances_by_id" {}
 variable "compute_filesystem_mountpoint" {}
@@ -115,7 +115,7 @@ resource "null_resource" "prepare_ansible_inventory" {
 
 resource "local_file" "prepare_jumphost_config" {
   count             = var.invoke_count == 1 ? 1 : 0
-  sensitive_content = var.instances_ssh_private_key
+  sensitive_content = var.bastion_ssh_private_key_content
   filename          = local.instances_ssh_private_key_path
   file_permission   = "0600"
   depends_on        = [null_resource.prepare_ansible_inventory]

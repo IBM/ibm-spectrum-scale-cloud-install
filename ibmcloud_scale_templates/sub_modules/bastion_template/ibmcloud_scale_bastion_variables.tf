@@ -1,12 +1,9 @@
-variable "region" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
+variable "vpc_region" {
   type        = string
   description = "IBM Cloud region where the resources will be created."
 }
 
-variable "zones" {
+variable "vpc_zones" {
   /* Keep it empty, it will be propagated via command line or via ".tfvars"
        or ".tfvars.json"
     */
@@ -15,9 +12,6 @@ variable "zones" {
 }
 
 variable "stack_name" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
   type        = string
   default     = "spectrum-scale"
   description = "IBM Cloud stack name (keep all lower case)."

@@ -19,8 +19,8 @@ module "vpc_addr_prefix" {
   source              = "../../../resources/ibmcloud/network/vpc_addr_prefix"
   vpc_id              = module.vpc.vpc_id
   address_name_prefix = var.stack_name
-  zones               = var.zones
-  cidr_block          = var.addr_prefixes
+  zones               = var.vpc_zones
+  cidr_block          = var.vpc_addr_prefixes
 }
 
 module "common_public_gw" {
@@ -28,16 +28,16 @@ module "common_public_gw" {
   public_gw_name  = format("%s-gw", var.stack_name)
   resource_grp_id = var.resource_grp_id
   vpc_id          = module.vpc.vpc_id
-  zones           = var.zones
+  zones           = var.vpc_zones
 }
 
 module "storage_private_subnet" {
   source            = "../../../resources/ibmcloud/network/subnet"
   vpc_id            = module.vpc.vpc_id
   resource_grp_id   = var.resource_grp_id
-  zones             = var.zones
+  zones             = var.vpc_zones
   subnet_name       = format("%s-strg-pvt", var.stack_name)
-  subnet_cidr_block = var.storage_cidr_block
+  subnet_cidr_block = var.vpc_storage_cluster_cidr_block
   public_gateway    = module.common_public_gw.public_gw_id
 
   depends_on = [module.vpc_addr_prefix]
@@ -45,12 +45,12 @@ module "storage_private_subnet" {
 
 module "compute_private_subnet" {
   source            = "../../../resources/ibmcloud/network/subnet"
-  count             = var.create_separate_subnets == true ? 1 : 0
+  count             = var.vpc_create_separate_subnets == true ? 1 : 0
   vpc_id            = module.vpc.vpc_id
   resource_grp_id   = var.resource_grp_id
-  zones             = var.zones
+  zones             = var.vpc_zones
   subnet_name       = format("%s-comp-pvt", var.stack_name)
-  subnet_cidr_block = var.compute_cidr_block
+  subnet_cidr_block = var.vpc_compute_cluster_cidr_block
   public_gateway    = module.common_public_gw.public_gw_id
 
   depends_on = [module.vpc_addr_prefix]
@@ -58,7 +58,7 @@ module "compute_private_subnet" {
 
 module "dns_service" {
   source                 = "../../../resources/ibmcloud/resource_instance"
-  service_count          = var.create_separate_subnets == true ? 2 : 1
+  service_count          = var.vpc_create_separate_subnets == true ? 2 : 1
   resource_instance_name = [format("%s-strgdns", var.stack_name), format("%s-compdns", var.stack_name)]
   resource_grp_id        = var.resource_grp_id
   target_location        = "global"
@@ -68,7 +68,7 @@ module "dns_service" {
 
 module "dns_zone" {
   source         = "../../../resources/ibmcloud/network/dns_zone"
-  dns_zone_count = var.create_separate_subnets == true ? 2 : 1
+  dns_zone_count = var.vpc_create_separate_subnets == true ? 2 : 1
   dns_domain     = var.dns_domains
   dns_service_id = module.dns_service.resource_guid
   dns_label      = var.stack_name
