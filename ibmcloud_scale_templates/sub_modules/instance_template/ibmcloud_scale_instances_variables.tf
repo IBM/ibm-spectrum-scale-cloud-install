@@ -1,26 +1,17 @@
-variable "region" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
+variable "vpc_region" {
   type        = string
-  description = "IBM Cloud region where the resources will be created."
+  description = "IBM Cloud VPC region where the resources will be created."
 }
 
-variable "zones" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
+variable "vpc_zones" {
   type        = list(string)
-  description = "IBM Cloud zone names."
+  description = "IBM Cloud VPC zone names."
 }
 
 variable "stack_name" {
-  /* Keep it empty, it will be propagated via command line or via ".tfvars"
-       or ".tfvars.json"
-    */
   type        = string
   default     = "spectrum-scale"
-  description = "IBM Cloud stack name (keep all lower case)."
+  description = "IBM Cloud stack name (keep all lower case), it will be used as resource prefix."
 }
 
 variable "vpc_id" {
@@ -93,23 +84,23 @@ variable "instance_ssh_key" {
   description = "SSH key name to be used for Compute, Storage virtual server instance."
 }
 
-variable "compute_private_subnets" {
+variable "vpc_compute_cluster_private_subnets" {
   type        = list(string)
   description = "Subnet id to be used for Compute virtual server instance."
 }
 
-variable "storage_private_subnets" {
+variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)
   description = "Subnet id to be used for Storage virtual server instance."
 }
 
-variable "compute_cidr_block" {
+variable "vpc_compute_cluster_cidr_block" {
   type        = list(string)
   default     = ["10.241.0.0/24", "10.241.64.0/24", "10.241.128.0/24"]
   description = "IBM Cloud VPC primary compute subnet CIDR blocks."
 }
 
-variable "storage_cidr_block" {
+variable "vpc_storage_cluster_cidr_block" {
   type        = list(string)
   default     = ["10.241.1.0/24", "10.241.64.1/24", "10.241.128.1/24"]
   description = "IBM Cloud VPC primary storage subnet CIDR blocks."
@@ -179,9 +170,9 @@ variable "scale_infra_repo_clone_path" {
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
 
-variable "instances_ssh_private_key" {
+variable "bastion_ssh_private_key_content" {
   type        = string
-  description = "SSH private key, which will be used to login to bastion host."
+  description = "Bastion SSH private key content, which will be used to login to bastion host."
 }
 
 variable "bastion_public_ip" {
@@ -228,4 +219,3 @@ variable "activity_tracker_plan_type" {
   default     = "lite"
   description = "IBM Cloud activity tracker plan type (Valid: lite, 7-day, 14-day, 30-day, hipaa-30-day)."
 }
-

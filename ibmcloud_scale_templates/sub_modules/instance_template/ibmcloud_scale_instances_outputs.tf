@@ -43,9 +43,9 @@ output "storage_vsi_2A_secondary_ips" {
 }
 
 output "volume_1A_ids" {
-  value = var.block_volumes_per_instance == 0 && length(var.zones) == 1 ? module.storage_vsis_1A_zone.vsi_instance_storage_volumes : module.create_data_disks_1A_zone.volume_id
+  value = var.block_volumes_per_instance == 0 && length(var.vpc_zones) == 1 ? module.storage_vsis_1A_zone.vsi_instance_storage_volumes : module.create_data_disks_1A_zone.volume_id
 }
 
 output "volume_2A_ids" {
-  value = var.block_volumes_per_instance == 0 && length(var.zones) >= 3 ? module.storage_vsis_2A_zone.vsi_instance_storage_volumes : module.create_data_disks_2A_zone.volume_id
+  value = var.block_volumes_per_instance == 0 && length(var.vpc_zones) >= 3 ? module.storage_vsis_2A_zone.vsi_instance_storage_volumes : module.create_data_disks_2A_zone.volume_id
 }

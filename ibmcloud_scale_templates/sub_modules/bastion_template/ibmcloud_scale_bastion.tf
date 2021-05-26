@@ -47,7 +47,7 @@ module "bastion_vsi" {
   total_vsis          = 1
   vsi_name_prefix     = format("%s-bastion", var.stack_name)
   vpc_id              = var.vpc_id
-  zones               = var.zones
+  zones               = var.vpc_zones
   resource_grp_id     = var.resource_grp_id
   vsi_subnet_id       = var.bastion_subnet_id
   vsi_security_group  = [module.bastion_security_group.sec_group_id[0]]
