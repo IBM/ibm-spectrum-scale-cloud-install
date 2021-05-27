@@ -24,6 +24,8 @@ module "compute_instances_sg_cidr_rule" {
   security_group_ids = module.instances_security_group.sec_group_id.1
   sg_direction       = "inbound"
   remote_cidr        = [var.vpc_storage_cluster_cidr_block.0, var.vpc_compute_cluster_cidr_block.0]
+
+  depends_on         = [module.instances_security_group]
 }
 
 module "storage_instances_sg_cidr_rule" {
@@ -32,6 +34,8 @@ module "storage_instances_sg_cidr_rule" {
   security_group_ids = module.instances_security_group.sec_group_id.0
   sg_direction       = "inbound"
   remote_cidr        = length(module.instances_security_group.sec_group_id) == 1 ? [var.vpc_storage_cluster_cidr_block.0] : [var.vpc_storage_cluster_cidr_block.0, var.vpc_compute_cluster_cidr_block.0]
+
+  depends_on         = [module.instances_security_group] 
 }
 
 module "instances_sg_outbound_rule" {
@@ -39,6 +43,8 @@ module "instances_sg_outbound_rule" {
   security_group_ids = module.instances_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = "0.0.0.0/0"
+
+  depends_on         = [module.instances_security_group]
 }
 
 data "ibm_is_ssh_key" "instance_ssh_key" {
