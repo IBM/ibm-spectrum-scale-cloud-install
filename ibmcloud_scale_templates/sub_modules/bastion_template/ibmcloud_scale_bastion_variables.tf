@@ -43,6 +43,11 @@ variable "bastion_vsi_profile" {
   type        = string
   default     = "cx2-2x4"
   description = "Profile to be used for Bastion virtual server instance."
+
+  validation {
+    condition     = can(regex("^[^\\s]+-[0-9]+x[0-9]+", var.bastion_vsi_profile))
+    error_message = "The profile must be a valid profile name."
+  }
 }
 
 variable "bastion_ssh_key" {
