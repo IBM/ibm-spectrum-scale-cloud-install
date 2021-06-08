@@ -10,7 +10,7 @@
 
 ### Coding Practices
 
-* Terraform 
+* Terraform
     - get started with [terraform](https://learn.hashicorp.com/terraform#getting-started)
     - practice [terraform configuration language](https://www.terraform.io/docs/configuration/index.html)
     - document template parameters using [terraform-docs](https://github.com/IBM/ibm-spectrum-scale-cloud-install/docs/README.md#Auto-Generate-Docs-for-Template-Parameters)

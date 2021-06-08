@@ -1,59 +1,113 @@
-# IBM Spectrum Scale Cloud Install
+# terraform-docs
 
-IBM Spectrum Scale is a high-performance, highly available clustered file system and associated management software, and is available on a variety of platforms. It offers many features beyond common data access including data replication, policy based storage management, encryption, and multi-site operations. The `ibm-spectrum-scale-cloud-install` provides terraform templates (built based on best cloud practices) to provision public cloud infrastructure (i.e. AWS, Azure, GCP, IBM Cloud) where IBM Spectrum Scale can be deployed for users who require highly available access to a shared namespace across multiple instances.
+[![Build Status](https://github.com/terraform-docs/terraform-docs/workflows/ci/badge.svg)](https://github.com/terraform-docs/terraform-docs/actions) [![GoDoc](https://pkg.go.dev/badge/github.com/terraform-docs/terraform-docs)](https://pkg.go.dev/github.com/terraform-docs/terraform-docs) [![Go Report Card](https://goreportcard.com/badge/github.com/terraform-docs/terraform-docs)](https://goreportcard.com/report/github.com/terraform-docs/terraform-docs) [![Codecov Report](https://codecov.io/gh/terraform-docs/terraform-docs/branch/master/graph/badge.svg)](https://codecov.io/gh/terraform-docs/terraform-docs) [![License](https://img.shields.io/github/license/terraform-docs/terraform-docs)](https://github.com/terraform-docs/terraform-docs/blob/master/LICENSE) [![Latest release](https://img.shields.io/github/v/release/terraform-docs/terraform-docs)](https://github.com/terraform-docs/terraform-docs/releases)
 
-## IBM Spectrum Scale - Cluster Configuration
+![terraform-docs-teaser](./images/terraform-docs-teaser.png)
 
-IBM Spectrum Scale™ cluster can be configured in a variety of ways. The cluster can be a heterogeneous mix of hardware platforms, virtualized instances and operating systems.
+## What is terraform-docs
 
-Using these templates, Spectrum Scale cluster can be deployed in below architectures;
+A utility to generate documentation from Terraform modules in various output formats.
 
-* [IBM Spectrum Scale Architecture - Single Availability zone](docs/images/Single-Zone-Architecture.jpg)
+## Documentation
 
-* [IBM Spectrum Scale Architecture - Multi Availability zone](docs/images/Multi-Zone-Architecture.jpg)
+- **Users**
+  - Read the [User Guide] to learn how to use terraform-docs
+  - Read the [Formats Guide] to learn about different output formats of terraform-docs
+  - Refer to [Config File Reference] for all the available configuration options
+- **Developers**
+  - Read [Contributing Guide] before submitting a pull request
 
-## IBM Spectrum Scale - Product Editions
+Visit [our website] for all documentation.
 
-IBM Spectrum Scale offers different editions based on functional levels.
-- IBM Spectrum Scale Standard Edition
-- IBM Spectrum Scale Data Access Edition
-- IBM Spectrum Scale Advanced Edition
-- IBM Spectrum Scale Data Management Edition (**Recommended for Cloud usecases**)
-- IBM Spectrum Scale Erasure Code Edition
-- IBM Spectrum Scale Developer Edition
+## Installation
 
-  > Learn, develop and test with IBM Spectrum Scale™, for `non-production use`. Developer edition provides all the features of the Data Management Edition and it is limited to 12 TB per cluster. It can be downloaded from [IBM Market place](https://www.ibm.com/products/spectrum-scale)
+The latest version can be installed using `go get`:
 
-## Prerequisites
+```bash
+GO111MODULE="on" go get github.com/terraform-docs/terraform-docs@v0.14.1
+```
 
-Ensure that the following requirements are met on the server where this repository is cloned.
+**NOTE:** to download any version **before** `v0.9.1` (inclusive) you need to use to
+old module namespace (`segmentio`):
 
-* Install [Terraform](https://learn.hashicorp.com/terraform/getting-started/install.html) and validate:
+```bash
+# only for v0.9.1 and before
+GO111MODULE="on" go get github.com/segmentio/terraform-docs@v0.9.1
+```
 
-    * `terraform -v`
+**NOTE:** please use the latest Go to do this, minimum `go1.16` or greater.
 
-* Install [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and validate:
+This will put `terraform-docs` in `$(go env GOPATH)/bin`. If you encounter the error
+`terraform-docs: command not found` after installation then you may need to either add
+that directory to your `$PATH` as shown [here] or do a manual installation by cloning
+the repo and run `make build` from the repository which will put `terraform-docs` in:
 
-    * `ansible --version`
+```bash
+$(go env GOPATH)/src/github.com/terraform-docs/terraform-docs/bin/$(uname | tr '[:upper:]' '[:lower:]')-amd64/terraform-docs
+```
 
-## Usage
+Stable binaries are also available on the [releases] page. To install, download the
+binary for your platform from "Assets" and place this into your `$PATH`:
 
-  * [Amazon Web Services (AWS)](docs/aws.md)
-  * [Microsoft Azure (Azure)](docs/azure.md)
-  * [Google Cloud Platform (GCP)](docs/gcp.md)
-  * [IBM Cloud](docs/ibmcloud.md)
+```bash
+curl -Lo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.14.1/terraform-docs-v0.14.1-$(uname)-amd64.tar.gz
+tar -xzf terraform-docs.tar.gz
+chmod +x terraform-docs
+mv terraform-docs /some-dir-in-your-PATH/terraform-docs
+```
 
-### Reporting Issues and Feedback
+**NOTE:** Windows releases are in `ZIP` format.
 
-To file issues, suggestions, new features, etc., please open an [Issue](https://github.com/IBM/ibm-spectrum-scale-cloud-install/issues).
+If you are a Mac OS X user, you can use [Homebrew]:
 
-### Disclaimer
+```bash
+brew install terraform-docs
+```
 
-Please note: All templates / modules / resources in this repo are released for use "AS IS" without any warranties of
-any kind, including, but not limited to their installation, use, or performance. We are not responsible for any damage,
-data loss or charges incurred with their use. You are responsible for reviewing and testing any scripts you run
-thoroughly before use in any production environment. This content is subject to change without notice.
+or
 
-### Contribute Code
+```bash
+brew install terraform-docs/tap/terraform-docs
+```
 
-We welcome contributions to this project, see [Contributing](CONTRIBUTING.md) for more details.
+Windows users can install using [Scoop]:
+
+```bash
+scoop bucket add terraform-docs https://github.com/terraform-docs/scoop-bucket
+scoop install terraform-docs
+```
+
+or [Chocolatey]:
+
+```bash
+choco install terraform-docs
+```
+
+Alternatively you also can run `terraform-docs` as a container:
+
+```bash
+docker run quay.io/terraform-docs/terraform-docs:0.14.1
+```
+
+**NOTE:** Docker tag `latest` refers to _latest_ stable released version and `edge`
+refers to HEAD of `master` at any given point in time.
+
+## Community
+
+- Discuss terraform-docs on [Slack]
+
+## License
+
+MIT License - Copyright (c) 2021 The terraform-docs Authors.
+
+[User Guide]: ./docs/user-guide/introduction.md
+[Formats Guide]: ./docs/reference/terraform-docs.md
+[Config File Reference]: ./docs/user-guide/configuration.md
+[Contributing Guide]: CONTRIBUTING.md
+[our website]: https://terraform-docs.io/
+[here]: https://golang.org/doc/code.html#GOPATH
+[releases]: https://github.com/terraform-docs/terraform-docs/releases
+[Homebrew]: https://brew.sh
+[Scoop]: https://scoop.sh/
+[Chocolatey]: https://www.chocolatey.org
+[Slack]: https://slack.terraform-docs.io/
