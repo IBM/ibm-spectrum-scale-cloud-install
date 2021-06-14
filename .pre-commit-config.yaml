@@ -14,6 +14,8 @@ repos:
   rev: v1.50.0
   hooks:
     - id: terraform_fmt
+    - id: terraform_validate
+    - id: terraform_docs
     - id: terraform_tflint
       args:
           - '--args=--only=terraform_deprecated_interpolation'
@@ -23,4 +25,3 @@ repos:
           - '--args=--only=terraform_module_pinned_source'
           - '--args=--only=terraform_naming_convention'
           - '--args=--only=terraform_workspace_remote'
-    - id: terraform_docs
