@@ -10,6 +10,12 @@ repos:
     - id: check-case-conflict
     - id: check-merge-conflict
     - id: check-executables-have-shebangs
+    - id: check-added-large-files
+    - id: fix-encoding-pragma
+- repo: https://github.com/pre-commit/mirrors-autopep8
+  rev: v1.5.7
+  hooks:
+    - id: autopep8
 - repo: git://github.com/antonbabenko/pre-commit-terraform
   rev: v1.50.0
   hooks:
@@ -25,3 +31,4 @@ repos:
           - '--args=--only=terraform_module_pinned_source'
           - '--args=--only=terraform_naming_convention'
           - '--args=--only=terraform_workspace_remote'
+    - id: terraform_tfsec

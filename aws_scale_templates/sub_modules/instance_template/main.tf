@@ -89,23 +89,18 @@ module "compute_cluster_security_group" {
   total_sec_groups      = var.total_compute_cluster_instances > 0 ? 1 : 0
   sec_group_name        = ["compute-sec-group-"]
   sec_group_description = ["Enable SSH access to the compute cluster hosts"]
-  vpc_id                = [var.vpc_id]
+  vpc_id                = var.vpc_id
   sec_group_tag         = ["compute-sec-group"]
 }
 
 module "compute_cluster_ingress_security_rule" {
-  source      = "../../../resources/aws/security/security_rule_source"
-  total_rules = (var.total_compute_cluster_instances > 0 && var.bastion_security_group_id != null) ? 15 : 0
-  security_group_id = [module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-  module.compute_cluster_security_group.sec_group_id[0]]
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = (var.total_compute_cluster_instances > 0 && var.bastion_security_group_id != null) ? 17 : 0
+  security_group_id = [module.compute_cluster_security_group.sec_group_id[0]]
   security_rule_description = ["Allow ICMP traffic from bastion to compute instances",
     "Allow SSH traffic from bastion to compute instances",
+    "Allow ICMP traffic within compute instances",
+    "Allow SSH traffic within compute instances",
     "Allow GPFS intra cluster traffic within compute instances",
     "Allow GPFS ephemeral port range within compute instances",
     "Allow management GUI (http/localhost) TCP traffic within compute instances",
@@ -116,13 +111,15 @@ module "compute_cluster_ingress_security_rule" {
     "Allow management GUI (localhost) UDP traffic within compute instances",
     "Allow performance monitoring collector traffic within compute instances",
     "Allow performance monitoring collector traffic within compute instances",
-    "Allow performance monitoring collector traffic within compute instances", "Allow http traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow http traffic within compute instances",
   "Allow https traffic within compute instances"]
-  security_rule_type = ["ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress"]
-  traffic_protocol   = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
-  traffic_from_port  = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  traffic_to_port    = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  security_rule_type = ["ingress"]
+  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
+  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   source_security_group_id = [var.bastion_security_group_id, var.bastion_security_group_id,
+    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
@@ -133,16 +130,12 @@ module "compute_cluster_ingress_security_rule" {
 }
 
 module "compute_cluster_ingress_security_rule_wo_bastion" {
-  source      = "../../../resources/aws/security/security_rule_source"
-  total_rules = (var.total_compute_cluster_instances > 0 && var.bastion_security_group_id == null) ? 13 : 0
-  security_group_id = [module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-  module.compute_cluster_security_group.sec_group_id[0]]
-  security_rule_description = ["Allow GPFS intra cluster traffic within compute instances",
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = (var.total_compute_cluster_instances > 0 && var.bastion_security_group_id == null) ? 15 : 0
+  security_group_id = [module.compute_cluster_security_group.sec_group_id[0]]
+  security_rule_description = ["Allow ICMP traffic within compute instances",
+    "Allow SSH traffic within compute instances",
+    "Allow GPFS intra cluster traffic within compute instances",
     "Allow GPFS ephemeral port range within compute instances",
     "Allow management GUI (http/localhost) TCP traffic within compute instances",
     "Allow management GUI (http/localhost) UDP traffic within compute instances",
@@ -152,19 +145,14 @@ module "compute_cluster_ingress_security_rule_wo_bastion" {
     "Allow management GUI (localhost) UDP traffic within compute instances",
     "Allow performance monitoring collector traffic within compute instances",
     "Allow performance monitoring collector traffic within compute instances",
-    "Allow performance monitoring collector traffic within compute instances", "Allow http traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow http traffic within compute instances",
   "Allow https traffic within compute instances"]
-  security_rule_type = ["ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress"]
-  traffic_protocol   = ["TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
-  traffic_from_port  = [1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  traffic_to_port    = [1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  source_security_group_id = [module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-  module.compute_cluster_security_group.sec_group_id[0]]
+  security_rule_type       = ["ingress"]
+  traffic_protocol         = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
+  traffic_from_port        = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  traffic_to_port          = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  source_security_group_id = [module.compute_cluster_security_group.sec_group_id[0]]
 }
 
 module "cluster_egress_security_rule" {
@@ -190,18 +178,13 @@ module "storage_cluster_security_group" {
 }
 
 module "storage_cluster_ingress_security_rule" {
-  source      = "../../../resources/aws/security/security_rule_source"
-  total_rules = (var.total_storage_cluster_instances > 0 && var.bastion_security_group_id != null) ? 15 : 0
-  security_group_id = [module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-  module.storage_cluster_security_group.sec_group_id[0]]
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = (var.total_storage_cluster_instances > 0 && var.bastion_security_group_id != null) ? 17 : 0
+  security_group_id = [module.storage_cluster_security_group.sec_group_id[0]]
   security_rule_description = ["Allow ICMP traffic from bastion to storage instances",
     "Allow SSH traffic from bastion to storage instances",
+    "Allow ICMP traffic within storage instances",
+    "Allow SSH traffic within storage instances",
     "Allow GPFS intra cluster traffic within storage instances",
     "Allow GPFS ephemeral port range within storage instances",
     "Allow management GUI (http/localhost) TCP traffic within storage instances",
@@ -212,13 +195,15 @@ module "storage_cluster_ingress_security_rule" {
     "Allow management GUI (localhost) UDP traffic within storage instances",
     "Allow performance monitoring collector traffic within storage instances",
     "Allow performance monitoring collector traffic within storage instances",
-    "Allow performance monitoring collector traffic within storage instances", "Allow http traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow http traffic within storage instances",
   "Allow https traffic within storage instances"]
-  security_rule_type = ["ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress"]
-  traffic_protocol   = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
-  traffic_from_port  = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  traffic_to_port    = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  security_rule_type = ["ingress"]
+  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
+  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   source_security_group_id = [var.bastion_security_group_id, var.bastion_security_group_id,
+    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
@@ -229,16 +214,12 @@ module "storage_cluster_ingress_security_rule" {
 }
 
 module "storage_cluster_ingress_security_rule_wo_bastion" {
-  source      = "../../../resources/aws/security/security_rule_source"
-  total_rules = (var.total_storage_cluster_instances > 0 && var.bastion_security_group_id == null) ? 15 : 0
-  security_group_id = [module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-  module.storage_cluster_security_group.sec_group_id[0]]
-  security_rule_description = ["Allow GPFS intra cluster traffic within storage instances",
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = (var.total_storage_cluster_instances > 0 && var.bastion_security_group_id == null) ? 15 : 0
+  security_group_id = [module.storage_cluster_security_group.sec_group_id[0]]
+  security_rule_description = ["Allow ICMP traffic within storage instances",
+    "Allow SSH traffic within storage instances",
+    "Allow GPFS intra cluster traffic within storage instances",
     "Allow GPFS ephemeral port range within storage instances",
     "Allow management GUI (http/localhost) TCP traffic within storage instances",
     "Allow management GUI (http/localhost) UDP traffic within storage instances",
@@ -248,19 +229,14 @@ module "storage_cluster_ingress_security_rule_wo_bastion" {
     "Allow management GUI (localhost) UDP traffic within storage instances",
     "Allow performance monitoring collector traffic within storage instances",
     "Allow performance monitoring collector traffic within storage instances",
-    "Allow performance monitoring collector traffic within storage instances", "Allow http traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow http traffic within storage instances",
   "Allow https traffic within storage instances"]
-  security_rule_type = ["ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress"]
-  traffic_protocol   = ["TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
-  traffic_from_port  = [1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  traffic_to_port    = [1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  source_security_group_id = [module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-  module.storage_cluster_security_group.sec_group_id[0]]
+  security_rule_type       = ["ingress"]
+  traffic_protocol         = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
+  traffic_from_port        = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  traffic_to_port          = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  source_security_group_id = [module.storage_cluster_security_group.sec_group_id[0]]
 }
 
 module "bicluster_ingress_security_rule" {
@@ -273,6 +249,7 @@ module "bicluster_ingress_security_rule" {
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
+    module.storage_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
@@ -280,23 +257,8 @@ module "bicluster_ingress_security_rule" {
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-  module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0]]
-  security_rule_description = ["Allow ICMP traffic from storage to compute instances",
-    "Allow SSH traffic from storage to compute instances",
-    "Allow GPFS intra cluster traffic from storage to compute instances",
-    "Allow GPFS ephemeral port range from storage to compute instances",
-    "Allow management GUI (http/localhost) TCP traffic from storage to compute instances",
-    "Allow management GUI (http/localhost) UDP traffic from storage to compute instances",
-    "Allow management GUI (https/localhost) TCP traffic from storage to compute instances",
-    "Allow management GUI (https/localhost) UDP traffic from storage to compute instances",
-    "Allow management GUI (localhost) TCP traffic from storage to compute instances",
-    "Allow management GUI (localhost) UDP traffic from storage to compute instances",
-    "Allow performance monitoring collector traffic from storage to compute instances",
-    "Allow performance monitoring collector traffic from storage to compute instances",
-    "Allow performance monitoring collector traffic from storage to compute instances",
-    "Allow http traffic from storage to compute instances",
-    "Allow https traffic from storage to compute instances",
-    "Allow ICMP traffic from compute to storage instances",
+  module.compute_cluster_security_group.sec_group_id[0]]
+  security_rule_description = ["Allow ICMP traffic from compute to storage instances",
     "Allow SSH traffic from compute to storage instances",
     "Allow GPFS intra cluster traffic from compute to storage instances",
     "Allow GPFS ephemeral port range from compute to storage instances",
@@ -310,8 +272,23 @@ module "bicluster_ingress_security_rule" {
     "Allow performance monitoring collector traffic from compute to storage instances",
     "Allow performance monitoring collector traffic from compute to storage instances",
     "Allow http traffic from compute to storage instances",
-  "Allow https traffic from compute to storage instances"]
-  security_rule_type = ["ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", "ingress", ]
+    "Allow https traffic from compute to storage instances",
+    "Allow ICMP traffic from storage to compute instances",
+    "Allow SSH traffic from storage to compute instances",
+    "Allow GPFS intra cluster traffic from storage to compute instances",
+    "Allow GPFS ephemeral port range from storage to compute instances",
+    "Allow management GUI (http/localhost) TCP traffic from storage to compute instances",
+    "Allow management GUI (http/localhost) UDP traffic from storage to compute instances",
+    "Allow management GUI (https/localhost) TCP traffic from storage to compute instances",
+    "Allow management GUI (https/localhost) UDP traffic from storage to compute instances",
+    "Allow management GUI (localhost) TCP traffic from storage to compute instances",
+    "Allow management GUI (localhost) UDP traffic from storage to compute instances",
+    "Allow performance monitoring collector traffic from storage to compute instances",
+    "Allow performance monitoring collector traffic from storage to compute instances",
+    "Allow performance monitoring collector traffic from storage to compute instances",
+    "Allow http traffic from storage to compute instances",
+  "Allow https traffic from storage to compute instances"]
+  security_rule_type = ["ingress"]
   traffic_protocol   = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
   traffic_from_port  = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443, -1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   traffic_to_port    = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443, -1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
@@ -322,7 +299,9 @@ module "bicluster_ingress_security_rule" {
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
     module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
+    module.compute_cluster_security_group.sec_group_id[0],
+    module.storage_cluster_security_group.sec_group_id[0],
+    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
     module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
@@ -344,7 +323,6 @@ module "compute_cluster_instances" {
   name_prefix          = format("%s-compute", var.resource_prefix)
   ami_id               = var.compute_cluster_ami_id
   instance_type        = var.compute_cluster_instance_type
-  key_pair             = var.compute_cluster_key_pair
   security_groups      = [module.compute_cluster_security_group.sec_group_id[0]]
   iam_instance_profile = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group      = null
@@ -363,7 +341,6 @@ module "storage_cluster_instances" {
   name_prefix                            = format("%s-storage", var.resource_prefix)
   ami_id                                 = var.storage_cluster_ami_id
   instance_type                          = var.storage_cluster_instance_type
-  key_pair                               = var.storage_cluster_key_pair
   security_groups                        = [module.storage_cluster_security_group.sec_group_id[0]]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
@@ -388,10 +365,9 @@ module "storage_cluster_instances" {
 module "storage_cluster_tie_breaker_instance" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
   instances_count                        = length(var.vpc_availability_zones) > 1 ? 1 : 0
-  name_prefix                            = format("%s-storage-tie-", var.resource_prefix)
+  name_prefix                            = format("%s-storage-tie", var.resource_prefix)
   ami_id                                 = var.storage_cluster_ami_id
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
-  key_pair                               = var.storage_cluster_key_pair
   security_groups                        = [module.storage_cluster_security_group.sec_group_id[0]]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
@@ -421,79 +397,91 @@ module "prepare_ansible_configuration" {
 }
 
 module "write_compute_cluster_inventory" {
-  source                                   = "../../../resources/common/write_inventory"
-  write_inventory                          = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? 1 : 0
-  inventory_path                           = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                           = jsonencode("AWS")
-  resource_prefix                          = jsonencode(var.resource_prefix)
-  vpc_region                               = jsonencode(var.vpc_region)
-  vpc_availability_zones                   = jsonencode(var.vpc_availability_zones)
-  scale_version                            = jsonencode(var.scale_version)
-  filesystem_block_size                    = jsonencode("None")
-  compute_cluster_filesystem_mountpoint    = jsonencode(var.compute_cluster_filesystem_mountpoint)
-  compute_cluster_gui_username             = jsonencode(var.compute_cluster_gui_username)
-  compute_cluster_gui_password             = jsonencode(var.compute_cluster_gui_password)
-  compute_cluster_instance_ids             = jsonencode(module.compute_cluster_instances.instance_ids)
-  compute_cluster_instance_private_ips     = jsonencode(module.compute_cluster_instances.instance_private_ips)
-  storage_cluster_filesystem_mountpoint    = jsonencode("None")
-  storage_cluster_instance_ids             = jsonencode("None")
-  storage_cluster_instance_private_ips     = jsonencode("None")
-  storage_cluster_with_data_volume_mapping = jsonencode("None")
-  storage_cluster_gui_username             = jsonencode("None")
-  storage_cluster_gui_password             = jsonencode("None")
-  depends_on                               = [module.prepare_ansible_configuration]
+  source                                    = "../../../resources/common/write_inventory"
+  write_inventory                           = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? 1 : 0
+  inventory_path                            = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                            = jsonencode("AWS")
+  resource_prefix                           = jsonencode(var.resource_prefix)
+  vpc_region                                = jsonencode(var.vpc_region)
+  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
+  scale_version                             = jsonencode(var.scale_version)
+  filesystem_block_size                     = jsonencode("None")
+  compute_cluster_filesystem_mountpoint     = jsonencode(var.compute_cluster_filesystem_mountpoint)
+  compute_cluster_gui_username              = jsonencode(var.compute_cluster_gui_username)
+  compute_cluster_gui_password              = jsonencode(var.compute_cluster_gui_password)
+  compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
+  compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
+  storage_cluster_filesystem_mountpoint     = jsonencode("None")
+  storage_cluster_instance_ids              = jsonencode([])
+  storage_cluster_instance_private_ips      = jsonencode([])
+  storage_cluster_with_data_volume_mapping  = jsonencode({})
+  storage_cluster_gui_username              = jsonencode(var.storage_cluster_gui_username)
+  storage_cluster_gui_password              = jsonencode(var.storage_cluster_gui_password)
+  storage_cluster_desc_instance_ids         = jsonencode([])
+  storage_cluster_desc_instance_private_ips = jsonencode([])
+  storage_cluster_desc_data_volume_mapping  = jsonencode({})
+  depends_on                                = [module.prepare_ansible_configuration]
 }
 
 module "write_storage_cluster_inventory" {
-  source                                   = "../../../resources/common/write_inventory"
-  write_inventory                          = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? 1 : 0
-  inventory_path                           = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                           = jsonencode("AWS")
-  resource_prefix                          = jsonencode(var.resource_prefix)
-  vpc_region                               = jsonencode(var.vpc_region)
-  vpc_availability_zones                   = jsonencode(var.vpc_availability_zones)
-  scale_version                            = jsonencode(var.scale_version)
-  filesystem_block_size                    = jsonencode(var.filesystem_block_size)
-  compute_cluster_filesystem_mountpoint    = jsonencode("None")
-  compute_cluster_gui_username             = jsonencode("None")
-  compute_cluster_gui_password             = jsonencode("None")
-  compute_cluster_instance_ids             = jsonencode("None")
-  compute_cluster_instance_private_ips     = jsonencode("None")
-  storage_cluster_filesystem_mountpoint    = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids             = jsonencode(module.storage_cluster_instances.instance_ids)
-  storage_cluster_instance_private_ips     = jsonencode(module.storage_cluster_instances.instance_private_ips)
-  storage_cluster_with_data_volume_mapping = jsonencode(module.storage_cluster_instances.instance_ips_with_ebs_mapping)
-  storage_cluster_gui_username             = jsonencode(var.storage_cluster_gui_username)
-  storage_cluster_gui_password             = jsonencode(var.storage_cluster_gui_password)
-  depends_on                               = [module.prepare_ansible_configuration]
+  source                                    = "../../../resources/common/write_inventory"
+  write_inventory                           = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? 1 : 0
+  inventory_path                            = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                            = jsonencode("AWS")
+  resource_prefix                           = jsonencode(var.resource_prefix)
+  vpc_region                                = jsonencode(var.vpc_region)
+  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
+  scale_version                             = jsonencode(var.scale_version)
+  filesystem_block_size                     = jsonencode(var.filesystem_block_size)
+  compute_cluster_filesystem_mountpoint     = jsonencode("None")
+  compute_cluster_gui_username              = jsonencode(var.compute_cluster_gui_username)
+  compute_cluster_gui_password              = jsonencode(var.compute_cluster_gui_password)
+  compute_cluster_instance_ids              = jsonencode([])
+  compute_cluster_instance_private_ips      = jsonencode([])
+  storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
+  storage_cluster_instance_ids              = jsonencode(module.storage_cluster_instances.instance_ids)
+  storage_cluster_instance_private_ips      = jsonencode(module.storage_cluster_instances.instance_private_ips)
+  storage_cluster_with_data_volume_mapping  = jsonencode(module.storage_cluster_instances.instance_ips_with_ebs_mapping)
+  storage_cluster_gui_username              = jsonencode(var.storage_cluster_gui_username)
+  storage_cluster_gui_password              = jsonencode(var.storage_cluster_gui_password)
+  storage_cluster_desc_instance_ids         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance[0].instance_ids) : jsonencode([])
+  storage_cluster_desc_instance_private_ips = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance[0].instance_private_ips) : jsonencode([])
+  storage_cluster_desc_data_volume_mapping  = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance[0].instance_ips_with_ebs_mapping) : jsonencode({})
+  depends_on                                = [module.prepare_ansible_configuration]
 }
 
 module "write_cluster_inventory" {
-  source                                   = "../../../resources/common/write_inventory"
-  write_inventory                          = var.create_separate_namespaces == false ? 1 : 0
-  inventory_path                           = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                           = jsonencode("AWS")
-  resource_prefix                          = jsonencode(var.resource_prefix)
-  vpc_region                               = jsonencode(var.vpc_region)
-  vpc_availability_zones                   = jsonencode(var.vpc_availability_zones)
-  scale_version                            = jsonencode(var.scale_version)
-  filesystem_block_size                    = jsonencode(var.filesystem_block_size)
-  compute_cluster_filesystem_mountpoint    = jsonencode("None")
-  compute_cluster_gui_username             = jsonencode("None")
-  compute_cluster_gui_password             = jsonencode("None")
-  compute_cluster_instance_ids             = jsonencode(module.compute_cluster_instances.instance_ids)
-  compute_cluster_instance_private_ips     = jsonencode(module.compute_cluster_instances.instance_private_ips)
-  storage_cluster_filesystem_mountpoint    = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids             = jsonencode(module.storage_cluster_instances.instance_ids)
-  storage_cluster_instance_private_ips     = jsonencode(module.storage_cluster_instances.instance_private_ips)
-  storage_cluster_with_data_volume_mapping = jsonencode(module.storage_cluster_instances.instance_ips_with_ebs_mapping)
-  storage_cluster_gui_username             = jsonencode(var.storage_cluster_gui_username)
-  storage_cluster_gui_password             = jsonencode(var.storage_cluster_gui_password)
-  depends_on                               = [module.prepare_ansible_configuration]
+  source                                    = "../../../resources/common/write_inventory"
+  write_inventory                           = var.create_separate_namespaces == false ? 1 : 0
+  inventory_path                            = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                            = jsonencode("AWS")
+  resource_prefix                           = jsonencode(var.resource_prefix)
+  vpc_region                                = jsonencode(var.vpc_region)
+  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
+  scale_version                             = jsonencode(var.scale_version)
+  filesystem_block_size                     = jsonencode(var.filesystem_block_size)
+  compute_cluster_filesystem_mountpoint     = jsonencode("None")
+  compute_cluster_gui_username              = jsonencode(var.compute_cluster_gui_username)
+  compute_cluster_gui_password              = jsonencode(var.compute_cluster_gui_password)
+  compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
+  compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
+  storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
+  storage_cluster_instance_ids              = jsonencode(module.storage_cluster_instances.instance_ids)
+  storage_cluster_instance_private_ips      = jsonencode(module.storage_cluster_instances.instance_private_ips)
+  storage_cluster_with_data_volume_mapping  = jsonencode(module.storage_cluster_instances.instance_ips_with_ebs_mapping)
+  storage_cluster_gui_username              = jsonencode(var.storage_cluster_gui_username)
+  storage_cluster_gui_password              = jsonencode(var.storage_cluster_gui_password)
+  storage_cluster_desc_instance_ids         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance[0].instance_ids) : jsonencode([])
+  storage_cluster_desc_instance_private_ips = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance[0].instance_private_ips) : jsonencode([])
+  storage_cluster_desc_data_volume_mapping  = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance[0].instance_ips_with_ebs_mapping) : jsonencode({})
+  depends_on                                = [module.prepare_ansible_configuration]
 }
 
 module "compute_cluster_configuration" {
   source                          = "../../../resources/common/compute_configuration"
+  clone_path                      = var.scale_ansible_repo_clone_path
+  inventory_path                  = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key_content = var.bastion_ssh_private_key_content
+  depends_on                      = [module.prepare_ansible_configuration]
 }

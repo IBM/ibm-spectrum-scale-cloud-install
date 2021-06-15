@@ -5,6 +5,7 @@
     2. Create a dynamodb table for locking the state file.
 */
 
+#tfsec:ignore:AWS092 #tfsec:ignore:AWS002
 resource "aws_s3_bucket" "itself" {
   bucket        = var.bucket_name
   force_destroy = var.force_destroy
@@ -24,6 +25,7 @@ resource "aws_s3_bucket" "itself" {
   }
 }
 
+#tfsec:ignore:AWS092 #tfsec:ignore:AWS086
 resource "aws_dynamodb_table" "itself" {
   name           = var.dynamodb_table_name
   hash_key       = "LockID"
