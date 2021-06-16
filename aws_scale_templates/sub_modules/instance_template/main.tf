@@ -15,9 +15,14 @@ locals {
 #  backend "s3" {}
 #}
 
-module "generate_keys" {
-  source           = "../../../resources/common/generate_keys"
-  number_key_pairs = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0) ? 2 : 1
+module "generate_compute_cluster_keys" {
+  source  = "../../../resources/common/generate_keys"
+  turn_on = var.total_compute_cluster_instances > 0 ? true : false
+}
+
+module "generate_storage_cluster_keys" {
+  source  = "../../../resources/common/generate_keys"
+  turn_on = var.total_storage_cluster_instances > 0 ? true : false
 }
 
 module "cluster_host_iam_role" {
@@ -86,7 +91,7 @@ module "cluster_instance_iam_profile" {
 
 module "compute_cluster_security_group" {
   source                = "../../../resources/aws/security/security_group"
-  total_sec_groups      = var.total_compute_cluster_instances > 0 ? 1 : 0
+  turn_on               = var.total_compute_cluster_instances > 0 ? true : false
   sec_group_name        = ["compute-sec-group-"]
   sec_group_description = ["Enable SSH access to the compute cluster hosts"]
   vpc_id                = var.vpc_id
@@ -96,7 +101,7 @@ module "compute_cluster_security_group" {
 module "compute_cluster_ingress_security_rule" {
   source            = "../../../resources/aws/security/security_rule_source"
   total_rules       = (var.total_compute_cluster_instances > 0 && var.bastion_security_group_id != null) ? 17 : 0
-  security_group_id = [module.compute_cluster_security_group.sec_group_id[0]]
+  security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to compute instances",
     "Allow SSH traffic from bastion to compute instances",
     "Allow ICMP traffic within compute instances",
@@ -119,20 +124,20 @@ module "compute_cluster_ingress_security_rule" {
   traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   source_security_group_id = [var.bastion_security_group_id, var.bastion_security_group_id,
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-  module.compute_cluster_security_group.sec_group_id[0]]
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+  module.compute_cluster_security_group.sec_group_id]
 }
 
 module "compute_cluster_ingress_security_rule_wo_bastion" {
   source            = "../../../resources/aws/security/security_rule_source"
   total_rules       = (var.total_compute_cluster_instances > 0 && var.bastion_security_group_id == null) ? 15 : 0
-  security_group_id = [module.compute_cluster_security_group.sec_group_id[0]]
+  security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic within compute instances",
     "Allow SSH traffic within compute instances",
     "Allow GPFS intra cluster traffic within compute instances",
@@ -152,13 +157,13 @@ module "compute_cluster_ingress_security_rule_wo_bastion" {
   traffic_protocol         = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
   traffic_from_port        = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   traffic_to_port          = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  source_security_group_id = [module.compute_cluster_security_group.sec_group_id[0]]
+  source_security_group_id = [module.compute_cluster_security_group.sec_group_id]
 }
 
 module "cluster_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
   total_rules               = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0) ? 2 : 1
-  security_group_id         = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0) ? [module.compute_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0]] : (var.total_compute_cluster_instances > 0 ? [module.compute_cluster_security_group.sec_group_id[0]] : [module.storage_cluster_security_group.sec_group_id[0]])
+  security_group_id         = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0) ? [module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id] : (var.total_compute_cluster_instances > 0 ? [module.compute_cluster_security_group.sec_group_id] : [module.storage_cluster_security_group.sec_group_id])
   security_rule_description = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0) ? ["Outgoing traffic from compute instances", "Outgoing traffic from storage instances"] : (var.total_compute_cluster_instances > 0 ? ["Outgoing traffic from compute instances"] : ["Outgoing traffic from storage instances"])
   security_rule_type        = ["egress", "egress"]
   traffic_protocol          = ["-1", "-1"]
@@ -170,7 +175,7 @@ module "cluster_egress_security_rule" {
 
 module "storage_cluster_security_group" {
   source                = "../../../resources/aws/security/security_group"
-  total_sec_groups      = var.total_storage_cluster_instances > 0 ? 1 : 0
+  turn_on               = var.total_storage_cluster_instances > 0 ? true : false
   sec_group_name        = ["storage-sec-group-"]
   sec_group_description = ["Enable SSH access to the storage cluster hosts"]
   vpc_id                = [var.vpc_id]
@@ -180,7 +185,7 @@ module "storage_cluster_security_group" {
 module "storage_cluster_ingress_security_rule" {
   source            = "../../../resources/aws/security/security_rule_source"
   total_rules       = (var.total_storage_cluster_instances > 0 && var.bastion_security_group_id != null) ? 17 : 0
-  security_group_id = [module.storage_cluster_security_group.sec_group_id[0]]
+  security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to storage instances",
     "Allow SSH traffic from bastion to storage instances",
     "Allow ICMP traffic within storage instances",
@@ -203,20 +208,20 @@ module "storage_cluster_ingress_security_rule" {
   traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   source_security_group_id = [var.bastion_security_group_id, var.bastion_security_group_id,
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-  module.storage_cluster_security_group.sec_group_id[0]]
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+  module.storage_cluster_security_group.sec_group_id]
 }
 
 module "storage_cluster_ingress_security_rule_wo_bastion" {
   source            = "../../../resources/aws/security/security_rule_source"
   total_rules       = (var.total_storage_cluster_instances > 0 && var.bastion_security_group_id == null) ? 15 : 0
-  security_group_id = [module.storage_cluster_security_group.sec_group_id[0]]
+  security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic within storage instances",
     "Allow SSH traffic within storage instances",
     "Allow GPFS intra cluster traffic within storage instances",
@@ -236,28 +241,28 @@ module "storage_cluster_ingress_security_rule_wo_bastion" {
   traffic_protocol         = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
   traffic_from_port        = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   traffic_to_port          = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  source_security_group_id = [module.storage_cluster_security_group.sec_group_id[0]]
+  source_security_group_id = [module.storage_cluster_security_group.sec_group_id]
 }
 
 module "bicluster_ingress_security_rule" {
   source      = "../../../resources/aws/security/security_rule_source"
   total_rules = (var.total_storage_cluster_instances > 0 && var.total_compute_cluster_instances > 0) ? 30 : 0
-  security_group_id = [module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-  module.compute_cluster_security_group.sec_group_id[0]]
+  security_group_id = [module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+  module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from compute to storage instances",
     "Allow SSH traffic from compute to storage instances",
     "Allow GPFS intra cluster traffic from compute to storage instances",
@@ -292,22 +297,22 @@ module "bicluster_ingress_security_rule" {
   traffic_protocol   = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
   traffic_from_port  = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443, -1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
   traffic_to_port    = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443, -1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
-  source_security_group_id = [module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0], module.compute_cluster_security_group.sec_group_id[0],
-    module.compute_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-    module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0],
-  module.storage_cluster_security_group.sec_group_id[0], module.storage_cluster_security_group.sec_group_id[0]]
+  source_security_group_id = [module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+  module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
 }
 
 module "email_notification" {
@@ -323,14 +328,14 @@ module "compute_cluster_instances" {
   name_prefix          = format("%s-compute", var.resource_prefix)
   ami_id               = var.compute_cluster_ami_id
   instance_type        = var.compute_cluster_instance_type
-  security_groups      = [module.compute_cluster_security_group.sec_group_id[0]]
+  security_groups      = [module.compute_cluster_security_group.sec_group_id]
   iam_instance_profile = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group      = null
   subnet_ids           = length(var.vpc_compute_cluster_private_subnets) > 0 ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   root_volume_type     = var.compute_cluster_root_volume_type
   user_public_key      = var.compute_cluster_key_pair
-  meta_private_key     = var.total_compute_cluster_instances > 0 ? module.generate_keys.private_key_content[1] : module.generate_keys.private_key_content[0]
-  meta_public_key      = var.total_compute_cluster_instances > 0 ? module.generate_keys.public_key_content[1] : module.generate_keys.private_key_content[0]
+  meta_private_key     = module.generate_compute_cluster_keys.private_key_content
+  meta_public_key      = module.generate_compute_cluster_keys.public_key_content
   volume_tags          = var.compute_cluster_volume_tags
   tags                 = var.compute_cluster_tags
 }
@@ -341,14 +346,14 @@ module "storage_cluster_instances" {
   name_prefix                            = format("%s-storage", var.resource_prefix)
   ami_id                                 = var.storage_cluster_ami_id
   instance_type                          = var.storage_cluster_instance_type
-  security_groups                        = [module.storage_cluster_security_group.sec_group_id[0]]
+  security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
   subnet_ids                             = var.vpc_storage_cluster_private_subnets
   root_volume_type                       = var.storage_cluster_root_volume_type
   user_public_key                        = var.storage_cluster_key_pair
-  meta_private_key                       = module.generate_keys.private_key_content[0]
-  meta_public_key                        = module.generate_keys.private_key_content[0]
+  meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key                        = module.generate_storage_cluster_keys.private_key_content
   volume_tags                            = var.storage_cluster_volume_tags
   ebs_optimized                          = var.ebs_optimized
   ebs_block_devices                      = var.ebs_block_devices_per_storage_instance
@@ -368,14 +373,14 @@ module "storage_cluster_tie_breaker_instance" {
   name_prefix                            = format("%s-storage-tie", var.resource_prefix)
   ami_id                                 = var.storage_cluster_ami_id
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
-  security_groups                        = [module.storage_cluster_security_group.sec_group_id[0]]
+  security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
   subnet_ids                             = [var.vpc_storage_cluster_private_subnets[2]]
   root_volume_type                       = var.storage_cluster_root_volume_type
   user_public_key                        = var.storage_cluster_key_pair
-  meta_private_key                       = module.generate_keys.private_key_content[0]
-  meta_public_key                        = module.generate_keys.private_key_content[0]
+  meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key                        = module.generate_storage_cluster_keys.private_key_content
   volume_tags                            = var.storage_cluster_volume_tags
   ebs_optimized                          = false
   ebs_block_devices                      = 1
@@ -478,10 +483,11 @@ module "write_cluster_inventory" {
 }
 
 module "compute_cluster_configuration" {
-  source                          = "../../../resources/common/compute_configuration"
-  clone_path                      = var.scale_ansible_repo_clone_path
-  inventory_path                  = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  bastion_instance_public_ip      = var.bastion_instance_public_ip
-  bastion_ssh_private_key_content = var.bastion_ssh_private_key_content
-  depends_on                      = [module.prepare_ansible_configuration]
+  source                     = "../../../resources/common/compute_configuration"
+  clone_path                 = var.scale_ansible_repo_clone_path
+  inventory_path             = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  bastion_instance_public_ip = var.bastion_instance_public_ip
+  bastion_ssh_private_key    = var.bastion_ssh_private_key
+  meta_private_key           = module.generate_compute_cluster_keys.private_key_content
+  depends_on                 = [module.prepare_ansible_configuration, module.write_compute_cluster_inventory]
 }

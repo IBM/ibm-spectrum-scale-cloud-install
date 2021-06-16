@@ -1,5 +1,5 @@
 output "bastion_security_group_id" {
-  value       = module.bastion_security_group.sec_group_id[0]
+  value       = module.bastion_security_group.sec_group_id
   description = "Bastion security group id."
 }
 

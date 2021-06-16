@@ -46,7 +46,7 @@ data "template_cloudinit_config" "user_data64" {
 }
 
 resource "null_resource" "ebs_mappings" {
-  count = var.ebs_block_devices
+  count = var.instances_count > 0 ? var.ebs_block_devices : 0
 
   triggers = {
     delete_on_termination = var.ebs_block_device_delete_on_termination
@@ -100,7 +100,8 @@ resource "aws_instance" "itself" {
   tags             = merge({ "Name" = format("%s-%s", var.name_prefix, count.index + 1) }, var.tags)
 
   metadata_options {
-    http_tokens = "required"
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   lifecycle {

@@ -95,12 +95,11 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
     """ Initialize node details for cluster definition.
     :args: az_count (int), cluster_type (string), compute_private_ips (list),
            storage_private_ips (list), desc_private_ips (list),
-           quorum_count (int), user, key_file
+           quorum_count (int), user (string), key_file (string)
     """
-    node_details = []
+    node_details, node = [], {}
     if cluster_type == 'compute':
         for each_ip in compute_private_ips:
-            node = {}
             if compute_private_ips.index(each_ip) == 0:
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': True, 'is_collector': True, 'is_nsd': False,
@@ -119,7 +118,6 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
             node_details.append(get_host_format(node))
     elif cluster_type == 'storage' and az_count == 1:
         for each_ip in storage_private_ips:
-            node = {}
             if storage_private_ips.index(each_ip) == 0:
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': True, 'is_collector': True, 'is_nsd': True,
@@ -138,7 +136,6 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
             node_details.append(get_host_format(node))
     elif cluster_type == 'storage' and az_count > 1:
         for each_ip in desc_private_ips:
-            node = {}
             node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                     'is_gui': False, 'is_collector': False, 'is_nsd': True,
                     'is_admin': False, 'user': user, 'key_file': key_file,
@@ -153,7 +150,6 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
             start_quorum_assign = quorum_count - 1
 
         for each_ip in storage_private_ips:
-            node = {}
             if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
                     storage_private_ips.index(each_ip) <= (manager_count - 1):
                 if storage_private_ips.index(each_ip) == 0:
@@ -182,8 +178,87 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
                         'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "storagenodegrp"}
-
             node_details.append(get_host_format(node))
+    elif cluster_type == 'combined':
+        for each_ip in desc_private_ips:
+            node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+                    'is_gui': False, 'is_collector': False, 'is_nsd': True,
+                    'is_admin': False, 'user': user, 'key_file': key_file,
+                    'class': "computedescnodegrp"}
+            node_details.append(get_host_format(node))
+
+        if az_count > 1:
+            # Storage/NSD nodes to be quorum nodes (quorum_count - 2 as index starts from 0)
+            start_quorum_assign = quorum_count - 2
+        else:
+            # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
+            start_quorum_assign = quorum_count - 1
+
+        for each_ip in storage_private_ips:
+            if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
+                    storage_private_ips.index(each_ip) <= (manager_count - 1):
+                if storage_private_ips.index(each_ip) == 0:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': True, 'is_collector': True, 'is_nsd': True,
+                            'is_admin': True, 'user': user, 'key_file': key_file,
+                            'class': "storagenodegrp"}
+                elif storage_private_ips.index(each_ip) == 1:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': False, 'is_collector': True, 'is_nsd': True,
+                            'is_admin': True, 'user': user, 'key_file': key_file,
+                            'class': "storagenodegrp"}
+                else:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': False, 'is_collector': False, 'is_nsd': True,
+                            'is_admin': True, 'user': user, 'key_file': key_file,
+                            'class': "storagenodegrp"}
+            elif storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
+                    storage_private_ips.index(each_ip) > (manager_count - 1):
+                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': True,
+                        'is_admin': True, 'user': user, 'key_file': key_file,
+                        'class': "storagenodegrp"}
+            else:
+                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': True,
+                        'is_admin': False, 'user': user, 'key_file': key_file,
+                        'class': "storagenodegrp"}
+            node_details.append(get_host_format(node))
+
+        if az_count > 1:
+            if len(storage_private_ips) - len(desc_private_ips) >= quorum_count:
+                quorums_left = 0
+            else:
+                quorums_left = quorum_count - \
+                    len(storage_private_ips) - len(desc_private_ips)
+        else:
+            if len(storage_private_ips) > quorum_count:
+                quorums_left = 0
+            else:
+                quorums_left = quorum_count - len(storage_private_ips)
+
+        # Additional quorums assign to compute nodes
+        if quorums_left > 0:
+            for each_ip in compute_private_ips[0:quorums_left]:
+                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': False,
+                        'is_admin': True, 'user': user, 'key_file': key_file,
+                        'class': "computenodegrp"}
+            for each_ip in compute_private_ips[quorums_left:]:
+                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': False,
+                        'is_admin': False, 'user': user, 'key_file': key_file,
+                        'class': "computenodegrp"}
+            node_details.append(get_host_format(node))
+
+        if quorums_left == 0:
+            for each_ip in compute_private_ips:
+                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': False,
+                        'is_admin': False, 'user': user, 'key_file': key_file,
+                        'class': "computenodegrp"}
+            node_details.append(get_host_format(node))
+
     return node_details
 
 
@@ -206,6 +281,12 @@ if __name__ == "__main__":
                         help='Terraform inventory file path')
     PARSER.add_argument('--install_infra_path', required=True,
                         help='Spectrum Scale install infra clone parent path')
+    PARSER.add_argument('--instance_private_key', required=True,
+                        help='Spectrum Scale instances SSH private key path')
+    PARSER.add_argument('--bastion_ip',
+                        help='Bastion SSH public ip address')
+    PARSER.add_argument('--bastion_ssh_private_key',
+                        help='Bastion SSH private key path')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
@@ -281,10 +362,10 @@ if __name__ == "__main__":
 
     # Step-5: Create playbook
     playbook_content = prepare_ansible_playbook(
-        "scale_nodes", "%s_cluster_config.yml" % cluster_type)
-    write_to_file("/%s/%s/%s_cloud_playbook.yml" % (ARGUMENTS.install_infra_path,
-                                                    "ibm-spectrum-scale-install-infra",
-                                                    cluster_type), playbook_content)
+        "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
+    write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                     "ibm-spectrum-scale-install-infra",
+                                                     cluster_type), playbook_content)
 
     if ARGUMENTS.verbose:
         print("Content of ansible playbook:\n", playbook_content)
@@ -305,10 +386,18 @@ if __name__ == "__main__":
                                            TF['compute_cluster_instance_private_ips'],
                                            TF['storage_cluster_instance_private_ips'],
                                            TF['storage_cluster_desc_instance_private_ips'],
-                                           quorum_count, "root", "key")
+                                           quorum_count, "root", ARGUMENTS.instance_private_key)
     node_template = ""
     for each_entry in node_details:
-        node_template = node_template + each_entry + "\n"
+        if ARGUMENTS.bastion_ssh_private_key == None:
+            node_template = node_template + each_entry + "\n"
+        else:
+            if TF['cloud_platform'] == 'AWS':
+                bastion_user = "ec2-user"
+            proxy_command = f"ssh -p 22 -W %h:%p {bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
+            each_entry = each_entry + " " + \
+                "ansible_ssh_common_args='-o ProxyCommand=\"" + proxy_command + "\"'"
+            node_template = node_template + each_entry + "\n"
 
     config['all:vars'] = initialize_cluster_details(TF['scale_version'],
                                                     "%s.%s" % (

@@ -240,8 +240,8 @@ variable "bastion_security_group_id" {
   description = "Bastion security group id."
 }
 
-variable "bastion_ssh_private_key_content" {
+variable "bastion_ssh_private_key" {
   type        = string
   default     = null
-  description = "Bastion SSH private key content, which will be used to login to bastion host."
+  description = "Bastion SSH private key path, which will be used to login to bastion host."
 }

@@ -67,7 +67,8 @@ resource "aws_instance" "itself" {
   )
 
   metadata_options {
-    http_tokens = "required"
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   lifecycle {

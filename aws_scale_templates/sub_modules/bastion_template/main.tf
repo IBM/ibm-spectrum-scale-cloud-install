@@ -81,19 +81,19 @@ module "bastion_instance_iam_profile" {
 
 module "bastion_security_group" {
   source                = "../../../resources/aws/security/security_group"
-  total_sec_groups      = 1
+  turn_on               = true
   sec_group_name        = ["bastion-sec-group-"]
   sec_group_description = ["Enable SSH access to the bastion host from external via SSH port"]
-  vpc_id                = [var.vpc_id]
+  vpc_id                = var.vpc_id
   sec_group_tag         = ["bastion-sec-group"]
 }
 
 module "bastion_security_rule" {
   source      = "../../../resources/aws/security/security_rule_cidr"
   total_rules = 3
-  security_group_id = [module.bastion_security_group.sec_group_id[0],
-    module.bastion_security_group.sec_group_id[0],
-  module.bastion_security_group.sec_group_id[0]]
+  security_group_id = [module.bastion_security_group.sec_group_id,
+    module.bastion_security_group.sec_group_id,
+  module.bastion_security_group.sec_group_id]
   security_rule_description = ["Incoming traffic to bastion",
     "Incoming ICMP traffic to bastion",
   "Outgoing traffic from bastion to instances"]
@@ -113,7 +113,7 @@ module "bastion_autoscaling_launch_config" {
   assoc_public_ip           = true
   instance_iam_profile      = module.bastion_instance_iam_profile.iam_instance_profile_name
   key_name                  = var.bastion_key_pair
-  sec_groups                = [module.bastion_security_group.sec_group_id[0]]
+  sec_groups                = [module.bastion_security_group.sec_group_id]
 }
 
 module "bastion_autoscaling_group" {
