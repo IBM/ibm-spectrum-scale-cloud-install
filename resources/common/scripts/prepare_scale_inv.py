@@ -22,6 +22,7 @@ import json
 import pathlib
 import os
 import re
+import sys
 import yaml
 
 
@@ -38,8 +39,19 @@ def create_directory(target_directory):
 
 def read_json_file(json_path):
     """ Read inventory as json file """
-    with open(json_path) as json_handler:
-        tf_inv = json.load(json_handler)
+    tf_inv = {}
+    try:
+        with open(json_path) as json_handler:
+            try:
+                tf_inv = json.load(json_handler)
+            except json.decoder.JSONDecodeError:
+                print(
+                    "Provided terraform inventory file (%s) is not a valid json." % json_path)
+                sys.exit(1)
+    except OSError:
+        print("Provided terraform inventory file (%s) does not exist." % json_path)
+        sys.exit(1)
+
     return tf_inv
 
 
@@ -58,9 +70,15 @@ def prepare_ansible_playbook(hosts_config, cluster_config):
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
   roles:
+     - core/precheck
+     - core/node
      - core/cluster
+     - gui/precheck
+     - gui/node
      - gui/cluster
      - gui/postcheck
+     - zimon/precheck
+     - zimon/node
      - zimon/cluster
      - zimon/postcheck
 """.format(hosts_config=hosts_config, cluster_config=cluster_config)
@@ -93,7 +111,7 @@ def initialize_cluster_details(scale_version, cluster_name, username,
 
 def get_host_format(node):
     """ Return host entries """
-    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} scale_nodeclass={node['class']}"
+    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']}"
     return host_format
 
 

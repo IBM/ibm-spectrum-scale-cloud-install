@@ -170,6 +170,7 @@ variable "aws_linux_image_map_codes" {
 
 variable "bastion_ami_name" {
   type        = string
+  default     = "Amazon-Linux2-HVM"
   description = "Bastion AMI Image name."
 }
 

@@ -24,6 +24,10 @@ echo "${var.meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
+if grep -q "Red Hat" /etc/os-release
+then
+    yum install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+fi
 EOF
 }
 

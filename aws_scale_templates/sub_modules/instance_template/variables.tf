@@ -194,6 +194,12 @@ variable "scale_ansible_repo_clone_path" {
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
 
+variable "spectrumscale_rpms_path" {
+  type        = string
+  default     = "/opt/IBM/gpfs_cloud_rpms"
+  description = "Path that contains IBM Spectrum Scale product cloud rpms."
+}
+
 variable "operator_email" {
   type        = string
   description = "SNS notifications will be sent to provided email id."

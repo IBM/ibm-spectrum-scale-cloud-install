@@ -2,11 +2,14 @@
     Excutes ansible playbook to install IBM Spectrum Scale storage cluster.
 */
 
+variable "turn_on" {}
 variable "clone_path" {}
 variable "inventory_path" {}
 variable "bastion_instance_public_ip" {}
 variable "bastion_ssh_private_key" {}
 variable "meta_private_key" {}
+variable "scale_version" {}
+variable "spectrumscale_rpms_path" {}
 
 locals {
   scripts_path             = replace(path.module, "storage_configuration", "scripts")
@@ -15,7 +18,8 @@ locals {
   storage_private_key      = format("%s/storage_key/id_rsa", var.clone_path) #tfsec:ignore:GEN002
 }
 
-resource "local_file" "create_scale_tuning_parameters" {
+resource "local_file" "create_storage_tuning_parameters" {
+  count    = tobool(var.turn_on) == true ? 1 : 0
   content  = <<EOT
 %cluster:
  maxblocksize=16M
@@ -34,18 +38,31 @@ EOT
 }
 
 resource "local_file" "write_meta_private_key" {
+  count             = tobool(var.turn_on) == true ? 1 : 0
   sensitive_content = var.meta_private_key
   filename          = local.storage_private_key
   file_permission   = "0600"
 }
 
 resource "null_resource" "prepare_ansible_inventory" {
-  count = (var.bastion_instance_public_ip != null || var.bastion_ssh_private_key != null) ? 1 : 0
+  count = (tobool(var.turn_on) == true && (var.bastion_instance_public_ip != null || var.bastion_ssh_private_key != null)) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key}"
   }
-  depends_on = [local_file.create_scale_tuning_parameters, local_file.write_meta_private_key]
+  depends_on = [local_file.create_storage_tuning_parameters, local_file.write_meta_private_key]
+  triggers = {
+    build = timestamp()
+  }
+}
+
+resource "null_resource" "perform_scale_deployment" {
+  count = (tobool(var.turn_on) == true && (var.bastion_instance_public_ip != null || var.bastion_ssh_private_key != null)) ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "ansible-playbook -i storage_inventory.ini storage_cloud_playbook.yaml --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""
+  }
+  depends_on = [null_resource.prepare_ansible_inventory]
   triggers = {
     build = timestamp()
   }

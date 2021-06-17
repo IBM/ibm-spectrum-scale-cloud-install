@@ -21,7 +21,6 @@ repos:
   hooks:
     - id: terraform_fmt
     - id: terraform_validate
-    - id: terraform_docs
     - id: terraform_tflint
       args:
           - '--args=--only=terraform_deprecated_interpolation'
