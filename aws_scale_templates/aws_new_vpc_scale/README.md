@@ -6,21 +6,6 @@
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 3.0 |
 
-## Providers
-
-No providers.
-
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_bastion"></a> [bastion](#module\_bastion) | ../sub_modules/bastion_template | n/a |
-| <a name="module_vpc"></a> [vpc](#module\_vpc) | ../sub_modules/vpc_template | n/a |
-
-## Resources
-
-No resources.
-
 ## Inputs
 
 | Name | Description | Type | Default | Required |
