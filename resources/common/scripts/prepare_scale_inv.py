@@ -20,7 +20,15 @@ import argparse
 import configparser
 import json
 import pathlib
+import os
+import re
 import yaml
+
+
+def cleanup(target_file):
+    """ Cleanup host inventory, group_vars """
+    if os.path.exists(target_file):
+        os.remove(target_file)
 
 
 def create_directory(target_directory):
@@ -89,16 +97,16 @@ def get_host_format(node):
     return host_format
 
 
-def initialize_node_details(az_count, cluster_type, compute_private_ips,
+def initialize_node_details(az_count, cls_type, compute_private_ips,
                             storage_private_ips, desc_private_ips, quorum_count,
                             user, key_file):
     """ Initialize node details for cluster definition.
-    :args: az_count (int), cluster_type (string), compute_private_ips (list),
+    :args: az_count (int), cls_type (string), compute_private_ips (list),
            storage_private_ips (list), desc_private_ips (list),
            quorum_count (int), user (string), key_file (string)
     """
     node_details, node = [], {}
-    if cluster_type == 'compute':
+    if cls_type == 'compute':
         for each_ip in compute_private_ips:
             if compute_private_ips.index(each_ip) == 0:
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
@@ -116,7 +124,7 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp"}
             node_details.append(get_host_format(node))
-    elif cluster_type == 'storage' and az_count == 1:
+    elif cls_type == 'storage' and az_count == 1:
         for each_ip in storage_private_ips:
             if storage_private_ips.index(each_ip) == 0:
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
@@ -134,7 +142,7 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "storagenodegrp"}
             node_details.append(get_host_format(node))
-    elif cluster_type == 'storage' and az_count > 1:
+    elif cls_type == 'storage' and az_count > 1:
         for each_ip in desc_private_ips:
             node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                     'is_gui': False, 'is_collector': False, 'is_nsd': True,
@@ -179,7 +187,7 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "storagenodegrp"}
             node_details.append(get_host_format(node))
-    elif cluster_type == 'combined':
+    elif cls_type == 'combined':
         for each_ip in desc_private_ips:
             node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                     'is_gui': False, 'is_collector': False, 'is_nsd': True,
@@ -263,7 +271,7 @@ def initialize_node_details(az_count, cluster_type, compute_private_ips,
 
 
 def initialize_scale_config_details(node_class, param_key, param_value):
-    """ Initialize cluster details.
+    """ Initialize scale cluster config details.
     :args: node_class (string), param_key (string), param_value (string)
     """
     scale_config = {}
@@ -271,6 +279,86 @@ def initialize_scale_config_details(node_class, param_key, param_value):
     scale_config['scale_config'].append({"nodeclass": node_class,
                                          "params": [{param_key: param_value}]})
     return scale_config
+
+
+def get_disks_list(az_count, disk_mapping, desc_disk_mapping):
+    """ Initialize disk list. """
+    disks_list = []
+
+    # Map storage nodes to failure groups based on AZ and subnet variations
+    failure_group1, failure_group2 = [], []
+    if az_count == 1:
+        # Single AZ, just split list equally
+        num_storage_nodes = len(list(disk_mapping))
+        mid_index = num_storage_nodes//2
+        failure_group1 = list(disk_mapping)[:mid_index]
+        failure_group2 = list(disk_mapping)[mid_index:]
+    else:
+        # Multi AZ, split based on subnet match
+        subnet_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
+        subnet1A = subnet_pattern.findall(list(disk_mapping)[0])
+        for each_ip in disk_mapping:
+            current_subnet = subnet_pattern.findall(each_ip)
+            if current_subnet[0] == subnet1A[0]:
+                failure_group1.append(each_ip)
+            else:
+                failure_group2.append(each_ip)
+
+    storage_instances = []
+    max_len = max(len(failure_group1), len(failure_group2))
+    idx = 0
+    while idx < max_len:
+        if idx < len(failure_group1):
+            storage_instances.append(failure_group1[idx])
+
+        if idx < len(failure_group2):
+            storage_instances.append(failure_group2[idx])
+
+        idx = idx + 1
+
+    for each_ip, disk_per_ip in disk_mapping.items():
+        if each_ip in failure_group1:
+            for each_disk in disk_per_ip:
+                disks_list.append({"device": each_disk,
+                                   "failureGroup": 1, "servers": each_ip,
+                                   "usage": "dataAndMetadata", "pool": "system"})
+        if each_ip in failure_group2:
+            for each_disk in disk_per_ip:
+                disks_list.append({"device": each_disk,
+                                   "failureGroup": 2, "servers": each_ip,
+                                   "usage": "dataAndMetadata", "pool": "system"})
+
+    # Append "descOnly" disk details
+    if len(desc_disk_mapping.keys()):
+        disks_list.append({"device": list(desc_disk_mapping.values())[0],
+                           "failureGroup": 3,
+                           "servers": list(desc_disk_mapping.keys())[0],
+                           "usage": "descOnly", "pool": "system"})
+    return disks_list
+
+
+def initialize_scale_storage_details(az_count, fs_mount, block_size, disk_details):
+    """ Initialize storage details.
+    :args: az_count (int), fs_mount (string), block_size (string),
+           disks_list (list)
+    """
+    storage = {}
+    storage['scale_storage'] = []
+    if az_count > 1:
+        data_replicas = 2
+        metadata_replicas = 2
+    else:
+        data_replicas = 1
+        metadata_replicas = 2
+
+    storage['scale_storage'].append({"filesystem": pathlib.PurePath(fs_mount).name,
+                                     "blockSize": block_size,
+                                     "defaultDataReplicas": data_replicas,
+                                     "defaultMetadataReplicas": metadata_replicas,
+                                     "automaticMountOption": "true",
+                                     "defaultMountPoint": fs_mount,
+                                     "disks": disk_details})
+    return storage
 
 
 if __name__ == "__main__":
@@ -299,8 +387,12 @@ if __name__ == "__main__":
         print("Parsed terraform output: %s" % json.dumps(TF, indent=4))
 
     # Step-2: Identify the cluster type
-    if len(TF['storage_cluster_instance_private_ips']) == 0 and len(TF['compute_cluster_instance_private_ips']) > 0:
+    if len(TF['storage_cluster_instance_private_ips']) == 0 and \
+            len(TF['compute_cluster_instance_private_ips']) > 0:
         cluster_type = "compute"
+        cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
+                                            "ibm-spectrum-scale-install-infra",
+                                            cluster_type))
         gui_username = TF['compute_cluster_gui_username']
         gui_password = TF['compute_cluster_gui_password']
         profile_path = "%s/computesncparams" % ARGUMENTS.install_infra_path
@@ -309,6 +401,9 @@ if __name__ == "__main__":
             "computenodegrp", "pagepool", "1G")
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and len(TF['storage_cluster_instance_private_ips']) > 0:
         cluster_type = "storage"
+        cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
+                                            "ibm-spectrum-scale-install-infra",
+                                            cluster_type))
         gui_username = TF['storage_cluster_gui_username']
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
@@ -317,6 +412,9 @@ if __name__ == "__main__":
             "storagenodegrp", "pagepool", "1G")
     else:
         cluster_type = "combined"
+        cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
+                                            "ibm-spectrum-scale-install-infra",
+                                            cluster_type))
         gui_username = TF['storage_cluster_gui_username']
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/scalesncparams" % ARGUMENTS.install_infra_path
@@ -355,12 +453,7 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Total quorum count: ", quorum_count)
 
-    # Step-4: Create group_vars directory
-    create_directory("%s/%s/%s" % (ARGUMENTS.install_infra_path,
-                                   "ibm-spectrum-scale-install-infra",
-                                   "group_vars"))
-
-    # Step-5: Create playbook
+    # Step-4: Create playbook
     playbook_content = prepare_ansible_playbook(
         "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
     write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
@@ -370,17 +463,7 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Content of ansible playbook:\n", playbook_content)
 
-    # Step-6: Create group_vars
-    with open("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
-                               "ibm-spectrum-scale-install-infra",
-                               "group_vars",
-                               "%s_cluster_config.yaml" % cluster_type), 'w') as groupvar:
-        yaml.dump(scale_config, groupvar, default_flow_style=False)
-    if ARGUMENTS.verbose:
-        print("group_vars content:\n%s" % yaml.dump(
-            scale_config, default_flow_style=False))
-
-    # Step-7: Create hosts
+    # Step-5: Create hosts
     config = configparser.ConfigParser(allow_no_value=True)
     node_details = initialize_node_details(len(TF['vpc_availability_zones']), cluster_type,
                                            TF['compute_cluster_instance_private_ips'],
@@ -389,7 +472,7 @@ if __name__ == "__main__":
                                            quorum_count, "root", ARGUMENTS.instance_private_key)
     node_template = ""
     for each_entry in node_details:
-        if ARGUMENTS.bastion_ssh_private_key == None:
+        if ARGUMENTS.bastion_ssh_private_key is None:
             node_template = node_template + each_entry + "\n"
         else:
             if TF['cloud_platform'] == 'AWS':
@@ -425,3 +508,34 @@ if __name__ == "__main__":
         print('[all:vars]')
         for each_key in config['all:vars']:
             print("%s: %s" % (each_key, config.get('all:vars', each_key)))
+
+    # Step-6: Create group_vars directory
+    create_directory("%s/%s/%s" % (ARGUMENTS.install_infra_path,
+                                   "ibm-spectrum-scale-install-infra",
+                                   "group_vars"))
+    # Step-7: Create group_vars
+    with open("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
+                               "ibm-spectrum-scale-install-infra",
+                               "group_vars",
+                               "%s_cluster_config.yaml" % cluster_type), 'w') as groupvar:
+        yaml.dump(scale_config, groupvar, default_flow_style=False)
+    if ARGUMENTS.verbose:
+        print("group_vars content:\n%s" % yaml.dump(
+            scale_config, default_flow_style=False))
+
+    if cluster_type in ['storage', 'combined']:
+        disks_list = get_disks_list(len(TF['vpc_availability_zones']),
+                                    TF['storage_cluster_with_data_volume_mapping'],
+                                    TF['storage_cluster_desc_data_volume_mapping'])
+        scale_storage = initialize_scale_storage_details(len(TF['vpc_availability_zones']),
+                                                         TF['storage_cluster_filesystem_mountpoint'],
+                                                         TF['filesystem_block_size'],
+                                                         disks_list)
+        with open("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
+                                   "ibm-spectrum-scale-install-infra",
+                                   "group_vars",
+                                   "%s_cluster_config.yaml" % cluster_type), 'a') as groupvar:
+            yaml.dump(scale_storage, groupvar, default_flow_style=False)
+        if ARGUMENTS.verbose:
+            print("group_vars content:\n%s" % yaml.dump(
+                scale_storage, default_flow_style=False))

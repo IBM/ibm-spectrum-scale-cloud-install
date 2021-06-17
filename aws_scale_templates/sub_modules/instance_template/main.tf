@@ -491,3 +491,13 @@ module "compute_cluster_configuration" {
   meta_private_key           = module.generate_compute_cluster_keys.private_key_content
   depends_on                 = [module.prepare_ansible_configuration, module.write_compute_cluster_inventory]
 }
+
+module "storage_cluster_configuration" {
+  source                     = "../../../resources/common/storage_configuration"
+  clone_path                 = var.scale_ansible_repo_clone_path
+  inventory_path             = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  bastion_instance_public_ip = var.bastion_instance_public_ip
+  bastion_ssh_private_key    = var.bastion_ssh_private_key
+  meta_private_key           = module.generate_storage_cluster_keys.private_key_content
+  depends_on                 = [module.prepare_ansible_configuration, module.write_storage_cluster_inventory]
+}
