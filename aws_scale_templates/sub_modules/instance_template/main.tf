@@ -507,3 +507,16 @@ module "storage_cluster_configuration" {
   spectrumscale_rpms_path    = var.spectrumscale_rpms_path
   depends_on                 = [module.prepare_ansible_configuration, module.write_storage_cluster_inventory]
 }
+
+module "combined_cluster_configuration" {
+  source                     = "../../../resources/common/scale_configuration"
+  turn_on                    = var.create_separate_namespaces == false ? true : false
+  clone_path                 = var.scale_ansible_repo_clone_path
+  inventory_path             = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  bastion_instance_public_ip = var.bastion_instance_public_ip
+  bastion_ssh_private_key    = var.bastion_ssh_private_key
+  meta_private_key           = module.generate_storage_cluster_keys.private_key_content
+  scale_version              = var.scale_version
+  spectrumscale_rpms_path    = var.spectrumscale_rpms_path
+  depends_on                 = [module.prepare_ansible_configuration, module.write_storage_cluster_inventory]
+}
