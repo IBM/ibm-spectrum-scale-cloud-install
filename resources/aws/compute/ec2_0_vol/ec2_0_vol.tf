@@ -81,9 +81,9 @@ resource "aws_instance" "itself" {
 }
 
 output "instance_private_ips" {
-  value = aws_instance.itself.*.private_ip
+  value = try(aws_instance.itself.*.private_ip, [])
 }
 
 output "instance_ids" {
-  value = aws_instance.itself.*.id
+  value = try(aws_instance.itself.*.id, [])
 }

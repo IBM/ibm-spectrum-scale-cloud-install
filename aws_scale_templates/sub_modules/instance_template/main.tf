@@ -178,7 +178,7 @@ module "storage_cluster_security_group" {
   turn_on               = var.total_storage_cluster_instances > 0 ? true : false
   sec_group_name        = ["storage-sec-group-"]
   sec_group_description = ["Enable SSH access to the storage cluster hosts"]
-  vpc_id                = [var.vpc_id]
+  vpc_id                = var.vpc_id
   sec_group_tag         = ["storage-sec-group"]
 }
 
@@ -349,11 +349,11 @@ module "storage_cluster_instances" {
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
-  subnet_ids                             = var.vpc_storage_cluster_private_subnets
+  subnet_ids                             = length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets
   root_volume_type                       = var.storage_cluster_root_volume_type
   user_public_key                        = var.storage_cluster_key_pair
   meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key                        = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
   volume_tags                            = var.storage_cluster_volume_tags
   ebs_optimized                          = var.ebs_optimized
   ebs_block_devices                      = var.ebs_block_devices_per_storage_instance
@@ -369,18 +369,18 @@ module "storage_cluster_instances" {
 
 module "storage_cluster_tie_breaker_instance" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
-  instances_count                        = (length(var.vpc_availability_zones) > 1 && var.total_storage_cluster_instances > 0) ? 1 : 0
+  instances_count                        = (length(var.vpc_storage_cluster_private_subnets) > 1 && var.total_storage_cluster_instances > 0) ? 1 : 0
   name_prefix                            = format("%s-storage-tie", var.resource_prefix)
   ami_id                                 = var.storage_cluster_ami_id
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
-  subnet_ids                             = [var.vpc_storage_cluster_private_subnets[2]]
+  subnet_ids                             = length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets
   root_volume_type                       = var.storage_cluster_root_volume_type
   user_public_key                        = var.storage_cluster_key_pair
   meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key                        = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
   volume_tags                            = var.storage_cluster_volume_tags
   ebs_optimized                          = false
   ebs_block_devices                      = 1
@@ -449,9 +449,9 @@ module "write_storage_cluster_inventory" {
   storage_cluster_with_data_volume_mapping  = jsonencode(module.storage_cluster_instances.instance_ips_with_ebs_mapping)
   storage_cluster_gui_username              = jsonencode(var.storage_cluster_gui_username)
   storage_cluster_gui_password              = jsonencode(var.storage_cluster_gui_password)
-  storage_cluster_desc_instance_ids         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids) : jsonencode([])
-  storage_cluster_desc_instance_private_ips = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
-  storage_cluster_desc_data_volume_mapping  = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping) : jsonencode({})
+  storage_cluster_desc_instance_ids         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
+  storage_cluster_desc_instance_private_ips = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
+  storage_cluster_desc_data_volume_mapping  = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping)
   depends_on                                = [module.prepare_ansible_configuration]
 }
 

@@ -114,11 +114,11 @@ resource "aws_instance" "itself" {
 }
 
 output "instance_private_ips" {
-  value = aws_instance.itself.*.private_ip
+  value = try(aws_instance.itself.*.private_ip, [])
 }
 
 output "instance_ids" {
-  value = aws_instance.itself.*.id
+  value = try(aws_instance.itself.*.id, [])
 }
 
 output "ebs_block_device_volume_ids" {
@@ -126,5 +126,5 @@ output "ebs_block_device_volume_ids" {
 }
 
 output "instance_ips_with_ebs_mapping" {
-  value = { for each_ip in aws_instance.itself.*.private_ip : each_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }
+  value = try({ for each_ip in aws_instance.itself.*.private_ip : each_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
 }

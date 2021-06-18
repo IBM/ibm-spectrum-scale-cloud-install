@@ -16,6 +16,8 @@ locals {
   ansible_inv_script_path  = format("%s/prepare_scale_inv.py", local.scripts_path)
   scale_tuning_config_path = format("%s/%s", var.clone_path, "storagesncparams.profile")
   storage_private_key      = format("%s/storage_key/id_rsa", var.clone_path) #tfsec:ignore:GEN002
+  storage_inventory_path   = format("%s/%s/storage_inventory.ini", var.clone_path, "ibm-spectrum-scale-install-infra")
+  storage_playbook_path    = format("%s/%s/storage_cloud_playbook.yaml", var.clone_path, "ibm-spectrum-scale-install-infra")
 }
 
 resource "local_file" "create_storage_tuning_parameters" {
@@ -56,13 +58,25 @@ resource "null_resource" "prepare_ansible_inventory" {
   }
 }
 
+resource "null_resource" "prepare_ansible_inventory_wo_bastion" {
+  count = (tobool(var.turn_on) == true && (var.bastion_instance_public_ip == null || var.bastion_ssh_private_key == null)) ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key}"
+  }
+  depends_on = [local_file.create_storage_tuning_parameters, local_file.write_meta_private_key]
+  triggers = {
+    build = timestamp()
+  }
+}
+
 resource "null_resource" "perform_scale_deployment" {
   count = (tobool(var.turn_on) == true && (var.bastion_instance_public_ip != null || var.bastion_ssh_private_key != null)) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "ansible-playbook -i storage_inventory.ini storage_cloud_playbook.yaml --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""
+    command     = "ansible-playbook -i ${local.storage_inventory_path} ${local.storage_playbook_path} --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""
   }
-  depends_on = [null_resource.prepare_ansible_inventory]
+  depends_on = [null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_wo_bastion]
   triggers = {
     build = timestamp()
   }
