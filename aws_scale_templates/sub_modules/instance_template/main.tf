@@ -373,7 +373,7 @@ module "storage_cluster_instances" {
   ebs_block_device_volume_type           = var.ebs_block_device_volume_type
   ebs_block_device_iops                  = var.ebs_block_device_iops
   enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = tolist(data.aws_ec2_instance_type.storage_profile.instance_disks)[0].count
+  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(data.aws_ec2_instance_type.storage_profile.instance_disks)[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
@@ -402,7 +402,7 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_volume_type           = var.ebs_block_device_volume_type
   ebs_block_device_iops                  = var.ebs_block_device_iops
   enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = tolist(data.aws_ec2_instance_type.storage_profile.instance_disks)[0].count
+  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(data.aws_ec2_instance_type.storage_profile.instance_disks)[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 

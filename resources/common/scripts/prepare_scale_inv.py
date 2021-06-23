@@ -305,12 +305,11 @@ def initialize_scale_config_details(node_classes, param_key, param_value):
     :args: node_class (list), param_key (string), param_value (string)
     """
     scale_config = {}
-    scale_config['scale_config'], scale_config['scale_cluster_config'] = [], []
+    scale_config['scale_config'], scale_config['scale_cluster_config'] = [], {}
     for each_node in node_classes:
         scale_config['scale_config'].append({"nodeclass": each_node,
                                              "params": [{param_key: param_value}]})
-    scale_config['scale_cluster_config'].append(
-        {"ephemeral_port_range": "60000-61000"})
+    scale_config['scale_cluster_config']['ephemeral_port_range'] = "60000-61000"
     return scale_config
 
 

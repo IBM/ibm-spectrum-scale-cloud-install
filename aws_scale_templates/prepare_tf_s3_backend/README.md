@@ -1,3 +1,27 @@
+### Configure terraform S3 (remote) backend
+
+Below steps will provision AWS resources (**new S3 bucket, new DynamoDB table**) required for enabling S3
+backend for terraform. For more details, refer to [Terraform S3 backend](https://www.terraform.io/docs/language/settings/backends/s3.html).
+
+1. Change working directory to `aws_scale_templates/prepare_tf_s3_backend`.
+
+    ```
+    $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/prepare_tf_s3_backend/
+    ```
+2. Create terraform variable definitions file (`inputs.auto.tfvars.json`) and provide infrastructure inputs.
+
+    Example:
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "bucket_name": "scalebucket",
+        "dynamodb_table_name": "scaletf_table",
+        "force_destroy": true
+    }
+    ```
+
+3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
 
