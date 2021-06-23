@@ -2,8 +2,13 @@
 
 echo "Generating terraform-docs"
 root_dir=$(git rev-parse --show-toplevel)
-terraform-docs markdown $root_dir/aws_scale_templates/aws_new_vpc_scale --hide modules --hide providers --hide resources --output-file $root_dir/aws_scale_templates/aws_new_vpc_scale/README.md
-terraform-docs markdown $root_dir/aws_scale_templates/prepare_tf_s3_backend --hide modules --hide providers --hide resources --output-file $root_dir/aws_scale_templates/prepare_tf_s3_backend/README.md
-terraform-docs markdown $root_dir/aws_scale_templates/sub_modules/vpc_template --hide modules --hide providers --hide resources --output-file $root_dir/aws_scale_templates/sub_modules/vpc_template/README.md
-terraform-docs markdown $root_dir/aws_scale_templates/sub_modules/bastion_template --hide modules --hide providers --hide resources --output-file $root_dir/aws_scale_templates/sub_modules/bastion_template/README.md
-terraform-docs markdown $root_dir/aws_scale_templates/sub_modules/instance_template --hide modules --hide providers --hide resources --output-file $root_dir/aws_scale_templates/sub_modules/instance_template/README.md
+cd $root_dir/aws_scale_templates/aws_new_vpc_scale
+terraform-docs .
+cd $root_dir/aws_scale_templates/prepare_tf_s3_backend
+terraform-docs .
+cd $root_dir/aws_scale_templates/sub_modules/vpc_template
+terraform-docs markdown .
+cd $root_dir/aws_scale_templates/sub_modules/bastion_template
+terraform-docs .
+cd $root_dir/aws_scale_templates/sub_modules/instance_template
+terraform-docs .
