@@ -322,6 +322,10 @@ module "email_notification" {
   vpc_region     = var.vpc_region
 }
 
+data "aws_ec2_instance_type" "compute_profile" {
+  instance_type = var.compute_cluster_instance_type
+}
+
 module "compute_cluster_instances" {
   source               = "../../../resources/aws/compute/ec2_0_vol"
   instances_count      = var.total_compute_cluster_instances
@@ -340,6 +344,10 @@ module "compute_cluster_instances" {
   tags                 = var.compute_cluster_tags
 }
 
+data "aws_ec2_instance_type" "storage_profile" {
+  instance_type = var.storage_cluster_instance_type
+}
+
 module "storage_cluster_instances" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
   instances_count                        = var.total_storage_cluster_instances
@@ -355,7 +363,7 @@ module "storage_cluster_instances" {
   meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
   volume_tags                            = var.storage_cluster_volume_tags
-  ebs_optimized                          = var.ebs_optimized
+  ebs_optimized                          = data.aws_ec2_instance_type.storage_profile.ebs_optimized_support == "unsupported" ? false : true
   ebs_block_devices                      = var.ebs_block_devices_per_storage_instance
   ebs_block_device_names                 = local.ebs_device_names
   ebs_block_device_delete_on_termination = var.ebs_block_device_delete_on_termination
@@ -364,6 +372,8 @@ module "storage_cluster_instances" {
   ebs_block_device_volume_size           = var.ebs_block_device_volume_size
   ebs_block_device_volume_type           = var.ebs_block_device_volume_type
   ebs_block_device_iops                  = var.ebs_block_device_iops
+  enable_nvme_block_device               = var.enable_nvme_block_device
+  nvme_block_device_count                = tolist(data.aws_ec2_instance_type.storage_profile.instance_disks)[0].count
   tags                                   = var.storage_cluster_tags
 }
 
@@ -382,7 +392,7 @@ module "storage_cluster_tie_breaker_instance" {
   meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
   volume_tags                            = var.storage_cluster_volume_tags
-  ebs_optimized                          = false
+  ebs_optimized                          = data.aws_ec2_instance_type.storage_profile.ebs_optimized_support == "unsupported" ? false : true
   ebs_block_devices                      = 1
   ebs_block_device_names                 = local.ebs_device_names
   ebs_block_device_delete_on_termination = var.ebs_block_device_delete_on_termination
@@ -391,6 +401,8 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_volume_size           = 5
   ebs_block_device_volume_type           = var.ebs_block_device_volume_type
   ebs_block_device_iops                  = var.ebs_block_device_iops
+  enable_nvme_block_device               = var.enable_nvme_block_device
+  nvme_block_device_count                = tolist(data.aws_ec2_instance_type.storage_profile.instance_disks)[0].count
   tags                                   = var.storage_cluster_tags
 }
 
@@ -487,6 +499,7 @@ module "compute_cluster_configuration" {
   turn_on                    = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
   clone_path                 = var.scale_ansible_repo_clone_path
   inventory_path             = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  memory_size                = data.aws_ec2_instance_type.compute_profile.memory_size
   bastion_instance_public_ip = var.bastion_instance_public_ip
   bastion_ssh_private_key    = var.bastion_ssh_private_key
   meta_private_key           = module.generate_compute_cluster_keys.private_key_content
@@ -500,6 +513,7 @@ module "storage_cluster_configuration" {
   turn_on                    = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
   clone_path                 = var.scale_ansible_repo_clone_path
   inventory_path             = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  memory_size                = data.aws_ec2_instance_type.storage_profile.memory_size
   bastion_instance_public_ip = var.bastion_instance_public_ip
   bastion_ssh_private_key    = var.bastion_ssh_private_key
   meta_private_key           = module.generate_storage_cluster_keys.private_key_content
@@ -513,6 +527,7 @@ module "combined_cluster_configuration" {
   turn_on                    = var.create_separate_namespaces == false ? true : false
   clone_path                 = var.scale_ansible_repo_clone_path
   inventory_path             = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  memory_size                = data.aws_ec2_instance_type.storage_profile.memory_size
   bastion_instance_public_ip = var.bastion_instance_public_ip
   bastion_ssh_private_key    = var.bastion_ssh_private_key
   meta_private_key           = module.generate_storage_cluster_keys.private_key_content

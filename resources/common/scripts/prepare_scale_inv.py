@@ -32,6 +32,19 @@ def cleanup(target_file):
         os.remove(target_file)
 
 
+def calculate_pagepool(memory_size):
+    """ Calculate pagepool """
+    # 1 MiB = 1.048576 MB
+    mem_size_mb = int(int(memory_size) * 1.048576)
+    # 1 MB = 0.001 GB
+    pagepool_gb = int(mem_size_mb * 0.001)
+    if pagepool_gb <= 1:
+        pagepool = 1
+    else:
+        pagepool = int(int(pagepool_gb)*int(25)*0.01)
+    return "{}G".format(pagepool)
+
+
 def create_directory(target_directory):
     """ Create specified directory """
     pathlib.Path(target_directory).mkdir(parents=True, exist_ok=True)
@@ -100,7 +113,6 @@ def initialize_cluster_details(scale_version, cluster_name, username,
     cluster_details['scale_gui_admin_user'] = username
     cluster_details['scale_gui_admin_password'] = password
     cluster_details['scale_gui_admin_role'] = "Administrator"
-    cluster_details['ephemeral_port_range'] = "60000-61000"
     cluster_details['scale_sync_replication_config'] = scale_replica_config
     cluster_details['scale_cluster_profile_name'] = str(
         pathlib.PurePath(scale_profile_path).stem)
@@ -288,14 +300,17 @@ def initialize_node_details(az_count, cls_type, compute_private_ips,
     return node_details
 
 
-def initialize_scale_config_details(node_class, param_key, param_value):
+def initialize_scale_config_details(node_classes, param_key, param_value):
     """ Initialize scale cluster config details.
-    :args: node_class (string), param_key (string), param_value (string)
+    :args: node_class (list), param_key (string), param_value (string)
     """
     scale_config = {}
-    scale_config['scale_config'] = []
-    scale_config['scale_config'].append({"nodeclass": node_class,
-                                         "params": [{param_key: param_value}]})
+    scale_config['scale_config'], scale_config['scale_cluster_config'] = [], []
+    for each_node in node_classes:
+        scale_config['scale_config'].append({"nodeclass": each_node,
+                                             "params": [{param_key: param_value}]})
+    scale_config['scale_cluster_config'].append(
+        {"ephemeral_port_range": "60000-61000"})
     return scale_config
 
 
@@ -348,7 +363,7 @@ def get_disks_list(az_count, disk_mapping, desc_disk_mapping):
 
     # Append "descOnly" disk details
     if len(desc_disk_mapping.keys()):
-        disks_list.append({"device": list(desc_disk_mapping.values())[0],
+        disks_list.append({"device": list(desc_disk_mapping.values())[0][0],
                            "failureGroup": 3,
                            "servers": list(desc_disk_mapping.keys())[0],
                            "usage": "descOnly", "pool": "system"})
@@ -393,6 +408,7 @@ if __name__ == "__main__":
                         help='Bastion SSH public ip address')
     PARSER.add_argument('--bastion_ssh_private_key',
                         help='Bastion SSH private key path')
+    PARSER.add_argument('--memory_size', help='Instance memory size')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
@@ -415,9 +431,13 @@ if __name__ == "__main__":
         gui_password = TF['compute_cluster_gui_password']
         profile_path = "%s/computesncparams" % ARGUMENTS.install_infra_path
         replica_config = False
+        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)
         scale_config = initialize_scale_config_details(
-            "computenodegrp", "pagepool", "1G")
-    elif len(TF['compute_cluster_instance_private_ips']) == 0 and len(TF['storage_cluster_instance_private_ips']) > 0:
+            ["computenodegrp"], "pagepool", pagepool_size)
+    elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
+            len(TF['storage_cluster_instance_private_ips']) > 0 and \
+            len(TF['vpc_availability_zones']) == 1:
+        # single az storage cluster
         cluster_type = "storage"
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                             "ibm-spectrum-scale-install-infra",
@@ -426,8 +446,25 @@ if __name__ == "__main__":
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
+        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)
         scale_config = initialize_scale_config_details(
-            "storagenodegrp", "pagepool", "1G")
+            ["storagenodegrp"], "pagepool", pagepool_size)
+    elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
+            len(TF['storage_cluster_instance_private_ips']) > 0 and \
+            len(TF['vpc_availability_zones']) > 1 and \
+            len(TF['storage_cluster_desc_instance_private_ips']) > 0:
+        # multi az storage cluster
+        cluster_type = "storage"
+        cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
+                                            "ibm-spectrum-scale-install-infra",
+                                            cluster_type))
+        gui_username = TF['storage_cluster_gui_username']
+        gui_password = TF['storage_cluster_gui_password']
+        profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
+        replica_config = bool(len(TF['vpc_availability_zones']) > 1)
+        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)
+        scale_config = initialize_scale_config_details(
+            ["storagenodegrp", "computedescnodegrp"], "pagepool", pagepool_size)
     else:
         cluster_type = "combined"
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
@@ -437,8 +474,9 @@ if __name__ == "__main__":
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/scalesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
+        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)
         scale_config = initialize_scale_config_details(
-            "storagenodegrp", "pagepool", "1G")
+            "storagenodegrp", "pagepool", pagepool_size)
 
     if ARGUMENTS.verbose:
         print("Identified cluster type: %s" % cluster_type)

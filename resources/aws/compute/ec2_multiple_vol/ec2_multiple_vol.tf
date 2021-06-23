@@ -24,6 +24,8 @@ variable "ebs_block_device_kms_key_id" {}
 variable "ebs_block_device_volume_size" {}
 variable "ebs_block_device_volume_type" {}
 variable "ebs_block_device_iops" {}
+variable "enable_nvme_block_device" {}
+variable "nvme_block_device_count" {}
 variable "tags" {}
 
 data "template_file" "user_data" {
@@ -46,6 +48,25 @@ data "template_cloudinit_config" "user_data64" {
   part {
     content_type = "text/x-shellscript"
     content      = data.template_file.user_data.rendered
+  }
+}
+
+data "template_file" "nvme_alias" {
+  count    = tobool(var.enable_nvme_block_device) == true ? 1 : 0
+  template = file("${path.module}/scripts/nvme_alias.sh.tpl")
+}
+
+data "template_cloudinit_config" "nvme_user_data64" {
+  count         = tobool(var.enable_nvme_block_device) == true ? 1 : 0
+  gzip          = true
+  base64_encode = true
+  part {
+    content_type = "text/x-shellscript"
+    content      = data.template_file.user_data.rendered
+  }
+  part {
+    content_type = "text/x-shellscript"
+    content      = data.template_file.nvme_alias[0].rendered
   }
 }
 
@@ -72,7 +93,7 @@ resource "aws_instance" "itself" {
   subnet_id            = element(var.subnet_ids, count.index)
   iam_instance_profile = var.iam_instance_profile
   placement_group      = var.placement_group
-  ebs_optimized        = var.ebs_optimized
+  ebs_optimized        = tobool(var.ebs_optimized)
 
   root_block_device {
     volume_type           = var.root_volume_type
@@ -100,7 +121,7 @@ resource "aws_instance" "itself" {
     var.volume_tags,
   )
 
-  user_data_base64 = data.template_cloudinit_config.user_data64.rendered
+  user_data_base64 = tobool(var.enable_nvme_block_device) == true ? data.template_cloudinit_config.nvme_user_data64[0].rendered : data.template_cloudinit_config.user_data64.rendered
   tags             = merge({ "Name" = format("%s-%s", var.name_prefix, count.index + 1) }, var.tags)
 
   metadata_options {
@@ -126,5 +147,5 @@ output "ebs_block_device_volume_ids" {
 }
 
 output "instance_ips_with_ebs_mapping" {
-  value = try({ for each_ip in aws_instance.itself.*.private_ip : each_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
+  value = tobool(var.enable_nvme_block_device) == true ? try({ for each_ip in aws_instance.itself.*.private_ip : each_ip => slice(var.ebs_block_device_names, 0, var.nvme_block_device_count) }, {}) : try({ for each_ip in aws_instance.itself.*.private_ip : each_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
 }

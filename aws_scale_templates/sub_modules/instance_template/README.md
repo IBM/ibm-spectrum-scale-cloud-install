@@ -8,7 +8,10 @@
 
 ## Resources
 
-No resources.
+| Name | Type |
+|------|------|
+| [aws_ec2_instance_type.compute_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_instance_type) | data source |
+| [aws_ec2_instance_type.storage_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ec2_instance_type) | data source |
 
 ## Inputs
 
@@ -34,7 +37,7 @@ No resources.
 | <a name="input_ebs_block_device_volume_size"></a> [ebs\_block\_device\_volume\_size](#input\_ebs\_block\_device\_volume\_size) | Size of the volume in gibibytes (GiB). | `number` | `500` | no |
 | <a name="input_ebs_block_device_volume_type"></a> [ebs\_block\_device\_volume\_type](#input\_ebs\_block\_device\_volume\_type) | EBS volume types: io1, io2, gp2, gp3, st1 and sc1. | `string` | `"gp2"` | no |
 | <a name="input_ebs_block_devices_per_storage_instance"></a> [ebs\_block\_devices\_per\_storage\_instance](#input\_ebs\_block\_devices\_per\_storage\_instance) | Additional EBS block devices to attach per storage cluster instance. | `number` | `1` | no |
-| <a name="input_ebs_optimized"></a> [ebs\_optimized](#input\_ebs\_optimized) | If true, the launched EC2 instance will be EBS-optimized. | `bool` | `false` | no |
+| <a name="input_enable_nvme_block_device"></a> [enable\_nvme\_block\_device](#input\_enable\_nvme\_block\_device) | Enable NVMe block devices (built on Nitro instances). | `bool` | `false` | no |
 | <a name="input_filesystem_block_size"></a> [filesystem\_block\_size](#input\_filesystem\_block\_size) | Filesystem block size. | `string` | `"4M"` | no |
 | <a name="input_operator_email"></a> [operator\_email](#input\_operator\_email) | SNS notifications will be sent to provided email id. | `string` | n/a | yes |
 | <a name="input_resource_prefix"></a> [resource\_prefix](#input\_resource\_prefix) | Prefix is added to all resources that are created. | `string` | `"spectrum-scale"` | no |
