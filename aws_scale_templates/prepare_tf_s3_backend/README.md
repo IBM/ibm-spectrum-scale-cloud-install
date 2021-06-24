@@ -8,7 +8,7 @@ backend for terraform. For more details, refer to [Terraform S3 backend](https:/
     ```
     $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/prepare_tf_s3_backend/
     ```
-2. Create terraform variable definitions file (`inputs.auto.tfvars.json`) and provide infrastructure inputs.
+2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     Example:
     ```json
