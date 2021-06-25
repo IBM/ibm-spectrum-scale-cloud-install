@@ -35,7 +35,15 @@ repos:
   hooks:
     - id: custom-terraform-docs-script
       name: custom-terraform-docs
-      entry: tools/pre_commit_hooks/terraform_docs.sh
+      entry: hooks/terraform_docs.sh
+      language: script
+      always_run: true
+      pass_filenames: false
+- repo: local
+  hooks:
+    - id: custom-packer-script
+      name: custom-packer-docs
+      entry: hooks/packer_tools.sh
       language: script
       always_run: true
       pass_filenames: false
