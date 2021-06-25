@@ -1,0 +1,20 @@
+# Local .terraform directories
+**/.terraform/*
+
+# Terraform lockfile
+.terraform.lock.hcl
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+
+# Exclude all .tfvars files
+*.tfvars
+*.tfvars.json
+*.auto.tfvars.json
+
+# Exclude all .pkrvars files
+*.auto.pkrvars.hcl

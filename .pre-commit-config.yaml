@@ -1,0 +1,49 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.0.1
+  hooks:
+    - id: check-yaml
+    - id: check-json
+    - id: mixed-line-ending
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+    - id: check-case-conflict
+    - id: check-merge-conflict
+    - id: check-executables-have-shebangs
+    - id: check-added-large-files
+    - id: fix-encoding-pragma
+- repo: https://github.com/pre-commit/mirrors-autopep8
+  rev: v1.5.7
+  hooks:
+    - id: autopep8
+- repo: git://github.com/antonbabenko/pre-commit-terraform
+  rev: v1.50.0
+  hooks:
+    - id: terraform_fmt
+    - id: terraform_validate
+    - id: terraform_tflint
+      args:
+          - '--args=--only=terraform_deprecated_interpolation'
+          - '--args=--only=terraform_deprecated_index'
+          - '--args=--only=terraform_unused_declarations'
+          - '--args=--only=terraform_comment_syntax'
+          - '--args=--only=terraform_module_pinned_source'
+          - '--args=--only=terraform_naming_convention'
+          - '--args=--only=terraform_workspace_remote'
+    - id: terraform_tfsec
+- repo: local
+  hooks:
+    - id: custom-terraform-docs-script
+      name: custom-terraform-docs
+      entry: precommit_tools/terraform_docs.sh
+      language: script
+      always_run: true
+      pass_filenames: false
+- repo: local
+  hooks:
+    - id: custom-packer-script
+      name: custom-packer-docs
+      entry: precommit_tools/packer_tools.sh
+      language: script
+      always_run: true
+      pass_filenames: false

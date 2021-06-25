@@ -2,42 +2,16 @@
     Creates AWS autoscaling group.
 */
 
-variable "asg_name_prefix" {
-  type = string
-}
-
-variable "asg_max_size" {
-  type    = string
-  default = 1
-}
-
-variable "asg_min_size" {
-  type    = string
-  default = 1
-}
-
-variable "asg_desired_size" {
-  type    = string
-  default = 1
-}
-
-variable "auto_scaling_group_subnets" {
-  type = list(string)
-}
-
-variable "asg_suspend_processes" {
-  type    = list(string)
-  default = ["HealthCheck", "ReplaceUnhealthy", "AZRebalance"]
-}
-
-variable "asg_launch_config_name" {
-  type = string
-}
-
+variable "asg_name_prefix" {}
+variable "asg_max_size" {}
+variable "asg_min_size" {}
+variable "asg_desired_size" {}
+variable "auto_scaling_group_subnets" {}
+variable "asg_suspend_processes" {}
+variable "asg_launch_config_name" {}
 variable "asg_tags" {}
 
-
-resource "aws_autoscaling_group" "auto_scaling_group" {
+resource "aws_autoscaling_group" "itself" {
   name_prefix               = var.asg_name_prefix
   launch_configuration      = var.asg_launch_config_name
   default_cooldown          = 180
@@ -55,33 +29,33 @@ resource "aws_autoscaling_group" "auto_scaling_group" {
   }
 }
 
-data "aws_instances" "all_instances" {
-  depends_on = [aws_autoscaling_group.auto_scaling_group]
+data "aws_instances" "itself" {
+  depends_on = [aws_autoscaling_group.itself]
 
   instance_tags = {
     Name = var.asg_tags[0]["value"]
   }
 }
 
-data "aws_instance" "instance_details" {
+data "aws_instance" "itself" {
   count       = var.asg_desired_size
-  depends_on  = [data.aws_instances.all_instances]
-  instance_id = data.aws_instances.all_instances.ids[count.index]
+  depends_on  = [data.aws_instances.itself]
+  instance_id = data.aws_instances.itself.ids[count.index]
 }
 
 
 output "asg_arn" {
-  value = aws_autoscaling_group.auto_scaling_group.arn
+  value = aws_autoscaling_group.itself.arn
 }
 
 output "asg_instance_ids" {
-  value = aws_autoscaling_group.auto_scaling_group.*.id
+  value = aws_autoscaling_group.itself.*.id
 }
 
 output "asg_instance_public_ip" {
-  value = data.aws_instance.instance_details.*.public_ip
+  value = data.aws_instance.itself.*.public_ip
 }
 
 output "asg_instance_private_ip" {
-  value = data.aws_instance.instance_details.*.private_ip
+  value = data.aws_instance.itself.*.private_ip
 }
