@@ -14,3 +14,6 @@ crash.log
 # Exclude all .tfvars files
 *.tfvars
 *.auto.tfvars.json
+
+# Exclude all .pkrvars files
+*.auto.pkrvars.hcl

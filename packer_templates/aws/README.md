@@ -1,3 +1,47 @@
+### Prerequisites
+
+1. You will need to install *aws cli* and configure your AWS account using the `aws configure` command.
+
+    ```cli
+    $ aws configure
+    AWS Access Key ID [********************]:
+    AWS Secret Access Key [*******************]:
+    Default region name [ue-east-1]:
+    Default output format [json]:
+    ```
+
+2. Download a pre-built [Packer binary](https://www.packer.io/downloads) for your operating system.
+
+### Create AWS (packer) AMI
+
+Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpms and creaes a new AMI.
+
+
+1. Change working directory to `packer_templates/aws/`.
+
+    ```
+    $ cd ibm-spectrum-scale-cloud-install/packer_templates/aws/
+    ```
+2. Create packer variable definitions file (`inputs.auto.pkrvars.hcl`) and provide infrastructure inputs.
+
+    Minimal Example:
+    ```
+    $ cat inputs.auto.pkrvars.hcl
+    vpc_id                  = "vpc-0df33b2a861b63118"
+    vpc_subnet_id           = "subnet-0992d8e9ce397dac3"
+    vpc_region              = "us-east-1"
+    vpc_security_group_id   = "sg-0cbcfe43d939c6069"
+    ami_name                = "spectrumscale"
+    ami_description         = "IBM Spectrum Scale AMI"
+    instance_type           = "t2.medium"
+    source_ami_id           = "ami-0b0af3577fe5e3532"
+    s3_spectrumscale_bucket = "scalebucket"
+    volume_size             = "200"
+    volume_type             = "gp2"
+    ```
+
+3. Run `packer build .` to create AMI.
+
 <!-- BEGIN_TF_DOCS -->
 ## Inputs
 
