@@ -1,3 +1,87 @@
+### Existing VPC Template
+
+The following steps will provision AWS resources (compute and storage instances in existing VPC) and configures IBM Spectrum Scale cloud solution.
+
+1. Change working directory to `aws_scale_templates/sub_modules/instance_template`.
+
+    ```
+    $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/instance_template/
+    ```
+2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
+
+    Minimal Example-1 (create only storage cluster):
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "vpc_availability_zones": ["us-east-1a"],
+        "resource_prefix": "spectrum-scale",
+        "vpc_id": "vpc-0b24596ced49f9407",
+        "vpc_storage_cluster_private_subnets": ["subnet-0d74f55f21106371a"],
+        "vpc_compute_cluster_private_subnets": ["subnet-0e2a0fda0cca020a7"],
+        "total_storage_cluster_instances": 4,
+        "total_compute_cluster_instances": 0,
+        "compute_cluster_key_pair": null,
+        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_gui_password": "Passw0rd",
+        "compute_cluster_gui_username": "admin",
+        "operator_email": "sasikanth.eda@in.ibm.com",
+        "scale_version": "5.1.1.0",
+        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_key_pair": null,
+        "bastion_ssh_private_key": null,
+        "storage_cluster_gui_username": "admin",
+        "storage_cluster_gui_password": "Passw0rd",
+        "bastion_instance_public_ip": "3.90.32.97",
+        "bastion_security_group_id": "sg-05f5e4bbd8fac410e" 
+    }
+    ```
+
+    Minimal Example-2 (create only compute cluster):
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "vpc_availability_zones": ["us-east-1a", "us-east-1b", "us-east-1c"]
+    }
+    ```
+
+    Minimal Example-3 (create single cluster with both compute and storage instances):
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "vpc_availability_zones": ["us-east-1a"],
+        "resource_prefix": "spectrum-scale",
+        "vpc_id": "vpc-0b24596ced49f9407",
+        "vpc_storage_cluster_private_subnets": ["subnet-0d74f55f21106371a"],
+        "vpc_compute_cluster_private_subnets": ["subnet-0e2a0fda0cca020a7"],
+        "create_separate_namespaces": false,
+        "total_storage_cluster_instances": 4,
+        "total_compute_cluster_instances": 3,
+        "compute_cluster_key_pair": null,
+        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_gui_password": "Passw0rd",
+        "compute_cluster_gui_username": "admin",
+        "operator_email": "sasikanth.eda@in.ibm.com",
+        "scale_version": "5.1.1.0",
+        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_key_pair": null,
+        "bastion_ssh_private_key": null,
+        "storage_cluster_gui_username": "admin",
+        "storage_cluster_gui_password": "Passw0rd",
+        "bastion_instance_public_ip": "3.90.32.97",
+        "bastion_security_group_id": "sg-05f5e4bbd8fac410e" 
+    }
+    ```
+
+    Minimal Example-4 (create only storage cluster):
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "vpc_availability_zones": ["us-east-1a", "us-east-1b", "us-east-1c"]
+    }
+    ```
+
+3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
 

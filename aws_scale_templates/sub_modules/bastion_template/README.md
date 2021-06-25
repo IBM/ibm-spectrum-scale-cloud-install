@@ -1,3 +1,29 @@
+### Configure AWS Bastion Instance
+
+Below steps will provision AWS Bastion instance required for IBM Spectrum Scale cloud solution.
+
+1. Change working directory to `aws_scale_templates/sub_modules/bastion_template`.
+
+    ```
+    $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/bastion_template/
+    ```
+2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
+
+    Minimal Example:
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "vpc_id": "vpc-0b24596ced49f9407",
+        "vpc_auto_scaling_group_subnets": ["subnet-0a207d0907d974a81", "subnet-0f626ce0eeafd16de", "subnet-01dbc0473c3f4da99"], 
+        "resource_prefix": "spectrum-scale",
+        "bastion_ami_name": "Amazon-Linux2-HVM",
+        "bastion_instance_type": "t2.micro",
+        "bastion_key_pair": null 
+    }
+    ```
+
+3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
 

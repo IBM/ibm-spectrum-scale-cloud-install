@@ -39,9 +39,6 @@ Ensure that the following requirements are met on the server where this reposito
 ## Usage
 
   * [Amazon Web Services (AWS)](docs/aws.md)
-  * [Microsoft Azure (Azure)](docs/azure.md)
-  * [Google Cloud Platform (GCP)](docs/gcp.md)
-  * [IBM Cloud](docs/ibmcloud.md)
 
 ### Reporting Issues and Feedback
 

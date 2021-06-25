@@ -282,12 +282,13 @@ def initialize_node_details(az_count, cls_type, compute_private_ips,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp"}
+                node_details.append(get_host_format(node))
             for each_ip in compute_private_ips[quorums_left:]:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp"}
-            node_details.append(get_host_format(node))
+                node_details.append(get_host_format(node))
 
         if quorums_left == 0:
             for each_ip in compute_private_ips:
@@ -295,7 +296,7 @@ def initialize_node_details(az_count, cls_type, compute_private_ips,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp"}
-            node_details.append(get_host_format(node))
+                node_details.append(get_host_format(node))
 
     return node_details
 

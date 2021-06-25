@@ -338,8 +338,8 @@ module "compute_cluster_instances" {
   subnet_ids           = length(var.vpc_compute_cluster_private_subnets) > 0 ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   root_volume_type     = var.compute_cluster_root_volume_type
   user_public_key      = var.compute_cluster_key_pair
-  meta_private_key     = module.generate_compute_cluster_keys.private_key_content
-  meta_public_key      = module.generate_compute_cluster_keys.public_key_content
+  meta_private_key     = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
+  meta_public_key      = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   volume_tags          = var.compute_cluster_volume_tags
   tags                 = var.compute_cluster_tags
 }
