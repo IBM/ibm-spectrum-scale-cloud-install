@@ -28,7 +28,7 @@ IBM Spectrum Scale offers different editions based on functional levels.
 
 Ensure that the following requirements are met on the server where this repository is cloned.
 
-* Install [Terraform](https://learn.hashicorp.com/terraform/getting-started/install.html) and validate:
+* Install [Terraform](https://www.terraform.io/downloads.html) and validate:
 
     * `terraform -v`
 
