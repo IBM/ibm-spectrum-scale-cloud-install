@@ -33,6 +33,14 @@ repos:
     - id: terraform_tfsec
 - repo: local
   hooks:
+    - id: custom-golang
+      name: custom-golang
+      entry: precommit_tools/golang_tools.sh
+      language: script
+      always_run: true
+      pass_filenames: false
+- repo: local
+  hooks:
     - id: custom-terraform-docs-script
       name: custom-terraform-docs
       entry: precommit_tools/terraform_docs.sh
