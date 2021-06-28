@@ -28,7 +28,7 @@ IBM Spectrum Scale offers different editions based on functional levels.
 
 Ensure that the following requirements are met on the server where this repository is cloned.
 
-* Install [Terraform](https://learn.hashicorp.com/terraform/getting-started/install.html) and validate:
+* Install [Terraform](https://www.terraform.io/downloads.html) and validate:
 
     * `terraform -v`
 
@@ -39,9 +39,6 @@ Ensure that the following requirements are met on the server where this reposito
 ## Usage
 
   * [Amazon Web Services (AWS)](docs/aws.md)
-  * [Microsoft Azure (Azure)](docs/azure.md)
-  * [Google Cloud Platform (GCP)](docs/gcp.md)
-  * [IBM Cloud](docs/ibmcloud.md)
 
 ### Reporting Issues and Feedback
 

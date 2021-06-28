@@ -8,7 +8,7 @@ variable "dest_cidr_block" {}
 variable "gateway_id" {}
 variable "nat_gateway_id" {}
 
-resource "aws_route" "route" {
+resource "aws_route" "itself" {
   count                  = var.total_routes
   route_table_id         = element(var.route_table_id, count.index)
   destination_cidr_block = var.dest_cidr_block
