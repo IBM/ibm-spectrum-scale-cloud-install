@@ -24,6 +24,7 @@ variable "ebs_block_device_kms_key_id" {}
 variable "ebs_block_device_volume_size" {}
 variable "ebs_block_device_volume_type" {}
 variable "ebs_block_device_iops" {}
+variable "ebs_block_device_throughput" {}
 variable "enable_nvme_block_device" {}
 variable "nvme_block_device_count" {}
 variable "tags" {}
@@ -78,6 +79,7 @@ resource "null_resource" "ebs_mappings" {
     device_name           = element(var.ebs_block_device_names, count.index)
     encrypted             = var.ebs_block_device_encrypted == false ? null : true
     iops                  = var.ebs_block_device_iops
+    throughput            = var.ebs_block_device_throughput
     kms_key_id            = var.ebs_block_device_kms_key_id
     volume_size           = var.ebs_block_device_volume_size
     volume_type           = var.ebs_block_device_volume_type
@@ -107,6 +109,7 @@ resource "aws_instance" "itself" {
       device_name           = ebs_block_device.value.device_name
       encrypted             = lookup(ebs_block_device.value, "encrypted", null)
       iops                  = lookup(ebs_block_device.value, "iops", null)
+      throughput            = lookup(ebs_block_device.value, "throughput", null)
       kms_key_id            = lookup(ebs_block_device.value, "kms_key_id", null)
       snapshot_id           = lookup(ebs_block_device.value, "snapshot_id", null)
       volume_size           = lookup(ebs_block_device.value, "volume_size", null)

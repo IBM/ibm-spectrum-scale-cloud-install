@@ -18,7 +18,7 @@ Below steps will provision AWS Bastion instance required for IBM Spectrum Scale 
         "resource_prefix": "spectrum-scale",
         "bastion_ami_name": "Amazon-Linux2-HVM",
         "bastion_instance_type": "t2.micro",
-        "bastion_key_pair": null
+        "bastion_key_pair": null               [[** Use an existing AWS EC2 key pair **]]
     }
     ```
 

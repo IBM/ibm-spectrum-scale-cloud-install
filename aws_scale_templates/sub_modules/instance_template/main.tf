@@ -372,6 +372,7 @@ module "storage_cluster_instances" {
   ebs_block_device_volume_size           = var.ebs_block_device_volume_size
   ebs_block_device_volume_type           = var.ebs_block_device_volume_type
   ebs_block_device_iops                  = var.ebs_block_device_iops
+  ebs_block_device_throughput            = var.ebs_block_device_throughput
   enable_nvme_block_device               = var.enable_nvme_block_device
   nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(data.aws_ec2_instance_type.storage_profile.instance_disks)[0].count : 0
   tags                                   = var.storage_cluster_tags
@@ -401,6 +402,7 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_volume_size           = 5
   ebs_block_device_volume_type           = var.ebs_block_device_volume_type
   ebs_block_device_iops                  = var.ebs_block_device_iops
+  ebs_block_device_throughput            = var.ebs_block_device_throughput
   enable_nvme_block_device               = var.enable_nvme_block_device
   nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(data.aws_ec2_instance_type.storage_profile.instance_disks)[0].count : 0
   tags                                   = var.storage_cluster_tags
@@ -499,6 +501,7 @@ module "compute_cluster_configuration" {
   turn_on                    = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
   clone_path                 = var.scale_ansible_repo_clone_path
   inventory_path             = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image         = var.using_packer_image
   memory_size                = data.aws_ec2_instance_type.compute_profile.memory_size
   bastion_instance_public_ip = var.bastion_instance_public_ip
   bastion_ssh_private_key    = var.bastion_ssh_private_key
@@ -513,6 +516,7 @@ module "storage_cluster_configuration" {
   turn_on                    = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
   clone_path                 = var.scale_ansible_repo_clone_path
   inventory_path             = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image         = var.using_packer_image
   memory_size                = data.aws_ec2_instance_type.storage_profile.memory_size
   bastion_instance_public_ip = var.bastion_instance_public_ip
   bastion_ssh_private_key    = var.bastion_ssh_private_key
@@ -527,6 +531,7 @@ module "combined_cluster_configuration" {
   turn_on                    = var.create_separate_namespaces == false ? true : false
   clone_path                 = var.scale_ansible_repo_clone_path
   inventory_path             = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image         = var.using_packer_image
   memory_size                = data.aws_ec2_instance_type.storage_profile.memory_size
   bastion_instance_public_ip = var.bastion_instance_public_ip
   bastion_ssh_private_key    = var.bastion_ssh_private_key

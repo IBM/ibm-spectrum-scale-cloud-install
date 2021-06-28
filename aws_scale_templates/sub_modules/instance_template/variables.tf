@@ -139,6 +139,12 @@ variable "storage_cluster_gui_password" {
   description = "Password for Storage cluster GUI"
 }
 
+variable "using_packer_image" {
+  type        = bool
+  default     = false
+  description = "If true, gpfs rpm copy step will be skipped during the configuration."
+}
+
 variable "ebs_block_devices_per_storage_instance" {
   type        = number
   default     = 1
@@ -162,6 +168,12 @@ variable "ebs_block_device_iops" {
   type        = number
   default     = 0
   description = "Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3."
+}
+
+variable "ebs_block_device_throughput" {
+  type        = number
+  default     = 0
+  description = "Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3."
 }
 
 variable "ebs_block_device_kms_key_id" {

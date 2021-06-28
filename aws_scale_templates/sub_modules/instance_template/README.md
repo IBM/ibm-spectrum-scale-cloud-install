@@ -9,7 +9,71 @@ The following steps will provision AWS resources (compute and storage instances 
     ```
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
-    Minimal Example-1 (create only storage cluster):
+    | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zone` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
+    | --- |
+
+    Minimal Example-1 (create only storage cluster with gp2):
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "vpc_availability_zones": ["us-east-1a"],
+        "resource_prefix": "spectrum-scale",
+        "vpc_id": null,                                  [[** Existing vpc id **]]
+        "vpc_storage_cluster_private_subnets": [],       [[** Existing vpc private subnet]]
+        "vpc_compute_cluster_private_subnets": [],       [[** Existing vpc private subnet]]
+        "total_storage_cluster_instances": 4,
+        "total_compute_cluster_instances": 0,            [[** Make compute nodes count to zero **]]
+        "ebs_block_devices_per_storage_instance": 1,
+        "ebs_block_device_volume_size": 500,
+        "ebs_block_device_volume_type": "gp2",
+        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_gui_password": "Passw0rd",
+        "compute_cluster_gui_username": "admin",
+        "operator_email": null,                          [[** Email address for notification **]]
+        "scale_version": "5.1.1.0",
+        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_key_pair": null,                [[** Use an existing AWS EC2 key pair **]]
+        "storage_cluster_key_pair": null,                [[** Use an existing AWS EC2 key pair **]]
+        "bastion_ssh_private_key": null,                 [[** Use bastion ssh private key path **]]
+        "storage_cluster_gui_username": "admin",
+        "storage_cluster_gui_password": "Passw0rd",
+        "bastion_instance_public_ip": null,              [[** Not required if direct connectivity to vpc exists **]]
+        "bastion_security_group_id": null                [[** Not required if direct connectivity to vpc exists **]]
+    }
+    ```
+
+    Minimal Example-2 (create only storage cluster with gp3):
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "vpc_availability_zones": ["us-east-1a"],
+        "resource_prefix": "spectrum-scale",
+        "vpc_id": null,                                  [[** Existing vpc id **]]
+        "vpc_storage_cluster_private_subnets": [],       [[** Existing vpc private subnet]]
+        "vpc_compute_cluster_private_subnets": [],       [[** Existing vpc private subnet]]
+        "total_storage_cluster_instances": 4,
+        "total_compute_cluster_instances": 0,            [[** Make compute nodes count to zero **]]
+        "ebs_block_devices_per_storage_instance": 1,
+        "ebs_block_device_volume_type": "gp3",
+        "ebs_block_device_iops": 3000,
+        "ebs_block_device_throughput": 125,
+        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_gui_password": "Passw0rd",
+        "compute_cluster_gui_username": "admin",
+        "operator_email": null,                          [[** Email address for notification **]]
+        "scale_version": "5.1.1.0",
+        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_key_pair": null,                [[** Use an existing AWS EC2 key pair **]]
+        "storage_cluster_key_pair": null,                [[** Use an existing AWS EC2 key pair **]]
+        "bastion_ssh_private_key": null,                 [[** Use bastion ssh private key path **]]
+        "storage_cluster_gui_username": "admin",
+        "storage_cluster_gui_password": "Passw0rd",
+        "bastion_instance_public_ip": null,              [[** Not required if direct connectivity to vpc exists **]]
+        "bastion_security_group_id": null                [[** Not required if direct connectivity to vpc exists **]]
+    }
+    ```
+
+    Minimal Example-3 (create only storage cluster with iop1, iop2):
     ```json
     {
         "vpc_region": "us-east-1",
@@ -19,16 +83,19 @@ The following steps will provision AWS resources (compute and storage instances 
         "vpc_storage_cluster_private_subnets": ["subnet-0d74f55f21106371a"],
         "vpc_compute_cluster_private_subnets": ["subnet-0e2a0fda0cca020a7"],
         "total_storage_cluster_instances": 4,
+        "ebs_block_devices_per_storage_instance": 1,
+        "ebs_block_device_volume_type": "gp3",
+        "ebs_block_device_iops": 3000,
         "total_compute_cluster_instances": 0,
-        "compute_cluster_key_pair": null,
+        "compute_cluster_key_pair": null,                 [[** Use an existing AWS EC2 key pair **]]
         "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
         "scale_version": "5.1.1.0",
         "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
-        "storage_cluster_key_pair": null,
-        "bastion_ssh_private_key": null,
+        "storage_cluster_key_pair": null,                 [[** Use an existing AWS EC2 key pair **]]
+        "bastion_ssh_private_key": null,                  [[** Use bastion ssh private key path **]]
         "storage_cluster_gui_username": "admin",
         "storage_cluster_gui_password": "Passw0rd",
         "bastion_instance_public_ip": "3.90.32.97",
@@ -36,15 +103,65 @@ The following steps will provision AWS resources (compute and storage instances 
     }
     ```
 
-    Minimal Example-2 (create only compute cluster):
+    Minimal Example-4 (create only storage cluster with NVMe/nitro instances):
     ```json
     {
         "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a", "us-east-1b", "us-east-1c"]
+        "vpc_availability_zones": ["us-east-1a"],
+        "resource_prefix": "spectrum-scale",
+        "vpc_id": "vpc-0b24596ced49f9407",
+        "vpc_storage_cluster_private_subnets": ["subnet-0d74f55f21106371a"],
+        "vpc_compute_cluster_private_subnets": ["subnet-0e2a0fda0cca020a7"],
+        "total_storage_cluster_instances": 4,
+        "ebs_block_devices_per_storage_instance": 1,
+        "ebs_block_device_volume_type": "gp3",
+        "ebs_block_device_iops": 3000,
+        "ebs_block_device_throughput": 125,
+        "total_compute_cluster_instances": 0,
+        "compute_cluster_key_pair": null,                 [[** Use an existing AWS EC2 key pair **]]
+        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_gui_password": "Passw0rd",
+        "compute_cluster_gui_username": "admin",
+        "operator_email": "sasikanth.eda@in.ibm.com",
+        "scale_version": "5.1.1.0",
+        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_key_pair": null,                 [[** Use an existing AWS EC2 key pair **]]
+        "bastion_ssh_private_key": null,                  [[** Use bastion ssh private key path **]]
+        "storage_cluster_gui_username": "admin",
+        "storage_cluster_gui_password": "Passw0rd",
+        "bastion_instance_public_ip": "3.90.32.97",
+        "bastion_security_group_id": "sg-05f5e4bbd8fac410e"
     }
     ```
 
-    Minimal Example-3 (create single cluster with both compute and storage instances):
+    Minimal Example-5 (create only compute cluster):
+    ```json
+    {
+        "vpc_region": "us-east-1",
+        "vpc_availability_zones": ["us-east-1a"]
+        "resource_prefix": "spectrum-scale",
+        "vpc_id": "vpc-01dff33abdc184bbd",
+        "vpc_storage_cluster_private_subnets": ["subnet-02eaf65f0012d1bf2"],
+        "vpc_compute_cluster_private_subnets": ["subnet-04151f9b5c9879043"],
+        "bastion_security_group_id": "sg-05d560ee536446032",
+        "bastion_instance_public_ip": "54.204.168.38",
+        "total_storage_cluster_instances": 0,              [[** Make storage nodes count to zero **]]
+        "total_compute_cluster_instances": 3,
+        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_gui_password": "Passw0rd",
+        "compute_cluster_gui_username": "admin",
+        "operator_email": "sasikanth.eda@in.ibm.com",
+        "scale_version": "5.1.1.0",
+        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_key_pair": null,                  [[** Use an existing AWS EC2 key pair **]]
+        "compute_cluster_key_pair": null,                  [[** Use an existing AWS EC2 key pair **]]
+        "bastion_ssh_private_key": null,                   [[** Use bastion ssh private key path **]]
+        "storage_cluster_gui_username": "admin",
+        "storage_cluster_gui_password": "Passw0rd"
+    }
+    ```
+
+    Minimal Example-6 (create remote mount based compute and storage instances):
     ```json
     {
         "vpc_region": "us-east-1",
@@ -64,7 +181,7 @@ The following steps will provision AWS resources (compute and storage instances 
         "scale_version": "5.1.1.0",
         "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
         "storage_cluster_key_pair": null,
-        "bastion_ssh_private_key": null,
+        "bastion_ssh_private_key": null,                  [[** Use bastion ssh private key path **]]
         "storage_cluster_gui_username": "admin",
         "storage_cluster_gui_password": "Passw0rd",
         "bastion_instance_public_ip": "3.90.32.97",
@@ -72,11 +189,31 @@ The following steps will provision AWS resources (compute and storage instances 
     }
     ```
 
-    Minimal Example-4 (create only storage cluster):
+    Minimal Example-7 (create single cluster with both compute and storage instances):
     ```json
     {
         "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a", "us-east-1b", "us-east-1c"]
+        "vpc_availability_zones": ["us-east-1a"],
+        "resource_prefix": "spectrum-scale",
+        "vpc_id": "vpc-0b24596ced49f9407",
+        "vpc_storage_cluster_private_subnets": ["subnet-0d74f55f21106371a"],
+        "vpc_compute_cluster_private_subnets": ["subnet-0e2a0fda0cca020a7"],
+        "create_separate_namespaces": false,
+        "total_storage_cluster_instances": 4,
+        "total_compute_cluster_instances": 3,
+        "compute_cluster_key_pair": null,
+        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_gui_password": "Passw0rd",
+        "compute_cluster_gui_username": "admin",
+        "operator_email": "sasikanth.eda@in.ibm.com",
+        "scale_version": "5.1.1.0",
+        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_key_pair": null,
+        "bastion_ssh_private_key": null,                 [[** Use bastion ssh private key path **]]
+        "storage_cluster_gui_username": "admin",
+        "storage_cluster_gui_password": "Passw0rd",
+        "bastion_instance_public_ip": "3.90.32.97",
+        "bastion_security_group_id": "sg-05f5e4bbd8fac410e"
     }
     ```
 
@@ -122,6 +259,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_ebs_block_device_encrypted"></a> [ebs_block_device_encrypted](#input_ebs_block_device_encrypted) | Whether to enable volume encryption. | `bool` |
 | <a name="input_ebs_block_device_iops"></a> [ebs_block_device_iops](#input_ebs_block_device_iops) | Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3. | `number` |
 | <a name="input_ebs_block_device_kms_key_id"></a> [ebs_block_device_kms_key_id](#input_ebs_block_device_kms_key_id) | Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume. | `string` |
+| <a name="input_ebs_block_device_throughput"></a> [ebs_block_device_throughput](#input_ebs_block_device_throughput) | Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3. | `number` |
 | <a name="input_ebs_block_device_volume_size"></a> [ebs_block_device_volume_size](#input_ebs_block_device_volume_size) | Size of the volume in gibibytes (GiB). | `number` |
 | <a name="input_ebs_block_device_volume_type"></a> [ebs_block_device_volume_type](#input_ebs_block_device_volume_type) | EBS volume types: io1, io2, gp2, gp3, st1 and sc1. | `string` |
 | <a name="input_ebs_block_devices_per_storage_instance"></a> [ebs_block_devices_per_storage_instance](#input_ebs_block_devices_per_storage_instance) | Additional EBS block devices to attach per storage cluster instance. | `number` |
@@ -138,6 +276,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_storage_cluster_volume_tags"></a> [storage_cluster_volume_tags](#input_storage_cluster_volume_tags) | Additional tags for the storage cluster volume(s). | `map(string)` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of EC2 instances to be launched for compute cluster. | `number` |
 | <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of EC2 instances to be launched for storage cluster. | `number` |
+| <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
 
 #### Outputs
 

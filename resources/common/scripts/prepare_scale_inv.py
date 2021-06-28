@@ -104,6 +104,24 @@ def prepare_ansible_playbook(hosts_config, cluster_config):
     return content
 
 
+def prepare_packer_ansible_playbook(hosts_config, cluster_config):
+    """ Write to playbook """
+    content = """---
+# Install and config Spectrum Scale on nodes
+- hosts: {hosts_config}
+  any_errors_fatal: true
+  pre_tasks:
+     - include_vars: group_vars/{cluster_config}
+  roles:
+     - core/cluster
+     - gui/cluster
+     - gui/postcheck
+     - zimon/cluster
+     - zimon/postcheck
+""".format(hosts_config=hosts_config, cluster_config=cluster_config)
+    return content
+
+
 def initialize_cluster_details(scale_version, cluster_name, username,
                                password, scale_profile_path,
                                scale_replica_config):
@@ -114,7 +132,7 @@ def initialize_cluster_details(scale_version, cluster_name, username,
     """
     cluster_details = {}
     cluster_details['scale_version'] = scale_version
-    cluster_details['scale_cluster_name'] = cluster_name
+    cluster_details['scale_cluster_clustername'] = cluster_name
     cluster_details['scale_service_gui_start'] = "True"
     cluster_details['scale_gui_admin_user'] = username
     cluster_details['scale_gui_admin_password'] = password
@@ -421,6 +439,7 @@ if __name__ == "__main__":
     PARSER.add_argument('--bastion_ssh_private_key',
                         help='Bastion SSH private key path')
     PARSER.add_argument('--memory_size', help='Instance memory size')
+    PARSER.add_argument('--using_packer_image', help='skips gpfs rpm copy')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
@@ -462,8 +481,14 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                             "ibm-spectrum-scale-install-infra",
                                             cluster_type))
-        cleanup("%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                           "storage_cluster_gui_details.json"))
+        cleanup("%s/%s_cluster_gui_details.json" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                                    cluster_type))
+        cleanup("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                   "ibm-spectrum-scale-install-infra",
+                                                   cluster_type))
+        cleanup("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
+                                 "ibm-spectrum-scale-install-infra",
+                                 "group_vars", "%s_cluster_config.yaml" % cluster_type))
         gui_username = TF['storage_cluster_gui_username']
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
@@ -480,8 +505,14 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                             "ibm-spectrum-scale-install-infra",
                                             cluster_type))
-        cleanup("%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                           "storage_cluster_gui_details.json"))
+        cleanup("%s/%s_cluster_gui_details.json" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                                    cluster_type))
+        cleanup("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                   "ibm-spectrum-scale-install-infra",
+                                                   cluster_type))
+        cleanup("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
+                                 "ibm-spectrum-scale-install-infra",
+                                 "group_vars", "%s_cluster_config.yaml" % cluster_type))
         gui_username = TF['storage_cluster_gui_username']
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
@@ -494,16 +525,25 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                             "ibm-spectrum-scale-install-infra",
                                             cluster_type))
+        cleanup("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                   "ibm-spectrum-scale-install-infra",
+                                                   cluster_type))
+        cleanup("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
+                                 "ibm-spectrum-scale-install-infra",
+                                 "group_vars", "%s_cluster_config.yaml" % cluster_type))
         gui_username = TF['storage_cluster_gui_username']
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/scalesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
         pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)
-        scale_config = initialize_scale_config_details(
-            "storagenodegrp", "pagepool", pagepool_size)
+        if len(TF['vpc_availability_zones']) == 1:
+            scale_config = initialize_scale_config_details(
+                ["storagenodegrp", "computenodegrp"], "pagepool", pagepool_size)
+        else:
+            scale_config = initialize_scale_config_details(
+                ["storagenodegrp", "computenodegrp", "computedescnodegrp"], "pagepool", pagepool_size)
 
-    if ARGUMENTS.verbose:
-        print("Identified cluster type: %s" % cluster_type)
+    print("Identified cluster type: %s" % cluster_type)
 
     # Step-3: Identify if tie breaker needs to be counted for storage
     if len(TF['vpc_availability_zones']) > 1:
@@ -534,11 +574,18 @@ if __name__ == "__main__":
         print("Total quorum count: ", quorum_count)
 
     # Step-4: Create playbook
-    playbook_content = prepare_ansible_playbook(
-        "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
-    write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
-                                                     "ibm-spectrum-scale-install-infra",
-                                                     cluster_type), playbook_content)
+    if ARGUMENTS.using_packer_image:
+        playbook_content = prepare_packer_ansible_playbook(
+            "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
+        write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                         "ibm-spectrum-scale-install-infra",
+                                                         cluster_type), playbook_content)
+    else:
+        playbook_content = prepare_ansible_playbook(
+            "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
+        write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                         "ibm-spectrum-scale-install-infra",
+                                                         cluster_type), playbook_content)
 
     if ARGUMENTS.verbose:
         print("Content of ansible playbook:\n", playbook_content)

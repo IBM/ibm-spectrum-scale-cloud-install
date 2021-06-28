@@ -5,6 +5,7 @@
 variable "turn_on" {}
 variable "clone_path" {}
 variable "inventory_path" {}
+variable "using_packer_image" {}
 variable "memory_size" {}
 variable "bastion_instance_public_ip" {}
 variable "bastion_ssh_private_key" {}
@@ -52,7 +53,7 @@ resource "null_resource" "prepare_ansible_inventory" {
   count = (tobool(var.turn_on) == true && (var.bastion_instance_public_ip != null || var.bastion_ssh_private_key != null)) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image}"
   }
   depends_on = [local_file.create_compute_tuning_parameters, local_file.write_meta_private_key]
   triggers = {
@@ -64,7 +65,7 @@ resource "null_resource" "prepare_ansible_inventory_wo_bastion" {
   count = (tobool(var.turn_on) == true && (var.bastion_instance_public_ip == null || var.bastion_ssh_private_key == null)) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --memory_size ${var.memory_size}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image}"
   }
   depends_on = [local_file.create_compute_tuning_parameters, local_file.write_meta_private_key]
   triggers = {
