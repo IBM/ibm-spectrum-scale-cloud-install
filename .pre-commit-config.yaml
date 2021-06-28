@@ -35,23 +35,23 @@ repos:
   hooks:
     - id: custom-golang
       name: custom-golang
-      entry: precommit_tools/golang_tools.sh
+      entry: tools/golang_tools.sh
       language: script
       always_run: true
       pass_filenames: false
 - repo: local
   hooks:
-    - id: custom-terraform-docs-script
+    - id: custom-terraform-docs
       name: custom-terraform-docs
-      entry: precommit_tools/terraform_docs.sh
+      entry: tools/terraform_docs.sh
       language: script
       always_run: true
       pass_filenames: false
 - repo: local
   hooks:
-    - id: custom-packer-script
-      name: custom-packer-docs
-      entry: precommit_tools/packer_tools.sh
+    - id: custom-packer
+      name: custom-packer
+      entry: tools/packer_tools.sh
       language: script
       always_run: true
       pass_filenames: false
