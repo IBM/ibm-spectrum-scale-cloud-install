@@ -96,7 +96,8 @@ resource "null_resource" "perform_scale_deployment" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -i ${local.compute_inventory_path} ${local.compute_playbook_path} --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""
   }
-  depends_on = [time_sleep.wait_60_seconds]
+  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory,
+  null_resource.prepare_ansible_inventory_wo_bastion]
   triggers = {
     build = timestamp()
   }

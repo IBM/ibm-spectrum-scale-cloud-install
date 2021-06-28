@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 echo "Enabling precommit hooks"
-git config core.hooksPath ../.githooks
+git config core.hooksPath .githooks

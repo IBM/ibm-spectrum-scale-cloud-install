@@ -535,3 +535,10 @@ module "combined_cluster_configuration" {
   spectrumscale_rpms_path    = var.spectrumscale_rpms_path
   depends_on                 = [module.prepare_ansible_configuration, module.write_storage_cluster_inventory]
 }
+
+
+module "remote_mount_configuration" {
+  source     = "../../../resources/common/remote_mount_configuration"
+  turn_on    = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0 && var.create_separate_namespaces == true) ? true : false
+  depends_on = [module.prepare_ansible_configuration, module.write_compute_cluster_inventory, module.write_storage_cluster_inventory]
+}

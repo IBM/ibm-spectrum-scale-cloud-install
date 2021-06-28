@@ -68,6 +68,12 @@ def read_json_file(json_path):
     return tf_inv
 
 
+def write_json_file(json_data, json_path):
+    """ Write inventory to json file """
+    with open(json_path, 'w') as json_handler:
+        json.dump(json_data, json_handler, indent=4)
+
+
 def write_to_file(filepath, filecontent):
     """ Write to specified file """
     with open(filepath, "w") as file_handler:
@@ -143,6 +149,9 @@ def initialize_node_details(az_count, cls_type, compute_private_ips,
                         'is_gui': True, 'is_collector': True, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp"}
+                write_json_file({'compute_cluster_gui_ip_address': each_ip},
+                                "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                           "compute_cluster_gui_details.json"))
             elif compute_private_ips.index(each_ip) == 1:
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': False, 'is_collector': True, 'is_nsd': False,
@@ -161,6 +170,9 @@ def initialize_node_details(az_count, cls_type, compute_private_ips,
                         'is_gui': True, 'is_collector': True, 'is_nsd': True,
                         'is_admin': True, 'user': user, 'key_file': key_file,
                         'class': "storagenodegrp"}
+                write_json_file({'storage_cluster_gui_ip_address': each_ip},
+                                "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                           "storage_cluster_gui_details.json"))
             elif storage_private_ips.index(each_ip) == 1:
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': False, 'is_collector': True, 'is_nsd': True,
@@ -427,6 +439,14 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                             "ibm-spectrum-scale-install-infra",
                                             cluster_type))
+        cleanup("%s/%s_cluster_gui_details.json" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                                    cluster_type))
+        cleanup("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                   "ibm-spectrum-scale-install-infra",
+                                                   cluster_type))
+        cleanup("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
+                                 "ibm-spectrum-scale-install-infra",
+                                 "group_vars", "%s_cluster_config.yaml" % cluster_type))
         gui_username = TF['compute_cluster_gui_username']
         gui_password = TF['compute_cluster_gui_password']
         profile_path = "%s/computesncparams" % ARGUMENTS.install_infra_path
@@ -442,6 +462,8 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                             "ibm-spectrum-scale-install-infra",
                                             cluster_type))
+        cleanup("%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                           "storage_cluster_gui_details.json"))
         gui_username = TF['storage_cluster_gui_username']
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
@@ -458,6 +480,8 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                             "ibm-spectrum-scale-install-infra",
                                             cluster_type))
+        cleanup("%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                           "storage_cluster_gui_details.json"))
         gui_username = TF['storage_cluster_gui_username']
         gui_password = TF['storage_cluster_gui_password']
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
