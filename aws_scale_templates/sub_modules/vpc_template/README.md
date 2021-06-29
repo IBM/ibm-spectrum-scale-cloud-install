@@ -9,11 +9,14 @@ Below steps will provision AWS VPC required for IBM Spectrum Scale cloud solutio
     ```
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
+    | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zone` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
+    | --- |
+
     Minimal Example:
     ```json
     {
         "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a", "us-east-1b", "us-east-1c"]
+        "vpc_availability_zones": ["us-east-1a"]
     }
     ```
 
