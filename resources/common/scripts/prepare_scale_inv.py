@@ -574,14 +574,14 @@ if __name__ == "__main__":
         print("Total quorum count: ", quorum_count)
 
     # Step-4: Create playbook
-    if ARGUMENTS.using_packer_image:
-        playbook_content = prepare_packer_ansible_playbook(
+    if ARGUMENTS.using_packer_image == "false":
+        playbook_content = prepare_ansible_playbook(
             "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
         write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                          "ibm-spectrum-scale-install-infra",
                                                          cluster_type), playbook_content)
     else:
-        playbook_content = prepare_ansible_playbook(
+        playbook_content = prepare_packer_ansible_playbook(
             "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
         write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                          "ibm-spectrum-scale-install-infra",

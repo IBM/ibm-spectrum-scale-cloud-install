@@ -543,7 +543,14 @@ module "combined_cluster_configuration" {
 
 
 module "remote_mount_configuration" {
-  source     = "../../../resources/common/remote_mount_configuration"
-  turn_on    = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0 && var.create_separate_namespaces == true) ? true : false
-  depends_on = [module.prepare_ansible_configuration, module.write_compute_cluster_inventory, module.write_storage_cluster_inventory]
+  source                     = "../../../resources/common/remote_mount_configuration"
+  turn_on                    = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0 && var.create_separate_namespaces == true) ? true : false
+  clone_path                 = var.scale_ansible_repo_clone_path
+  compute_inventory_path     = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  compute_gui_inventory_path = format("%s/compute_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
+  storage_inventory_path     = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  storage_gui_inventory_path = format("%s/storage_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
+  bastion_instance_public_ip = var.bastion_instance_public_ip
+  bastion_ssh_private_key    = var.bastion_ssh_private_key
+  depends_on                 = [module.prepare_ansible_configuration, module.write_compute_cluster_inventory, module.write_storage_cluster_inventory]
 }
