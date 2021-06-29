@@ -10,15 +10,15 @@ Below steps will provision AWS Bastion instance required for IBM Spectrum Scale 
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     Minimal Example:
-    ```json
+    ```jsonc
     {
         "vpc_region": "us-east-1",
-        "vpc_id": "vpc-0b24596ced49f9407",
-        "vpc_auto_scaling_group_subnets": ["subnet-0a207d0907d974a81", "subnet-0f626ce0eeafd16de", "subnet-01dbc0473c3f4da99"],
+        "vpc_id": null,                          // Use an existing vpc id
+        "vpc_auto_scaling_group_subnets": [],    // Use public subnets
         "resource_prefix": "spectrum-scale",
         "bastion_ami_name": "Amazon-Linux2-HVM",
         "bastion_instance_type": "t2.micro",
-        "bastion_key_pair": null               [[** Use an existing AWS EC2 key pair **]]
+        "bastion_key_pair": null                 // Use an existing AWS EC2 key pair
     }
     ```
 
