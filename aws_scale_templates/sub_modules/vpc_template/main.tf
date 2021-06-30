@@ -1,13 +1,13 @@
 /*
     IBM Spectrum scale cloud deployment requires 1 VPC with below resources.
 
-    1.  VPC
-    2.  Internet Gateway
-    3.  Route tables (1 rt seperate for each AZ private, 1rt for all AZ public)
-    4.  PublicSubnet {1, 2 ..3}
-    5.  NAT {1, 2..3} EIP
-    6.  PrivateSubnet {1, 2 ..3}
-    7.  NAT gateway attachment
+    1. VPC
+    2. Internet Gateway
+    3. Route tables (1 rt seperate for each AZ private, 1rt for all AZ public)
+    4. PublicSubnet {1, 2 ..3}
+    5. NAT {1, 2..3} EIP
+    6. PrivateSubnet {1, 2 ..3}
+    7. NAT gateway attachment
     8. VPC s3 endpoint
 */
 

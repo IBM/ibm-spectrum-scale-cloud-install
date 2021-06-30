@@ -3,6 +3,7 @@
 */
 
 variable "write_inventory" {}
+variable "clone_complete" {}
 variable "inventory_path" {}
 variable "cloud_platform" {}
 variable "resource_prefix" {}
@@ -26,7 +27,7 @@ variable "storage_cluster_desc_instance_private_ips" {}
 variable "storage_cluster_desc_data_volume_mapping" {}
 
 resource "local_file" "itself" {
-  count             = var.write_inventory
+  count             = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
   sensitive_content = <<EOT
 {
     "cloud_platform": ${var.cloud_platform},
@@ -52,4 +53,9 @@ resource "local_file" "itself" {
 }
 EOT
   filename          = var.inventory_path
+}
+
+output "write_inventory_complete" {
+  value      = true
+  depends_on = [local_file.itself]
 }
