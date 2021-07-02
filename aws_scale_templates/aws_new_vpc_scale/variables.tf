@@ -98,7 +98,7 @@ variable "compute_cluster_key_pair" {
   description = "The key pair to use to launch the compute cluster host."
 }
 
-variable "compute_cluster_ami_id" {
+variable "compute_cluster_image_id" {
   type        = string
   description = "ID of AMI to use for provisioning the compute cluster instances."
 }
@@ -150,7 +150,7 @@ variable "storage_cluster_key_pair" {
   description = "The key pair to use to launch the storage cluster host."
 }
 
-variable "storage_cluster_ami_id" {
+variable "storage_cluster_image_id" {
   type        = string
   description = "ID of AMI to use for provisioning the storage cluster instances."
 }

@@ -45,7 +45,7 @@ module "scale_instances" {
   vpc_compute_cluster_private_subnets      = module.vpc.vpc_compute_cluster_private_subnets
   total_compute_cluster_instances          = var.total_compute_cluster_instances
   compute_cluster_key_pair                 = var.compute_cluster_key_pair
-  compute_cluster_ami_id                   = var.compute_cluster_ami_id
+  compute_cluster_image_id                 = var.compute_cluster_image_id
   compute_cluster_instance_type            = var.compute_cluster_instance_type
   compute_cluster_root_volume_type         = var.compute_cluster_root_volume_type
   compute_cluster_volume_tags              = var.compute_cluster_volume_tags
@@ -54,7 +54,7 @@ module "scale_instances" {
   compute_cluster_tags                     = var.compute_cluster_tags
   total_storage_cluster_instances          = var.total_storage_cluster_instances
   storage_cluster_key_pair                 = var.storage_cluster_key_pair
-  storage_cluster_ami_id                   = var.storage_cluster_ami_id
+  storage_cluster_image_id                 = var.storage_cluster_image_id
   storage_cluster_instance_type            = var.storage_cluster_instance_type
   storage_cluster_tags                     = var.storage_cluster_tags
   storage_cluster_tiebreaker_instance_type = var.storage_cluster_tiebreaker_instance_type

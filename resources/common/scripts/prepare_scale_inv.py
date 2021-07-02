@@ -440,6 +440,10 @@ if __name__ == "__main__":
                         help='Bastion SSH private key path')
     PARSER.add_argument('--memory_size', help='Instance memory size')
     PARSER.add_argument('--using_packer_image', help='skips gpfs rpm copy')
+    PARSER.add_argument('--gui_username', required=True,
+                        help='Spectrum Scale GUI username')
+    PARSER.add_argument('--gui_password', required=True,
+                        help='Spectrum Scale GUI password')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
@@ -466,8 +470,8 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
                                  "ibm-spectrum-scale-install-infra",
                                  "group_vars", "%s_cluster_config.yaml" % cluster_type))
-        gui_username = TF['compute_cluster_gui_username']
-        gui_password = TF['compute_cluster_gui_password']
+        gui_username = ARGUMENTS.gui_username
+        gui_password = ARGUMENTS.gui_password
         profile_path = "%s/computesncparams" % ARGUMENTS.install_infra_path
         replica_config = False
         pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)
@@ -489,8 +493,8 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
                                  "ibm-spectrum-scale-install-infra",
                                  "group_vars", "%s_cluster_config.yaml" % cluster_type))
-        gui_username = TF['storage_cluster_gui_username']
-        gui_password = TF['storage_cluster_gui_password']
+        gui_username = ARGUMENTS.gui_username
+        gui_password = ARGUMENTS.gui_password
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
         pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)
@@ -513,8 +517,8 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
                                  "ibm-spectrum-scale-install-infra",
                                  "group_vars", "%s_cluster_config.yaml" % cluster_type))
-        gui_username = TF['storage_cluster_gui_username']
-        gui_password = TF['storage_cluster_gui_password']
+        gui_username = ARGUMENTS.gui_username
+        gui_password = ARGUMENTS.gui_password
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
         pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)
@@ -531,8 +535,8 @@ if __name__ == "__main__":
         cleanup("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
                                  "ibm-spectrum-scale-install-infra",
                                  "group_vars", "%s_cluster_config.yaml" % cluster_type))
-        gui_username = TF['storage_cluster_gui_username']
-        gui_password = TF['storage_cluster_gui_password']
+        gui_username = ARGUMENTS.gui_username
+        gui_password = ARGUMENTS.gui_password
         profile_path = "%s/scalesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
         pagepool_size = calculate_pagepool(ARGUMENTS.memory_size)

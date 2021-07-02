@@ -26,12 +26,12 @@ The following steps will provision AWS resources (compute and storage instances 
         "ebs_block_devices_per_storage_instance": 1,
         "ebs_block_device_volume_size": 500,
         "ebs_block_device_volume_type": "gp2",
-        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": null,                          // Email address for notification
         "scale_version": "5.1.1.0",
-        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
@@ -57,12 +57,12 @@ The following steps will provision AWS resources (compute and storage instances 
         "ebs_block_device_volume_type": "gp3",
         "ebs_block_device_iops": 3000,
         "ebs_block_device_throughput": 125,
-        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": null,                          // Email address for notification
         "scale_version": "5.1.1.0",
-        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
@@ -87,12 +87,12 @@ The following steps will provision AWS resources (compute and storage instances 
         "ebs_block_device_volume_type": "gp3",
         "ebs_block_device_iops": 3000,
         "total_compute_cluster_instances": 0,
-        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
         "scale_version": "5.1.1.0",
-        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
@@ -118,12 +118,12 @@ The following steps will provision AWS resources (compute and storage instances 
         "ebs_block_device_iops": 3000,
         "ebs_block_device_throughput": 125,
         "total_compute_cluster_instances": 0,
-        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
         "scale_version": "5.1.1.0",
-        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                 // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                 // Use an existing AWS EC2 key pair
         "bastion_ssh_private_key": null,                  // Use bastion ssh private key path
@@ -145,12 +145,12 @@ The following steps will provision AWS resources (compute and storage instances 
         "vpc_compute_cluster_private_subnets": [],       // Use an existing vpc private subnet
         "total_storage_cluster_instances": 0,            // Make storage nodes count to zero
         "total_compute_cluster_instances": 3,
-        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
         "scale_version": "5.1.1.0",
-        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
@@ -173,12 +173,12 @@ The following steps will provision AWS resources (compute and storage instances 
         "create_separate_namespaces": false,
         "total_storage_cluster_instances": 4,
         "total_compute_cluster_instances": 3,
-        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
         "scale_version": "5.1.1.0",
-        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
@@ -202,12 +202,12 @@ The following steps will provision AWS resources (compute and storage instances 
         "total_storage_cluster_instances": 4,
         "total_compute_cluster_instances": 3,
         "compute_cluster_key_pair": null,
-        "compute_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
         "scale_version": "5.1.1.0",
-        "storage_cluster_ami_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "storage_cluster_key_pair": null,
         "bastion_ssh_private_key": null,                 [[** Use bastion ssh private key path **]]
         "storage_cluster_gui_username": "admin",
@@ -231,15 +231,15 @@ The following steps will provision AWS resources (compute and storage instances 
 
 | Name | Description | Type |
 |------|-------------|------|
-| <a name="input_compute_cluster_ami_id"></a> [compute_cluster_ami_id](#input_compute_cluster_ami_id) | ID of AMI to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for Compute cluster GUI. | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
+| <a name="input_compute_cluster_image_id"></a> [compute_cluster_image_id](#input_compute_cluster_image_id) | ID of AMI to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_key_pair"></a> [compute_cluster_key_pair](#input_compute_cluster_key_pair) | The key pair to use to launch the compute cluster host. | `string` |
 | <a name="input_operator_email"></a> [operator_email](#input_operator_email) | SNS notifications will be sent to provided email id. | `string` |
 | <a name="input_scale_version"></a> [scale_version](#input_scale_version) | IBM Spectrum Scale version. | `string` |
-| <a name="input_storage_cluster_ami_id"></a> [storage_cluster_ami_id](#input_storage_cluster_ami_id) | ID of AMI to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
+| <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | ID of AMI to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | The key pair to use to launch the storage cluster host. | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |

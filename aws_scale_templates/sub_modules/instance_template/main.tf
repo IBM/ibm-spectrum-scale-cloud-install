@@ -278,7 +278,7 @@ module "compute_cluster_instances" {
   source               = "../../../resources/aws/compute/ec2_0_vol"
   instances_count      = var.total_compute_cluster_instances
   name_prefix          = format("%s-compute", var.resource_prefix)
-  ami_id               = var.compute_cluster_ami_id
+  ami_id               = var.compute_cluster_image_id
   instance_type        = var.compute_cluster_instance_type
   security_groups      = [module.compute_cluster_security_group.sec_group_id]
   iam_instance_profile = module.cluster_instance_iam_profile.iam_instance_profile_name
@@ -300,7 +300,7 @@ module "storage_cluster_instances" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
   instances_count                        = var.total_storage_cluster_instances
   name_prefix                            = format("%s-storage", var.resource_prefix)
-  ami_id                                 = var.storage_cluster_ami_id
+  ami_id                                 = var.storage_cluster_image_id
   instance_type                          = var.storage_cluster_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
@@ -330,7 +330,7 @@ module "storage_cluster_tie_breaker_instance" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
   instances_count                        = (length(var.vpc_storage_cluster_private_subnets) > 1 && var.total_storage_cluster_instances > 0) ? 1 : 0
   name_prefix                            = format("%s-storage-tie", var.resource_prefix)
-  ami_id                                 = var.storage_cluster_ami_id
+  ami_id                                 = var.storage_cluster_image_id
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
@@ -363,7 +363,6 @@ module "prepare_ansible_configuration" {
   clone_path = var.scale_ansible_repo_clone_path
 }
 
-#tfsec:ignore:GEN003
 module "write_compute_cluster_inventory" {
   source                                    = "../../../resources/common/write_inventory"
   write_inventory                           = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? 1 : 0
@@ -376,22 +375,17 @@ module "write_compute_cluster_inventory" {
   scale_version                             = jsonencode(var.scale_version)
   filesystem_block_size                     = jsonencode("None")
   compute_cluster_filesystem_mountpoint     = jsonencode(var.compute_cluster_filesystem_mountpoint)
-  compute_cluster_gui_username              = jsonencode(var.compute_cluster_gui_username)
-  compute_cluster_gui_password              = jsonencode(var.compute_cluster_gui_password)
   compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
   compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
   storage_cluster_filesystem_mountpoint     = jsonencode("None")
   storage_cluster_instance_ids              = jsonencode([])
   storage_cluster_instance_private_ips      = jsonencode([])
   storage_cluster_with_data_volume_mapping  = jsonencode({})
-  storage_cluster_gui_username              = jsonencode(var.storage_cluster_gui_username)
-  storage_cluster_gui_password              = jsonencode(var.storage_cluster_gui_password)
   storage_cluster_desc_instance_ids         = jsonencode([])
   storage_cluster_desc_instance_private_ips = jsonencode([])
   storage_cluster_desc_data_volume_mapping  = jsonencode({})
 }
 
-#tfsec:ignore:GEN003
 module "write_storage_cluster_inventory" {
   source                                    = "../../../resources/common/write_inventory"
   write_inventory                           = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? 1 : 0
@@ -404,22 +398,17 @@ module "write_storage_cluster_inventory" {
   scale_version                             = jsonencode(var.scale_version)
   filesystem_block_size                     = jsonencode(var.filesystem_block_size)
   compute_cluster_filesystem_mountpoint     = jsonencode("None")
-  compute_cluster_gui_username              = jsonencode(var.compute_cluster_gui_username)
-  compute_cluster_gui_password              = jsonencode(var.compute_cluster_gui_password)
   compute_cluster_instance_ids              = jsonencode([])
   compute_cluster_instance_private_ips      = jsonencode([])
   storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
   storage_cluster_instance_ids              = jsonencode(module.storage_cluster_instances.instance_ids)
   storage_cluster_instance_private_ips      = jsonencode(module.storage_cluster_instances.instance_private_ips)
   storage_cluster_with_data_volume_mapping  = jsonencode(module.storage_cluster_instances.instance_ips_with_ebs_mapping)
-  storage_cluster_gui_username              = jsonencode(var.storage_cluster_gui_username)
-  storage_cluster_gui_password              = jsonencode(var.storage_cluster_gui_password)
   storage_cluster_desc_instance_ids         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
   storage_cluster_desc_instance_private_ips = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping  = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping)
 }
 
-#tfsec:ignore:GEN003
 module "write_cluster_inventory" {
   source                                    = "../../../resources/common/write_inventory"
   write_inventory                           = var.create_separate_namespaces == false ? 1 : 0
@@ -432,67 +421,69 @@ module "write_cluster_inventory" {
   scale_version                             = jsonencode(var.scale_version)
   filesystem_block_size                     = jsonencode(var.filesystem_block_size)
   compute_cluster_filesystem_mountpoint     = jsonencode("None")
-  compute_cluster_gui_username              = jsonencode(var.compute_cluster_gui_username)
-  compute_cluster_gui_password              = jsonencode(var.compute_cluster_gui_password)
   compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
   compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
   storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
   storage_cluster_instance_ids              = jsonencode(module.storage_cluster_instances.instance_ids)
   storage_cluster_instance_private_ips      = jsonencode(module.storage_cluster_instances.instance_private_ips)
   storage_cluster_with_data_volume_mapping  = jsonencode(module.storage_cluster_instances.instance_ips_with_ebs_mapping)
-  storage_cluster_gui_username              = jsonencode(var.storage_cluster_gui_username)
-  storage_cluster_gui_password              = jsonencode(var.storage_cluster_gui_password)
   storage_cluster_desc_instance_ids         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids) : jsonencode([])
   storage_cluster_desc_instance_private_ips = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
   storage_cluster_desc_data_volume_mapping  = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping) : jsonencode({})
 }
 
 module "compute_cluster_configuration" {
-  source                     = "../../../resources/common/compute_configuration"
-  turn_on                    = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
-  clone_complete             = module.prepare_ansible_configuration.clone_complete
-  write_inventory_complete   = module.write_compute_cluster_inventory.write_inventory_complete
-  clone_path                 = var.scale_ansible_repo_clone_path
-  inventory_path             = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image         = var.using_packer_image
-  memory_size                = data.aws_ec2_instance_type.compute_profile.memory_size
-  bastion_instance_public_ip = var.bastion_instance_public_ip
-  bastion_ssh_private_key    = var.bastion_ssh_private_key
-  meta_private_key           = module.generate_compute_cluster_keys.private_key_content
-  scale_version              = var.scale_version
-  spectrumscale_rpms_path    = var.spectrumscale_rpms_path
+  source                       = "../../../resources/common/compute_configuration"
+  turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+  clone_complete               = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
+  clone_path                   = var.scale_ansible_repo_clone_path
+  inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image           = var.using_packer_image
+  compute_cluster_gui_username = var.compute_cluster_gui_username
+  compute_cluster_gui_password = var.compute_cluster_gui_password
+  memory_size                  = data.aws_ec2_instance_type.compute_profile.memory_size
+  bastion_instance_public_ip   = var.bastion_instance_public_ip
+  bastion_ssh_private_key      = var.bastion_ssh_private_key
+  meta_private_key             = module.generate_compute_cluster_keys.private_key_content
+  scale_version                = var.scale_version
+  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 
 module "storage_cluster_configuration" {
-  source                     = "../../../resources/common/storage_configuration"
-  turn_on                    = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
-  clone_complete             = module.prepare_ansible_configuration.clone_complete
-  write_inventory_complete   = module.write_storage_cluster_inventory.write_inventory_complete
-  clone_path                 = var.scale_ansible_repo_clone_path
-  inventory_path             = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image         = var.using_packer_image
-  memory_size                = data.aws_ec2_instance_type.storage_profile.memory_size
-  bastion_instance_public_ip = var.bastion_instance_public_ip
-  bastion_ssh_private_key    = var.bastion_ssh_private_key
-  meta_private_key           = module.generate_storage_cluster_keys.private_key_content
-  scale_version              = var.scale_version
-  spectrumscale_rpms_path    = var.spectrumscale_rpms_path
+  source                       = "../../../resources/common/storage_configuration"
+  turn_on                      = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+  clone_complete               = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
+  clone_path                   = var.scale_ansible_repo_clone_path
+  inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image           = var.using_packer_image
+  storage_cluster_gui_username = var.storage_cluster_gui_username
+  storage_cluster_gui_password = var.storage_cluster_gui_password
+  memory_size                  = data.aws_ec2_instance_type.storage_profile.memory_size
+  bastion_instance_public_ip   = var.bastion_instance_public_ip
+  bastion_ssh_private_key      = var.bastion_ssh_private_key
+  meta_private_key             = module.generate_storage_cluster_keys.private_key_content
+  scale_version                = var.scale_version
+  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 
 module "combined_cluster_configuration" {
-  source                     = "../../../resources/common/scale_configuration"
-  turn_on                    = var.create_separate_namespaces == false ? true : false
-  clone_complete             = module.prepare_ansible_configuration.clone_complete
-  write_inventory_complete   = module.write_cluster_inventory.write_inventory_complete
-  clone_path                 = var.scale_ansible_repo_clone_path
-  inventory_path             = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image         = var.using_packer_image
-  memory_size                = data.aws_ec2_instance_type.storage_profile.memory_size
-  bastion_instance_public_ip = var.bastion_instance_public_ip
-  bastion_ssh_private_key    = var.bastion_ssh_private_key
-  meta_private_key           = module.generate_storage_cluster_keys.private_key_content
-  scale_version              = var.scale_version
-  spectrumscale_rpms_path    = var.spectrumscale_rpms_path
+  source                       = "../../../resources/common/scale_configuration"
+  turn_on                      = var.create_separate_namespaces == false ? true : false
+  clone_complete               = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
+  clone_path                   = var.scale_ansible_repo_clone_path
+  inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image           = var.using_packer_image
+  storage_cluster_gui_username = var.storage_cluster_gui_username
+  storage_cluster_gui_password = var.storage_cluster_gui_password
+  memory_size                  = data.aws_ec2_instance_type.storage_profile.memory_size
+  bastion_instance_public_ip   = var.bastion_instance_public_ip
+  bastion_ssh_private_key      = var.bastion_ssh_private_key
+  meta_private_key             = module.generate_storage_cluster_keys.private_key_content
+  scale_version                = var.scale_version
+  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 
 module "remote_mount_configuration" {
@@ -503,6 +494,10 @@ module "remote_mount_configuration" {
   compute_gui_inventory_path      = format("%s/compute_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
   storage_inventory_path          = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   storage_gui_inventory_path      = format("%s/storage_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
+  compute_cluster_gui_username    = var.compute_cluster_gui_username
+  compute_cluster_gui_password    = var.compute_cluster_gui_password
+  storage_cluster_gui_username    = var.storage_cluster_gui_username
+  storage_cluster_gui_password    = var.storage_cluster_gui_password
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   clone_complete                  = module.prepare_ansible_configuration.clone_complete
