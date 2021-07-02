@@ -43,7 +43,7 @@ Below steps will provision AWS Bastion instance required for IBM Spectrum Scale 
 | <a name="input_aws_linux_image_map_codes"></a> [aws_linux_image_map_codes](#input_aws_linux_image_map_codes) | AWS Linux images vs. search code names | `map(map(string))` |
 | <a name="input_bastion_ami_name"></a> [bastion_ami_name](#input_bastion_ami_name) | Bastion AMI Image name. | `string` |
 | <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for the bastion instance. | `string` |
-| <a name="input_bastion_public_ssh_port"></a> [bastion_public_ssh_port](#input_bastion_public_ssh_port) | Set the SSH port to use from desktop to the bastion. | `string` |
+| <a name="input_bastion_public_ssh_port"></a> [bastion_public_ssh_port](#input_bastion_public_ssh_port) | Set the SSH port to use from desktop to the bastion. | `number` |
 | <a name="input_remote_cidr_blocks"></a> [remote_cidr_blocks](#input_remote_cidr_blocks) | List of CIDRs that can access to the bastion. Default : 0.0.0.0/0 | `list(string)` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 

@@ -123,6 +123,14 @@ if __name__ == "__main__":
                         help='Bastion SSH public ip address')
     PARSER.add_argument('--bastion_ssh_private_key',
                         help='Bastion SSH private key path')
+    PARSER.add_argument('--compute_cluster_gui_username', required=True,
+                        help='Spectrum Scale compute cluster GUI username')
+    PARSER.add_argument('--compute_cluster_gui_password', required=True,
+                        help='Spectrum Scale compute cluster GUI password')
+    PARSER.add_argument('--storage_cluster_gui_username', required=True,
+                        help='Spectrum Scale storage cluster GUI username')
+    PARSER.add_argument('--storage_cluster_gui_password', required=True,
+                        help='Spectrum Scale storage cluster GUI password')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     ARGUMENTS = PARSER.parse_args()
@@ -150,14 +158,14 @@ if __name__ == "__main__":
     # Step-3: Create playbook
     remote_mount = {}
     remote_mount['compute_gui_ip'] = COMP_GUI['compute_cluster_gui_ip_address']
-    remote_mount['compute_gui_username'] = COMP_TF['compute_cluster_gui_username']
-    remote_mount['compute_gui_password'] = COMP_TF['compute_cluster_gui_password']
+    remote_mount['compute_gui_username'] = ARGUMENTS.compute_cluster_gui_username
+    remote_mount['compute_gui_password'] = ARGUMENTS.compute_cluster_gui_password
     remote_mount['compute_fs_mnt'] = COMP_TF['compute_cluster_filesystem_mountpoint']
     remote_mount['compute_fs_name'] = str(pathlib.PurePath(
         COMP_TF['compute_cluster_filesystem_mountpoint']).stem)
     remote_mount['storage_gui_ip'] = STRG_GUI['storage_cluster_gui_ip_address']
-    remote_mount['storage_gui_username'] = STRG_TF['storage_cluster_gui_username']
-    remote_mount['storage_gui_password'] = STRG_TF['storage_cluster_gui_password']
+    remote_mount['storage_gui_username'] = ARGUMENTS.storage_cluster_gui_username
+    remote_mount['storage_gui_password'] = ARGUMENTS.storage_cluster_gui_password
     remote_mount['storage_fs_name'] = str(pathlib.PurePath(
         STRG_TF['storage_cluster_filesystem_mountpoint']).stem)
 

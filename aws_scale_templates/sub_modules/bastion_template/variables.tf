@@ -15,7 +15,7 @@ variable "resource_prefix" {
 }
 
 variable "bastion_public_ssh_port" {
-  type        = string
+  type        = number
   default     = 22
   description = "Set the SSH port to use from desktop to the bastion."
 }
