@@ -99,7 +99,7 @@ func TestAwsVpc1AzCreateSubnetsOnly(t *testing.T) {
 
 		Vars: map[string]interface{}{
 			"vpc_region":                     region,
-			"vpc_availability_zones":         azs[0],
+			"vpc_availability_zones":         []string{azs[0]},
 			"resource_prefix":                expectedName,
 			"vpc_cidr_block":                 "10.0.0.0/16",
 			"vpc_public_subnets_cidr_blocks": []string{"10.0.1.0/24"},
@@ -137,7 +137,7 @@ func TestAwsVpc1AzStorageSubnetsOnly(t *testing.T) {
 
 		Vars: map[string]interface{}{
 			"vpc_region":                     region,
-			"vpc_availability_zones":         azs[0],
+			"vpc_availability_zones":         []string{azs[0]},
 			"resource_prefix":                expectedName,
 			"vpc_cidr_block":                 "10.0.0.0/16",
 			"vpc_public_subnets_cidr_blocks": []string{"10.0.1.0/24"},

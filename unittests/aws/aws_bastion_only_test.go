@@ -61,7 +61,7 @@ func TestAwsBastionOnly(t *testing.T) {
 		TerraformDir: "../../aws_scale_templates/sub_modules/bastion_template",
 
 		Vars: map[string]interface{}{
-			"vpc_region":                     "us-east-1",
+			"vpc_region":                     region,
 			"vpc_id":                         vpcID,
 			"resource_prefix":                expectedName,
 			"bastion_public_ssh_port":        22,
@@ -85,4 +85,9 @@ func TestAwsBastionOnly(t *testing.T) {
 	assert.Equal(t, 1, len(actualBastionPrivateIP))
 	assert.Equal(t, 1, len(actualBastionPublicIP))
 	assert.Contains(t, actualBastionSecuritygrpID, "sg-")
+
+	keyerr := os.Remove(privateKeyPath)
+	if keyerr != nil {
+		panic(keyerr)
+	}
 }

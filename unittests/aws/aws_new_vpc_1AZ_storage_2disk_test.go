@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAwsVpc1AzComputeOnly(t *testing.T) {
-	logger.Log(t, "Testcase-1: Create a Spectrum Scale compute cluster in a new vpc with 1AZ")
+func TestAwsVpc1AzStorage2diskOnly(t *testing.T) {
+	logger.Log(t, "Testcase-1: Create a Spectrum Scale storage cluster with dual disks in a new vpc with 1AZ")
 	expectedName := fmt.Sprintf("spectrum-scale-%s", strings.ToLower(random.UniqueId()))
 	region := terraaws.GetRandomStableRegion(t, nil, nil)
 	azs := terraaws.GetAvailabilityZones(t, region)
@@ -85,22 +85,23 @@ func TestAwsVpc1AzComputeOnly(t *testing.T) {
 		TerraformDir: "../../aws_scale_templates/aws_new_vpc_scale",
 
 		Vars: map[string]interface{}{
-			"vpc_region":                      region,
-			"vpc_availability_zones":          []string{azs[0]},
-			"resource_prefix":                 "spectrum-scale",
-			"bastion_key_pair":                keyPair.Name,
-			"bastion_ssh_private_key":         privateKeyPath,
-			"compute_cluster_key_pair":        keyPair.Name,
-			"storage_cluster_key_pair":        keyPair.Name,
-			"compute_cluster_image_id":        aws.StringValue(result.Images[0].ImageId),
-			"compute_cluster_gui_username":    "admin",
-			"compute_cluster_gui_password":    "Passw0rd",
-			"total_storage_cluster_instances": 0,
-			"storage_cluster_image_id":        aws.StringValue(result.Images[0].ImageId),
-			"storage_cluster_gui_username":    "admin",
-			"storage_cluster_gui_password":    "Passw0rd",
-			"operator_email":                  "sasikanth.eda@in.ibm.com",
-			"scale_version":                   "5.1.1.0",
+			"vpc_region":                             region,
+			"vpc_availability_zones":                 []string{azs[0]},
+			"resource_prefix":                        "spectrum-scale",
+			"bastion_key_pair":                       keyPair.Name,
+			"bastion_ssh_private_key":                privateKeyPath,
+			"compute_cluster_key_pair":               keyPair.Name,
+			"storage_cluster_key_pair":               keyPair.Name,
+			"compute_cluster_image_id":               aws.StringValue(result.Images[0].ImageId),
+			"compute_cluster_gui_username":           "admin",
+			"compute_cluster_gui_password":           "Passw0rd",
+			"total_compute_cluster_instances":        0,
+			"ebs_block_devices_per_storage_instance": 2,
+			"storage_cluster_image_id":               aws.StringValue(result.Images[0].ImageId),
+			"storage_cluster_gui_username":           "admin",
+			"storage_cluster_gui_password":           "Passw0rd",
+			"operator_email":                         "sasikanth.eda@in.ibm.com",
+			"scale_version":                          "5.1.1.0",
 		},
 	})
 
@@ -143,12 +144,14 @@ func TestAwsVpc1AzComputeOnly(t *testing.T) {
 	assert.Equal(t, 1, len(actualVpcStoragePrivateSubnets))
 	assert.Equal(t, 1, len(actualVpcComputePrivateSubnets))
 
-	assert.Equal(t, 3, len(actualComputeClusterID))
-	assert.Equal(t, 3, len(actualComputeClusterIP))
+	assert.Equal(t, 0, len(actualComputeClusterID))
+	assert.Equal(t, 0, len(actualComputeClusterIP))
 	assert.Equal(t, 0, len(actualStorageClusterDescID))
 	assert.Equal(t, 0, len(actualStorageClusterDescIP))
 	assert.Equal(t, map[string]string{}, actualStorageClusterDescMap)
-	assert.Equal(t, 0, len(actualStorageClusterID))
-	assert.Equal(t, 0, len(actualStorageClusterIP))
-	assert.Equal(t, 0, len(actualStorageClusterMap))
+	assert.Equal(t, 4, len(actualStorageClusterID))
+	assert.Equal(t, 4, len(actualStorageClusterIP))
+	assert.Equal(t, 4, len(actualStorageClusterMap))
+	assert.Equal(t, "[/dev/xvdf]", actualStorageClusterMap[keys[0]])
+	assert.Equal(t, 1, len([]string{actualStorageClusterMap[keys[0]]}))
 }
