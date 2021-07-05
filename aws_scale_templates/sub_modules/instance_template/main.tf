@@ -11,10 +11,6 @@ locals {
   "/dev/xvdk", "/dev/xvdl", "/dev/xvdm", "/dev/xvdn", "/dev/xvdo", "/dev/xvdp", "/dev/xvdq", "/dev/xvdr", "/dev/xvds", "/dev/xvdt"]
 }
 
-#terraform {
-#  backend "s3" {}
-#}
-
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
   turn_on = var.total_compute_cluster_instances > 0 ? true : false
@@ -134,6 +130,32 @@ module "compute_cluster_ingress_security_rule" {
   module.compute_cluster_security_group.sec_group_id]
 }
 
+module "compute_cluster_ingress_security_rule_wo_bastion" {
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = (var.total_compute_cluster_instances > 0 && var.using_direct_connection == true) ? 15 : 0
+  security_group_id = [module.compute_cluster_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic within compute instances",
+    "Allow SSH traffic within compute instances",
+    "Allow GPFS intra cluster traffic within compute instances",
+    "Allow GPFS ephemeral port range within compute instances",
+    "Allow management GUI (http/localhost) TCP traffic within compute instances",
+    "Allow management GUI (http/localhost) UDP traffic within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic within compute instances",
+    "Allow management GUI (https/localhost) UDP traffic within compute instances",
+    "Allow management GUI (localhost) TCP traffic within compute instances",
+    "Allow management GUI (localhost) UDP traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow http traffic within compute instances",
+  "Allow https traffic within compute instances"]
+  security_rule_type       = ["ingress"]
+  traffic_protocol         = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
+  traffic_from_port        = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  traffic_to_port          = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  source_security_group_id = [module.compute_cluster_security_group.sec_group_id]
+}
+
 module "cluster_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
   total_rules               = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0) ? 2 : 1
@@ -190,6 +212,32 @@ module "storage_cluster_ingress_security_rule" {
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
   module.storage_cluster_security_group.sec_group_id]
+}
+
+module "storage_cluster_ingress_security_rule_wo_bastion" {
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == null) ? 15 : 0
+  security_group_id = [module.storage_cluster_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic within storage instances",
+    "Allow SSH traffic within storage instances",
+    "Allow GPFS intra cluster traffic within storage instances",
+    "Allow GPFS ephemeral port range within storage instances",
+    "Allow management GUI (http/localhost) TCP traffic within storage instances",
+    "Allow management GUI (http/localhost) UDP traffic within storage instances",
+    "Allow management GUI (https/localhost) TCP traffic within storage instances",
+    "Allow management GUI (https/localhost) UDP traffic within storage instances",
+    "Allow management GUI (localhost) TCP traffic within storage instances",
+    "Allow management GUI (localhost) UDP traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow http traffic within storage instances",
+  "Allow https traffic within storage instances"]
+  security_rule_type       = ["ingress"]
+  traffic_protocol         = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "UDP", "TCP", "TCP", "TCP"]
+  traffic_from_port        = [-1, 22, 1191, 60000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  traffic_to_port          = [-1, 22, 1191, 61000, 47080, 47080, 47443, 47443, 4444, 4444, 4739, 9084, 9085, 80, 443]
+  source_security_group_id = [module.storage_cluster_security_group.sec_group_id]
 }
 
 module "bicluster_ingress_security_rule" {
@@ -440,6 +488,7 @@ module "compute_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
+  using_direct_connection      = var.using_direct_connection
   compute_cluster_gui_username = var.compute_cluster_gui_username
   compute_cluster_gui_password = var.compute_cluster_gui_password
   memory_size                  = data.aws_ec2_instance_type.compute_profile.memory_size
@@ -458,6 +507,7 @@ module "storage_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
+  using_direct_connection      = var.using_direct_connection
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = data.aws_ec2_instance_type.storage_profile.memory_size
@@ -476,6 +526,7 @@ module "combined_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
+  using_direct_connection      = var.using_direct_connection
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = data.aws_ec2_instance_type.storage_profile.memory_size
@@ -498,6 +549,7 @@ module "remote_mount_configuration" {
   compute_cluster_gui_password    = var.compute_cluster_gui_password
   storage_cluster_gui_username    = var.storage_cluster_gui_username
   storage_cluster_gui_password    = var.storage_cluster_gui_password
+  using_direct_connection         = var.using_direct_connection
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   clone_complete                  = module.prepare_ansible_configuration.clone_complete

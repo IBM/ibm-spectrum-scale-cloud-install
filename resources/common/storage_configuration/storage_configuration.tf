@@ -8,6 +8,7 @@ variable "write_inventory_complete" {}
 variable "clone_path" {}
 variable "inventory_path" {}
 variable "using_packer_image" {}
+variable "using_direct_connection" {}
 variable "storage_cluster_gui_username" {}
 variable "storage_cluster_gui_password" {}
 variable "memory_size" {}
@@ -54,10 +55,22 @@ resource "local_file" "write_meta_private_key" {
 }
 
 resource "null_resource" "prepare_ansible_inventory" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_direct_connection) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password}"
+  }
+  depends_on = [local_file.create_storage_tuning_parameters, local_file.write_meta_private_key]
+  triggers = {
+    build = timestamp()
+  }
+}
+
+resource "null_resource" "prepare_ansible_inventory_wo_bastion" {
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_direct_connection) == true) ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password}"
   }
   depends_on = [local_file.create_storage_tuning_parameters, local_file.write_meta_private_key]
   triggers = {
@@ -71,7 +84,7 @@ resource "null_resource" "wait_for_ssh_availability" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.wait_for_ssh_script_path} --tf_inv_path ${var.inventory_path} --cluster_type storage"
   }
-  depends_on = [null_resource.prepare_ansible_inventory]
+  depends_on = [null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_wo_bastion]
   triggers = {
     build = timestamp()
   }
@@ -89,7 +102,7 @@ resource "null_resource" "perform_scale_deployment" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -i ${local.storage_inventory_path} ${local.storage_playbook_path} --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""
   }
-  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory]
+  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_wo_bastion]
   triggers = {
     build = timestamp()
   }
@@ -97,5 +110,5 @@ resource "null_resource" "perform_scale_deployment" {
 
 output "storage_cluster_create_complete" {
   value      = true
-  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.perform_scale_deployment]
+  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_wo_bastion, null_resource.perform_scale_deployment]
 }
