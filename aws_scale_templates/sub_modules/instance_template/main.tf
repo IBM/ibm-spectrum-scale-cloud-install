@@ -96,7 +96,7 @@ module "compute_cluster_security_group" {
 
 module "compute_cluster_ingress_security_rule" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = var.total_compute_cluster_instances > 0 ? 17 : 0
+  total_rules       = (var.total_compute_cluster_instances > 0 && var.using_direct_connection == false) ? 17 : 0
   security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to compute instances",
     "Allow SSH traffic from bastion to compute instances",
@@ -180,7 +180,7 @@ module "storage_cluster_security_group" {
 
 module "storage_cluster_ingress_security_rule" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = var.total_storage_cluster_instances > 0 ? 17 : 0
+  total_rules       = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == false) ? 17 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to storage instances",
     "Allow SSH traffic from bastion to storage instances",
@@ -216,7 +216,7 @@ module "storage_cluster_ingress_security_rule" {
 
 module "storage_cluster_ingress_security_rule_wo_bastion" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == null) ? 15 : 0
+  total_rules       = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == true) ? 15 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic within storage instances",
     "Allow SSH traffic within storage instances",
