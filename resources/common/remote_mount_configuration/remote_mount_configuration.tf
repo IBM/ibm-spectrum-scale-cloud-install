@@ -14,6 +14,7 @@ variable "storage_cluster_gui_username" {}
 variable "storage_cluster_gui_password" {}
 variable "bastion_instance_public_ip" {}
 variable "bastion_ssh_private_key" {}
+variable "using_direct_connection" {}
 variable "clone_complete" {}
 variable "compute_cluster_create_complete" {}
 variable "storage_cluster_create_complete" {}
@@ -27,7 +28,18 @@ locals {
 }
 
 resource "null_resource" "prepare_remote_mnt_inventory" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.compute_cluster_create_complete) == true && tobool(var.storage_cluster_create_complete) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.compute_cluster_create_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.using_direct_connection) == false) ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "python3 ${local.ansible_inv_script_path} --compute_tf_inv_path ${var.compute_inventory_path} --compute_gui_inv_path ${var.compute_gui_inventory_path} --storage_tf_inv_path ${var.storage_inventory_path} --storage_gui_inv_path ${var.storage_gui_inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --compute_cluster_gui_username ${var.compute_cluster_gui_username} --compute_cluster_gui_password ${var.compute_cluster_gui_password} --storage_cluster_gui_username ${var.storage_cluster_gui_username} --storage_cluster_gui_password ${var.storage_cluster_gui_password}"
+  }
+  triggers = {
+    build = timestamp()
+  }
+}
+
+resource "null_resource" "prepare_remote_mnt_inventory_wo_bastion" {
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.compute_cluster_create_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.using_direct_connection) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --compute_tf_inv_path ${var.compute_inventory_path} --compute_gui_inv_path ${var.compute_gui_inventory_path} --storage_tf_inv_path ${var.storage_inventory_path} --storage_gui_inv_path ${var.storage_gui_inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --compute_cluster_gui_username ${var.compute_cluster_gui_username} --compute_cluster_gui_password ${var.compute_cluster_gui_password} --storage_cluster_gui_username ${var.storage_cluster_gui_username} --storage_cluster_gui_password ${var.storage_cluster_gui_password}"
@@ -40,7 +52,7 @@ resource "null_resource" "prepare_remote_mnt_inventory" {
 resource "time_sleep" "wait_for_gui_db_initializion" {
   count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.compute_cluster_create_complete) == true && tobool(var.storage_cluster_create_complete) == true) ? 1 : 0
   create_duration = "180s"
-  depends_on      = [null_resource.prepare_remote_mnt_inventory]
+  depends_on      = [null_resource.prepare_remote_mnt_inventory, null_resource.prepare_remote_mnt_inventory_wo_bastion]
 }
 
 resource "null_resource" "perform_scale_deployment" {
@@ -49,7 +61,7 @@ resource "null_resource" "perform_scale_deployment" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -i ${local.remote_mnt_inventory_path} ${local.remote_mnt_playbook_path}"
   }
-  depends_on = [time_sleep.wait_for_gui_db_initializion, null_resource.prepare_remote_mnt_inventory]
+  depends_on = [time_sleep.wait_for_gui_db_initializion, null_resource.prepare_remote_mnt_inventory, null_resource.prepare_remote_mnt_inventory_wo_bastion]
   triggers = {
     build = timestamp()
   }
