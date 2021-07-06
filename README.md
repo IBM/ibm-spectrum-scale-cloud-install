@@ -24,18 +24,6 @@ IBM Spectrum Scale offers different editions based on functional levels.
 
   > Learn, develop and test with IBM Spectrum Scale™, for `non-production use`. Developer edition provides all the features of the Data Management Edition and it is limited to 12 TB per cluster. It can be downloaded from [IBM Market place](https://www.ibm.com/products/spectrum-scale)
 
-## Prerequisites
-
-Ensure that the following requirements are met on the server where this repository is cloned.
-
-* Install [Terraform](https://www.terraform.io/downloads.html) and validate:
-
-    * `terraform -v`
-
-* Install [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and validate:
-
-    * `ansible --version`
-
 ## Usage
 
   * [Amazon Web Services (AWS)](docs/aws.md)
