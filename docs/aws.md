@@ -1,38 +1,23 @@
 # Amazon Web Services (AWS)
 
-This templates offer;
-1. New VPC Deployment
-A. Single zone
--  Support for separate compute and storage subnet
--  Support for packer images vs. non-packer images
--  Support for single/combined, separate compute only, separate storage only, separate compute and storage clusters.
--  Support for both EBS (old, new gen) and instance storage volumes
--  Support for volume encryption
-B. Multi (3) zone
-- Support for separate compute and storage subnet
-- Support for packer images vs. non-packer images
-- Compute nodes are provisioned only the primary single zone
-- Support for single/combined, separate compute only, separate storage only, separate compute and storage clusters.
--  Support for only EBS (old, new gen).
--  Support for volume encryption
+| Note: IBM Spectrum Scale is supported on AWS via marketplace. For detailed information refer to the offering and supported features, refer to [IBM Spectrum Scale on AWS](https://www.ibm.com/docs/en/spectrum-scale-aws).|
+| --- |
 
-
-2. Existing VPC Deployment
-A. Single zone
-- Support for configuration via Bastion  and direct VPN
-- Support for separate compute and storage subnet
-- Support for packer images vs. non-packer images
-- Support for single/combined, separate compute only, separate storage only, separate compute and storage clusters.
--  Support for both EBS (old, new gen) and instance storage volumes
--  Support for volume encryption
-B. Multi (3) zone
-- Support for configuration via Bastion  and direct VPN
-- Support for separate compute and storage subnet
-- Support for packer images vs. non-packer images
-- Compute nodes are provisioned only the primary single zone
-- Support for single/combined, separate compute only, separate storage only, separate compute and storage clusters.
--  Support for only EBS (old, new gen).
--  Support for volume encryption
+The terraform templates provided in this repository offer following features;
+  1. Supports provisioning Spectrum Scale resources within a single availability zone.
+        - Allows different compute and storage subnet.
+        - Allows different compute and storage AMI's.
+        - Allows packer image vs. non-packer (stock) image.
+        - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remout mount configuration) configuration (**Spectrum Scale filesystem will be configured such that only one copy of data is stored and two copies of metadata will be stored**).
+        - Allows EBS (gp2, gp3, io1, io2 and sc1 or st1) and nitro instance profiles.
+        - Allows EBS encryption.
+  2. Supports provisioning Spectrum Scale resources within a multi (3) availability zones.
+        - Allows different compute and storage subnet.
+        - Allows different compute and storage AMI's.
+        - Allows packer image vs. non-packer (stock) image.
+        - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remout mount configuration) configuration (**Spectrum Scale filesystem will be configured such that data and metadata will be replicated across 2 availability zones (Synchronous Replication). AZ-3, will be used as tiebreaker site.**).
+        - Allows EBS (gp2, gp3, io1, io2 and sc1 or st1) and nitro instance profiles.
+        - Allows EBS encryption.
 
 ## Before Starting
 
