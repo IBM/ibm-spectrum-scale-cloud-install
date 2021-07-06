@@ -1,5 +1,38 @@
 # Amazon Web Services (AWS)
 
+This templates offer;
+1. New VPC Deployment
+A. Single zone
+-  Support for separate compute and storage subnet
+-  Support for packer images vs. non-packer images
+-  Support for single/combined, separate compute only, separate storage only, separate compute and storage clusters.
+-  Support for both EBS (old, new gen) and instance storage volumes
+-  Support for volume encryption
+B. Multi (3) zone
+- Support for separate compute and storage subnet
+- Support for packer images vs. non-packer images
+- Compute nodes are provisioned only the primary single zone
+- Support for single/combined, separate compute only, separate storage only, separate compute and storage clusters.
+-  Support for only EBS (old, new gen).
+-  Support for volume encryption
+
+
+2. Existing VPC Deployment
+A. Single zone
+- Support for configuration via Bastion  and direct VPN
+- Support for separate compute and storage subnet
+- Support for packer images vs. non-packer images
+- Support for single/combined, separate compute only, separate storage only, separate compute and storage clusters.
+-  Support for both EBS (old, new gen) and instance storage volumes
+-  Support for volume encryption
+B. Multi (3) zone
+- Support for configuration via Bastion  and direct VPN
+- Support for separate compute and storage subnet
+- Support for packer images vs. non-packer images
+- Compute nodes are provisioned only the primary single zone
+- Support for single/combined, separate compute only, separate storage only, separate compute and storage clusters.
+-  Support for only EBS (old, new gen).
+-  Support for volume encryption
 
 ## Before Starting
 

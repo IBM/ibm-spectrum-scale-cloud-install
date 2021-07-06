@@ -6,7 +6,7 @@
     $ aws configure
     AWS Access Key ID [********************]:
     AWS Secret Access Key [*******************]:
-    Default region name [ue-east-1]:
+    Default region name [us-east-1]:
     Default output format [json]:
     ```
 
@@ -25,7 +25,7 @@ Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpms an
 2. Create packer variable definitions file (`inputs.auto.pkrvars.hcl`) and provide infrastructure inputs.
 
     Minimal Example:
-    ```
+    ```jsonc
     $ cat inputs.auto.pkrvars.hcl
     vpc_id                  = "vpc-0df33b2a861b63118"
     vpc_subnet_id           = "subnet-0992d8e9ce397dac3"
@@ -35,7 +35,7 @@ Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpms an
     ami_description         = "IBM Spectrum Scale AMI"
     instance_type           = "t2.medium"
     source_ami_id           = "ami-0b0af3577fe5e3532"
-    s3_spectrumscale_bucket = "scalebucket"
+    s3_spectrumscale_bucket = "scalebucket"              // S3 bucket that contains gpfs/scale rpm's.
     volume_size             = "200"
     volume_type             = "gp2"
     ```

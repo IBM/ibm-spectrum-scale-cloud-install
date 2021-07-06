@@ -1,73 +1,106 @@
 # Contributing
 
-## Before You Submit a Pull Request
+When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
+
+## Pull Request Process
 
 1. Fork the repo, create a branch for your feature
-2. Follow [coding practices](#coding-practices)
-3. Run changes through appropriate linters, generate template paramter documentation
-4. Create a Pull Request for your feature
-5. [Sign your work](#sign-your-work-for-submittal) (required)
+2. Follow [terraform coding practices](#coding-practices)
+3. Install [pre-commit hook dependencies](#install-precommit-hooks)
+4. [Sign your work](#sign-your-work-for-submittal)
+5. [Sync Your Fork](#sync-your-fork)
+6. Create a Pull Request for your feature
 
 ### Coding Practices
 
-* Terraform
-    - get started with [terraform](https://learn.hashicorp.com/terraform#getting-started)
-    - practice [terraform configuration language](https://www.terraform.io/docs/configuration/index.html)
-    - document template parameters using [terraform-docs](https://github.com/IBM/ibm-spectrum-scale-cloud-install/docs/README.md#Auto-Generate-Docs-for-Template-Parameters)
+1. Terraform version
+   - All code should support the latest version of the latest Terraform GA release.
+2. Variables, Looping, Outputs
+   - Static values shouldn't be hardcoded inside the Terraform configuration, static values should be defined as Terraform variables, this extends the flexibility of the Terraform nodules for future use.
+   - Optional variables for resources should still be included (where sensible) to ensure future extendability of the module.
+   - Wherever possible we recommend marking your input variable and/or output value declarations as sensitive.
+   - `for_each` looping should be used instead of `count` when multiple resources need to be created. This results in a resource `map` instead of `list` when the created resources are added to the Terraform state tree which allows you to remove an object from Terraform state despite the position of the object where it is inserted.
+   - `count` should only be used when creating a single resource with a conditional statement. For an example you may decide to create a resource based on an existence of an input variable.
+   - Add Terraform output values and description, which allows you to export structured data about your resources.
+3. Terraform Module Structure
+    - We will maintain one directory per cloud provider (Four directories, representing AWS, Azure, GCP, and IBM Cloud). Where each cloud vendor directory structure looks like below;
+
+    ```bash
+    |── aws_scale_templates/
+    │   ├── aws_new_vpc_scale/        <- Templates corresponding to new vpc.
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    │   ├── prepare_tf_s3_backend/
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    │   ├── sub_modules/
+    │   │   ├── vpc_template/
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    │   │   ├── bastion_template/
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    │   │   ├── instance_template/     <- Templates corresponding to existing vpc.
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    ```
+
+4. Terraform unit test Structure
+    - We will maintain one unit test directory per cloud provider (Four directories, representing AWS, Azure, GCP, and IBM Cloud) and found in `unittests/`.
+
+### Install precommit hooks
+
+1. Install dependencies
+
+   ```bash
+   # pip3 install pre-commit
+   # curl -L "$(curl -s https://api.github.com/repos/terraform-docs/terraform-docs/releases/latest | grep -o -E "https://.+?-linux-amd64.tar.gz")" > terraform-docs.tgz && tar xzf terraform-docs.tgz && chmod +x terraform-docs && sudo mv terraform-docs /usr/bin/
+   # curl -L "$(curl -s https://api.github.com/repos/terraform-linters/tflint/releases/latest | grep -o -E "https://.+?_linux_amd64.zip")" > tflint.zip && unzip tflint.zip && rm tflint.zip && sudo mv tflint /usr/bin/
+   # curl -L "$(curl -s https://api.github.com/repos/tfsec/tfsec/releases/latest | grep -o -E "https://.+?tfsec-linux-amd64" | head -1)" > tfsec && chmod +x tfsec && sudo mv tfsec /usr/bin/
+   ```
+
+2. Enable pre-commit hooks
+
+   ```bash
+   # cd ibm-spectrum-scale-cloud-install
+   # ./tools/setup_dev_env.sh
+   ```
+
+### Sync Your Fork
+
+Before submitting a pull request, make sure your fork is up to date with the latest upstream changes.
+
+```bash
+git fetch upstream
+git checkout master
+git merge upstream/master
+```
 
 ### Sign your work for submittal
 
-The sign-off is a simple line at the end of the explanation for the patch. Your signature certifies that you wrote the patch or otherwise have the right to pass it on as an open-source patch. The rules are pretty simple: if you can certify the below (from developercertificate.org):
-
-Developer Certificate of Origin
-Version 1.1
-
-Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
-1 Letterman Drive
-Suite D4700
-San Francisco, CA, 94129
-
-Everyone is permitted to copy and distribute verbatim copies of this
-license document, but changing it is not allowed.
-
-Developer's Certificate of Origin 1.1
-
-By making a contribution to this project, I certify that:
-
-(a) The contribution was created in whole or in part by me and I
-    have the right to submit it under the open source license
-    indicated in the file; or
-
-(b) The contribution is based upon previous work that, to the best
-    of my knowledge, is covered under an appropriate open source
-    license and I have the right under that license to submit that
-    work with modifications, whether created in whole or in part
-    by me, under the same open source license (unless I am
-    permitted to submit under a different license), as indicated
-    in the file; or
-
-(c) The contribution was provided directly to me by some other
-    person who certified (a), (b) or (c) and I have not modified
-    it.
-
-(d) I understand and agree that this project and the contribution
-    are public and that a record of the contribution (including all
-    personal information I submit with it, including my sign-off) is
-    maintained indefinitely and may be redistributed consistent with
-    this project or the open source license(s) involved.
-Then you just add a line to every git commit message:
+The sign-off is a simple line at the end of the explanation for the patch. Your signature certifies that you wrote the patch or otherwise have the right to pass it on as an open-source patch. You just add a line to every git commit message:
 
 Signed-off-by: Joe Smith <joe.smith@email.com>
 Use your real name (sorry, no pseudonyms or anonymous contributions.)
 
 If you set your user.name and user.email git configs, you can sign your commit automatically with git commit -s.
-
-Note: If your git config information is set properly then viewing the git log information for your commit will look something like this:
-
-Author: Joe Smith <joe.smith@email.com>
-Date:   Thu Feb 2 11:41:15 2018 -0800
-
-    docs: Update README
-
-    Signed-off-by: Joe Smith <joe.smith@email.com>
-Notice the Author and Signed-off-by lines match. If they don't your PR will be rejected.
