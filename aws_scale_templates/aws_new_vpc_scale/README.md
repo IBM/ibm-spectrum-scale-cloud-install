@@ -1,3 +1,44 @@
+### New VPC Template
+
+The following steps will provision AWS resources (*new vpc, bastion, compute and storage instances*) and configures IBM Spectrum Scale cloud solution.
+
+1. Change working directory to `aws_scale_templates/sub_modules/instance_template`.
+
+    ```
+    $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/aws_new_vpc_scale/
+    ```
+2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
+
+    | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zone` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
+    | --- |
+
+    Minimal Example-1 (create compute, storage cluster with gp2 and remote mount configuration):
+    ```jsonc
+    {
+        "vpc_region": "us-east-1",
+        "vpc_availability_zones": ["us-east-1a"],
+        "resource_prefix": "spectrum-scale",
+        "total_storage_cluster_instances": 4,
+        "total_compute_cluster_instances": 3,
+        "ebs_block_devices_per_storage_instance": 1,
+        "ebs_block_device_volume_size": 500,
+        "ebs_block_device_volume_type": "gp2",
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
+        "operator_email": null,                          // Email address for notification
+        "scale_version": "5.1.1.0",
+        "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
+        "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
+        "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
+        "compute_cluster_gui_password": "Passw0rd",
+        "compute_cluster_gui_username": "admin",        
+        "storage_cluster_gui_username": "admin",
+        "storage_cluster_gui_password": "Passw0rd"
+    }
+    ```
+
+3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
 
