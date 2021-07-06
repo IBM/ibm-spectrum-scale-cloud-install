@@ -33,7 +33,7 @@ The terraform templates provided in this repository offer following features;
         ```
         > Currently, spectrum scale ansible playbooks support only 2.9 version (can be installed using `pip3 install ansible==2.9`)
     
-    - Install [Python36](https://www.python.org/downloads/) and validate:
+    - Install [Python3.6](https://www.python.org/downloads/) and validate:
         ```bash
         # python --version
         Python 3.6.14
@@ -63,14 +63,20 @@ The terraform templates provided in this repository offer following features;
     # cp SpectrumScale_public_key.pgp /opt/IBM/gpfs_cloud_rpms/
     ```
 
-### Configure terraform S3 backend
+## Deployment Options
 
-Refer [Configure terraform S3 backend](../aws_scale_templates/prepare_tf_s3_backend/README.md)
+The terraform templates provided in this repository offer following deployment options;
 
-## New VPC Based Configuration
+### (Option-1) New VPC Based Configuration (Single AZ, Multi AZ)
 
-Refer [New VPC Based Configuration](../aws_scale_templates/aws_new_vpc_scale/README.md)
+This option builds a new AWS VPC environment consisting of the subnets, nat gateways, internet gateway, security groups, bastion autoscaling group, compute (instances with NO EBS volumes attached) and storage (instances with EBS volumes attached) instances, and then deploys IBM Spectrum Scale into this new VPC with a single or multi availability zone(s).
 
-## Existing VPC Based Configuration
+Refer to [New VPC Based Configuration](../aws_scale_templates/aws_new_vpc_scale/README.md) for detailed steps, options.
 
-Refer [Existing VPC Based Configuration](../aws_scale_templates/sub_modules/instance_template/README.md)
+### (Option-2) Existing VPC Based Configuration (Single AZ, Multi AZ)
+
+This option deploys IBM Spectrum Scale in to an existing VPC (which can have subnets with multiple availability zones).
+
+Refer [Existing VPC Based Configuration](../aws_scale_templates/sub_modules/instance_template/README.md) for detailed steps, options.
+
+> This mode provides flexiblity to bypass bastion/jump host, incase local/cloud VM has direct connectivity to VPC.
