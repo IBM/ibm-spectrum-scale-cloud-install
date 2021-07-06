@@ -1,6 +1,8 @@
 # IBM Spectrum Scale Cloud Install
 
-IBM Spectrum Scale is a high-performance, highly available clustered file system and associated management software, and is available on a variety of platforms. It offers many features beyond common data access including data replication, policy based storage management, encryption, and multi-site operations. The `ibm-spectrum-scale-cloud-install` provides terraform templates (built based on best cloud practices) to provision public cloud infrastructure (i.e. AWS, Azure, GCP, IBM Cloud) where IBM Spectrum Scale can be deployed for users who require highly available access to a shared namespace across multiple instances.
+IBM Spectrum Scale is a high-performance, highly available clustered file system and associated management software, and is available on a variety of platforms. It offers many features beyond common data access including data replication, policy based storage management, encryption, and multi-site operations.
+
+The `ibm-spectrum-scale-cloud-install` provides terraform templates (built based on best cloud practices) to provision public cloud infrastructure (i.e. AWS, Azure, GCP and IBM Cloud) where IBM Spectrum Scale can be deployed for users who require highly available access to a shared namespace across multiple instances.
 
 ## IBM Spectrum Scale - Cloud Cluster Topology
 
