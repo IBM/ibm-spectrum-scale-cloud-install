@@ -7,14 +7,14 @@ The terraform templates provided in this repository offer following features;
   1. Supports provisioning Spectrum Scale resources within a single availability zone.
         - Allows different compute and storage subnet.
         - Allows different compute and storage AMI's.
-        - Allows packer image vs. non-packer (stock) image.
+        - Allows packer/custom image vs. non-packer (stock) image.
         - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remout mount configuration) configuration (**Spectrum Scale filesystem will be configured such that only one copy of data is stored and two copies of metadata will be stored**).
         - Allows EBS (gp2, gp3, io1, io2 and sc1 or st1) and nitro instance profiles.
         - Allows EBS encryption.
   2. Supports provisioning Spectrum Scale resources within a multi (3) availability zones.
         - Allows different compute and storage subnet.
         - Allows different compute and storage AMI's.
-        - Allows packer image vs. non-packer (stock) image.
+        - Allows packer/custom image vs. non-packer (stock) image.
         - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remout mount configuration) configuration (**Spectrum Scale filesystem will be configured such that data and metadata will be replicated across 2 availability zones (Synchronous Replication). AZ-3, will be used as tiebreaker site.**).
         - Allows EBS (gp2, gp3, io1, io2 and sc1 or st1) and nitro instance profiles.
         - Allows EBS encryption.
@@ -40,9 +40,9 @@ The terraform templates provided in this repository offer following features;
         ```
 
 2. Ensure that you have configured your AWS CLI credentials;
-    - [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+    - [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
     - [Create access keys for IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_CreateAccessKey)
-    - [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration).
+    - [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
 3. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and perform below steps;
     ```bash
