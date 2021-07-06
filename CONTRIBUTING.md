@@ -6,7 +6,7 @@ When contributing to this repository, please first discuss the change you wish t
 
 1. Fork the repo, create a branch for your feature
 2. Follow [terraform coding practices](#coding-practices)
-3. Install [pre-commit hook dependencies](#How-to-install-pre-commit-hooks)
+3. Install [pre-commit hook dependencies](#install-precommit-hooks)
 4. [Sign your work](#sign-your-work-for-submittal)
 5. [Sync Your Fork](#sync-your-fork)
 6. Create a Pull Request for your feature
@@ -14,7 +14,7 @@ When contributing to this repository, please first discuss the change you wish t
 ### Coding Practices
 
 1. Terraform version
-   All code should support the latest version of the latest Terraform GA release.
+   - All code should support the latest version of the latest Terraform GA release.
 2. Variables, Looping, Outputs
    - Static values shouldn't be hardcoded inside the Terraform configuration, static values should be defined as Terraform variables, this extends the flexibility of the Terraform nodules for future use.
    - Optional variables for resources should still be included (where sensible) to ensure future extendability of the module.
@@ -23,50 +23,52 @@ When contributing to this repository, please first discuss the change you wish t
    - `count` should only be used when creating a single resource with a conditional statement. For an example you may decide to create a resource based on an existence of an input variable.
    - Add Terraform output values and description, which allows you to export structured data about your resources.
 3. Terraform Module Structure
-    - We will maintain one directory per cloud provider (Four repos, representing AWS, Azure, GCP, and IBM Cloud).
+    - We will maintain one directory per cloud provider (Four directories, representing AWS, Azure, GCP, and IBM Cloud). Where each cloud vendor directory structure looks like below;
 
-   |── aws_scale_templates/
-   │   ├── aws_new_vpc_scale/        <- Templates corresponding to new vpc.
-   │   │   │   ├── variables.tf
-   │   │   │   ├── main.tf
-   │   │   │   ├── outputs.tf
-   │   │   │   ├── versions.tf
-   │   │   │   ├── README.md
-   │   │   │   ├── .terraform-docs.yml
-   │   ├── prepare_tf_s3_backend/
-   │   │   │   ├── variables.tf
-   │   │   │   ├── main.tf
-   │   │   │   ├── outputs.tf
-   │   │   │   ├── versions.tf
-   │   │   │   ├── README.md
-   │   │   │   ├── .terraform-docs.yml
-   │   ├── sub_modules/
-   │   │   ├── vpc_template/
-   │   │   │   ├── variables.tf
-   │   │   │   ├── main.tf
-   │   │   │   ├── outputs.tf
-   │   │   │   ├── versions.tf
-   │   │   │   ├── README.md
-   │   │   │   ├── .terraform-docs.yml
-   │   │   ├── bastion_template/
-   │   │   │   ├── variables.tf
-   │   │   │   ├── main.tf
-   │   │   │   ├── outputs.tf
-   │   │   │   ├── versions.tf
-   │   │   │   ├── README.md
-   │   │   │   ├── .terraform-docs.yml
-   │   │   ├── instance_template/     <- Templates corresponding to existing vpc.
-   │   │   │   ├── variables.tf
-   │   │   │   ├── main.tf
-   │   │   │   ├── outputs.tf
-   │   │   │   ├── versions.tf
-   │   │   │   ├── README.md
-   │   │   │   ├── .terraform-docs.yml
+    ```bash
+    |── aws_scale_templates/
+    │   ├── aws_new_vpc_scale/        <- Templates corresponding to new vpc.
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    │   ├── prepare_tf_s3_backend/
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    │   ├── sub_modules/
+    │   │   ├── vpc_template/
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    │   │   ├── bastion_template/
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    │   │   ├── instance_template/     <- Templates corresponding to existing vpc.
+    │   │   │   ├── variables.tf
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   ├── versions.tf
+    │   │   │   ├── README.md
+    │   │   │   ├── .terraform-docs.yml
+    ```
 
 4. Terraform unit test Structure
-    - We will maintain one unit test directory per cloud provider (Four repos, representing AWS, Azure, GCP, and IBM Cloud) and found in `unittests/`.
+    - We will maintain one unit test directory per cloud provider (Four directories, representing AWS, Azure, GCP, and IBM Cloud) and found in `unittests/`.
 
-### How to install pre-commit hooks
+### Install precommit hooks
 
 1. Install dependencies
 
@@ -77,7 +79,7 @@ When contributing to this repository, please first discuss the change you wish t
    # curl -L "$(curl -s https://api.github.com/repos/tfsec/tfsec/releases/latest | grep -o -E "https://.+?tfsec-linux-amd64")" > tfsec && chmod +x tfsec && sudo mv tfsec /usr/bin/
    ```
 
-2. Install the pre-commit hook
+2. Enable pre-commit hooks
 
    ```bash
    # cd ibm-spectrum-scale-cloud-install
