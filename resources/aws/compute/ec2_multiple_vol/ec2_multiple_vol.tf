@@ -87,12 +87,20 @@ resource "null_resource" "ebs_mappings" {
 }
 
 resource "aws_instance" "itself" {
-  count                = var.instances_count
+  for_each = {
+    # This assigns a subnet-id to each of the instance
+    # iteration.
+    for idx, count_number in range(1, var.instances_count + 1) : idx => {
+      sequence_string = tostring(count_number)
+      subnet_id       = element(var.subnet_ids, idx)
+    }
+  }
+
   ami                  = var.ami_id
   instance_type        = var.instance_type
   key_name             = var.user_public_key
   security_groups      = var.security_groups
-  subnet_id            = element(var.subnet_ids, count.index)
+  subnet_id            = each.value.subnet_id
   iam_instance_profile = var.iam_instance_profile
   placement_group      = var.placement_group
   ebs_optimized        = tobool(var.ebs_optimized)
@@ -119,13 +127,13 @@ resource "aws_instance" "itself" {
 
   volume_tags = merge(
     {
-      "Name" = format("%s-%s", var.name_prefix, count.index + 1)
+      "Name" = format("%s-%s", var.name_prefix, each.value.sequence_string)
     },
     var.volume_tags,
   )
 
   user_data_base64 = tobool(var.enable_nvme_block_device) == true ? data.template_cloudinit_config.nvme_user_data64[0].rendered : data.template_cloudinit_config.user_data64.rendered
-  tags             = merge({ "Name" = format("%s-%s", var.name_prefix, count.index + 1) }, var.tags)
+  tags             = merge({ "Name" = format("%s-%s", var.name_prefix, each.value.sequence_string) }, var.tags)
 
   metadata_options {
     http_endpoint = "enabled"
@@ -138,17 +146,13 @@ resource "aws_instance" "itself" {
 }
 
 output "instance_private_ips" {
-  value = try(aws_instance.itself.*.private_ip, [])
+  value = try(toset([for instance_details in aws_instance.itself : instance_details.private_ip]), [])
 }
 
 output "instance_ids" {
-  value = try(aws_instance.itself.*.id, [])
-}
-
-output "ebs_block_device_volume_ids" {
-  value = [for device in aws_instance.itself.*.ebs_block_device : device.*.volume_id]
+  value = try(toset([for instance_details in aws_instance.itself : instance_details.id]), [])
 }
 
 output "instance_ips_with_ebs_mapping" {
-  value = tobool(var.enable_nvme_block_device) == true ? try({ for each_ip in aws_instance.itself.*.private_ip : each_ip => slice(var.ebs_block_device_names, 0, var.nvme_block_device_count) }, {}) : try({ for each_ip in aws_instance.itself.*.private_ip : each_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
+  value = tobool(var.enable_nvme_block_device) == true ? try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.nvme_block_device_count) }, {}) : try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
 }

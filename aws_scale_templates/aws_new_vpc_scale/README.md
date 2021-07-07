@@ -23,15 +23,17 @@ The following steps will provision AWS resources (*new vpc, bastion, compute and
         "ebs_block_devices_per_storage_instance": 1,
         "ebs_block_device_volume_size": 500,
         "ebs_block_device_volume_type": "gp2",
+        "bastion_ami_name": "Amazon-Linux2-HVM",
         "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
         "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "operator_email": null,                          // Email address for notification
         "scale_version": "5.1.1.0",
+        "bastion_key_pair": null,                        // Use an existing AWS EC2 key pair
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
         "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",        
+        "compute_cluster_gui_username": "admin",
         "storage_cluster_gui_username": "admin",
         "storage_cluster_gui_password": "Passw0rd"
     }
