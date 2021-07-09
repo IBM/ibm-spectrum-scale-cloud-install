@@ -17,18 +17,19 @@ Using these templates, Spectrum Scale cluster can be deployed in below architect
 ## IBM Spectrum Scale - Product Editions
 
 IBM Spectrum Scale offers different editions based on functional levels.
-- IBM Spectrum Scale Standard Edition
-- IBM Spectrum Scale Data Access Edition
-- IBM Spectrum Scale Advanced Edition
-- IBM Spectrum Scale Data Management Edition (**Recommended for Cloud usecases**)
-- IBM Spectrum Scale Erasure Code Edition
-- IBM Spectrum Scale Developer Edition
+
+* IBM Spectrum Scale Standard Edition
+* IBM Spectrum Scale Data Access Edition
+* IBM Spectrum Scale Advanced Edition
+* IBM Spectrum Scale Data Management Edition (**Recommended for Cloud usecases**)
+* IBM Spectrum Scale Erasure Code Edition
+* IBM Spectrum Scale Developer Edition
 
   > Learn, develop and test with IBM Spectrum Scale™, for `non-production use`. Developer edition provides all the features of the Data Management Edition and it is limited to 12 TB per cluster. It can be downloaded from [IBM Market place](https://www.ibm.com/products/spectrum-scale)
 
 ## Usage
 
-  * [Amazon Web Services (AWS)](docs/aws.md)
+* [Amazon Web Services (AWS)](docs/aws.md)
 
 ### Reporting Issues and Feedback
 

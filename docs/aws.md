@@ -4,6 +4,7 @@
 | --- |
 
 The terraform templates provided in this repository offer following features;
+
   1. Supports provisioning Spectrum Scale resources within a single availability zone.
         - Allows different compute and storage subnet.
         - Allows different compute and storage AMI's.
@@ -15,25 +16,32 @@ The terraform templates provided in this repository offer following features;
         - Allows different compute and storage subnet.
         - Allows different compute and storage AMI's.
         - Allows packer/custom image vs. non-packer (stock) image.
-        - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remout mount configuration) configuration (**Spectrum Scale filesystem will be configured such that data and metadata will be replicated across 2 availability zones (Synchronous Replication). AZ-3, will be used as tiebreaker site.**).
+        - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remote mount configuration) configuration (**Spectrum Scale filesystem will be configured such that data and metadata will be replicated across 2 availability zones (Synchronous Replication). AZ-3, will be used as tiebreaker site.**).
         - Allows EBS (gp2, gp3, io1, io2 and sc1 or st1) and nitro instance profiles.
         - Allows EBS encryption.
+
+  > **_NOTE:_** In order to create a Custom AMI, refer to [Packer AWS AMI Creation](../packer_templates/aws/README.md) for detailed steps, options.
 
 ## Configure local/cloud VM
 
 1. Ensure that the following requirements are met on the local/cloud VM where this repository is cloned.
 
     - Install [Terraform](https://www.terraform.io/downloads.html) and validate:
+
         ```bash
         # terraform -v
         ```
+
     - Install [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and validate:
+
         ```bash
         # ansible --version
         ```
+
         > Currently, spectrum scale ansible playbooks support only 2.9 version (can be installed using `pip3 install ansible==2.9`)
-    
+
     - Install [Python3.6](https://www.python.org/downloads/) and validate:
+
         ```bash
         # python --version
         Python 3.6.14
@@ -45,6 +53,7 @@ The terraform templates provided in this repository offer following features;
     - [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
 3. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and perform below steps;
+
     ```bash
     # mkdir -p /opt/IBM/gpfs_cloud_rpms
     # ls -lrth Spectrum_Scale_Data_Management-<package_code_version>-x86_64-Linux-install
@@ -67,9 +76,12 @@ The terraform templates provided in this repository offer following features;
 
 The terraform templates provided in this repository offer following deployment options;
 
+> **_NOTE:_** By default below options use *terraform local backend*.
+In order to configure below options to use *terraform S3 backend*, use `./tools/enable_aws_s3_backend.sh`.
+
 ### (Option-1) New VPC Based Configuration (Single AZ, Multi AZ)
 
-This option builds a new AWS VPC environment consisting of the subnets, nat gateways, internet gateway, security groups, bastion autoscaling group, compute (instances with NO EBS volumes attached) and storage (instances with EBS volumes attached) instances, and then deploys IBM Spectrum Scale into this new VPC with a single or multi availability zone(s).
+This option provisions a new AWS VPC environment consisting of the subnets, nat gateways, internet gateway, security groups, bastion autoscaling group, compute (instances with NO EBS volumes attached) and storage (instances with EBS volumes attached) instances, and then deploys IBM Spectrum Scale into this new VPC with a single or multi availability zone(s).
 
 Refer to [New VPC Based Configuration](../aws_scale_templates/aws_new_vpc_scale/README.md) for detailed steps, options.
 
@@ -79,4 +91,4 @@ This option deploys IBM Spectrum Scale in to an existing VPC (which can have sub
 
 Refer [Existing VPC Based Configuration](../aws_scale_templates/sub_modules/instance_template/README.md) for detailed steps, options.
 
-> This mode provides flexiblity to bypass bastion/jump host, incase local/cloud VM has direct connectivity to VPC.
+> This mode provides flexibility to bypass bastion/jump host, incase local/cloud VM has direct connectivity to VPC.
