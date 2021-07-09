@@ -20,7 +20,7 @@ The terraform templates provided in this repository offer following features;
         - Allows EBS (gp2, gp3, io1, io2 and sc1 or st1) and nitro instance profiles.
         - Allows EBS encryption.
 
-  > **_NOTE:_** Refer to [Custom AMI Creation](../packer_templates/aws/README.md) for detailed steps, options.
+  > **_NOTE:_** In order to create a Custom AMI, refer to [Packer AWS AMI Creation](../packer_templates/aws/README.md) for detailed steps, options.
 
 ## Configure local/cloud VM
 
