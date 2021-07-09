@@ -1,12 +1,17 @@
 /*
     1. Creates new AWS s3 bucket which will be used for storing
-       terraform state file.
+       terraform state file (if already exits, reuses the same).
 
     2. Create a dynamodb table for locking the state file.
 */
 
+data "aws_s3_bucket" "itself" {
+  bucket = var.bucket_name
+}
+
 #tfsec:ignore:AWS092 #tfsec:ignore:AWS002
 resource "aws_s3_bucket" "itself" {
+  count         = data.aws_s3_bucket.itself.arn == format("arn:aws:s3:::%s", var.bucket_name) ? 0 : 1
   bucket        = var.bucket_name
   force_destroy = var.force_destroy
 
@@ -43,11 +48,11 @@ resource "aws_dynamodb_table" "itself" {
 }
 
 output "bucket_id" {
-  value = aws_s3_bucket.itself.id
+  value = data.aws_s3_bucket.itself.arn == format("arn:aws:s3:::%s", var.bucket_name) ? data.aws_s3_bucket.itself.id : aws_s3_bucket.itself[0].id
 }
 
 output "bucket_arn" {
-  value = aws_s3_bucket.itself.arn
+  value = data.aws_s3_bucket.itself.arn == format("arn:aws:s3:::%s", var.bucket_name) ? data.aws_s3_bucket.itself.arn : aws_s3_bucket.itself[0].arn
 }
 
 output "dynamodb_table_name" {
