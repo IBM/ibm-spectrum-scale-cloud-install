@@ -10,3 +10,4 @@ terraform-docs $root_dir/aws_scale_templates/sub_modules/bastion_template
 terraform-docs $root_dir/aws_scale_templates/sub_modules/instance_template
 echo "Generating Azue terraform-docs"
 terraform-docs $root_dir/azure_scale_templates/sub_modules/vnet_template
+terraform-docs $root_dir/azure_scale_templates/sub_modules/bastion_template

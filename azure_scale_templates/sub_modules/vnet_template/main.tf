@@ -62,7 +62,7 @@ module "create_subnet" {
   source              = "../../../resources/azure/network/subnet"
   total_subnets       = tobool(var.vnet_create_separate_subnets) == true ? 3 : 2
   resource_group_name = module.resource_group.resource_group_name
-  subnet_name         = tobool(var.vnet_create_separate_subnets) == true ? [format("%s-public-snet", var.resource_prefix), format("%s-strg-snet", var.resource_prefix), format("%s-comp-snet", var.resource_prefix)] : [format("%s-public-snet", var.resource_prefix), format("%s-strg-snet", var.resource_prefix)]
+  subnet_name         = tobool(var.vnet_create_separate_subnets) == true ? ["AzureBastionSubnet", format("%s-strg-snet", var.resource_prefix), format("%s-comp-snet", var.resource_prefix)] : ["AzureBastionSubnet", format("%s-strg-snet", var.resource_prefix)]
   address_prefixes    = concat(var.vnet_public_subnets_address_space, var.vnet_storage_cluster_private_subnets_address_space, var.vnet_compute_cluster_private_subnets_address_space)
   vnet_name           = module.vnet.vnet_name
 }

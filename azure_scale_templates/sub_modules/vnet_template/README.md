@@ -16,7 +16,7 @@ Below steps will provision Azure VNET required for IBM Spectrum Scale cloud solu
     {
         "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
         "client_secret": "0e760437-bf34-4aad-9f8d-870be799c55d",
-        "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+        "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
         "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee",
         "vnet_location": "eastus",
         "resource_group_name": "spectrum-scale"
