@@ -21,7 +21,7 @@
     }
     ```
 
-    *NOTE*: These are not real values!
+    *NOTE*: These are not real values! 😄
 
     To authenticate to Azure, you also need to obtain your Azure subscription ID with `az account show`:
 
@@ -49,7 +49,8 @@
 6. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and upload gpfs_rpms to storage container.
 
     Example:
-    [container view](../../docs/images/Azure_container_view.png)
+
+    ![container view](../../docs/images/Azure_container_view.PNG)
 
 7. Create User-assigned managed identity
 
