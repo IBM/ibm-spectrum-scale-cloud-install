@@ -1,6 +1,6 @@
-### Prerequisites
+# Prerequisites
 
-1. You will need to install *aws cli* and configure your AWS account using the `aws configure` command.
+1. You will need to install [*aws cli*](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html) and configure your AWS account using the `aws configure` command.
 
     ```cli
     $ aws configure
@@ -12,19 +12,20 @@
 
 2. Download a pre-built [Packer binary](https://www.packer.io/downloads) for your operating system.
 
-### Create AWS (packer) AMI
+## Create AWS (packer) AMI
 
-Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpms and creaes a new AMI.
-
+Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpm's and creates a new AMI.
 
 1. Change working directory to `packer_templates/aws/`.
 
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/packer_templates/aws/
     ```
-    $ cd ibm-spectrum-scale-cloud-install/packer_templates/aws/
-    ```
+
 2. Create packer variable definitions file (`inputs.auto.pkrvars.hcl`) and provide infrastructure inputs.
 
     Minimal Example:
+
     ```jsonc
     $ cat inputs.auto.pkrvars.hcl
     vpc_id                  = "vpc-0df33b2a861b63118"
