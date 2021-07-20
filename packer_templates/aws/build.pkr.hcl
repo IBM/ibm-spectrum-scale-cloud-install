@@ -15,6 +15,13 @@ build {
       "sudo dnf install *.rpm -y",
       "sudo rm -rf *.rpm",
       "sudo /usr/lpp/mmfs/bin/mmbuildgpl",
-    "sudo sh -c \"echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc\""]
+      "sudo sh -c \"echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc\"",
+      "sudo rm -rf /root/.ssh/authorized_keys",
+      "sudo rm -rf /home/ec2-user/authorized_keys",
+      "sudo systemctl stop syslog",
+      "sudo rm -rf /var/log/messages",
+      "sudo rm -rf /root/.bash_history",
+      "sudo rm -rf /home/ec2-user/.bash_history"
+    ]
   }
 }
