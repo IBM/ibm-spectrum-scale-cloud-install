@@ -1,6 +1,6 @@
 # Prerequisites
 
-1. You will need to install *aws cli* and configure your AWS account using the `aws configure` command.
+1. You will need to install [*aws cli*](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html) and configure your AWS account using the `aws configure` command.
 
     ```cli
     $ aws configure
@@ -19,7 +19,7 @@ Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpm's a
 1. Change working directory to `packer_templates/aws/`.
 
     ```cli
-    $ cd ibm-spectrum-scale-cloud-install/packer_templates/aws/
+    cd ibm-spectrum-scale-cloud-install/packer_templates/aws/
     ```
 
 2. Create packer variable definitions file (`inputs.auto.pkrvars.hcl`) and provide infrastructure inputs.
