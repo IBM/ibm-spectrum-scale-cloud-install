@@ -3,18 +3,23 @@ output "vnet_id" {
   description = "The ID of the VNET."
 }
 
+output "resource_group_name" {
+  value       = module.resource_group.resource_group_name
+  description = "New resource group name"
+}
+
 output "vnet_public_subnets" {
   value       = module.create_subnet.subnet_id[0]
   description = "List of IDs of public subnets."
 }
 
 output "vnet_storage_cluster_private_subnets" {
-  value       = module.create_subnet.subnet_id[1]
+  value       = [module.create_subnet.subnet_id[1]]
   description = "List of IDs of storage cluster private subnets."
 }
 
 output "vnet_compute_cluster_private_subnets" {
-  value       = var.vnet_create_separate_subnets == true ? module.create_subnet.subnet_id[2] : null
+  value       = var.vnet_create_separate_subnets == true ? [module.create_subnet.subnet_id[2]] : []
   description = "List of IDs of compute cluster private subnets."
 }
 
