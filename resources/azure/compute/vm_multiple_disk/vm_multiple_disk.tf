@@ -16,6 +16,10 @@ variable "login_username" {}
 variable "proximity_placement_group_id" {}
 variable "os_disk_caching" {}
 variable "os_storage_account_type" {}
+variable "data_disks_per_storage_instance" {}
+variable "data_disk_device_names" {}
+variable "data_disk_size" {}
+variable "data_disk_storage_account_type" {}
 variable "user_public_key" {}
 variable "meta_private_key" {}
 variable "meta_public_key" {}
@@ -100,10 +104,42 @@ resource "azurerm_linux_virtual_machine" "itself" {
   custom_data = data.template_cloudinit_config.user_data64.rendered
 }
 
+resource "azurerm_managed_disk" "itself" {
+  for_each = {
+    for idx, count_number in range(1, ((var.vm_count * var.data_disks_per_storage_instance) + 1)) : idx => {
+      sequence_string = tostring(count_number)
+    }
+  }
+  name                 = format("%s-disk-%s", var.vm_name_prefix, each.value.sequence_string)
+  location             = var.location
+  create_option        = "Empty"
+  disk_size_gb         = var.data_disk_size
+  resource_group_name  = var.resource_group_name
+  storage_account_type = var.data_disk_storage_account_type
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "itself" {
+  for_each = {
+    for idx, count_number in range(1, ((var.vm_count * var.data_disks_per_storage_instance) + 1)) : idx => {
+      attach_seq_string = tostring(count_number)
+      disk_id           = element(tolist([for disk_details in azurerm_managed_disk.itself : disk_details.id]), idx)
+      instance_id       = element(tolist([for instance_details in azurerm_linux_virtual_machine.itself : instance_details.id]), idx)
+    }
+  }
+  virtual_machine_id = each.value.instance_id
+  managed_disk_id    = each.value.disk_id
+  lun                = each.value.attach_seq_string
+  caching            = "ReadWrite"
+}
+
 output "instance_private_ips" {
   value = try(toset([for instance_details in azurerm_linux_virtual_machine.itself : instance_details.private_ip_address]), [])
 }
 
 output "instance_ids" {
   value = try(toset([for instance_details in azurerm_linux_virtual_machine.itself : instance_details.id]), [])
+}
+
+output "instance_ips_with_data_mapping" {
+  value = try({ for instance_details in azurerm_linux_virtual_machine.itself : instance_details.private_ip_address => slice(var.data_disk_device_names, 0, var.data_disks_per_storage_instance) }, {})
 }

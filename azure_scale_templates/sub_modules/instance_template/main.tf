@@ -6,6 +6,11 @@
     4. Configure clusters, filesystem creation and remote mount
 */
 
+locals {
+  data_disk_device_names = ["/dev/sdc", "/dev/sdd", "/dev/sde", "/dev/sdf", "/dev/sdg",
+  "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk"]
+}
+
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
   turn_on = var.total_compute_cluster_instances > 0 ? true : false
@@ -38,24 +43,28 @@ module "compute_cluster_instances" {
 }
 
 module "storage_cluster_instances" {
-  source                       = "../../../resources/azure/compute/vm_multiple_disk"
-  vm_count                     = var.total_storage_cluster_instances
-  vm_name_prefix               = format("%s-storage", var.resource_prefix)
-  image_publisher              = var.storage_cluster_image_publisher
-  image_offer                  = var.storage_cluster_image_offer
-  image_sku                    = var.storage_cluster_image_sku
-  image_version                = var.storage_cluster_image_version
-  subnet_ids                   = length(var.vnet_availability_zones) > 1 ? slice(var.vnet_storage_cluster_private_subnets, 0, 2) : var.vnet_storage_cluster_private_subnets
-  resource_group_name          = var.resource_group_name
-  location                     = var.vnet_location
-  vm_size                      = var.storage_cluster_vm_size
-  login_username               = var.storage_cluster_login_username
-  proximity_placement_group_id = null
-  os_disk_caching              = var.storage_cluster_os_disk_caching
-  os_storage_account_type      = var.storage_cluster_os_storage_account_type
-  user_public_key              = var.storage_cluster_ssh_public_key
-  meta_private_key             = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key              = module.generate_storage_cluster_keys.public_key_content
+  source                          = "../../../resources/azure/compute/vm_multiple_disk"
+  vm_count                        = var.total_storage_cluster_instances
+  vm_name_prefix                  = format("%s-storage", var.resource_prefix)
+  image_publisher                 = var.storage_cluster_image_publisher
+  image_offer                     = var.storage_cluster_image_offer
+  image_sku                       = var.storage_cluster_image_sku
+  image_version                   = var.storage_cluster_image_version
+  subnet_ids                      = length(var.vnet_availability_zones) > 1 ? slice(var.vnet_storage_cluster_private_subnets, 0, 2) : var.vnet_storage_cluster_private_subnets
+  resource_group_name             = var.resource_group_name
+  location                        = var.vnet_location
+  vm_size                         = var.storage_cluster_vm_size
+  login_username                  = var.storage_cluster_login_username
+  proximity_placement_group_id    = null
+  os_disk_caching                 = var.storage_cluster_os_disk_caching
+  os_storage_account_type         = var.storage_cluster_os_storage_account_type
+  data_disks_per_storage_instance = var.data_disks_per_storage_instance
+  data_disk_device_names          = local.data_disk_device_names
+  data_disk_size                  = var.data_disk_size
+  data_disk_storage_account_type  = var.data_disk_storage_account_type
+  user_public_key                 = var.storage_cluster_ssh_public_key
+  meta_private_key                = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
 }
 
 module "prepare_ansible_configuration" {
