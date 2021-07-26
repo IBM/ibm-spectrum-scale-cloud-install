@@ -16,20 +16,6 @@ module "generate_storage_cluster_keys" {
   turn_on = var.total_storage_cluster_instances > 0 ? true : false
 }
 
-data "azurerm_ssh_public_key" "compute_cluster_key" {
-  name                = var.compute_cluster_key_pair
-  resource_group_name = var.resource_group_name
-}
-
-data "azurerm_ssh_public_key" "storage_cluster_key" {
-  name                = var.storage_cluster_key_pair
-  resource_group_name = var.resource_group_name
-}
-
-module "get_azure_public_key" {
-  source = "../../../resources/azure/"
-}
-
 module "compute_cluster_instances" {
   source                       = "../../../resources/azure/compute/vm_0_disk"
   vm_count                     = var.total_compute_cluster_instances
@@ -46,7 +32,7 @@ module "compute_cluster_instances" {
   proximity_placement_group_id = null
   os_disk_caching              = var.compute_cluster_os_disk_caching
   os_storage_account_type      = var.compute_cluster_os_storage_account_type
-  user_public_key              = var.create_separate_namespaces == true ? data.azurerm_ssh_public_key.compute_cluster_key.public_key : data.azurerm_ssh_public_key.storage_cluster_key.public_key
+  user_public_key              = var.create_separate_namespaces == true ? var.compute_cluster_ssh_public_key : var.storage_cluster_ssh_public_key
   meta_private_key             = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key              = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
 }
@@ -67,7 +53,7 @@ module "storage_cluster_instances" {
   proximity_placement_group_id = null
   os_disk_caching              = var.storage_cluster_os_disk_caching
   os_storage_account_type      = var.storage_cluster_os_storage_account_type
-  user_public_key              = data.azurerm_ssh_public_key.storage_cluster_key.public_key
+  user_public_key              = var.storage_cluster_ssh_public_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   meta_public_key              = module.generate_storage_cluster_keys.public_key_content
 }
@@ -100,4 +86,23 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_ids         = jsonencode([])
   storage_cluster_desc_instance_private_ips = jsonencode([])
   storage_cluster_desc_data_volume_mapping  = jsonencode({})
+}
+
+module "compute_cluster_configuration" {
+  source                       = "../../../resources/common/compute_configuration"
+  turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+  clone_complete               = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
+  clone_path                   = var.scale_ansible_repo_clone_path
+  inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image           = var.using_packer_image
+  using_direct_connection      = var.using_direct_connection
+  compute_cluster_gui_username = var.compute_cluster_gui_username
+  compute_cluster_gui_password = var.compute_cluster_gui_password
+  memory_size                  = "953"
+  bastion_instance_public_ip   = var.ansible_jump_host_public_ip
+  bastion_ssh_private_key      = var.ansible_jump_host_ssh_private_key
+  meta_private_key             = module.generate_compute_cluster_keys.private_key_content
+  scale_version                = var.scale_version
+  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }

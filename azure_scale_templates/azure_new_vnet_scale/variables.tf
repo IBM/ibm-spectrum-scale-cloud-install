@@ -39,6 +39,54 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
+variable "vnet_address_space" {
+  type        = list(string)
+  default     = ["10.0.0.0/16"]
+  description = "The address space that is used by the virtual network."
+}
+
+variable "vnet_public_subnets_address_space" {
+  type        = list(string)
+  default     = ["10.0.1.0/24"]
+  description = "List of address prefix to use for public subnets."
+}
+
+variable "vnet_storage_cluster_private_subnets_address_space" {
+  type        = list(string)
+  default     = ["10.0.2.0/24"]
+  description = "List of address prefix to use for storage cluster private subnets."
+}
+
+variable "vnet_compute_cluster_dns_domain" {
+  type        = string
+  default     = "compscale.com"
+  description = "Azure DNS domain name to be used for compute cluster."
+}
+
+variable "vnet_storage_cluster_dns_domain" {
+  type        = string
+  default     = "strgscale.com"
+  description = "Azure DNS domain name to be used for storage cluster."
+}
+
+variable "vnet_create_separate_subnets" {
+  type        = bool
+  default     = true
+  description = "Flag to select if separate private subnet to be created for compute cluster."
+}
+
+variable "vnet_compute_cluster_private_subnets_address_space" {
+  type        = list(string)
+  default     = ["10.0.3.0/24"]
+  description = "List of cidr_blocks of compute private subnets."
+}
+
+variable "vnet_tags" {
+  type        = map(string)
+  default     = {}
+  description = "The tags to associate with your network and subnets."
+}
+
 variable "create_separate_namespaces" {
   type        = bool
   default     = true
@@ -65,16 +113,6 @@ variable "total_storage_cluster_instances" {
 variable "storage_cluster_ssh_public_key" {
   type        = string
   description = "The SSH public key to use to launch the storage cluster host."
-}
-
-variable "vnet_compute_cluster_private_subnets" {
-  type        = list(string)
-  description = "List of IDs of compute cluster private subnets."
-}
-
-variable "vnet_storage_cluster_private_subnets" {
-  type        = list(string)
-  description = "List of IDs of storage cluster private subnets."
 }
 
 variable "compute_cluster_vm_size" {
@@ -184,24 +222,6 @@ variable "scale_version" {
   description = "IBM Spectrum Scale version."
 }
 
-variable "spectrumscale_rpms_path" {
-  type        = string
-  default     = "/opt/IBM/gpfs_cloud_rpms"
-  description = "Path that contains IBM Spectrum Scale product cloud rpms."
-}
-
-variable "compute_cluster_gui_username" {
-  type        = string
-  sensitive   = true
-  description = "GUI user to perform system management and monitoring tasks on compute cluster."
-}
-
-variable "compute_cluster_gui_password" {
-  type        = string
-  sensitive   = true
-  description = "Password for Compute cluster GUI."
-}
-
 variable "compute_cluster_filesystem_mountpoint" {
   type        = string
   default     = "/gpfs/fs1"
@@ -220,14 +240,26 @@ variable "using_packer_image" {
   description = "If true, gpfs rpm copy step will be skipped during the configuration."
 }
 
-variable "ansible_jump_host_public_ip" {
+variable "compute_cluster_gui_username" {
   type        = string
-  default     = null
-  description = "Ansible jump host instance public ip address."
+  sensitive   = true
+  description = "GUI user to perform system management and monitoring tasks on compute cluster."
+}
+
+variable "compute_cluster_gui_password" {
+  type        = string
+  sensitive   = true
+  description = "Password for Compute cluster GUI."
 }
 
 variable "ansible_jump_host_ssh_private_key" {
   type        = string
   default     = null
   description = "Ansible jump host SSH private key path, which will be used to login to ansible jump host."
+}
+
+variable "spectrumscale_rpms_path" {
+  type        = string
+  default     = "/opt/IBM/gpfs_cloud_rpms"
+  description = "Path that contains IBM Spectrum Scale product cloud rpms."
 }

@@ -4,7 +4,7 @@ Below steps will provision Azure VNET required for IBM Spectrum Scale cloud solu
 
 1. Change working directory to `azure_scale_templates/sub_modules/vnet_template`.
 
-    ```bash
+    ```cli
     cd ibm-spectrum-scale-cloud-install/azure_scale_templates/sub_modules/vnet_template/
     ```
 
@@ -57,6 +57,7 @@ Below steps will provision Azure VNET required for IBM Spectrum Scale cloud solu
 
 | Name | Description |
 |------|-------------|
+| <a name="output_resource_group_name"></a> [resource_group_name](#output_resource_group_name) | New resource group name |
 | <a name="output_vnet_compute_cluster_private_subnets"></a> [vnet_compute_cluster_private_subnets](#output_vnet_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vnet_compute_private_dns_zone_name"></a> [vnet_compute_private_dns_zone_name](#output_vnet_compute_private_dns_zone_name) | Compute cluster private DNS zone name. |
 | <a name="output_vnet_id"></a> [vnet_id](#output_vnet_id) | The ID of the VNET. |
