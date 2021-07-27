@@ -226,6 +226,30 @@ variable "compute_cluster_filesystem_mountpoint" {
   description = "Compute cluster (accessingCluster) Filesystem mount point."
 }
 
+variable "storage_cluster_gui_username" {
+  type        = string
+  sensitive   = true
+  description = "GUI user to perform system management and monitoring tasks on storage cluster."
+}
+
+variable "storage_cluster_gui_password" {
+  type        = string
+  sensitive   = true
+  description = "Password for Storage cluster GUI"
+}
+
+variable "storage_cluster_filesystem_mountpoint" {
+  type        = string
+  default     = "/gpfs/fs1"
+  description = "Storage cluster (owningCluster) Filesystem mount point."
+}
+
+variable "filesystem_block_size" {
+  type        = string
+  default     = "4M"
+  description = "Filesystem block size."
+}
+
 variable "using_direct_connection" {
   type        = bool
   default     = false
