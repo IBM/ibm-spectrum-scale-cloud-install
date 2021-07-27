@@ -78,9 +78,9 @@ In order to configure below options to use *terraform S3 backend*, use `./tools/
 
 ### (Option-1) New VNet Based Configuration (Single AZ, Multi AZ)
 
-This option provisions a new Azure VNet environment consisting of the subnets, nat gateways, internet gateway, security groups, bastion autoscaling group, compute (instances with NO EBS volumes attached) and storage (instances with EBS volumes attached) instances, and then deploys IBM Spectrum Scale into this new VPC with a single or multi availability zone(s).
+This option provisions a new Azure VNet environment consisting of the subnets, nat gateways, internet gateway, security groups, bastion autoscaling group, compute (instances with NO EBS volumes attached) and storage (instances with EBS volumes attached) instances, and then deploys IBM Spectrum Scale into this new VNet with a single or multi availability zone(s).
 
-Refer to [New VNet Based Configuration](../azure_scale_templates/azure_new_vpc_scale/README.md) for detailed steps, options.
+Refer to [New VNet Based Configuration](../azure_scale_templates/azure_new_vnet_scale/README.md) for detailed steps, options.
 
 ### (Option-2) Existing VNet Based Configuration (Single AZ, Multi AZ)
 
@@ -88,4 +88,4 @@ This option deploys IBM Spectrum Scale in to an existing VNet (which can have su
 
 Refer [Existing VNet Based Configuration](../azure_scale_templates/sub_modules/instance_template/README.md) for detailed steps, options.
 
-> This mode provides flexibility to bypass bastion/jump host, incase local/cloud VM has direct connectivity to VPC.
+> This mode provides flexibility to bypass bastion/jump host, incase local/cloud VM has direct connectivity to VNet.

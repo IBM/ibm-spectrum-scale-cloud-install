@@ -47,6 +47,15 @@ The terraform templates provided in this repository offer following features;
         Python 3.6.14
         ```
 
+    - Install [git](https://github.com/git-guides/install-git) and validate:
+
+      ```bash
+      # git --version
+      git version 2.32.0
+      ```
+
+        > Ensure git version is greater than or equal to 2.1.4 version
+
 2. Ensure that you have configured your AWS CLI credentials;
     - [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
     - [Create access keys for IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_CreateAccessKey)
