@@ -10,7 +10,28 @@
     Default output format [json]:
     ```
 
-2. Download a pre-built [Packer binary](https://www.packer.io/downloads) for your operating system.
+2. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and upload gpfs_rpms to s3 bucket.
+    
+    Example:
+    ```cli
+    $ aws s3 ls s3://scalebucket
+    2021-07-02 15:22:59        907 SpectrumScale_public_key.pgp
+    2021-07-02 15:22:27      38080 gpfs.adv-5.1.1-0.x86_64.rpm
+    2021-07-02 15:22:24   22115584 gpfs.base-5.1.1-0.x86_64.rpm
+    2021-07-02 15:22:34      41864 gpfs.compression-5.1.1-0.x86_64.rpm
+    2021-07-02 15:22:35     271500 gpfs.crypto-5.1.1-0.x86_64.rpm
+    2021-07-02 15:22:37     505356 gpfs.docs-5.1.1-0.noarch.rpm
+    2021-07-02 15:22:39     595904 gpfs.gpl-5.1.1-0.noarch.rpm
+    2021-07-02 15:22:47    9468992 gpfs.gskit-8.0.55-19.x86_64.rpm
+    2021-07-02 15:22:51     458688 gpfs.gss.pmcollector-5.1.1-0.el8.x86_64.rpm
+    2021-07-02 15:22:54     440664 gpfs.gss.pmsensors-5.1.1-0.el8.x86_64.rpm
+    2021-07-02 15:22:25   92688689 gpfs.gui-5.1.1-0.noarch.rpm
+    2021-07-02 15:22:25   41686244 gpfs.java-5.1.1-0.x86_64.rpm
+    2021-07-02 15:22:55       4252 gpfs.license.dm-5.1.1-0.x86_64.rpm
+    2021-07-02 15:22:57     178376 gpfs.msg.en_US-5.1.1-0.noarch.rpm
+    ``` 
+
+3. Download a pre-built [Packer binary](https://www.packer.io/downloads) for your operating system.
 
 ## Create AWS (packer) AMI
 

@@ -30,6 +30,7 @@ IBM Spectrum Scale offers different editions based on functional levels.
 ## Usage
 
 * [Amazon Web Services (AWS)](docs/aws.md)
+* [Microsoft Azure](docs/azure.md)
 
 ### Reporting Issues and Feedback
 

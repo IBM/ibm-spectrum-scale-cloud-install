@@ -173,6 +173,24 @@ variable "storage_cluster_login_username" {
   description = "The username of the local administrator used for the Virtual Machine."
 }
 
+variable "data_disks_per_storage_instance" {
+  type        = number
+  default     = 1
+  description = "Additional Data disks to attach per storage cluster instance."
+}
+
+variable "data_disk_size" {
+  type        = number
+  default     = 500
+  description = "Size of the volume in gibibytes (GB)."
+}
+
+variable "data_disk_storage_account_type" {
+  type        = string
+  default     = "Standard_LRS"
+  description = "Type of storage to use for the managed disk (Ex: Standard_LRS, Premium_LRS, StandardSSD_LRS or UltraSSD_LRS)."
+}
+
 variable "scale_ansible_repo_clone_path" {
   type        = string
   default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
@@ -206,6 +224,30 @@ variable "compute_cluster_filesystem_mountpoint" {
   type        = string
   default     = "/gpfs/fs1"
   description = "Compute cluster (accessingCluster) Filesystem mount point."
+}
+
+variable "storage_cluster_gui_username" {
+  type        = string
+  sensitive   = true
+  description = "GUI user to perform system management and monitoring tasks on storage cluster."
+}
+
+variable "storage_cluster_gui_password" {
+  type        = string
+  sensitive   = true
+  description = "Password for Storage cluster GUI"
+}
+
+variable "storage_cluster_filesystem_mountpoint" {
+  type        = string
+  default     = "/gpfs/fs1"
+  description = "Storage cluster (owningCluster) Filesystem mount point."
+}
+
+variable "filesystem_block_size" {
+  type        = string
+  default     = "4M"
+  description = "Filesystem block size."
 }
 
 variable "using_direct_connection" {

@@ -93,6 +93,13 @@ module "scale_instances" {
   storage_cluster_os_disk_caching         = var.storage_cluster_os_disk_caching
   storage_cluster_os_storage_account_type = var.storage_cluster_os_storage_account_type
   storage_cluster_login_username          = var.storage_cluster_login_username
+  storage_cluster_gui_username            = var.storage_cluster_gui_username
+  storage_cluster_gui_password            = var.storage_cluster_gui_password
+  storage_cluster_filesystem_mountpoint   = var.storage_cluster_filesystem_mountpoint
+  filesystem_block_size                   = var.filesystem_block_size
+  data_disks_per_storage_instance         = var.data_disks_per_storage_instance
+  data_disk_size                          = var.data_disk_size
+  data_disk_storage_account_type          = var.data_disk_storage_account_type
   scale_ansible_repo_clone_path           = var.scale_ansible_repo_clone_path
   scale_version                           = var.scale_version
   compute_cluster_filesystem_mountpoint   = var.compute_cluster_filesystem_mountpoint
