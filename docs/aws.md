@@ -57,9 +57,24 @@ The terraform templates provided in this repository offer following features;
         > Ensure git version is greater than or equal to 2.1.4 version
 
 2. Ensure that you have configured your AWS CLI credentials;
-    - [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
-    - [Create access keys for IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_CreateAccessKey)
-    - [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+
+    - Installation of AWS CLI
+
+      ```bash
+      # curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      # unzip awscliv2.zip
+      # sudo ./aws/install
+      ```
+ 
+    - Configuration AWS CLI
+ 
+      ```bash
+      # aws configure
+      AWS Access Key ID: <Access key ID>
+      AWS Secret Access Key: <Secret access key>
+      Default region name [us-west-2]: us-east-1
+      Default output format [None]: json
+      ```
 
 3. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and perform below steps;
 
