@@ -264,6 +264,12 @@ variable "bastion_security_group_id" {
   description = "Bastion security group id."
 }
 
+variable "bastion_instance_id" {
+  type        = string
+  default     = null
+  description = "Bastion instance id."
+}
+
 variable "bastion_ssh_private_key" {
   type        = string
   default     = null
