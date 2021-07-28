@@ -86,14 +86,21 @@ if __name__ == "__main__":
         print("Parsed terraform output: %s" % json.dumps(TF, indent=4))
 
     # Step-2: Identify instance id's based cluster_type
+    target_instance_ids = []
     if TF['cloud_platform'].upper() == 'AWS':
         if ARGUMENTS.cluster_type == 'compute':
             target_instance_ids = TF['compute_cluster_instance_ids']
+            if TF['bastion_instance_id'] != 'None':
+                target_instance_ids.append(TF['bastion_instance_id'])
         elif ARGUMENTS.cluster_type == 'storage':
             target_instance_ids = TF['storage_cluster_instance_ids'] + \
                 TF['storage_cluster_desc_instance_ids']
+            if TF['bastion_instance_id'] != 'None':
+                target_instance_ids.append(TF['bastion_instance_id'])
         elif ARGUMENTS.cluster_type == 'combined':
             target_instance_ids = TF['compute_cluster_instance_ids'] + \
                 TF['storage_cluster_instance_ids'] + \
                 TF['storage_cluster_desc_instance_ids']
+            if TF['bastion_instance_id'] != 'None':
+                target_instance_ids.append(TF['bastion_instance_id'])
         aws_ec2_wait_running(target_instance_ids, TF['vpc_region'])

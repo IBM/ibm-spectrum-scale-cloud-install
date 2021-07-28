@@ -48,8 +48,8 @@ output "asg_arn" {
   value = aws_autoscaling_group.itself.arn
 }
 
-output "asg_instance_ids" {
-  value = aws_autoscaling_group.itself.*.id
+output "asg_instance_id" {
+  value = data.aws_instance.itself.*.id
 }
 
 output "asg_instance_public_ip" {

@@ -33,6 +33,11 @@ output "bastion_instance_private_ip" {
   description = "Bastion instance private ip addresses."
 }
 
+output "bastion_instance_id" {
+  value       = module.bastion.bastion_instance_id
+  description = "Bastion instance id."
+}
+
 output "compute_cluster_instance_ids" {
   value       = module.scale_instances.compute_cluster_instance_ids
   description = "Compute cluster instance ids."

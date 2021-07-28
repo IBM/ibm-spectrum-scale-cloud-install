@@ -76,6 +76,7 @@ module "scale_instances" {
   filesystem_block_size                    = var.filesystem_block_size
   scale_version                            = var.scale_version
   create_separate_namespaces               = var.create_separate_namespaces
+  bastion_instance_id                      = module.bastion.bastion_instance_id[0]
   bastion_instance_public_ip               = module.bastion.bastion_instance_public_ip[0]
   bastion_security_group_id                = module.bastion.bastion_security_group_id
   bastion_ssh_private_key                  = var.bastion_ssh_private_key
