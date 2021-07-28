@@ -8,14 +8,19 @@ output "resource_group_name" {
   description = "New resource group name"
 }
 
+output "ansible_jump_host_id" {
+  value       = module.ansible_jump_host.ansible_jump_host_id
+  description = "Ansible jump host instance id."
+}
+
 output "ansible_jump_host_public_ip" {
   value       = module.ansible_jump_host.ansible_jump_host_public_ip
-  description = "Bastion instance public ip addresses."
+  description = "Ansible jump host instance public ip addresses."
 }
 
 output "ansible_jump_host_private_ip" {
   value       = module.ansible_jump_host.ansible_jump_host_private_ip
-  description = "Bastion instance private ip addresses."
+  description = "Ansible jump host instance private ip addresses."
 }
 
 output "bastion_instance_public_ip" {

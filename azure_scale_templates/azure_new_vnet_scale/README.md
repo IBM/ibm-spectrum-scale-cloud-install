@@ -289,8 +289,9 @@ The following steps will provision AWS resources (compute and storage instances 
 
 | Name | Description |
 |------|-------------|
-| <a name="output_ansible_jump_host_private_ip"></a> [ansible_jump_host_private_ip](#output_ansible_jump_host_private_ip) | Bastion instance private ip addresses. |
-| <a name="output_ansible_jump_host_public_ip"></a> [ansible_jump_host_public_ip](#output_ansible_jump_host_public_ip) | Bastion instance public ip addresses. |
+| <a name="output_ansible_jump_host_id"></a> [ansible_jump_host_id](#output_ansible_jump_host_id) | Ansible jump host instance id. |
+| <a name="output_ansible_jump_host_private_ip"></a> [ansible_jump_host_private_ip](#output_ansible_jump_host_private_ip) | Ansible jump host instance private ip addresses. |
+| <a name="output_ansible_jump_host_public_ip"></a> [ansible_jump_host_public_ip](#output_ansible_jump_host_public_ip) | Ansible jump host instance public ip addresses. |
 | <a name="output_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#output_bastion_instance_public_ip) | Bastion instance public ip addresses. |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
