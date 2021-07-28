@@ -268,6 +268,12 @@ variable "ansible_jump_host_public_ip" {
   description = "Ansible jump host instance public ip address."
 }
 
+variable "ansible_jump_host_id" {
+  type        = string
+  default     = null
+  description = "Ansible jump host instance id."
+}
+
 variable "ansible_jump_host_ssh_private_key" {
   type        = string
   default     = null

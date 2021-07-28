@@ -247,6 +247,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_vnet_compute_cluster_private_subnets"></a> [vnet_compute_cluster_private_subnets](#input_vnet_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
 | <a name="input_vnet_location"></a> [vnet_location](#input_vnet_location) | The location/region of the vnet to create. Examples are East US, West US, etc. | `string` |
 | <a name="input_vnet_storage_cluster_private_subnets"></a> [vnet_storage_cluster_private_subnets](#input_vnet_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
+| <a name="input_ansible_jump_host_id"></a> [ansible_jump_host_id](#input_ansible_jump_host_id) | Ansible jump host instance id. | `string` |
 | <a name="input_ansible_jump_host_public_ip"></a> [ansible_jump_host_public_ip](#input_ansible_jump_host_public_ip) | Ansible jump host instance public ip address. | `string` |
 | <a name="input_ansible_jump_host_ssh_private_key"></a> [ansible_jump_host_ssh_private_key](#input_ansible_jump_host_ssh_private_key) | Ansible jump host SSH private key path, which will be used to login to ansible jump host. | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
