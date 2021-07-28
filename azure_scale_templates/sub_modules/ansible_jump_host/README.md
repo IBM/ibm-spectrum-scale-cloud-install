@@ -1,11 +1,11 @@
-### Configure Azure Bastion Service
+### Configure Azure Ansible Jump Host Instance
 
-Below steps will provision Azure Bastion service required for IBM Spectrum Scale cloud solution.
+Below steps will provision Azure Ansible Jump host instance required for IBM Spectrum Scale cloud solution.
 
-1. Change working directory to `azure_scale_templates/sub_modules/bastion_template`.
+1. Change working directory to `azure_scale_templates/sub_modules/ansible_jump_host`.
 
     ```
-    $ cd ibm-spectrum-scale-cloud-install/azure_scale_templates/sub_modules/bastion_template/
+    $ cd ibm-spectrum-scale-cloud-install/azure_scale_templates/sub_modules/ansible_jump_host/
     ```
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
@@ -17,8 +17,16 @@ Below steps will provision Azure Bastion service required for IBM Spectrum Scale
         "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
         "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee",
         "vnet_location": "eastus",
-        "resource_group_name": "spectrum-scale-rg",
-        "vnet_public_subnet_id": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/AzureBastionSubnet"
+        "vm_name_prefix": "spectrum-scale",
+        "vm_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM=",
+        "vm_size": "Standard_A2_v2",
+        "image_publisher": "RedHat",
+        "image_offer": "RHEL",
+        "image_sku": "8.2",
+        "image_version": "latest",
+        "os_disk_caching": "ReadWrite",
+        "os_storage_account_type": "Standard_LRS"
+        "subnet_ids": ["/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/spectrum-scale-comp-snet"]
     }
     ```
 
