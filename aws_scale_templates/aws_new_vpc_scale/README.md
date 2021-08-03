@@ -2,7 +2,7 @@
 
 The following steps will provision AWS resources (*new vpc, bastion, compute and storage instances*) and configures IBM Spectrum Scale cloud solution.
 
-1. Change working directory to `aws_scale_templates/sub_modules/instance_template`.
+1. Change working directory to `aws_scale_templates/aws_new_vpc_scale/`.
 
     ```
     $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/aws_new_vpc_scale/
