@@ -97,6 +97,7 @@ module "scale_instances" {
   storage_cluster_gui_username            = var.storage_cluster_gui_username
   storage_cluster_gui_password            = var.storage_cluster_gui_password
   storage_cluster_filesystem_mountpoint   = var.storage_cluster_filesystem_mountpoint
+  storage_cluster_dns_zone                = module.vnet.vnet_storage_private_dns_zone_name
   filesystem_block_size                   = var.filesystem_block_size
   data_disks_per_storage_instance         = var.data_disks_per_storage_instance
   data_disk_size                          = var.data_disk_size

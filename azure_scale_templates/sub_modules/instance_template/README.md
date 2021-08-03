@@ -239,6 +239,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_compute_cluster_ssh_public_key"></a> [compute_cluster_ssh_public_key](#input_compute_cluster_ssh_public_key) | The SSH public key to use to launch the compute cluster host. | `string` |
 | <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | The name of a new resource group in which the resources will be created. | `string` |
 | <a name="input_scale_version"></a> [scale_version](#input_scale_version) | IBM Spectrum Scale version. | `string` |
+| <a name="input_storage_cluster_dns_zone"></a> [storage_cluster_dns_zone](#input_storage_cluster_dns_zone) | Storage cluster DNS zone. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_ssh_public_key"></a> [storage_cluster_ssh_public_key](#input_storage_cluster_ssh_public_key) | The SSH public key to use to launch the storage cluster host. | `string` |

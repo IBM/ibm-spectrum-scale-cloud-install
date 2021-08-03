@@ -32,6 +32,8 @@ if grep -q "Red Hat" /etc/os-release
 then
     yum install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 fi
+echo "DOMAIN=\"${var.dns_zone}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+systemctl restart NetworkManager
 EOF
 }
 

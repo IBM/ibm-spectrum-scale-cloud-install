@@ -11,7 +11,7 @@
     ```
 
 2. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and upload gpfs_rpms to s3 bucket.
-    
+
     Example:
     ```cli
     $ aws s3 ls s3://scalebucket
@@ -29,7 +29,7 @@
     2021-07-02 15:22:25   41686244 gpfs.java-5.1.1-0.x86_64.rpm
     2021-07-02 15:22:55       4252 gpfs.license.dm-5.1.1-0.x86_64.rpm
     2021-07-02 15:22:57     178376 gpfs.msg.en_US-5.1.1-0.noarch.rpm
-    ``` 
+    ```
 
 3. Download a pre-built [Packer binary](https://www.packer.io/downloads) for your operating system.
 

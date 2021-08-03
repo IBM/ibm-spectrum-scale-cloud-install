@@ -66,6 +66,7 @@ module "storage_cluster_instances" {
   user_public_key                 = var.storage_cluster_ssh_public_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
+  dns_zone                        = var.storage_cluster_dns_zone
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -91,6 +92,7 @@ module "storage_cluster_tie_breaker_instance" {
   user_public_key                 = var.storage_cluster_ssh_public_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
+  dns_zone                        = var.storage_cluster_dns_zone
 }
 
 module "prepare_ansible_configuration" {
