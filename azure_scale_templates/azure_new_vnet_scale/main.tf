@@ -86,6 +86,7 @@ module "scale_instances" {
   compute_cluster_login_username          = var.compute_cluster_login_username
   compute_cluster_gui_username            = var.compute_cluster_gui_username
   compute_cluster_gui_password            = var.compute_cluster_gui_password
+  compute_cluster_dns_zone                = module.vnet.vnet_compute_private_dns_zone_name
   storage_cluster_image_publisher         = var.storage_cluster_image_publisher
   storage_cluster_image_offer             = var.storage_cluster_image_offer
   storage_cluster_image_sku               = var.storage_cluster_image_sku
