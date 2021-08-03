@@ -1,6 +1,8 @@
 source "amazon-ebs" "itself" {
-  vpc_id            = var.vpc_id
-  security_group_id = var.vpc_security_group_id
+  vpc_id                      = var.vpc_id
+  subnet_id                   = var.vpc_subnet_id
+  associate_public_ip_address = true
+  security_group_id           = var.vpc_security_group_id
   ami_block_device_mappings {
     device_name = "/dev/xvda"
     volume_size = var.volume_size

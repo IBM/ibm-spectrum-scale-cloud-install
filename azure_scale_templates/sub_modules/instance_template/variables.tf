@@ -56,6 +56,11 @@ variable "compute_cluster_ssh_public_key" {
   description = "The SSH public key to use to launch the compute cluster host."
 }
 
+variable "compute_cluster_dns_zone" {
+  type        = string
+  description = "Compute cluster DNS zone."
+}
+
 variable "total_storage_cluster_instances" {
   type        = number
   default     = 4

@@ -13,7 +13,8 @@ resource "azurerm_private_dns_zone" "itself" {
 }
 
 output "private_dns_zone_name" {
-  value = try(azurerm_private_dns_zone.itself[0].name, " ")
+  value      = try(azurerm_private_dns_zone.itself[0].name, " ")
+  depends_on = [azurerm_private_dns_zone.itself]
 }
 
 output "private_dns_zone_id" {

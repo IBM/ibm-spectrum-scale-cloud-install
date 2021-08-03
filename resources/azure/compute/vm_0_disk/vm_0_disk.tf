@@ -19,6 +19,7 @@ variable "os_storage_account_type" {}
 variable "user_public_key" {}
 variable "meta_private_key" {}
 variable "meta_public_key" {}
+variable "dns_zone" {}
 
 data "template_file" "user_data" {
   template = <<EOF
@@ -60,6 +61,23 @@ resource "azurerm_network_interface" "itself" {
     subnet_id                     = each.value.subnet_id
     private_ip_address_allocation = "Dynamic"
   }
+}
+
+resource "azurerm_private_dns_a_record" "itself" {
+  for_each = {
+    for idx, count_number in range(1, var.vm_count + 1) : idx => {
+      sequence_string = tostring(count_number)
+      network_ip      = element(tolist([for ip_details in azurerm_network_interface.itself : ip_details.private_ip_address]), idx)
+    }
+  }
+
+  name                = format("%s-%s", var.vm_name_prefix, each.value.sequence_string)
+  zone_name           = var.dns_zone
+  resource_group_name = var.resource_group_name
+  ttl                 = 300
+  records             = [each.value.network_ip]
+
+  depends_on = [azurerm_network_interface.itself]
 }
 
 resource "azurerm_linux_virtual_machine" "itself" {
