@@ -1,18 +1,20 @@
-### New VNet Template
+# New VNet Template
 
-The following steps will provision Azure resources (new vpc, bastion, compute and storage instances) and configures IBM Spectrum Scale cloud solution.
+The following steps will provision Azure resources (new vnet, bastion, ansible jump host, compute and storage instances) and configures IBM Spectrum Scale cloud solution.
 
 1. Change working directory to `azure_scale_templates/azure_new_vnet_scale/`.
 
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/azure_scale_templates/azure_new_vnet_scale/
     ```
-    $ cd ibm-spectrum-scale-cloud-install/azure_scale_templates/azure_new_vnet_scale/
-    ```
+
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zone` keyword. Ex: `"vnet_availability_zones"=["1", "2", "3"]` |
     | --- |
 
     Minimal Example-1 (create compute, storage cluster with managed disks and remote mount configuration):
+
     ```jsonc
     {
         "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
@@ -22,8 +24,8 @@ The following steps will provision Azure resources (new vpc, bastion, compute an
         "vnet_location": "eastus",
         "vnet_availability_zones": ["1"],
         "resource_group_name": "spectrum-scale",
-        "compute_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+               1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/                                              LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/ 1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+   o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM=",
-        "storage_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+               1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/                                              LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/ 1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+   o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM=",
+        "compute_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/ 1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM=",
+        "storage_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/ 1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM=",
         "scale_version": "5.1.1.0",
         "compute_cluster_gui_username": "admin",
         "compute_cluster_gui_password": "Passw0rd",

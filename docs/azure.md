@@ -4,18 +4,16 @@ The terraform templates provided in this repository offer following features;
 
   1. Supports provisioning Spectrum Scale resources within a single availability zone.
         - Allows different compute and storage subnet.
-        - Allows different compute and storage AMI's.
+        - Allows different compute and storage Image's.
         - Allows packer/custom image vs. non-packer (stock) image.
-        - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remout mount configuration) configuration (**Spectrum Scale filesystem will be configured such that only one copy of data is stored and two copies of metadata will be stored**).
-        - Allows EBS (gp2, gp3, io1, io2 and sc1 or st1) and nitro instance profiles.
-        - Allows EBS encryption.
+        - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remote mount configuration) configuration (**Spectrum Scale filesystem will be configured such that only one copy of data is stored and two copies of metadata will be stored**).
+        - Allows managed disk (Standard_LRS, StandardSSD_LRS and Premium_LRS) types.
   2. Supports provisioning Spectrum Scale resources within a multi (3) availability zones.
         - Allows different compute and storage subnet.
-        - Allows different compute and storage AMI's.
+        - Allows different compute and storage Image's.
         - Allows packer/custom image vs. non-packer (stock) image.
         - Allows single/combined, separate compute only, separate storage only and separate compute and storage cluster (remote mount configuration) configuration (**Spectrum Scale filesystem will be configured such that data and metadata will be replicated across 2 availability zones (Synchronous Replication). AZ-3, will be used as tiebreaker site.**).
-        - Allows EBS (gp2, gp3, io1, io2 and sc1 or st1) and nitro instance profiles.
-        - Allows EBS encryption.
+        - Allows EBS (Standard_LRS, StandardSSD_LRS and Premium_LRS) types.
 
   > **_NOTE:_** In order to create a Custom VM Image, refer to [Packer Azure Image Creation](../packer_templates/azure/README.md) for detailed steps, options.
 
@@ -44,10 +42,41 @@ The terraform templates provided in this repository offer following features;
         Python 3.6.14
         ```
 
-2. Ensure that you have configured your AWS CLI credentials;
-    - [Install the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
-    - [Create access keys for IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_CreateAccessKey)
-    - [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+2. Create Azure credentials
+
+    Terraform templates authenticates with Azure using a service principal.
+
+    - Create a service principal with [az ad sp create-for-rbac](https://docs.microsoft.com/en-us/cli/azure/ad/sp) and output the credentials that Packer needs:
+
+    ```azurecli
+    az ad sp create-for-rbac --query "{ client_id: appId, client_secret: password, tenant_id: tenant }"
+    ```
+
+    An example of the output from the preceding commands is as follows:
+
+    ```azurecli
+    {
+        "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
+        "client_secret": "0e760437-bf34-4aad-9f8d-870be799c55d",
+        "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+    }
+    ```
+
+    To authenticate to Azure, you also need to obtain your Azure subscription ID with [az account show](https://docs.microsoft.com/en-us/cli/azure/account):
+
+    ```azurecli
+    az account show --query "{ subscription_id: id }"
+    ```
+
+    An example of the output from the preceding commands is as follows:
+
+    ```azurecli
+    {
+        "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee"
+    }
+    ```
+
+    Keep the outputs from these two commands handy, they are needed to configure both deployment options in the next steps.
 
 3. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and perform below steps;
 
@@ -74,11 +103,11 @@ The terraform templates provided in this repository offer following features;
 The terraform templates provided in this repository offer following deployment options;
 
 > **_NOTE:_** By default below options use *terraform local backend*.
-In order to configure below options to use *terraform S3 backend*, use `./tools/enable_aws_s3_backend.sh`.
+In order to configure below options to use *terraform S3 backend*, use `./tools/enable_azure_s3_backend.sh`.
 
 ### (Option-1) New VNet Based Configuration (Single AZ, Multi AZ)
 
-This option provisions a new Azure VNet environment consisting of the subnets, nat gateways, internet gateway, security groups, bastion autoscaling group, compute (instances with NO EBS volumes attached) and storage (instances with EBS volumes attached) instances, and then deploys IBM Spectrum Scale into this new VNet with a single or multi availability zone(s).
+This option provisions a new Azure VNet environment consisting of the subnets, security groups, bastion, ansible jump host, compute (instances with NO managed data disks attached) and storage (instances with managed data disks attached) instances, and then deploys IBM Spectrum Scale into this new VNet with a single or multi availability zone(s).
 
 Refer to [New VNet Based Configuration](../azure_scale_templates/azure_new_vnet_scale/README.md) for detailed steps, options.
 

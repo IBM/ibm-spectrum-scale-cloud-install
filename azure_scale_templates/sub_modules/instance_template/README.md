@@ -1,219 +1,101 @@
-### Existing VPC Template
+# Existing VNet Template
 
-The following steps will provision AWS resources (compute and storage instances in existing VPC) and configures IBM Spectrum Scale cloud solution.
+The following steps will provision Azure resources (compute and storage instances in existing VPC) and configures IBM Spectrum Scale cloud solution.
 
-1. Change working directory to `aws_scale_templates/sub_modules/instance_template`.
+1. Change working directory to `azure_scale_templates/sub_modules/instance_template`.
 
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/azure_scale_templates/sub_modules/instance_template/
     ```
-    $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/instance_template/
-    ```
+
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
-    | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zone` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
+    | Note: In case of multi availability zone, provide 3 AZ values for the `vnet_availability_zones` keyword. Ex: `"vpc_availability_zones"=["1", "2", "3"]` |
     | --- |
 
-    Minimal Example-1 (create only storage cluster with gp2):
+    Minimal Example-1 (create only storage cluster):
+
     ```jsonc
     {
-        "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a"],
-        "resource_prefix": "spectrum-scale",
-        "vpc_id": null,                                  // Use an existing vpc id
-        "vpc_storage_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "vpc_compute_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "total_storage_cluster_instances": 4,
+        "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
+        "client_secret": "0e760437-bf34-4aad-9f8d-870be799c55d",
+        "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+        "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee",
+        "vnet_location": "eastus",
+        "vnet_availability_zones": ["1"],
+        "resource_group_name": "spectrum-scale-rg",
         "total_compute_cluster_instances": 0,            // Make compute nodes count to zero
-        "ebs_block_devices_per_storage_instance": 1,
-        "ebs_block_device_volume_size": 500,
-        "ebs_block_device_volume_type": "gp2",
-        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",
-        "operator_email": null,                          // Email address for notification
+        "compute_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM=",
+        "compute_cluster_dns_zone": "eastus.compscale.com",
+        "storage_cluster_dns_zone": "eastus.strgscale.com",
+        "storage_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM="
+        "vnet_compute_cluster_private_subnets": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/spectrum-scale-comp-snet"
+        "vnet_storage_cluster_private_subnets": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/spectrum-scale-strg-snet"
         "scale_version": "5.1.1.0",
-        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
+        "compute_cluster_gui_username": "admin",
+        "compute_cluster_gui_password": "Passw0rd",
         "storage_cluster_gui_username": "admin",
         "storage_cluster_gui_password": "Passw0rd",
-        "bastion_instance_public_ip": null,              // Use null if direct connectivity to vpc exists
-        "bastion_security_group_id": null                // Use null if direct connectivity to vpc exists
+        "ansible_jump_host_id": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Compute/virtualMachines/spectrum-scale-jumphost-0",
+        "ansible_jump_host_public_ip": "40.87.95.66",
+        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa"
     }
     ```
 
-    Minimal Example-2 (create only storage cluster with gp3):
-    ```jsonc
-    {
-        "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a"],
-        "resource_prefix": "spectrum-scale",
-        "vpc_id": null,                                  // Use an existing vpc id
-        "vpc_storage_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "vpc_compute_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "total_storage_cluster_instances": 4,
-        "total_compute_cluster_instances": 0,            // Make compute nodes count to zero
-        "ebs_block_devices_per_storage_instance": 1,
-        "ebs_block_device_volume_type": "gp3",
-        "ebs_block_device_iops": 3000,
-        "ebs_block_device_throughput": 125,
-        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",
-        "operator_email": null,                          // Email address for notification
-        "scale_version": "5.1.1.0",
-        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
-        "storage_cluster_gui_username": "admin",
-        "storage_cluster_gui_password": "Passw0rd",
-        "bastion_instance_public_ip": null,              // Use null if direct connectivity to vpc exists
-        "bastion_security_group_id": null                // Use null if direct connectivity to vpc exists
-    }
-    ```
+    Minimal Example-2 (create only compute cluster):
 
-    Minimal Example-3 (create only storage cluster with iop1, iop2):
     ```jsonc
     {
-        "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a"],
-        "resource_prefix": "spectrum-scale",
-        "vpc_id": null,                                  // Use an existing vpc id
-        "vpc_storage_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "vpc_compute_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "total_storage_cluster_instances": 4,
-        "ebs_block_devices_per_storage_instance": 1,
-        "ebs_block_device_volume_type": "gp3",
-        "ebs_block_device_iops": 3000,
-        "total_compute_cluster_instances": 0,
-        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",
-        "operator_email": "sasikanth.eda@in.ibm.com",
-        "scale_version": "5.1.1.0",
-        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
-        "storage_cluster_gui_username": "admin",
-        "storage_cluster_gui_password": "Passw0rd",
-        "bastion_instance_public_ip": null,              // Use null if direct connectivity to vpc exists
-        "bastion_security_group_id": null                // Use null if direct connectivity to vpc exists
-    }
-    ```
-
-    Minimal Example-4 (create only storage cluster with NVMe/nitro instances):
-    ```jsonc
-    {
-        "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a"],
-        "resource_prefix": "spectrum-scale",
-        "vpc_id": null,                                   // Use an existing vpc id
-        "vpc_storage_cluster_private_subnets": [],        // Use an existing vpc private subnet
-        "vpc_compute_cluster_private_subnets": [],        // Use an existing vpc private subnet
-        "total_storage_cluster_instances": 4,
-        "ebs_block_devices_per_storage_instance": 1,
-        "ebs_block_device_volume_type": "gp3",
-        "ebs_block_device_iops": 3000,
-        "ebs_block_device_throughput": 125,
-        "total_compute_cluster_instances": 0,
-        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",
-        "operator_email": "sasikanth.eda@in.ibm.com",
-        "scale_version": "5.1.1.0",
-        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_key_pair": null,                 // Use an existing AWS EC2 key pair
-        "storage_cluster_key_pair": null,                 // Use an existing AWS EC2 key pair
-        "bastion_ssh_private_key": null,                  // Use bastion ssh private key path
-        "storage_cluster_gui_username": "admin",
-        "storage_cluster_gui_password": "Passw0rd",
-        "bastion_instance_public_ip": null,               // Use null if direct connectivity to vpc exists
-        "bastion_security_group_id": null                 // Use null if direct connectivity to vpc exists
-    }
-    ```
-
-    Minimal Example-5 (create only compute cluster):
-    ```jsonc
-    {
-        "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a"],
-        "resource_prefix": "spectrum-scale",
-        "vpc_id": null,                                  // Use an existing vpc id
-        "vpc_storage_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "vpc_compute_cluster_private_subnets": [],       // Use an existing vpc private subnet
+        "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
+        "client_secret": "0e760437-bf34-4aad-9f8d-870be799c55d",
+        "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+        "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee",
+        "vnet_location": "eastus",
+        "vnet_availability_zones": ["1"],
+        "resource_group_name": "spectrum-scale-rg",
         "total_storage_cluster_instances": 0,            // Make storage nodes count to zero
-        "total_compute_cluster_instances": 3,
-        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",
-        "operator_email": "sasikanth.eda@in.ibm.com",
+        "compute_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM=",
+        "compute_cluster_dns_zone": "eastus.compscale.com",
+        "storage_cluster_dns_zone": "eastus.strgscale.com",
+        "storage_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM="
+        "vnet_compute_cluster_private_subnets": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/spectrum-scale-comp-snet"
+        "vnet_storage_cluster_private_subnets": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/spectrum-scale-strg-snet"
         "scale_version": "5.1.1.0",
-        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
+        "compute_cluster_gui_username": "admin",
+        "compute_cluster_gui_password": "Passw0rd",
         "storage_cluster_gui_username": "admin",
-        "storage_cluster_gui_password": "Passw0rd"
-        "bastion_instance_public_ip": null,              // Use null if direct connectivity to vpc exists
-        "bastion_security_group_id": null                // Use null if direct connectivity to vpc exists
+        "storage_cluster_gui_password": "Passw0rd",
+        "ansible_jump_host_id": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Compute/virtualMachines/spectrum-scale-jumphost-0",
+        "ansible_jump_host_public_ip": "40.87.95.66",
+        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa"
     }
     ```
 
-    Minimal Example-6 (create remote mount based compute and storage instances):
-    ```jsonc
-    {
-        "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a"],
-        "resource_prefix": "spectrum-scale",
-        "vpc_id": null,                                  // Use an existing vpc id
-        "vpc_storage_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "vpc_compute_cluster_private_subnets": [],       // Use an existing vpc private subnet
-        "create_separate_namespaces": false,
-        "total_storage_cluster_instances": 4,
-        "total_compute_cluster_instances": 3,
-        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",
-        "operator_email": "sasikanth.eda@in.ibm.com",
-        "scale_version": "5.1.1.0",
-        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
-        "storage_cluster_gui_username": "admin",
-        "storage_cluster_gui_password": "Passw0rd",
-        "bastion_instance_public_ip": null,              // Use null if direct connectivity to vpc exists
-        "bastion_security_group_id": null                // Use null if direct connectivity to vpc exists
-    }
-    ```
+    Minimal Example-3 (create remote mount based compute and storage instances):
 
-    Minimal Example-7 (create single cluster with both compute and storage instances):
     ```jsonc
     {
-        "vpc_region": "us-east-1",
-        "vpc_availability_zones": ["us-east-1a"],
-        "resource_prefix": "spectrum-scale",
-        "vpc_id": "vpc-0b24596ced49f9407",
-        "vpc_storage_cluster_private_subnets": ["subnet-0d74f55f21106371a"],
-        "vpc_compute_cluster_private_subnets": ["subnet-0e2a0fda0cca020a7"],
-        "create_separate_namespaces": false,
-        "total_storage_cluster_instances": 4,
-        "total_compute_cluster_instances": 3,
-        "compute_cluster_key_pair": null,
-        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",
-        "operator_email": "sasikanth.eda@in.ibm.com",
+        "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
+        "client_secret": "0e760437-bf34-4aad-9f8d-870be799c55d",
+        "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+        "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee",
+        "vnet_location": "eastus",
+        "vnet_availability_zones": ["1"],
+        "resource_group_name": "spectrum-scale-rg",
+        "compute_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM=",
+        "compute_cluster_dns_zone": "eastus.compscale.com",
+        "storage_cluster_dns_zone": "eastus.strgscale.com",
+        "storage_cluster_ssh_public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDeFX5ZECXQwqTjczwuTBWYtx0joQ+2d16z/6DDGcouJ42hD0Pslx2m94jl+dyeb+1NFETBRAJ5PrVd+LjgGeEkPwb0Gu3VLRR2gmcAzMjo6FQewBFds1mBh2fi93bolUG3FHf34su6JYE5Ei7+8/0X9zGCPOKFd6bjj19cvy0kN/LUL4n9dnKWM3vnXU2Tj6aDEiwDrQk87c6nmdxyD4J1MDCab/ARK1dK7iAcy9QMod5UBQpDQu7kH054Mfc21ymIK/EkJZ9gMIuP/5q1IGw8NOlQuhIVJSKvS41EVIeY5w0kIWDIkTEKOYZiQ2br2ymWjQ/1ScsVyqsxROPhi0EP9aYJ2p0UJDEN9V1lg1SWaPN8TKhG/CAlQzGXdnc20a98cqxu5jzvj8Q7SQoAWL0ZMe1zUVJVs0XvBQItDLW6ZDpGyWTsxAcDwLqYCJubrg3aja17iFa+MCsa5esgY4GsawPtV+o9Dqx63m3joEH/fo53vNpJ6wlwaRK65hE5pkM="
+        "vnet_compute_cluster_private_subnets": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/spectrum-scale-comp-snet"
+        "vnet_storage_cluster_private_subnets": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/spectrum-scale-strg-snet"
         "scale_version": "5.1.1.0",
-        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "storage_cluster_key_pair": null,
-        "bastion_ssh_private_key": null,                 [[** Use bastion ssh private key path **]]
+        "compute_cluster_gui_username": "admin",
+        "compute_cluster_gui_password": "Passw0rd",
         "storage_cluster_gui_username": "admin",
         "storage_cluster_gui_password": "Passw0rd",
-        "bastion_instance_public_ip": null,              // Use null if direct connectivity to vpc exists
-        "bastion_security_group_id": null                // Use null if direct connectivity to vpc exists
+        "ansible_jump_host_id": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Compute/virtualMachines/spectrum-scale-jumphost-0",
+        "ansible_jump_host_public_ip": "40.87.95.66",
+        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa"
     }
     ```
 
