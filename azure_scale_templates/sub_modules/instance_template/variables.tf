@@ -61,6 +61,11 @@ variable "compute_cluster_dns_zone" {
   description = "Compute cluster DNS zone."
 }
 
+variable "storage_cluster_dns_zone" {
+  type        = string
+  description = "Storage cluster DNS zone."
+}
+
 variable "total_storage_cluster_instances" {
   type        = number
   default     = 4

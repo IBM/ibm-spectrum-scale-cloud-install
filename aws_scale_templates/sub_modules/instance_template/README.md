@@ -1,18 +1,20 @@
-### Existing VPC Template
+# Existing VPC Template
 
 The following steps will provision AWS resources (compute and storage instances in existing VPC) and configures IBM Spectrum Scale cloud solution.
 
 1. Change working directory to `aws_scale_templates/sub_modules/instance_template`.
 
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/instance_template/
     ```
-    $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/instance_template/
-    ```
+
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
-    | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zone` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
+    | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zones` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
     | --- |
 
     Minimal Example-1 (create only storage cluster with gp2):
+
     ```jsonc
     {
         "vpc_region": "us-east-1",
@@ -43,6 +45,7 @@ The following steps will provision AWS resources (compute and storage instances 
     ```
 
     Minimal Example-2 (create only storage cluster with gp3):
+
     ```jsonc
     {
         "vpc_region": "us-east-1",
@@ -74,6 +77,7 @@ The following steps will provision AWS resources (compute and storage instances 
     ```
 
     Minimal Example-3 (create only storage cluster with iop1, iop2):
+
     ```jsonc
     {
         "vpc_region": "us-east-1",
@@ -104,6 +108,7 @@ The following steps will provision AWS resources (compute and storage instances 
     ```
 
     Minimal Example-4 (create only storage cluster with NVMe/nitro instances):
+
     ```jsonc
     {
         "vpc_region": "us-east-1",
@@ -135,6 +140,7 @@ The following steps will provision AWS resources (compute and storage instances 
     ```
 
     Minimal Example-5 (create only compute cluster):
+
     ```jsonc
     {
         "vpc_region": "us-east-1",
@@ -162,6 +168,7 @@ The following steps will provision AWS resources (compute and storage instances 
     ```
 
     Minimal Example-6 (create remote mount based compute and storage instances):
+
     ```jsonc
     {
         "vpc_region": "us-east-1",
@@ -190,6 +197,7 @@ The following steps will provision AWS resources (compute and storage instances 
     ```
 
     Minimal Example-7 (create single cluster with both compute and storage instances):
+
     ```jsonc
     {
         "vpc_region": "us-east-1",

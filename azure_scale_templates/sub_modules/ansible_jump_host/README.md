@@ -1,15 +1,17 @@
-### Configure Azure Ansible Jump Host Instance
+# Configure Azure Ansible Jump Host Instance
 
 Below steps will provision Azure Ansible Jump host instance required for IBM Spectrum Scale cloud solution.
 
 1. Change working directory to `azure_scale_templates/sub_modules/ansible_jump_host`.
 
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/azure_scale_templates/sub_modules/ansible_jump_host/
     ```
-    $ cd ibm-spectrum-scale-cloud-install/azure_scale_templates/sub_modules/ansible_jump_host/
-    ```
+
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     Minimal Example:
+
     ```jsonc
     {
         "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
