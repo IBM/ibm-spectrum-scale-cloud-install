@@ -8,7 +8,20 @@ The following steps will provision AWS resources (*new vpc, bastion, compute and
     cd ibm-spectrum-scale-cloud-install/aws_scale_templates/aws_new_vpc_scale/
     ```
 
-2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
+2. Identify the required RHEL AMI/image id available on AWS region.
+
+    Minimal Example-1 (list RHEL 8.4 AMI id in region `us-east-1`):
+
+    ```cli
+    $ aws ec2 describe-images --owners 309956199498 --query 'sort_by(Images, &CreationDate)[*].[CreationDate,Name,ImageId]' --filters "Name=name,Values=RHEL-8.4*_HVM-*-x86_64-*-Hourly2-GP2" --region us-east-1 --output table
+    -------------------------------------------------------------------------------------------------------
+    |                                           DescribeImages                                            |
+    +---------------------------+------------------------------------------------+------------------------+
+    |  2021-05-18T20:09:47.000Z |  RHEL-8.4.0_HVM-20210504-x86_64-2-Hourly2-GP2  |  ami-0b0af3577fe5e3532 |
+    +---------------------------+------------------------------------------------+------------------------+
+    ```
+
+3. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zones` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
     | --- |
@@ -26,14 +39,14 @@ The following steps will provision AWS resources (*new vpc, bastion, compute and
         "ebs_block_device_volume_size": 500,
         "ebs_block_device_volume_type": "gp2",
         "bastion_ami_name": "Amazon-Linux2-HVM",
-        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
-        "operator_email": null,                          // Email address for notification
+        "compute_cluster_image_id": "ami-0b0af3577fe5e3532",  // Use the AMI-id obtained in step-2
+        "storage_cluster_image_id": "ami-0b0af3577fe5e3532",  // Use the AMI-id obtained in step-2
+        "operator_email": null,                               // Email address for notification
         "scale_version": "5.1.1.0",
-        "bastion_key_pair": null,                        // Use an existing AWS EC2 key pair
-        "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
-        "bastion_ssh_private_key": null,                 // Use bastion ssh private key path
+        "bastion_key_pair": null,                             // Use an existing AWS EC2 key pair
+        "compute_cluster_key_pair": null,                     // Use an existing AWS EC2 key pair
+        "storage_cluster_key_pair": null,                     // Use an existing AWS EC2 key pair
+        "bastion_ssh_private_key": null,                      // Use bastion ssh private key path
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "storage_cluster_gui_username": "admin",
@@ -41,7 +54,7 @@ The following steps will provision AWS resources (*new vpc, bastion, compute and
     }
     ```
 
-3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+4. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
