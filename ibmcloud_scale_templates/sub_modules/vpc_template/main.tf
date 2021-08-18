@@ -57,13 +57,14 @@ module "compute_private_subnet" {
 }
 
 module "dns_service" {
-  source                 = "../../../resources/ibmcloud/resource_instance"
-  service_count          = var.vpc_create_separate_subnets == true ? 2 : 1
-  resource_instance_name = [format("%s-strgdns", var.resource_prefix), format("%s-compdns", var.resource_prefix)]
-  resource_group_id      = var.resource_group_id
-  target_location        = "global"
-  service_name           = "dns-svcs"
-  plan_type              = "standard-dns"
+  source        = "../../../resources/ibmcloud/resource_instance"
+  service_count = var.vpc_create_separate_subnets == true ? 2 : 1
+  resource_instance_name = var.vpc_create_separate_subnets == true ? [format("%s-strgdns", var.resource_prefix), format("%s-compdns",
+  var.resource_prefix)] : [format("%s-scaledns", var.resource_prefix)]
+  resource_group_id = var.resource_group_id
+  target_location   = "global"
+  service_name      = "dns-svcs"
+  plan_type         = "standard-dns"
 }
 
 module "storage_dns_zone" {
@@ -71,7 +72,7 @@ module "storage_dns_zone" {
   dns_zone_count = 1
   dns_domain     = var.vpc_storage_cluster_dns_domain
   dns_service_id = module.dns_service.resource_guid[0]
-  description    = "Private DNS Zone for storage VPC DNS communication."
+  description    = "Private DNS Zone for Spectrum Scale storage VPC DNS communication."
   dns_label      = var.resource_prefix
 }
 
@@ -85,19 +86,19 @@ module "storage_dns_permitted_network" {
 
 module "compute_dns_zone" {
   source         = "../../../resources/ibmcloud/network/dns_zone"
-  dns_zone_count = var.vpc_create_separate_subnets == true ? 1 : 0
+  dns_zone_count = 1
   dns_domain     = var.vpc_compute_cluster_dns_domain
   dns_service_id = var.vpc_create_separate_subnets == true ? module.dns_service.resource_guid[1] : module.dns_service.resource_guid[0]
-  description    = "Private DNS Zone for compute VPC DNS communication."
+  description    = "Private DNS Zone for Spectrum Scale compute VPC DNS communication."
   dns_label      = var.resource_prefix
   depends_on     = [module.dns_service]
 }
 
 module "compute_dns_permitted_network" {
   source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  permitted_count = var.vpc_create_separate_subnets == true ? 1 : 0
+  permitted_count = 1
   instance_id     = var.vpc_create_separate_subnets == true ? module.dns_service.resource_guid[1] : module.dns_service.resource_guid[0]
-  zone_id         = var.vpc_create_separate_subnets == true ? module.compute_dns_zone.dns_zone_id : module.storage_dns_zone.dns_zone_id
+  zone_id         = module.compute_dns_zone.dns_zone_id
   vpc_crn         = module.vpc.vpc_crn
   depends_on      = [module.storage_dns_permitted_network]
 }
