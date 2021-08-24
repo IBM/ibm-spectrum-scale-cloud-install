@@ -4,9 +4,10 @@ build {
   provisioner "shell" {
     inline = [
       "sleep 30",
+      ""
       "sudo dnf install -y unzip @python36",
       "sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`",
-      "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils",
+      "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils iptables",
       "sudo curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip",
       "sudo unzip awscliv2.zip",
       "sudo ./aws/install",
