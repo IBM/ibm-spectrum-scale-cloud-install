@@ -1,15 +1,17 @@
-### Configure IBM Cloud Bastion VSI
+# Configure IBM Cloud Bastion VSI
 
 Below steps will provision IBM Cloud Bastion instance required for IBM Spectrum Scale cloud solution.
 
 1. Change working directory to `ibmcloud_scale_templates/sub_modules/bastion_template`.
 
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/bastion_template/
     ```
-    $ cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/bastion_template/
-    ```
+
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     Minimal Example:
+
     ```jsonc
     {
         "vpc_region": "us-south",
@@ -21,7 +23,15 @@ Below steps will provision IBM Cloud Bastion instance required for IBM Spectrum 
     }
     ```
 
-3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+3. Export your IBM Cloud credentials by exporting the `IC_API_KEY` as environment variables.
+
+    Example:
+
+   ```cli
+   export IC_API_KEY=68jfz8VDfQzMNUFE_JcU5mCqd6zSmmznrwUbZqwrKJ5k
+   ```
+
+4. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
@@ -49,8 +59,8 @@ Below steps will provision IBM Cloud Bastion instance required for IBM Spectrum 
 
 | Name | Description |
 |------|-------------|
+| <a name="output_bastion_instance_id"></a> [bastion_instance_id](#output_bastion_instance_id) | Bastion instance id. |
 | <a name="output_bastion_instance_private_ip"></a> [bastion_instance_private_ip](#output_bastion_instance_private_ip) | Bastion instance private ip addresses. |
 | <a name="output_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#output_bastion_instance_public_ip) | Bastion instance public ip addresses. |
 | <a name="output_bastion_security_group_id"></a> [bastion_security_group_id](#output_bastion_security_group_id) | Bastion security group id. |
-| <a name="output_bastion_vsi_id"></a> [bastion_vsi_id](#output_bastion_vsi_id) | Bastion instance id. |
 <!-- END_TF_DOCS -->

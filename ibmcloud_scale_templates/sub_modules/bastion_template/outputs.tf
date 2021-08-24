@@ -1,9 +1,9 @@
 output "bastion_security_group_id" {
-  value       = module.bastion_security_group.sec_group_id[0]
+  value       = module.bastion_security_group.sec_group_id
   description = "Bastion security group id."
 }
 
-output "bastion_vsi_id" {
+output "bastion_instance_id" {
   value       = module.bastion_vsi.vsi_id
   description = "Bastion instance id."
 }

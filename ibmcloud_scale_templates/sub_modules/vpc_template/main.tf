@@ -103,7 +103,7 @@ module "compute_dns_permitted_network" {
   depends_on      = [module.storage_dns_permitted_network]
 }
 
-#FIXME: Multi-az
+# FIXME: Multi-az
 module "custom_resolver" {
   source                 = "../../../resources/ibmcloud/network/dns_custom_resolver"
   customer_resolver_name = format("%s-vpc-resolver", var.resource_prefix)

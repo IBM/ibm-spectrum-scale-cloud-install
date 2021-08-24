@@ -1,18 +1,20 @@
-### Configure IBM Cloud VPC
+# Configure IBM Cloud VPC
 
 Below steps will provision IBM Cloud VPC required for IBM Spectrum Scale cloud solution.
 
 1. Change working directory to `ibmcloud_scale_templates/sub_modules/vpc_template`.
 
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/vpc_template/
     ```
-    $ cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/vpc_template/
-    ```
+
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zones` keyword. Ex: `"vpc_availability_zones"=["us-south-1", "us-south-2", "us-south-3"]` |
     | --- |
 
     Minimal Example:
+
     ```json
     {
         "vpc_region": "us-south",
@@ -21,7 +23,15 @@ Below steps will provision IBM Cloud VPC required for IBM Spectrum Scale cloud s
     }
     ```
 
-3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+3. Export your IBM Cloud credentials by exporting the `IC_API_KEY` as environment variables.
+
+    Example:
+
+   ```cli
+   export IC_API_KEY=68jfz8VDfQzMNUFE_JcU5mCqd6zSmmznrwUbZqwrKJ5k
+   ```
+
+4. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
