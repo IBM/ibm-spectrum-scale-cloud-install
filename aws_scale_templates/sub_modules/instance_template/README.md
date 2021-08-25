@@ -32,7 +32,6 @@ The following steps will provision AWS resources (compute and storage instances 
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": null,                          // Email address for notification
-        "scale_version": "5.1.1.0",
         "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
@@ -244,7 +243,6 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_compute_cluster_image_id"></a> [compute_cluster_image_id](#input_compute_cluster_image_id) | ID of AMI to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_key_pair"></a> [compute_cluster_key_pair](#input_compute_cluster_key_pair) | The key pair to use to launch the compute cluster host. | `string` |
 | <a name="input_operator_email"></a> [operator_email](#input_operator_email) | SNS notifications will be sent to provided email id. | `string` |
-| <a name="input_scale_version"></a> [scale_version](#input_scale_version) | IBM Spectrum Scale version. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | ID of AMI to use for provisioning the storage cluster instances. | `string` |
