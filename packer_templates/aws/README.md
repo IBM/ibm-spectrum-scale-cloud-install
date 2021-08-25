@@ -47,19 +47,20 @@ Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpm's a
 
     Minimal Example:
 
-    ```jsonc
-    $ cat inputs.auto.pkrvars.hcl
-    vpc_id                  = "vpc-0df33b2a861b63118"
-    vpc_subnet_id           = "subnet-0992d8e9ce397dac3"
+    ```cli
+    cat <<EOF > inputs.auto.pkrvars.hcl
+    vpc_id                  = "vpc-0df33b2a861b63118"     // An existing vpc id
+    vpc_subnet_id           = "subnet-0992d8e9ce397dac3"  // Existing subnet id
     vpc_region              = "us-east-1"
-    vpc_security_group_id   = "sg-0cbcfe43d939c6069"
+    vpc_security_group_id   = "sg-0cbcfe43d939c6069"      // Existing security group (make sure it has inbound port 22 opened
     ami_name                = "spectrumscale"
     ami_description         = "IBM Spectrum Scale AMI"
     instance_type           = "t2.medium"
-    source_ami_id           = "ami-0b0af3577fe5e3532"
-    s3_spectrumscale_bucket = "scalebucket"              // S3 bucket that contains gpfs/scale rpm's.
+    source_ami_id           = "ami-0b0af3577fe5e3532"     // S3 bucket that contains gpfs/scale rpm's.
+    s3_spectrumscale_bucket = "scalebucket"               // S3 bucket that contains gpfs/scale rpm's.
     volume_size             = "200"
     volume_type             = "gp2"
+    EOF
     ```
 
 3. Run `packer build .` to create AMI.
