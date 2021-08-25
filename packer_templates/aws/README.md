@@ -12,7 +12,8 @@
 
 2. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and upload gpfs_rpms to s3 bucket.
 
-    Example:
+    Example (Contents of the bucket should look like below):
+
     ```cli
     $ aws s3 ls s3://scalebucket
     2021-07-02 15:22:59        907 SpectrumScale_public_key.pgp
