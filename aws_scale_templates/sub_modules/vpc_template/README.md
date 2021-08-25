@@ -1,23 +1,27 @@
-### Configure AWS VPC
+# Configure AWS VPC
 
 Below steps will provision AWS VPC required for IBM Spectrum Scale cloud solution.
 
 1. Change working directory to `aws_scale_templates/sub_modules/vpc_template`.
 
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/vpc_template/
     ```
-    $ cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/vpc_template/
-    ```
+
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zone` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
     | --- |
 
     Minimal Example:
-    ```json
+
+    ```cli
+    cat <<EOF > terraform.tfvars.json
     {
         "vpc_region": "us-east-1",
         "vpc_availability_zones": ["us-east-1a"]
     }
+    EOF
     ```
 
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
