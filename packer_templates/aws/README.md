@@ -12,7 +12,7 @@
 
 2. Download the IBM Spectrum Scale Data Management Edition install package (from Fix Central) and upload gpfs_rpms to s3 bucket.
 
-    Example (Contents of the bucket should look like below):
+    Example (Contents of the bucket should look like below for rhel8 AMI):
 
     ```cli
     $ aws s3 ls s3://scalebucket
@@ -57,7 +57,7 @@ Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpm's a
     ami_name                = "spectrumscale"
     ami_description         = "IBM Spectrum Scale AMI"
     instance_type           = "t2.medium"
-    source_ami_id           = "ami-0b0af3577fe5e3532"     // S3 bucket that contains gpfs/scale rpm's.
+    source_ami_id           = "ami-0b0af3577fe5e3532"     // Soure AMI-ID (for stock rhel image id's, refer to https://access.redhat.com/solutions/15356).
     s3_spectrumscale_bucket = "scalebucket"               // S3 bucket that contains gpfs/scale rpm's.
     volume_size             = "200"
     volume_type             = "gp2"
