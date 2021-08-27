@@ -62,6 +62,7 @@ Below steps will provision IBM Cloud VPC required for IBM Spectrum Scale cloud s
 | <a name="output_vpc_compute_cluster_dns_service_id"></a> [vpc_compute_cluster_dns_service_id](#output_vpc_compute_cluster_dns_service_id) | IBM Cloud DNS compute cluster resource instance server ID. |
 | <a name="output_vpc_compute_cluster_dns_zone_id"></a> [vpc_compute_cluster_dns_zone_id](#output_vpc_compute_cluster_dns_zone_id) | IBM Cloud DNS compute cluster zone ID. |
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
+| <a name="output_vpc_custom_resolver_id"></a> [vpc_custom_resolver_id](#output_vpc_custom_resolver_id) | IBM Cloud DNS custom resolver ID. |
 | <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | The ID of the VPC. |
 | <a name="output_vpc_storage_cluster_dns_service_id"></a> [vpc_storage_cluster_dns_service_id](#output_vpc_storage_cluster_dns_service_id) | IBM Cloud DNS storage cluster resource instance server ID. |
 | <a name="output_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#output_vpc_storage_cluster_dns_zone_id) | IBM Cloud DNS compute cluster zone ID. |

@@ -19,7 +19,7 @@ output "vpc_storage_cluster_dns_service_id" {
 }
 
 output "vpc_compute_cluster_dns_service_id" {
-  value       = var.vpc_create_separate_subnets == true ? module.dns_service.resource_guid[1] : ""
+  value       = module.dns_service.resource_guid[0]
   description = "IBM Cloud DNS compute cluster resource instance server ID."
 }
 
@@ -31,4 +31,9 @@ output "vpc_storage_cluster_dns_zone_id" {
 output "vpc_compute_cluster_dns_zone_id" {
   value       = module.compute_dns_zone.dns_zone_id
   description = "IBM Cloud DNS compute cluster zone ID."
+}
+
+output "vpc_custom_resolver_id" {
+  value       = module.custom_resolver_storage_subnet.custom_resolver_id
+  description = "IBM Cloud DNS custom resolver ID."
 }

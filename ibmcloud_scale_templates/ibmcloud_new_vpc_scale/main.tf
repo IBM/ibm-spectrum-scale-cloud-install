@@ -76,6 +76,7 @@ module "scale_instances" {
   vpc_storage_cluster_dns_zone_id       = module.vpc.vpc_storage_cluster_dns_zone_id
   vpc_compute_cluster_dns_domain        = var.vpc_compute_cluster_dns_domain
   vpc_storage_cluster_dns_domain        = var.vpc_storage_cluster_dns_domain
+  vpc_custom_resolver_id                = module.vpc.vpc_custom_resolver_id
   vpc_create_activity_tracker           = var.vpc_create_activity_tracker
   activity_tracker_plan_type            = var.activity_tracker_plan_type
 }

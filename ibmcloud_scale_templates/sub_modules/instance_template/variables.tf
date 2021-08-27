@@ -148,6 +148,11 @@ variable "vpc_storage_cluster_dns_domain" {
   description = "IBM Cloud DNS domain name to be used for storage cluster."
 }
 
+variable "vpc_custom_resolver_id" {
+  type        = string
+  description = "IBM Cloud DNS custom resolver id."
+}
+
 variable "scale_ansible_repo_clone_path" {
   type        = string
   default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"

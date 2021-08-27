@@ -32,6 +32,7 @@ data "template_file" "metadata_startup_script" {
 if grep -q "Red Hat" /etc/os-release
 then
     USER=vpcuser
+    yum install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 elif grep -q "Ubuntu" /etc/os-release
 then
     USER=ubuntu
