@@ -118,7 +118,7 @@ module "compute_cluster_instances" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.compute_ssh_key.id]
   vsi_meta_private_key = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.compute_cluster_ingress_security_rule]
+  depends_on           = [module.compute_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
 }
 
 data "ibm_is_instance_profile" "storage_profile" {
@@ -150,7 +150,7 @@ module "storage_cluster_instances" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.storage_cluster_ingress_security_rule]
+  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -170,7 +170,7 @@ module "storage_cluster_tie_breaker_instance" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.storage_cluster_ingress_security_rule]
+  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
 }
 
 module "activity_tracker" {

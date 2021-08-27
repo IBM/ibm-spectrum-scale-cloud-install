@@ -17,6 +17,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
         "vpc_region": "us-south",
         "vpc_availability_zones": ["us-south-1"],
         "vpc_id": null,                                 // Use an existing vpc id
+        "vpc_custom_resolver_id": null,                 // Use existing DNS custom resolver id
         "resource_group_id": null,                      // Use an existing resource group
         "bastion_security_group_id": null,              // Use an existing bastion security group id
         "bastion_instance_public_ip": null,             // Use an existing bastion public ip
@@ -71,6 +72,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_vpc_compute_cluster_dns_service_id"></a> [vpc_compute_cluster_dns_service_id](#input_vpc_compute_cluster_dns_service_id) | IBM Cloud compute cluster DNS service resource id. | `string` |
 | <a name="input_vpc_compute_cluster_dns_zone_id"></a> [vpc_compute_cluster_dns_zone_id](#input_vpc_compute_cluster_dns_zone_id) | IBM Cloud compute cluster DNS zone id. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
+| <a name="input_vpc_custom_resolver_id"></a> [vpc_custom_resolver_id](#input_vpc_custom_resolver_id) | IBM Cloud DNS custom resolver id. | `string` |
 | <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC id were to deploy the bastion. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where IBM Cloud operations will take place. Examples are us-east, us-south, etc. | `string` |
 | <a name="input_vpc_storage_cluster_dns_service_id"></a> [vpc_storage_cluster_dns_service_id](#input_vpc_storage_cluster_dns_service_id) | IBM Cloud storage cluster DNS service resource id. | `string` |

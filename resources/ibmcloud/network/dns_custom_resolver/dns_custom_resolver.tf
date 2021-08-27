@@ -26,5 +26,5 @@ resource "ibm_dns_custom_resolver" "itself" {
 }
 
 output "custom_resolver_id" {
-  value = ibm_dns_custom_resolver.itself.id
+  value = ibm_dns_custom_resolver.itself.custom_resolver_id
 }
