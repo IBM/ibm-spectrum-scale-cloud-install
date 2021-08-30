@@ -58,8 +58,8 @@ def read_json_file(json_path):
             try:
                 tf_inv = json.load(json_handler)
             except json.decoder.JSONDecodeError:
-                print(
-                    "Provided terraform inventory file (%s) is not a valid json." % json_path)
+                print("Provided terraform inventory file (%s) is not a valid "
+                      "json." % json_path)
                 sys.exit(1)
     except OSError:
         print("Provided terraform inventory file (%s) does not exist." % json_path)
@@ -161,44 +161,72 @@ def initialize_node_details(az_count, cls_type, compute_private_ips,
     """
     node_details, node = [], {}
     if cls_type == 'compute':
+        start_quorum_assign = quorum_count - 1
         for each_ip in compute_private_ips:
-            if compute_private_ips.index(each_ip) == 0:
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                        'is_gui': True, 'is_collector': True, 'is_nsd': False,
-                        'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "computenodegrp"}
-                write_json_file({'compute_cluster_gui_ip_address': each_ip},
-                                "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                                           "compute_cluster_gui_details.json"))
-            elif compute_private_ips.index(each_ip) == 1:
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                        'is_gui': False, 'is_collector': True, 'is_nsd': False,
+            if compute_private_ips.index(each_ip) <= (start_quorum_assign) and \
+                    compute_private_ips.index(each_ip) <= (manager_count - 1):
+                if compute_private_ips.index(each_ip) == 0:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': True, 'is_collector': True, 'is_nsd': False,
+                            'is_admin': True, 'user': user, 'key_file': key_file,
+                            'class': "computenodegrp"}
+                    write_json_file({'compute_cluster_gui_ip_address': each_ip},
+                                    "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                               "compute_cluster_gui_details.json"))
+                elif compute_private_ips.index(each_ip) == 1:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': False, 'is_collector': True, 'is_nsd': False,
+                            'is_admin': False, 'user': user, 'key_file': key_file,
+                            'class': "computenodegrp"}
+                else:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': False, 'is_collector': False, 'is_nsd': False,
+                            'is_admin': False, 'user': user, 'key_file': key_file,
+                            'class': "computenodegrp"}
+            elif compute_private_ips.index(each_ip) <= (start_quorum_assign) and \
+                    compute_private_ips.index(each_ip) > (manager_count - 1):
+                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp"}
             else:
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp"}
             node_details.append(get_host_format(node))
     elif cls_type == 'storage' and az_count == 1:
+        start_quorum_assign = quorum_count - 1
         for each_ip in storage_private_ips:
-            if storage_private_ips.index(each_ip) == 0:
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                        'is_gui': True, 'is_collector': True, 'is_nsd': True,
-                        'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp"}
-                write_json_file({'storage_cluster_gui_ip_address': each_ip},
-                                "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                                           "storage_cluster_gui_details.json"))
-            elif storage_private_ips.index(each_ip) == 1:
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                        'is_gui': False, 'is_collector': True, 'is_nsd': True,
+            if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
+                    storage_private_ips.index(each_ip) <= (manager_count - 1):
+                if storage_private_ips.index(each_ip) == 0:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': True, 'is_collector': True, 'is_nsd': True,
+                            'is_admin': True, 'user': user, 'key_file': key_file,
+                            'class': "storagenodegrp"}
+                    write_json_file({'storage_cluster_gui_ip_address': each_ip},
+                                    "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                               "storage_cluster_gui_details.json"))
+                elif storage_private_ips.index(each_ip) == 1:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': False, 'is_collector': True, 'is_nsd': True,
+                            'is_admin': False, 'user': user, 'key_file': key_file,
+                            'class': "storagenodegrp"}
+                else:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+                            'is_gui': False, 'is_collector': True, 'is_nsd': True,
+                            'is_admin': False, 'user': user, 'key_file': key_file,
+                            'class': "storagenodegrp"}
+            elif storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
+                    storage_private_ips.index(each_ip) > (manager_count - 1):
+                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "storagenodegrp"}
             else:
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                        'is_gui': False, 'is_collector': True, 'is_nsd': True,
+                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "storagenodegrp"}
             node_details.append(get_host_format(node))
