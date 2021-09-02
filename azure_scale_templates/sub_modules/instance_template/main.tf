@@ -9,6 +9,8 @@
 locals {
   data_disk_device_names = ["/dev/sdc", "/dev/sdd", "/dev/sde", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk"]
+  gpfs_base_rpm_path = fileset(var.spectrumscale_rpms_path, "gpfs.base-*")
+  scale_version      = regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0]
 }
 
 module "generate_compute_cluster_keys" {
@@ -111,7 +113,7 @@ module "write_compute_cluster_inventory" {
   resource_prefix                           = jsonencode(var.resource_prefix)
   vpc_region                                = jsonencode(var.vnet_location)
   vpc_availability_zones                    = jsonencode(var.vnet_availability_zones)
-  scale_version                             = jsonencode(var.scale_version)
+  scale_version                             = jsonencode(local.scale_version)
   filesystem_block_size                     = jsonencode("None")
   compute_cluster_filesystem_mountpoint     = jsonencode(var.compute_cluster_filesystem_mountpoint)
   bastion_instance_id                       = var.ansible_jump_host_id == null ? jsonencode("None") : jsonencode(var.ansible_jump_host_id)
@@ -136,7 +138,7 @@ module "write_storage_cluster_inventory" {
   resource_prefix                           = jsonencode(var.resource_prefix)
   vpc_region                                = jsonencode(var.vnet_location)
   vpc_availability_zones                    = jsonencode(var.vnet_availability_zones)
-  scale_version                             = jsonencode(var.scale_version)
+  scale_version                             = jsonencode(local.scale_version)
   filesystem_block_size                     = jsonencode(var.filesystem_block_size)
   compute_cluster_filesystem_mountpoint     = jsonencode("None")
   bastion_instance_id                       = var.ansible_jump_host_id == null ? jsonencode("None") : jsonencode(var.ansible_jump_host_id)
@@ -161,7 +163,7 @@ module "write_cluster_inventory" {
   resource_prefix                           = jsonencode(var.resource_prefix)
   vpc_region                                = jsonencode(var.vnet_location)
   vpc_availability_zones                    = jsonencode(var.vnet_availability_zones)
-  scale_version                             = jsonencode(var.scale_version)
+  scale_version                             = jsonencode(local.scale_version)
   filesystem_block_size                     = jsonencode(var.filesystem_block_size)
   compute_cluster_filesystem_mountpoint     = jsonencode("None")
   bastion_instance_id                       = var.ansible_jump_host_id == null ? jsonencode("None") : jsonencode(var.ansible_jump_host_id)
@@ -192,7 +194,7 @@ module "compute_cluster_configuration" {
   bastion_instance_public_ip   = var.ansible_jump_host_public_ip
   bastion_ssh_private_key      = var.ansible_jump_host_ssh_private_key
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
-  scale_version                = var.scale_version
+  scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 
@@ -211,7 +213,7 @@ module "storage_cluster_configuration" {
   bastion_instance_public_ip   = var.ansible_jump_host_public_ip
   bastion_ssh_private_key      = var.ansible_jump_host_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
-  scale_version                = var.scale_version
+  scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 
@@ -230,7 +232,7 @@ module "combined_cluster_configuration" {
   bastion_instance_public_ip   = var.ansible_jump_host_public_ip
   bastion_ssh_private_key      = var.ansible_jump_host_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
-  scale_version                = var.scale_version
+  scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 

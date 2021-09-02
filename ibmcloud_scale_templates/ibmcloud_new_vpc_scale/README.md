@@ -22,7 +22,6 @@ The following steps will provision IBM Cloud resources (new vpc, bastion, comput
         "compute_cluster_gui_username": "admin",
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_key_pair": null,               // Use an existing key pair
-        "scale_version": "5.1.1.0",
         "storage_cluster_key_pair": null,               // Use an existing key pair
         "storage_cluster_gui_username": "admin",
         "storage_cluster_gui_password": "Passw0rd",
@@ -56,7 +55,6 @@ The following steps will provision IBM Cloud resources (new vpc, bastion, comput
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
 | <a name="input_compute_cluster_key_pair"></a> [compute_cluster_key_pair](#input_compute_cluster_key_pair) | The key pair to use to launch the compute cluster host. | `string` |
 | <a name="input_resource_group"></a> [resource_group](#input_resource_group) | IBM Cloud resource group name. | `string` |
-| <a name="input_scale_version"></a> [scale_version](#input_scale_version) | IBM Spectrum Scale version. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | The key pair to use to launch the storage cluster host. | `string` |

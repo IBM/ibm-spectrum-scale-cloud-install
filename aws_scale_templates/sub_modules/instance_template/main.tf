@@ -9,7 +9,7 @@
 locals {
   ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
   "/dev/xvdk", "/dev/xvdl", "/dev/xvdm", "/dev/xvdn", "/dev/xvdo", "/dev/xvdp", "/dev/xvdq", "/dev/xvdr", "/dev/xvds", "/dev/xvdt"]
-  gpfs_base_rpm_path = fileset("/opt/IBM/gpfs_cloud_rpms", "gpfs.base-*")
+  gpfs_base_rpm_path = fileset(var.spectrumscale_rpms_path, "gpfs.base-*")
   scale_version      = regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0]
 }
 

@@ -63,7 +63,6 @@ The following steps will provision AWS resources (compute and storage instances 
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": null,                          // Email address for notification
-        "scale_version": "5.1.1.0",
         "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
@@ -94,7 +93,6 @@ The following steps will provision AWS resources (compute and storage instances 
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
-        "scale_version": "5.1.1.0",
         "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
@@ -126,7 +124,6 @@ The following steps will provision AWS resources (compute and storage instances 
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
-        "scale_version": "5.1.1.0",
         "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                 // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                 // Use an existing AWS EC2 key pair
@@ -154,7 +151,6 @@ The following steps will provision AWS resources (compute and storage instances 
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
-        "scale_version": "5.1.1.0",
         "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
@@ -183,7 +179,6 @@ The following steps will provision AWS resources (compute and storage instances 
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
-        "scale_version": "5.1.1.0",
         "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "compute_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
         "storage_cluster_key_pair": null,                // Use an existing AWS EC2 key pair
@@ -213,7 +208,6 @@ The following steps will provision AWS resources (compute and storage instances 
         "compute_cluster_gui_password": "Passw0rd",
         "compute_cluster_gui_username": "admin",
         "operator_email": "sasikanth.eda@in.ibm.com",
-        "scale_version": "5.1.1.0",
         "storage_cluster_image_id": "ami-0b0af3577fe5e3532",
         "storage_cluster_key_pair": null,
         "bastion_ssh_private_key": null,                 [[** Use bastion ssh private key path **]]

@@ -183,11 +183,6 @@ variable "filesystem_block_size" {
   description = "Filesystem block size."
 }
 
-variable "scale_version" {
-  type        = string
-  description = "IBM Spectrum Scale version."
-}
-
 variable "create_separate_namespaces" {
   type        = bool
   default     = true

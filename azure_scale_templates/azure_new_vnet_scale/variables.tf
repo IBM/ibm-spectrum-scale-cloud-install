@@ -235,11 +235,6 @@ variable "scale_ansible_repo_clone_path" {
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
 
-variable "scale_version" {
-  type        = string
-  description = "IBM Spectrum Scale version."
-}
-
 variable "compute_cluster_filesystem_mountpoint" {
   type        = string
   default     = "/gpfs/fs1"
