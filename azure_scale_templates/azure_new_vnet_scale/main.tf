@@ -103,7 +103,6 @@ module "scale_instances" {
   data_disk_size                          = var.data_disk_size
   data_disk_storage_account_type          = var.data_disk_storage_account_type
   scale_ansible_repo_clone_path           = var.scale_ansible_repo_clone_path
-  scale_version                           = var.scale_version
   compute_cluster_filesystem_mountpoint   = var.compute_cluster_filesystem_mountpoint
   using_direct_connection                 = var.using_direct_connection
   using_packer_image                      = var.using_packer_image
