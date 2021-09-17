@@ -59,6 +59,7 @@ module "scale_instances" {
   storage_cluster_gui_username          = var.storage_cluster_gui_username
   storage_cluster_gui_password          = var.storage_cluster_gui_password
   using_packer_image                    = var.using_packer_image
+  using_rest_api_remote_mount           = var.using_rest_api_remote_mount
   scale_ansible_repo_clone_path         = var.scale_ansible_repo_clone_path
   spectrumscale_rpms_path               = var.spectrumscale_rpms_path
   storage_cluster_filesystem_mountpoint = var.storage_cluster_filesystem_mountpoint
