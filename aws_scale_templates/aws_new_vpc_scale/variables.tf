@@ -109,6 +109,12 @@ variable "compute_cluster_instance_type" {
   description = "Instance type to use for provisioning the compute cluster instances."
 }
 
+variable "using_rest_api_remote_mount" {
+  type        = string
+  default     = true
+  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
+}
+
 variable "compute_cluster_root_volume_type" {
   type        = string
   default     = "gp2"

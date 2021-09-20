@@ -99,7 +99,6 @@ func TestAwsVpc1AzwhBastionRemote(t *testing.T) {
 			"storage_cluster_gui_username": "admin",
 			"storage_cluster_gui_password": "Passw0rd",
 			"operator_email":               "sasikanth.eda@in.ibm.com",
-			"scale_version":                "5.1.1.0",
 		},
 	})
 

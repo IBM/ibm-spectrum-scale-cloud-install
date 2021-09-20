@@ -121,6 +121,12 @@ variable "compute_cluster_vm_size" {
   description = "Instance type to use for provisioning the compute cluster instances."
 }
 
+variable "using_rest_api_remote_mount" {
+  type        = string
+  default     = true
+  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
+}
+
 variable "storage_cluster_vm_size" {
   type        = string
   default     = "Standard_A2_v2"

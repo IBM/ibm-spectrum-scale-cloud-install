@@ -59,6 +59,7 @@ module "scale_instances" {
   storage_cluster_gui_username             = var.storage_cluster_gui_username
   storage_cluster_gui_password             = var.storage_cluster_gui_password
   using_packer_image                       = var.using_packer_image
+  using_rest_api_remote_mount              = var.using_rest_api_remote_mount
   ebs_block_devices_per_storage_instance   = var.ebs_block_devices_per_storage_instance
   ebs_block_device_delete_on_termination   = var.ebs_block_device_delete_on_termination
   ebs_block_device_encrypted               = var.ebs_block_device_encrypted
