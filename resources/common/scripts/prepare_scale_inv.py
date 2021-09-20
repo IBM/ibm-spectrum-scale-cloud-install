@@ -122,6 +122,36 @@ def prepare_packer_ansible_playbook(hosts_config, cluster_config):
     return content
 
 
+def prepare_nogui_ansible_playbook(hosts_config, cluster_config):
+    """ Write to playbook """
+    content = """---
+# Install and config Spectrum Scale on nodes
+- hosts: {hosts_config}
+  any_errors_fatal: true
+  pre_tasks:
+     - include_vars: group_vars/{cluster_config}
+  roles:
+     - core/precheck
+     - core/node
+     - core/cluster
+""".format(hosts_config=hosts_config, cluster_config=cluster_config)
+    return content
+
+
+def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
+    """ Write to playbook """
+    content = """---
+# Install and config Spectrum Scale on nodes
+- hosts: {hosts_config}
+  any_errors_fatal: true
+  pre_tasks:
+     - include_vars: group_vars/{cluster_config}
+  roles:
+     - core/cluster
+""".format(hosts_config=hosts_config, cluster_config=cluster_config)
+    return content
+
+
 def initialize_cluster_details(scale_version, cluster_name, username,
                                password, scale_profile_path,
                                scale_replica_config):
@@ -468,6 +498,8 @@ if __name__ == "__main__":
                         help='Bastion SSH private key path')
     PARSER.add_argument('--memory_size', help='Instance memory size')
     PARSER.add_argument('--using_packer_image', help='skips gpfs rpm copy')
+    PARSER.add_argument('--using_rest_initialization',
+                        help='skips gui configuration')
     PARSER.add_argument('--gui_username', required=True,
                         help='Spectrum Scale GUI username')
     PARSER.add_argument('--gui_password', required=True,
@@ -606,14 +638,26 @@ if __name__ == "__main__":
         print("Total quorum count: ", quorum_count)
 
     # Step-4: Create playbook
-    if ARGUMENTS.using_packer_image == "false":
+    if ARGUMENTS.using_packer_image == "false" and ARGUMENTS.using_rest_initialization == "true":
         playbook_content = prepare_ansible_playbook(
             "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
         write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                          "ibm-spectrum-scale-install-infra",
                                                          cluster_type), playbook_content)
-    else:
+    elif ARGUMENTS.using_packer_image == "true" and ARGUMENTS.using_rest_initialization == "true":
         playbook_content = prepare_packer_ansible_playbook(
+            "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
+        write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                         "ibm-spectrum-scale-install-infra",
+                                                         cluster_type), playbook_content)
+    elif ARGUMENTS.using_packer_image == "false" and ARGUMENTS.using_rest_initialization == "false":
+        playbook_content = prepare_nogui_ansible_playbook(
+            "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
+        write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                         "ibm-spectrum-scale-install-infra",
+                                                         cluster_type), playbook_content)
+    elif ARGUMENTS.using_packer_image == "true" and ARGUMENTS.using_rest_initialization == "false":
+        playbook_content = prepare_nogui_packer_ansible_playbook(
             "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
         write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                          "ibm-spectrum-scale-install-infra",

@@ -89,6 +89,12 @@ variable "compute_vsi_profile" {
   description = "Profile to be used for compute cluster virtual server instance."
 }
 
+variable "using_rest_api_remote_mount" {
+  type        = string
+  default     = true
+  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
+}
+
 variable "compute_cluster_gui_username" {
   type        = string
   sensitive   = true

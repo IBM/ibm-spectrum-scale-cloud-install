@@ -56,6 +56,10 @@ def write_to_file(filepath, filecontent):
 
 def prepare_remote_mount_playbook(hosts_config, mount_details):
     """ Write to playbook """
+    if ARGUMENTS.using_rest_initialization == "true":
+        no_gui = False
+    else:
+        no_gui = True
     content = """---
 # Config remote mount
 - hosts: {hosts_config}
@@ -65,6 +69,7 @@ def prepare_remote_mount_playbook(hosts_config, mount_details):
     - scale_remotemount_client_gui_hostname: {compute_gui_ip}
     - scale_remotemount_client_remotemount_path: {compute_fs_mount_path}
     - scale_remotemount_client_filesystem_name: {compute_fs_name}
+    - scale_remotemount_client_no_gui: {compute_gui_state}
     - scale_remotemount_storage_gui_username: {storage_gui_username}
     - scale_remotemount_storage_gui_password: {storage_gui_password}
     - scale_remotemount_storage_gui_hostname: {storage_gui_ip}
@@ -78,6 +83,7 @@ def prepare_remote_mount_playbook(hosts_config, mount_details):
            compute_gui_ip=mount_details['compute_gui_ip'],
            compute_fs_mount_path=mount_details['compute_fs_mnt'],
            compute_fs_name=mount_details['compute_fs_name'],
+           compute_gui_state=no_gui,
            storage_gui_username=mount_details['storage_gui_username'],
            storage_gui_password=mount_details['storage_gui_password'],
            storage_gui_ip=mount_details['storage_gui_ip'],
@@ -119,6 +125,8 @@ if __name__ == "__main__":
                         help='Spectrum Scale install infra clone parent path')
     PARSER.add_argument('--instance_private_key', required=True,
                         help='Spectrum Scale instances SSH private key path')
+    PARSER.add_argument('--using_rest_initialization',
+                        help='skips gui configuration')
     PARSER.add_argument('--bastion_ip',
                         help='Bastion SSH public ip address')
     PARSER.add_argument('--bastion_ssh_private_key',
@@ -177,7 +185,7 @@ if __name__ == "__main__":
 
     # Step-4: Create hosts
     config = configparser.ConfigParser(allow_no_value=True)
-    node_details = initialize_node_details(STRG_GUI['storage_cluster_gui_ip_address'],
+    node_details = initialize_node_details(COMP_GUI['compute_cluster_gui_ip_address'],
                                            "root", ARGUMENTS.instance_private_key)
     node_template = ""
     for each_entry in node_details:

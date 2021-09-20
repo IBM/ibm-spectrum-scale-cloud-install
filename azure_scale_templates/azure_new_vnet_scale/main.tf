@@ -106,6 +106,7 @@ module "scale_instances" {
   compute_cluster_filesystem_mountpoint   = var.compute_cluster_filesystem_mountpoint
   using_direct_connection                 = var.using_direct_connection
   using_packer_image                      = var.using_packer_image
+  using_rest_api_remote_mount             = var.using_rest_api_remote_mount
   spectrumscale_rpms_path                 = var.spectrumscale_rpms_path
   ansible_jump_host_public_ip             = module.ansible_jump_host.ansible_jump_host_public_ip
   ansible_jump_host_ssh_private_key       = var.ansible_jump_host_ssh_private_key
