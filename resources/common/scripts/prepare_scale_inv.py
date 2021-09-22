@@ -283,6 +283,9 @@ def initialize_node_details(az_count, cls_type, compute_private_ips,
                             'is_gui': True, 'is_collector': True, 'is_nsd': True,
                             'is_admin': True, 'user': user, 'key_file': key_file,
                             'class': "storagenodegrp"}
+                    write_json_file({'storage_cluster_gui_ip_address': each_ip},
+                                    "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                               "storage_cluster_gui_details.json"))
                 elif storage_private_ips.index(each_ip) == 1:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': False, 'is_collector': True, 'is_nsd': True,
