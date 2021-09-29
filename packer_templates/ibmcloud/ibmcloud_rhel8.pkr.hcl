@@ -10,4 +10,5 @@ source "ibmcloud-vpc" "itself" {
   communicator        = "ssh"
   ssh_username        = "root"
   ssh_port            = 22
+  timeout             = "25m"
 }
