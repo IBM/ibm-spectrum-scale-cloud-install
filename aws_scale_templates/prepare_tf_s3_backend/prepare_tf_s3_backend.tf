@@ -25,7 +25,7 @@ resource "aws_s3_bucket" "create_bucket" {
 }
 
 resource "aws_dynamodb_table" "db_tf_state_lock" {
-  name           = var.dynamodb_table_name
+  name           = var.dynamodb_table
   hash_key       = "LockID"
   read_capacity  = 20
   write_capacity = 20
@@ -49,6 +49,6 @@ output "bucket_arn" {
 }
 
 output "dynamodb_table_name" {
-  value      = var.dynamodb_table_name
+  value      = var.dynamodb_table
   depends_on = [aws_dynamodb_table.db_tf_state_lock]
 }

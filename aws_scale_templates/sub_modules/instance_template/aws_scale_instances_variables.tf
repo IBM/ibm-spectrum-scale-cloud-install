@@ -219,6 +219,7 @@ variable "filesystem_block_size" {
 
 variable "bastion_public_ip" {
   type        = string
+  default     = null
   description = "Bastion public ip."
 }
 
@@ -236,6 +237,7 @@ variable "private_subnet_cidr" {
 
 variable "instances_ssh_private_key_path" {
   type        = string
+  default     = null
   description = "SSH private key local path, which will be used to login to bastion host."
 }
 
