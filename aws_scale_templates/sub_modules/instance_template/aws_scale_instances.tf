@@ -304,7 +304,7 @@ module "desc_compute_instance" {
   instance_iam_instance_profile          = module.cluster_instance_iam_profile.iam_instance_profile_name
   instance_placement_group               = null
   instance_security_groups               = [module.compute_security_group.sec_group_id[0]]
-  instance_subnet_ids                    = length(var.private_instance_subnet_ids) >= 3 ? list(var.private_instance_subnet_ids[2]) : var.private_instance_subnet_ids
+  instance_subnet_ids                    = length(var.private_instance_subnet_ids) >= 3 ? tolist([var.private_instance_subnet_ids[2]]) : var.private_instance_subnet_ids
   root_volume_type                       = var.compute_root_volume_type
 
   total_ebs_volumes = 1
