@@ -153,12 +153,21 @@ fi
 EOF
 }
 
+data "template_file" "nvme_alias" {
+  template = file("${path.module}/scripts/nvme_alias.sh.tpl")
+}
+
 data "template_cloudinit_config" "user_data64" {
   gzip          = true
   base64_encode = true
   part {
     content_type = "text/x-shellscript"
     content      = data.template_file.user_data.rendered
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = data.template_file.nvme_alias.rendered
   }
 }
 
