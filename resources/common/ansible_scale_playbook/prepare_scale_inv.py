@@ -78,7 +78,7 @@ def initialize_cluster_details(cluster_name, scale_profile_file, scale_replica_c
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_file).stem)
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(pathlib.PurePath(scale_profile_file).parent)
     # To override or enhance NSD discovery
-    nsd_discovery_script_path = '/opt/IBM/ibm-spectrumscale-cloud-deploy/nsddevices'
+    nsd_discovery_script_path = '/opt/nsddevices'
     if os.path.isfile(nsd_discovery_script_path):
         CLUSTER_DEFINITION_JSON['scale_cluster']['scale_user_defined_nsddevices_discovery'] = "True"
         CLUSTER_DEFINITION_JSON['scale_cluster']['scale_user_created_nsddevices_file_path'] = nsd_discovery_script_path
