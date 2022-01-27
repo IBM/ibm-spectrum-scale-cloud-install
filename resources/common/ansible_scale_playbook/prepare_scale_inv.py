@@ -17,6 +17,7 @@ limitations under the License.
 
 import argparse
 import json
+import os
 import pathlib
 import re
 
@@ -76,6 +77,11 @@ def initialize_cluster_details(cluster_name, scale_profile_file, scale_replica_c
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_file).stem)
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(pathlib.PurePath(scale_profile_file).parent)
+    # To override or enhance NSD discovery
+    nsd_discovery_script_path = '/opt/IBM/ibm-spectrumscale-cloud-deploy/nsddevices'
+    if os.path.isfile(nsd_discovery_script_path):
+        CLUSTER_DEFINITION_JSON['scale_cluster']['scale_user_defined_nsddevices_discovery'] = "True"
+        CLUSTER_DEFINITION_JSON['scale_cluster']['scale_user_created_nsddevices_file_path'] = nsd_discovery_script_path
 
 
 def initialize_scale_config_details(node_class, param_key, param_value):
