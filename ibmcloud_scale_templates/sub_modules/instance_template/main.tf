@@ -275,6 +275,7 @@ module "compute_cluster_configuration" {
   turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
+  create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
@@ -295,6 +296,7 @@ module "storage_cluster_configuration" {
   turn_on                      = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
+  create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
@@ -315,6 +317,7 @@ module "combined_cluster_configuration" {
   turn_on                      = var.create_separate_namespaces == false ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
+  create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
@@ -332,6 +335,7 @@ module "combined_cluster_configuration" {
 module "remote_mount_configuration" {
   source                          = "../../../resources/common/remote_mount_configuration"
   turn_on                         = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0 && var.create_separate_namespaces == true) ? true : false
+  create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
   compute_inventory_path          = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   compute_gui_inventory_path      = format("%s/compute_cluster_gui_details.json", var.scale_ansible_repo_clone_path)

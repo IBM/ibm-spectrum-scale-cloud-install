@@ -5,6 +5,7 @@
 variable "turn_on" {}
 variable "clone_complete" {}
 variable "write_inventory_complete" {}
+variable "create_scale_cluster" {}
 variable "clone_path" {}
 variable "inventory_path" {}
 variable "using_packer_image" {}
@@ -99,7 +100,7 @@ resource "time_sleep" "wait_60_seconds" {
 }
 
 resource "null_resource" "perform_scale_deployment" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -f 32 -i ${local.compute_inventory_path} ${local.compute_playbook_path} --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""

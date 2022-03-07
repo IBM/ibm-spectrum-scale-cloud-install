@@ -230,3 +230,9 @@ variable "activity_tracker_plan_type" {
   default     = "lite"
   description = "IBM Cloud activity tracker plan type (Valid: lite, 7-day, 14-day, 30-day, hipaa-30-day)."
 }
+
+variable "create_scale_cluster" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to create scale cluster or not."
+}

@@ -3,6 +3,7 @@
 */
 
 variable "turn_on" {}
+variable "create_scale_cluster" {}
 variable "clone_path" {}
 variable "compute_inventory_path" {}
 variable "compute_gui_inventory_path" {}
@@ -57,7 +58,7 @@ resource "time_sleep" "wait_for_gui_db_initializion" {
 }
 
 resource "null_resource" "perform_scale_deployment" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.compute_cluster_create_complete) == true && tobool(var.storage_cluster_create_complete) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.compute_cluster_create_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -i ${local.remote_mnt_inventory_path} ${local.remote_mnt_playbook_path}"
