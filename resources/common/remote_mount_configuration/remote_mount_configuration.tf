@@ -52,7 +52,7 @@ resource "null_resource" "prepare_remote_mnt_inventory_wo_bastion" {
 }
 
 resource "time_sleep" "wait_for_gui_db_initializion" {
-  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.storage_cluster_create_complete) == true) ? 1 : 0
+  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   create_duration = "180s"
   depends_on      = [null_resource.prepare_remote_mnt_inventory, null_resource.prepare_remote_mnt_inventory_wo_bastion]
 }
