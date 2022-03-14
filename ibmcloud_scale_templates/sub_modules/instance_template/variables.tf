@@ -219,6 +219,12 @@ variable "bastion_ssh_private_key" {
   description = "Bastion SSH private key path, which will be used to login to bastion host."
 }
 
+variable "deploy_controller_sec_group_id" {
+  type        = string
+  default     = null
+  description = "Deployment controller security group id. Default: null"
+}
+
 variable "vpc_create_activity_tracker" {
   type        = bool
   default     = true
