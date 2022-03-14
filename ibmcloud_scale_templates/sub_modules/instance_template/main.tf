@@ -50,9 +50,17 @@ module "compute_cluster_ingress_security_rule" {
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
 }
 
+module "compute_cluster_ingress_security_rule_wt_bastion" {
+  source                   = "../../../resources/ibmcloud/security/security_rule_source"
+  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_direct_connection == true && var.deploy_controller_sec_group_id != null) ? 3 : 0
+  security_group_id        = [module.compute_cluster_security_group.sec_group_id]
+  sg_direction             = ["inbound"]
+  source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
+}
+
 module "compute_cluster_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_direct_connection == true) ? 2 : 0
+  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_direct_connection == true && var.deploy_controller_sec_group_id == null) ? 2 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
@@ -90,9 +98,17 @@ module "storage_cluster_ingress_security_rule" {
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
 }
 
+module "storage_cluster_ingress_security_rule_wt_bastion" {
+  source                   = "../../../resources/ibmcloud/security/security_rule_source"
+  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == true && var.deploy_controller_sec_group_id != null) ? 3 : 0
+  security_group_id        = [module.storage_cluster_security_group.sec_group_id]
+  sg_direction             = ["inbound"]
+  source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
+}
+
 module "storage_cluster_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == true) ? 2 : 0
+  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == true && var.deploy_controller_sec_group_id == null) ? 2 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
