@@ -219,6 +219,12 @@ variable "bastion_ssh_private_key" {
   description = "Bastion SSH private key path, which will be used to login to bastion host."
 }
 
+variable "deploy_controller_sec_group_id" {
+  type        = string
+  default     = null
+  description = "Deployment controller security group id. Default: null"
+}
+
 variable "vpc_create_activity_tracker" {
   type        = bool
   default     = true
@@ -229,4 +235,10 @@ variable "activity_tracker_plan_type" {
   type        = string
   default     = "lite"
   description = "IBM Cloud activity tracker plan type (Valid: lite, 7-day, 14-day, 30-day, hipaa-30-day)."
+}
+
+variable "create_scale_cluster" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to create scale cluster or not."
 }
