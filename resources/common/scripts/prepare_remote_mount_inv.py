@@ -67,13 +67,12 @@ def prepare_remote_mount_playbook(hosts_config, mount_details):
     - scale_remotemount_client_gui_username: {compute_gui_username}
     - scale_remotemount_client_gui_password: {compute_gui_password}
     - scale_remotemount_client_gui_hostname: {compute_gui_ip}
-    - scale_remotemount_client_remotemount_path: {compute_fs_mount_path}
-    - scale_remotemount_client_filesystem_name: {compute_fs_name}
     - scale_remotemount_client_no_gui: {compute_gui_state}
     - scale_remotemount_storage_gui_username: {storage_gui_username}
     - scale_remotemount_storage_gui_password: {storage_gui_password}
     - scale_remotemount_storage_gui_hostname: {storage_gui_ip}
-    - scale_remotemount_storage_filesystem_name: {storage_fs_name}
+    - scale_remotemount_filesystem_name:
+        - {{ scale_remotemount_client_filesystem_name: {compute_fs_name}, scale_remotemount_client_remotemount_path: {compute_fs_mount_path}, scale_remotemount_storage_filesystem_name: {storage_fs_name} }}
   pre_tasks:
   roles:
     - remote_mount
@@ -81,12 +80,12 @@ def prepare_remote_mount_playbook(hosts_config, mount_details):
            compute_gui_username=mount_details['compute_gui_username'],
            compute_gui_password=mount_details['compute_gui_password'],
            compute_gui_ip=mount_details['compute_gui_ip'],
-           compute_fs_mount_path=mount_details['compute_fs_mnt'],
-           compute_fs_name=mount_details['compute_fs_name'],
            compute_gui_state=no_gui,
            storage_gui_username=mount_details['storage_gui_username'],
            storage_gui_password=mount_details['storage_gui_password'],
            storage_gui_ip=mount_details['storage_gui_ip'],
+           compute_fs_mount_path=mount_details['compute_fs_mnt'],
+           compute_fs_name=mount_details['compute_fs_name'],
            storage_fs_name=mount_details['storage_fs_name'])
     return content
 
