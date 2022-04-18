@@ -25,6 +25,7 @@ variable "vsi_user_public_key" {}
 variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
+variable "resource_tags" {}
 
 data "ibm_is_instance_profile" "itself" {
   name = var.vsi_profile
@@ -93,6 +94,7 @@ resource "ibm_is_instance" "itself" {
   name    = format("%s-%s", var.vsi_name_prefix, each.value.sequence_string)
   image   = var.vsi_image_id
   profile = var.vsi_profile
+  tags    = var.resource_tags
 
   primary_network_interface {
     subnet          = each.value.subnet_id

@@ -27,6 +27,7 @@ module "deploy_security_group" {
   sec_group_name        = ["Deploy-Sec-group"]
   vpc_id                = var.vpc_id
   resource_group_id     = var.resource_group_id
+  resource_tags         = var.scale_cluster_resource_tags
 }
 
 locals {
@@ -39,6 +40,7 @@ module "compute_cluster_security_group" {
   sec_group_name    = [format("%s-compute-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
+  resource_tags     = var.scale_cluster_resource_tags
 }
 
 # FIXME - Fine grain port inbound is needed, but hits limitation of 5 rules
@@ -88,6 +90,7 @@ module "storage_cluster_security_group" {
   sec_group_name    = [format("%s-storage-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
+  resource_tags     = var.scale_cluster_resource_tags
 }
 
 module "storage_cluster_ingress_security_rule" {
@@ -152,6 +155,7 @@ module "compute_cluster_instances" {
   vsi_meta_private_key = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.compute_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
+  resource_tags        = var.scale_cluster_resource_tags
 }
 
 data "ibm_is_instance_profile" "storage_profile" {
@@ -184,6 +188,7 @@ module "storage_cluster_instances" {
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
+  resource_tags        = var.scale_cluster_resource_tags
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -204,6 +209,7 @@ module "storage_cluster_tie_breaker_instance" {
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
+  resource_tags        = var.scale_cluster_resource_tags
 }
 
 module "activity_tracker" {
@@ -214,6 +220,7 @@ module "activity_tracker" {
   service_name           = "logdnaat"
   plan_type              = var.activity_tracker_plan_type
   target_location        = var.vpc_region
+  resource_tags          = var.scale_cluster_resource_tags
 }
 
 module "prepare_ansible_configuration" {

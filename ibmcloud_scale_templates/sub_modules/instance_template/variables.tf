@@ -242,3 +242,9 @@ variable "create_scale_cluster" {
   default     = false
   description = "Flag to represent whether to create scale cluster or not."
 }
+
+variable "scale_cluster_resource_tags" {
+  type        = list(string)
+  default     = null
+  description = "A list of tags for resources created for scale cluster."
+}

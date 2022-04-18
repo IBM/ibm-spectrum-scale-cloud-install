@@ -16,6 +16,7 @@ variable "target_location" {}
 variable "service_name" {}
 variable "plan_type" {}
 variable "resource_group_id" {}
+variable "resource_tags" {}
 
 resource "ibm_resource_instance" "itself" {
   count             = var.service_count
@@ -24,6 +25,7 @@ resource "ibm_resource_instance" "itself" {
   location          = var.target_location
   service           = var.service_name
   plan              = var.plan_type
+  tags              = var.resource_tags
 }
 
 output "resource_guid" {
