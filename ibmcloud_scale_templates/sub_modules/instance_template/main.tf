@@ -11,6 +11,11 @@ locals {
   scale_version      = regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0]
 }
 
+locals {
+  compute_instance_image_id = var.compute_vsi_osimage_id != "" ? var.compute_vsi_osimage_id : data.ibm_is_image.compute_instance_image.id
+  storage_instance_image_id = var.storage_vsi_osimage_id != "" ? var.storage_vsi_osimage_id : data.ibm_is_image.storage_instance_image.id
+}
+
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
   turn_on = var.total_compute_cluster_instances > 0 ? true : false
@@ -141,7 +146,7 @@ module "compute_cluster_instances" {
   vpc_id               = var.vpc_id
   resource_group_id    = var.resource_group_id
   zones                = [var.vpc_availability_zones[0]]
-  vsi_image_id         = data.ibm_is_image.compute_instance_image.id
+  vsi_image_id         = local.compute_instance_image_id
   vsi_profile          = var.compute_vsi_profile
   dns_domain           = var.vpc_compute_cluster_dns_domain
   dns_service_id       = var.vpc_compute_cluster_dns_service_id
@@ -173,7 +178,7 @@ module "storage_cluster_instances" {
   vpc_id               = var.vpc_id
   resource_group_id    = var.resource_group_id
   zones                = [var.vpc_availability_zones[0]]
-  vsi_image_id         = data.ibm_is_image.storage_instance_image.id
+  vsi_image_id         = local.storage_instance_image_id
   vsi_profile          = var.storage_vsi_profile
   dns_domain           = var.vpc_storage_cluster_dns_domain
   dns_service_id       = var.vpc_storage_cluster_dns_service_id
