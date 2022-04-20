@@ -35,16 +35,21 @@ resource "local_file" "create_storage_tuning_parameters" {
   count    = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
   content  = <<EOT
 %cluster:
- maxblocksize=16M
+ numaMemoryInterleave=yes
+ ignorePrefetchLUNCount=yes
+ workerThreads=1024
  restripeOnDiskFailure=yes
  unmountOnDiskFail=meta
  readReplicaPolicy=local
- workerThreads=128
- maxStatCache=0
- maxFilesToCache=64k
- ignorePrefetchLUNCount=yes
- prefetchaggressivenesswrite=0
- prefetchaggressivenessread=2
+ nsdSmallThreadRatio=2
+ nsdThreadsPerQueue=16
+ nsdbufspace=70
+ maxFilesToCache=128K
+ maxStatCache=128K
+ maxblocksize=16M
+ maxMBpS=4000
+ idleSocketTimeout=0
+ minMissedPingTimeout=60
  autoload=yes
 EOT
   filename = local.scale_tuning_config_path
