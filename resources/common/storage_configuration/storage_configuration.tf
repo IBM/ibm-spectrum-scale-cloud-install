@@ -14,6 +14,7 @@ variable "using_rest_initialization" {}
 variable "storage_cluster_gui_username" {}
 variable "storage_cluster_gui_password" {}
 variable "memory_size" {}
+variable "vcpu_count" {}
 variable "bastion_instance_public_ip" {}
 variable "bastion_ssh_private_key" {}
 variable "meta_private_key" {}
@@ -48,6 +49,7 @@ resource "local_file" "create_storage_tuning_parameters" {
  maxStatCache=128K
  maxblocksize=16M
  maxMBpS=4000
+ maxReceiverThreads=${var.vcpu_count}
  idleSocketTimeout=0
  minMissedPingTimeout=60
  autoload=yes
