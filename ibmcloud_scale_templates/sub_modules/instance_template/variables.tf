@@ -242,3 +242,15 @@ variable "create_scale_cluster" {
   default     = false
   description = "Flag to represent whether to create scale cluster or not."
 }
+
+variable "compute_vsi_osimage_id" {
+  type = string
+  default = ""
+  description = "Image id to use for provisioning the compute cluster instances."
+}
+
+variable "storage_vsi_osimage_id" {
+  type = string
+  default = ""
+  description = "Image id to use for provisioning the storage cluster instances."
+}
