@@ -30,10 +30,46 @@ variable "resource_tags" {}
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
+
+exec > >(tee /var/log/ibm_spectrumscale_user-data.log)
 if grep -q "Red Hat" /etc/os-release
 then
     USER=vpcuser
-    yum install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+    REQ_PKG_INSTALLED=0
+    if grep -q "platform:el8" /etc/os-release
+    then
+        PACKAGE_MGR=dnf
+    else
+        PACKAGE_MGR=yum
+    fi
+
+    RETRY_LIMIT=5
+    retry_count=0
+    pkg_installed=1
+
+    while [[ $pkg_installed -ne 0 && $retry_count -lt $RETRY_LIMIT ]]
+    do
+        # Install all required packages
+        echo "INFO: Attempting to install packages"
+        $PACKAGE_MGR install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+
+        # Check to ensure packages are installed
+        pkg_query=$($PACKAGE_MGR list installed jq)
+        pkg_installed=$?
+        if [[ $pkg_installed -ne 0 ]]
+        then
+            # The minimum required packages have not been installed.
+            echo "WARN: Required packages not installed. Sleeping for 60 seconds and retrying..."
+            sleep 60
+            touch /var/log/scale-rerun-package-install
+
+            echo "INFO: Cleaning and repopulating repository data"
+            $PACKAGE_MGR clean all
+            $PACKAGE_MGR makecache
+        fi
+        retry_count=$(( $retry_count+1 ))
+    done
+
 elif grep -q "Ubuntu" /etc/os-release
 then
     USER=ubuntu

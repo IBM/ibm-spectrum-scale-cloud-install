@@ -154,7 +154,7 @@ module "compute_cluster_instances" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.compute_ssh_key.id]
   vsi_meta_private_key = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.compute_cluster_ingress_security_rule, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
+  depends_on           = [module.compute_cluster_ingress_security_rule, module.compute_cluster_ingress_security_rule_wt_bastion, module.compute_cluster_ingress_security_rule_wo_bastion, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags        = var.scale_cluster_resource_tags
 }
 
@@ -187,7 +187,7 @@ module "storage_cluster_instances" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
+  depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags        = var.scale_cluster_resource_tags
 }
 
@@ -208,7 +208,7 @@ module "storage_cluster_tie_breaker_instance" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
+  depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags        = var.scale_cluster_resource_tags
 }
 
