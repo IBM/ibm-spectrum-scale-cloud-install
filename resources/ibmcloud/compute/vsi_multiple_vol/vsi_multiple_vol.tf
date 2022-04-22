@@ -162,6 +162,7 @@ resource "ibm_dns_resource_record" "a_itself" {
   name        = each.value.name
   rdata       = each.value.network_ip
   ttl         = 300
+  depends_on  = [ibm_is_instance.itself]
 }
 
 resource "ibm_dns_resource_record" "ptr_itself" {
