@@ -248,3 +248,15 @@ variable "scale_cluster_resource_tags" {
   default     = null
   description = "A list of tags for resources created for scale cluster."
 }
+
+variable "compute_vsi_osimage_id" {
+  type = string
+  default = ""
+  description = "Image id to use for provisioning the compute cluster instances."
+}
+
+variable "storage_vsi_osimage_id" {
+  type = string
+  default = ""
+  description = "Image id to use for provisioning the storage cluster instances."
+}
