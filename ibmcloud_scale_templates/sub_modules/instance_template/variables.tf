@@ -243,6 +243,12 @@ variable "create_scale_cluster" {
   description = "Flag to represent whether to create scale cluster or not."
 }
 
+variable "scale_cluster_resource_tags" {
+  type        = list(string)
+  default     = null
+  description = "A list of tags for resources created for scale cluster."
+}
+
 variable "compute_vsi_osimage_id" {
   type = string
   default = ""

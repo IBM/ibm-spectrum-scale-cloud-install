@@ -32,6 +32,7 @@ module "deploy_security_group" {
   sec_group_name        = ["Deploy-Sec-group"]
   vpc_id                = var.vpc_id
   resource_group_id     = var.resource_group_id
+  resource_tags         = var.scale_cluster_resource_tags
 }
 
 locals {
@@ -44,6 +45,7 @@ module "compute_cluster_security_group" {
   sec_group_name    = [format("%s-compute-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
+  resource_tags     = var.scale_cluster_resource_tags
 }
 
 # FIXME - Fine grain port inbound is needed, but hits limitation of 5 rules
@@ -93,6 +95,7 @@ module "storage_cluster_security_group" {
   sec_group_name    = [format("%s-storage-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
+  resource_tags     = var.scale_cluster_resource_tags
 }
 
 module "storage_cluster_ingress_security_rule" {
@@ -157,7 +160,8 @@ module "compute_cluster_instances" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.compute_ssh_key.id]
   vsi_meta_private_key = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.compute_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
+  depends_on           = [module.compute_cluster_ingress_security_rule, module.compute_cluster_ingress_security_rule_wt_bastion, module.compute_cluster_ingress_security_rule_wo_bastion, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
+  resource_tags        = var.scale_cluster_resource_tags
 }
 
 data "ibm_is_instance_profile" "storage_profile" {
@@ -190,7 +194,8 @@ module "storage_cluster_instances" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
+  depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
+  resource_tags        = var.scale_cluster_resource_tags
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -210,7 +215,8 @@ module "storage_cluster_tie_breaker_instance" {
   vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
+  depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
+  resource_tags        = var.scale_cluster_resource_tags
 }
 
 module "activity_tracker" {
@@ -221,6 +227,7 @@ module "activity_tracker" {
   service_name           = "logdnaat"
   plan_type              = var.activity_tracker_plan_type
   target_location        = var.vpc_region
+  resource_tags          = var.scale_cluster_resource_tags
 }
 
 module "prepare_ansible_configuration" {
@@ -340,6 +347,7 @@ module "storage_cluster_configuration" {
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = data.ibm_is_instance_profile.storage_profile.memory[0].value
+  vcpu_count                   = data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content

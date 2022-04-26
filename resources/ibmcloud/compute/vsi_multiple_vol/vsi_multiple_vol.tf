@@ -25,6 +25,7 @@ variable "vsi_user_public_key" {}
 variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
+variable "resource_tags" {}
 
 data "ibm_is_instance_profile" "itself" {
   name = var.vsi_profile
@@ -33,10 +34,46 @@ data "ibm_is_instance_profile" "itself" {
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
+
+exec > >(tee /var/log/ibm_spectrumscale_user-data.log)
 if grep -q "Red Hat" /etc/os-release
 then
     USER=vpcuser
-    yum install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+    REQ_PKG_INSTALLED=0
+    if grep -q "platform:el8" /etc/os-release
+    then
+        PACKAGE_MGR=dnf
+    else
+        PACKAGE_MGR=yum
+    fi
+
+    RETRY_LIMIT=5
+    retry_count=0
+    pkg_installed=1
+
+    while [[ $pkg_installed -ne 0 && $retry_count -lt $RETRY_LIMIT ]]
+    do
+        # Install all required packages
+        echo "INFO: Attempting to install packages"
+        $PACKAGE_MGR install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+
+        # Check to ensure packages are installed
+        pkg_query=$($PACKAGE_MGR list installed jq)
+        pkg_installed=$?
+        if [[ $pkg_installed -ne 0 ]]
+        then
+            # The minimum required packages have not been installed.
+            echo "WARN: Required packages not installed. Sleeping for 60 seconds and retrying..."
+            sleep 60
+            touch /var/log/scale-rerun-package-install
+
+            echo "INFO: Cleaning and repopulating repository data"
+            $PACKAGE_MGR clean all
+            $PACKAGE_MGR makecache
+        fi
+        retry_count=$(( $retry_count+1 ))
+    done
+
 elif grep -q "Ubuntu" /etc/os-release
 then
     USER=ubuntu
@@ -93,6 +130,7 @@ resource "ibm_is_instance" "itself" {
   name    = format("%s-%s", var.vsi_name_prefix, each.value.sequence_string)
   image   = var.vsi_image_id
   profile = var.vsi_profile
+  tags    = var.resource_tags
 
   primary_network_interface {
     subnet          = each.value.subnet_id
@@ -124,6 +162,7 @@ resource "ibm_dns_resource_record" "a_itself" {
   name        = each.value.name
   rdata       = each.value.network_ip
   ttl         = 300
+  depends_on  = [ibm_is_instance.itself]
 }
 
 resource "ibm_dns_resource_record" "ptr_itself" {
