@@ -80,9 +80,24 @@ def write_to_file(filepath, filecontent):
         file_handler.write(filecontent)
 
 
-def prepare_ansible_playbook(hosts_config, cluster_config):
+def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
     """ Write to playbook """
     content = """---
+# Ensure provisioned VMs are up and Passwordless SSH setup
+# has been compleated and operational
+- name: Check passwordless SSH connection is setup
+  hosts: {hosts_config}
+  any_errors_fatal: true
+  gather_facts: false
+  connection: local
+  tasks:
+  - name: Check passwordless SSH on all scale inventory hosts
+    shell: ssh -i {cluster_key_file} {{{{ inventory_hostname }}}} "echo PASSWDLESS_SSH_ENABLED"
+    register: result
+    until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
+    retries: 60
+    delay: 10
+
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
   any_errors_fatal: true
@@ -100,7 +115,8 @@ def prepare_ansible_playbook(hosts_config, cluster_config):
      - zimon/node
      - zimon/cluster
      - zimon/postcheck
-""".format(hosts_config=hosts_config, cluster_config=cluster_config)
+""".format(hosts_config=hosts_config, cluster_config=cluster_config,
+           cluster_key_file=cluster_key_file)
     return content
 
 
@@ -643,7 +659,8 @@ if __name__ == "__main__":
     # Step-4: Create playbook
     if ARGUMENTS.using_packer_image == "false" and ARGUMENTS.using_rest_initialization == "true":
         playbook_content = prepare_ansible_playbook(
-            "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
+            "scale_nodes", "%s_cluster_config.yaml" % cluster_type,
+            ARGUMENTS.instance_private_key)
         write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                          "ibm-spectrum-scale-install-infra",
                                                          cluster_type), playbook_content)
