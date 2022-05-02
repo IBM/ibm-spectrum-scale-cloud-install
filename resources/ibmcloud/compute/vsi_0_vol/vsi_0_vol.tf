@@ -39,33 +39,40 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
     else
         PACKAGE_MGR=yum
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
     fi
 
     RETRY_LIMIT=5
     retry_count=0
-    pkg_installed=1
+    all_pkg_installed=1
 
-    while [[ $pkg_installed -ne 0 && $retry_count -lt $RETRY_LIMIT ]]
+    while [[ $all_pkg_installed -ne 0 && $retry_count -lt $RETRY_LIMIT ]]
     do
         # Install all required packages
         echo "INFO: Attempting to install packages"
-        $PACKAGE_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+        $PACKAGE_MGR install -y $package_list
 
         # Check to ensure packages are installed
-        pkg_query=$($PACKAGE_MGR list installed jq)
-        pkg_installed=$?
+        pkg_installed=0
+        for pkg in $package_list
+        do
+            pkg_query=$($PACKAGE_MGR list installed $pkg)
+            pkg_installed=$?+$pkg_installed
+        done
         if [[ $pkg_installed -ne 0 ]]
         then
             # The minimum required packages have not been installed.
             echo "WARN: Required packages not installed. Sleeping for 60 seconds and retrying..."
-            sleep 60
             touch /var/log/scale-rerun-package-install
-
             echo "INFO: Cleaning and repopulating repository data"
             $PACKAGE_MGR clean all
             $PACKAGE_MGR makecache
+            sleep 60
+        else
+            all_pkg_installed=0
         fi
         retry_count=$(( $retry_count+1 ))
     done
