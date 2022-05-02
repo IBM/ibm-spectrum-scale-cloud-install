@@ -51,7 +51,7 @@ then
     do
         # Install all required packages
         echo "INFO: Attempting to install packages"
-        $PACKAGE_MGR install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+        $PACKAGE_MGR install -y python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 
         # Check to ensure packages are installed
         pkg_query=$($PACKAGE_MGR list installed jq)
