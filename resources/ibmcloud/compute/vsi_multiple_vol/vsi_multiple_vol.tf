@@ -64,7 +64,7 @@ then
         for pkg in $package_list
         do
             pkg_query=$($PACKAGE_MGR list installed $pkg)
-            pkg_installed=$?+$pkg_installed
+            pkg_installed=$(($? + $pkg_installed))
         done
         if [[ $pkg_installed -ne 0 ]]
         then
