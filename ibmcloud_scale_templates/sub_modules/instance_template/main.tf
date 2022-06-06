@@ -325,7 +325,7 @@ module "compute_cluster_configuration" {
   using_rest_initialization    = var.using_rest_api_remote_mount
   compute_cluster_gui_username = var.compute_cluster_gui_username
   compute_cluster_gui_password = var.compute_cluster_gui_password
-  memory_size                  = data.ibm_is_instance_profile.compute_profile.memory[0].value
+  memory_size                  = data.ibm_is_instance_profile.compute_profile.memory[0].value * 1000
   max_pagepool_gb              = 4
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
@@ -347,7 +347,7 @@ module "storage_cluster_configuration" {
   using_rest_initialization    = true
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = data.ibm_is_instance_profile.storage_profile.memory[0].value
+  memory_size                  = data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
   max_pagepool_gb              = 16
   vcpu_count                   = data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
