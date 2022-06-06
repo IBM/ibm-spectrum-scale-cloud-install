@@ -39,8 +39,8 @@ def calculate_pagepool(memory_size, max_pagepool_gb):
     # 1 MB = 0.001 GB
     mem_size_gb = int(mem_size_mb * 0.001)
     pagepool_gb = max(int(int(mem_size_gb)*int(25)*0.01), 1)
-    if pagepool_gb > max_pagepool_gb:
-        pagepool = max_pagepool_gb
+    if pagepool_gb > int(max_pagepool_gb):
+        pagepool = int(max_pagepool_gb)
     else:
         pagepool =pagepool_gb
     return "{}G".format(pagepool)
