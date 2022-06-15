@@ -260,3 +260,27 @@ variable "storage_vsi_osimage_id" {
   default = ""
   description = "Image id to use for provisioning the storage cluster instances."
 }
+
+variable "storage_baremetal_profile" {
+  type = string
+  default = ""
+  description = "Baremetal profile"
+}
+
+variable "storage_baremetal_osimage_name" {
+  type        = string
+  default     = "ibm-redhat-8-3-minimal-amd64-3"
+  description = "Image name to use for provisioning the storage cluster instances."
+}
+
+variable "storage_baremetal_osimage_id" {
+  type        = string
+  default     = "bx2d-metal-96x384"
+  description = "Image name to use for provisioning the storage cluster instances."
+}
+
+variable "storage_type" {
+  type        = string
+  default     = "scratch"
+  description = "Name of the custom image that you would like to use to create the Compute cluster nodes for the Spectrum Scale cluster. Our automation supports both stock images of any version and custom image of rhel 7.9 and 8.4 version which has the scale functionality."
+}
