@@ -36,7 +36,7 @@
 
 ## Create AWS (packer) AMI
 
-Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpm's and creates a new AMI.
+The below steps will provision AWS EC2 instance, install IBM Spectrum Scale rpm's and creates a new AMI.
 
 1. Change working directory to `packer_templates/aws/`.
 
@@ -64,7 +64,7 @@ Below steps will provision AWS EC2 instance, installs IBM Spectrum Scale rpm's a
     EOF
     ```
 
-3. Run `packer build .` to create AMI.
+3. Run `packer init .; packer build .` to create AMI.
 
 <!-- BEGIN_TF_DOCS -->
 ## Inputs
