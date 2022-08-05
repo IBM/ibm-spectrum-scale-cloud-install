@@ -5,21 +5,18 @@
     3. Copy, Install gpfs cloud rpms to both cluster instances
     4. Configure clusters, filesystem creation and remote mount
 */
-/*
+
 locals {
   gpfs_base_rpm_path = fileset(var.spectrumscale_rpms_path, "gpfs.base-*")
   scale_version      = regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0]
 }
-*/
 
-locals {
-  scale_version = "5.1.3.1"
-}
 locals {
   compute_instance_image_id = var.compute_vsi_osimage_id != "" ? var.compute_vsi_osimage_id : data.ibm_is_image.compute_instance_image[0].id
   storage_instance_image_id = var.storage_vsi_osimage_id != "" ? var.storage_vsi_osimage_id : data.ibm_is_image.storage_instance_image[0].id
-  storage_baremetal_image_id = var.storage_baremetal_osimage_id != "" ? var.storage_baremetal_osimage_id : data.ibm_is_image.storage_baremetal_image[0].id
+  storage_bare_metal_image_id = var.storage_bare_metal_osimage_id != "" ? var.storage_bare_metal_osimage_id : data.ibm_is_image.storage_bare_metal_image[0].id
 }
+
 
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
@@ -173,8 +170,8 @@ data "ibm_is_instance_profile" "storage_profile" {
   name = var.storage_vsi_profile
 }
 
-data "ibm_is_bare_metal_server_profile" "storage_baremetal_profile" {
-  name = var.storage_baremetal_profile
+data "ibm_is_bare_metal_server_profile" "storage_bare_metal_server_profile" {
+  name = var.storage_bare_metal_server_profile
 }
 
 data "ibm_is_ssh_key" "storage_ssh_key" {
@@ -186,9 +183,9 @@ data "ibm_is_image" "storage_instance_image" {
   count = var.storage_vsi_osimage_id != "" ? 0:1
 }
 
-data "ibm_is_image" "storage_baremetal_image" {
-  name = var.storage_baremetal_osimage_name
-  count = var.storage_baremetal_osimage_id != "" ? 0:1
+data "ibm_is_image" "storage_bare_metal_image" {
+  name = var.storage_bare_metal_osimage_name
+  count = var.storage_bare_metal_osimage_id != "" ? 0:1
 }
 
 module "storage_cluster_instances" {
@@ -211,6 +208,28 @@ module "storage_cluster_instances" {
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags        = var.scale_cluster_resource_tags
+}
+
+module "storage_cluster_bare_metal_server" {
+  count = var.storage_type == "scratch" ? 0 : 1
+  source = "../../../resources/ibmcloud/compute/baremetal_setup"
+  total_vsis = var.total_storage_cluster_instances
+  vsi_name_prefix      = format("%s-storage-baremetal", var.resource_prefix)
+  vpc_id               = var.vpc_id
+  resource_group_id    = var.resource_group_id
+  zones                = [var.vpc_availability_zones[0]]
+  vsi_image_id         = local.storage_bare_metal_image_id
+  vsi_profile          = var.storage_bare_metal_server_profile
+  dns_domain           = var.vpc_storage_cluster_dns_domain
+  dns_service_id       = var.vpc_storage_cluster_dns_service_id
+  dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
+  vsi_subnet_id        = var.vpc_storage_cluster_private_subnets
+  vsi_security_group   = [module.storage_cluster_security_group.sec_group_id]
+  vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
+  vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
+  vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
+  resource_tags        = var.scale_cluster_resource_tags
+  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -294,9 +313,9 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_ids              = jsonencode([])
   compute_cluster_instance_private_ips      = jsonencode([])
   storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(module.baremetal_cluster_instances[*].instance_ids) : jsonencode(module.storage_cluster_instances[*].instance_ids)
-  storage_cluster_instance_private_ips      = var.storage_type != "scratch" ? jsonencode(module.baremetal_cluster_instances[*].instance_ids) : jsonencode(module.storage_cluster_instances[*].instance_private_ips)
-  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(module.baremetal_cluster_instances[*].instance_ids) : jsonencode(module.storage_cluster_instances[*].instance_ips_with_vol_mapping)
+   storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) :jsonencode(one(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_private_ips      = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
+  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) :jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
   storage_cluster_desc_instance_ids         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
   storage_cluster_desc_instance_private_ips = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping  = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
@@ -319,9 +338,9 @@ module "write_cluster_inventory" {
   compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
   compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
   storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids              = var.storage_type != "scratch" ? (module.baremetal_cluster_instances[*].instance_ids) :(module.storage_cluster_instances[*].instance_ids)
-  storage_cluster_instance_private_ips      = var.storage_type != "scratch" ? jsonencode(module.baremetal_cluster_instances[*].instance_ids) : jsonencode(module.storage_cluster_instances[*].instance_private_ips)
-  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(module.baremetal_cluster_instances[*].instance_ids) :jsonencode(module.storage_cluster_instances[*].instance_ips_with_vol_mapping)
+  storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) :jsonencode(one(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_private_ips      = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
+  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) :jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
   storage_cluster_desc_instance_ids         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids) : jsonencode([])
   storage_cluster_desc_instance_private_ips = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
   storage_cluster_desc_data_volume_mapping  = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping) : jsonencode({})
@@ -362,9 +381,9 @@ module "storage_cluster_configuration" {
   using_rest_initialization    = true
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_baremetal_profile.memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
+  memory_size                  = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
   max_pagepool_gb              = 16
-  vcpu_count                   = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_baremetal_profile.cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  vcpu_count                   = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -384,7 +403,7 @@ module "combined_cluster_configuration" {
   using_direct_connection      = var.using_direct_connection
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_baremetal_profile.memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
+  memory_size                  = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -415,24 +434,6 @@ module "remote_mount_configuration" {
 }
 
 
-module "baremetal_cluster_instances" {
-  count = var.storage_type != "scratch" ? 1 : 0
-  source = "../../../resources/ibmcloud/compute/baremetal_setup"
-  total_vsis = var.total_storage_cluster_instances
-  vsi_name_prefix      = format("%s-storage-baremetal", var.resource_prefix)
-  vpc_id               = var.vpc_id
-  resource_group_id    = var.resource_group_id
-  zones                = [var.vpc_availability_zones[0]]
-  vsi_image_id         = local.storage_baremetal_image_id
-  vsi_profile          = var.storage_baremetal_profile
-  dns_domain           = var.vpc_storage_cluster_dns_domain
-  dns_service_id       = var.vpc_storage_cluster_dns_service_id
-  dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
-  vsi_subnet_id        = var.vpc_storage_cluster_private_subnets
-  vsi_security_group   = [module.storage_cluster_security_group.sec_group_id]
-  vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
-  vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
-  vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  resource_tags        = var.scale_cluster_resource_tags
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id]
-}
+
+
+

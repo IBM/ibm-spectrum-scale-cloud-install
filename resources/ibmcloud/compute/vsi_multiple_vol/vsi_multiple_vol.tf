@@ -123,6 +123,8 @@ systemctl start firewalld
 EOF
 }
 
+
+
 resource "ibm_is_instance" "itself" {
   for_each = {
     # This assigns a subnet-id to each of the instance

@@ -261,19 +261,19 @@ variable "storage_vsi_osimage_id" {
   description = "Image id to use for provisioning the storage cluster instances."
 }
 
-variable "storage_baremetal_profile" {
+variable "storage_bare_metal_server_profile" {
   type = string
   default = ""
   description = "Baremetal profile"
 }
 
-variable "storage_baremetal_osimage_name" {
+variable "storage_bare_metal_osimage_name" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"
   description = "Image name to use for provisioning the storage cluster instances."
 }
 
-variable "storage_baremetal_osimage_id" {
+variable "storage_bare_metal_osimage_id" {
   type        = string
   default     = "bx2d-metal-96x384"
   description = "Image name to use for provisioning the storage cluster instances."

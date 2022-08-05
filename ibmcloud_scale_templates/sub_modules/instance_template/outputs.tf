@@ -39,15 +39,16 @@ output "storage_cluster_desc_data_volume_mapping" {
 }
 
 output "baremetal_cluster_instance_ids" {
-  value = module.baremetal_cluster_instances[*].instance_ids
+  value = module.storage_cluster_bare_metal_server[*].instance_ids
+  description = "storage cluster bare metal server ids"
 }
 
 output "baremetal_cluster_instance_private_ips" {
-  value       = module.baremetal_cluster_instances[*].instance_private_ips
-  description = "Private IP address of storage cluster instances."
+  value       = module.storage_cluster_bare_metal_server[*].instance_private_ips
+  description = "Private IP address of storage cluster bare metal instances."
 }
 
 output "baremetal_cluster_with_data_volume_mapping" {
-  value       = module.baremetal_cluster_instances[*].instance_ips_with_vol_mapping
-  description = "Mapping of storage cluster instance ip vs device path."
+  value       = module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping
+  description = "Mapping of storage cluster bare meteal server ip vs device path."
 }

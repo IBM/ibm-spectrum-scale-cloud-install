@@ -68,6 +68,8 @@ systemctl start firewalld
 EOF
 }
 
+
+
 resource "ibm_is_bare_metal_server" "itself" {
   for_each = {
     # This assigns a subnet-id to each of the instance
