@@ -39,8 +39,6 @@ systemctl restart sshd.service
 EOF
 }
 
-
-
 resource "ibm_is_instance" "itself" {
   name    = var.vsi_name_prefix
   image   = var.vsi_image_id
