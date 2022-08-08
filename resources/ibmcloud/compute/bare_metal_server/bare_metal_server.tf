@@ -93,6 +93,9 @@ resource "ibm_is_bare_metal_server" "itself" {
   vpc   = var.vpc_id
   resource_group = var.resource_group_id
   user_data      = data.template_file.metadata_startup_script.rendered
+  timeouts {
+    create = "90m"
+  }
 }
 
 
