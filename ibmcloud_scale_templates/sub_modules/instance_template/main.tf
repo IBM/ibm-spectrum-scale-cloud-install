@@ -432,8 +432,3 @@ module "remote_mount_configuration" {
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
 }
-
-
-
-
-
