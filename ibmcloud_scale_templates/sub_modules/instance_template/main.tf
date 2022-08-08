@@ -212,7 +212,7 @@ module "storage_cluster_instances" {
 
 module "storage_cluster_bare_metal_server" {
   count = var.storage_type == "scratch" ? 0 : 1
-  source = "../../../resources/ibmcloud/compute/bare_metal_server"
+  source = "../../../resources/ibmcloud/compute/bare_metal_server_multiple_vol"
   total_vsis = var.total_storage_cluster_instances
   vsi_name_prefix      = format("%s-storage-baremetal", var.resource_prefix)
   vpc_id               = var.vpc_id
