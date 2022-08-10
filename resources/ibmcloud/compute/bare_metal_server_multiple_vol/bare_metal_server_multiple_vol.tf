@@ -38,6 +38,12 @@ if grep -q "Red Hat" /etc/os-release
 then
     USER=vpcuser
     yum install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+    yum install -y make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
+    yum install 'dnf-command(versionlock)' -y
+    yum update --security -y
+    yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
+    yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
+    yum versionlock list
 elif grep -q "Ubuntu" /etc/os-release
 then
     USER=ubuntu

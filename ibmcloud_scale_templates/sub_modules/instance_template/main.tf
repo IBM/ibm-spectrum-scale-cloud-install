@@ -188,6 +188,11 @@ data "ibm_is_image" "storage_bare_metal_image" {
   count = var.storage_bare_metal_osimage_id != "" ? 0:1
 }
 
+resource "time_sleep" "wait_120_seconds" {
+  depends_on = [module.storage_cluster_security_group]
+  destroy_duration = "120s"
+}
+
 module "storage_cluster_instances" {
   count = var.storage_type == "scratch" ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
@@ -229,7 +234,7 @@ module "storage_cluster_bare_metal_server" {
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   resource_tags        = var.scale_cluster_resource_tags
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
+  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule,time_sleep.wait_120_seconds]
 }
 
 module "storage_cluster_tie_breaker_instance" {
