@@ -190,7 +190,7 @@ data "ibm_is_image" "storage_bare_metal_image" {
 
 resource "time_sleep" "wait_120_seconds" {
   depends_on = [module.storage_cluster_security_group]
-  destroy_duration = "120s"
+  destroy_duration = "300s"
 }
 
 module "storage_cluster_instances" {
