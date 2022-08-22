@@ -53,6 +53,7 @@ resource "local_file" "create_storage_tuning_parameters" {
  maxReceiverThreads=${var.vcpu_count}
  idleSocketTimeout=0
  minMissedPingTimeout=60
+ failureDetectionTime=60
  autoload=yes
 EOT
   filename = local.scale_tuning_config_path
