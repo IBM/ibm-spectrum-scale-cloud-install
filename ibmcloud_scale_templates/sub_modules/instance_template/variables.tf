@@ -263,8 +263,8 @@ variable "storage_vsi_osimage_id" {
 
 variable "storage_bare_metal_server_profile" {
   type = string
-  default = ""
-  description = "Baremetal profile"
+  default = "cx2d-metal-96x192"
+  description = "Specify the virtual server instance profile type name to be used to create the Baremetal Storage nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
 }
 
 variable "storage_bare_metal_osimage_name" {
@@ -275,12 +275,12 @@ variable "storage_bare_metal_osimage_name" {
 
 variable "storage_bare_metal_osimage_id" {
   type        = string
-  default     = "bx2d-metal-96x384"
-  description = "Image name to use for provisioning the storage cluster instances."
+  default     = ""
+  description = "Image ID to use for provisioning the storage cluster instances."
 }
 
 variable "storage_type" {
   type        = string
   default     = "scratch"
-  description = "Name of the custom image that you would like to use to create the Compute cluster nodes for the Spectrum Scale cluster. Our automation supports both stock images of any version and custom image of rhel 7.9 and 8.4 version which has the scale functionality."
+  description = "Select the required scale filesystem deployment method. Note: Choosing the scale scratch type will deploy scale filesystem on VSI and scale persistent type will deploy scale filesystem on Baremetal server."
 }

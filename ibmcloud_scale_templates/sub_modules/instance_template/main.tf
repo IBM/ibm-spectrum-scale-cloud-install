@@ -188,7 +188,7 @@ data "ibm_is_image" "storage_bare_metal_image" {
   count = var.storage_bare_metal_osimage_id != "" ? 0:1
 }
 
-resource "time_sleep" "wait_120_seconds" {
+resource "time_sleep" "wait_300_seconds" {
   depends_on = [module.storage_cluster_security_group]
   destroy_duration = "300s"
 }
@@ -234,7 +234,7 @@ module "storage_cluster_bare_metal_server" {
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   resource_tags        = var.scale_cluster_resource_tags
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule,time_sleep.wait_120_seconds]
+  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule,time_sleep.wait_300_seconds]
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -387,7 +387,7 @@ module "storage_cluster_configuration" {
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
-  max_pagepool_gb              = 16
+  max_pagepool_gb              = var.storage_type != "scratch" ? 32 : 16
   vcpu_count                   = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key

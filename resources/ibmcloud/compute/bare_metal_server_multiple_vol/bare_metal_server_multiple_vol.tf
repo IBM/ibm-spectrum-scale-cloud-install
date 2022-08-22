@@ -55,6 +55,9 @@ echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
+echo -e "sleep 150\nethtool -L ens1 combined 16" >> /etc/rc.d/rc.local
+chmod +x /etc/rc.d/rc.local
+ethtool -L ens1 combined 16
 systemctl restart NetworkManager
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
