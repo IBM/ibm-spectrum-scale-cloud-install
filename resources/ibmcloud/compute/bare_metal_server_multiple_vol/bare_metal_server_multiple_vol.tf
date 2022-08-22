@@ -27,56 +27,23 @@ variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
 
+data "ibm_is_bare_metal_server_profile" "itself" {
+  name        = var.vsi_profile
+}
+
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
-
-exec > >(tee /var/log/ibm_spectrumscale_user-data.log)
 if grep -q "Red Hat" /etc/os-release
 then
     USER=vpcuser
-    REQ_PKG_INSTALLED=0
-    if grep -q "platform:el8" /etc/os-release
-    then
-        PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
-    else
-        PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
-    fi
-
-    RETRY_LIMIT=5
-    retry_count=0
-    all_pkg_installed=1
-
-    while [[ $all_pkg_installed -ne 0 && $retry_count -lt $RETRY_LIMIT ]]
-    do
-        # Install all required packages
-        echo "INFO: Attempting to install packages"
-        $PACKAGE_MGR install -y $package_list
-
-        # Check to ensure packages are installed
-        pkg_installed=0
-        for pkg in $package_list
-        do
-            pkg_query=$($PACKAGE_MGR list installed $pkg)
-            pkg_installed=$(($? + $pkg_installed))
-        done
-        if [[ $pkg_installed -ne 0 ]]
-        then
-            # The minimum required packages have not been installed.
-            echo "WARN: Required packages not installed. Sleeping for 60 seconds and retrying..."
-            touch /var/log/scale-rerun-package-install
-            echo "INFO: Cleaning and repopulating repository data"
-            $PACKAGE_MGR clean all
-            $PACKAGE_MGR makecache
-            sleep 60
-        else
-            all_pkg_installed=0
-        fi
-        retry_count=$(( $retry_count+1 ))
-    done
-
+    yum install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+    yum install -y make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
+    yum install 'dnf-command(versionlock)' -y
+    yum update --security -y
+    yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
+    yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
+    yum versionlock list
 elif grep -q "Ubuntu" /etc/os-release
 then
     USER=ubuntu
@@ -86,8 +53,11 @@ echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
-echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
-echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
+echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
+echo -e "sleep 150\nethtool -L ens1 combined 16" >> /etc/rc.d/rc.local
+chmod +x /etc/rc.d/rc.local
+ethtool -L ens1 combined 16
 systemctl restart NetworkManager
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
@@ -108,7 +78,9 @@ systemctl start firewalld
 EOF
 }
 
-resource "ibm_is_instance" "itself" {
+
+
+resource "ibm_is_bare_metal_server" "itself" {
   for_each = {
     # This assigns a subnet-id to each of the instance
     # iteration.
@@ -118,33 +90,30 @@ resource "ibm_is_instance" "itself" {
       zone            = element(var.zones, idx)
     }
   }
-
+  profile = var.vsi_profile
   name    = format("%s-%s", var.vsi_name_prefix, each.value.sequence_string)
   image   = var.vsi_image_id
-  profile = var.vsi_profile
+  zone    = each.value.zone
+  keys    = var.vsi_user_public_key
   tags    = var.resource_tags
-
   primary_network_interface {
-    subnet          = each.value.subnet_id
+    subnet     = each.value.subnet_id
     security_groups = var.vsi_security_group
   }
-
-  vpc            = var.vpc_id
-  zone           = each.value.zone
+  vpc   = var.vpc_id
   resource_group = var.resource_group_id
-  keys           = var.vsi_user_public_key
   user_data      = data.template_file.metadata_startup_script.rendered
-
-  boot_volume {
-    name = format("%s-boot-%s", var.vsi_name_prefix, each.value.sequence_string)
+  timeouts {
+    create = "90m"
   }
 }
+
 
 resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist([for name_details in ibm_is_instance.itself : name_details.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0]["primary_ipv4_address"]]), idx)
+      name       = element(tolist([for name_details in ibm_is_bare_metal_server.itself : name_details.name]), idx)
+      network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
     }
   }
 
@@ -152,16 +121,16 @@ resource "ibm_dns_resource_record" "a_itself" {
   zone_id     = var.dns_zone_id
   type        = "A"
   name        = each.value.name
-  rdata       = each.value.network_ip
+  #rdata       = each.value.network_ip
+  rdata = format("%s", each.value.network_ip)
   ttl         = 300
-  depends_on  = [ibm_is_instance.itself]
 }
 
 resource "ibm_dns_resource_record" "ptr_itself" {
   for_each = {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist([for name_details in ibm_is_instance.itself : name_details.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0]["primary_ipv4_address"]]), idx)
+      name       = element(tolist([for name_details in ibm_is_bare_metal_server.itself : name_details.name]), idx)
+      network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
     }
   }
 
@@ -174,12 +143,19 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
+
 output "instance_ids" {
-  value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
+  value      = try(toset([for instance_details in ibm_is_bare_metal_server.itself : instance_details.id]), [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
 output "instance_private_ips" {
-  value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"]]), [])
+  value      = try(toset([for instance_details in ibm_is_bare_metal_server.itself : instance_details.primary_network_interface[0]["primary_ip"][0]["address"]]), [])
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+}
+
+output "instance_ips_with_vol_mapping" {
+  value = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.primary_network_interface[0]["primary_ip"][0]["address"] =>
+  data.ibm_is_bare_metal_server_profile.itself.disks[1].quantity[0].value == 8 ? ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"] : ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
