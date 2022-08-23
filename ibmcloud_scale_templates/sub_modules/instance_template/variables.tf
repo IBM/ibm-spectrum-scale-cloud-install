@@ -260,3 +260,27 @@ variable "storage_vsi_osimage_id" {
   default = ""
   description = "Image id to use for provisioning the storage cluster instances."
 }
+
+variable "storage_bare_metal_server_profile" {
+  type = string
+  default = "cx2d-metal-96x192"
+  description = "Specify the virtual server instance profile type name to be used to create the Baremetal Storage nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
+}
+
+variable "storage_bare_metal_osimage_name" {
+  type        = string
+  default     = "ibm-redhat-8-3-minimal-amd64-3"
+  description = "Image name to use for provisioning the storage Baremetal cluster."
+}
+
+variable "storage_bare_metal_osimage_id" {
+  type        = string
+  default     = ""
+  description = "Image Id to use for provisioning the storage Baremetal cluster instances."
+}
+
+variable "storage_type" {
+  type        = string
+  default     = "scratch"
+  description = "Select the required scale filesystem deployment method. Note: Choosing the scale scratch type will deploy scale filesystem on VSI and scale persistent type will deploy scale filesystem on Baremetal server."
+}
