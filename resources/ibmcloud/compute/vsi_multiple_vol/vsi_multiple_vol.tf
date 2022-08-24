@@ -103,7 +103,7 @@ then
     echo "###########################################################################################" >> /etc/motd
 fi
 echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
-echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0
+echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 systemctl restart NetworkManager
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
