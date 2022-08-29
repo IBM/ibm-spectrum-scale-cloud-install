@@ -276,3 +276,9 @@ variable "bastion_ssh_private_key" {
   default     = null
   description = "Bastion SSH private key path, which will be used to login to bastion host."
 }
+
+variable "create_scale_cluster" {
+  type        = bool
+  default     = false
+  description = "Flag to represent whether to create scale cluster or not."
+}

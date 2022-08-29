@@ -48,11 +48,11 @@ EOT
   filename = local.scale_tuning_config_path
 }
 
-resource "local_file" "write_meta_private_key" {
-  count             = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
-  sensitive_content = var.meta_private_key
-  filename          = local.combined_private_key
-  file_permission   = "0600"
+resource "local_sensitive_file" "write_meta_private_key" {
+  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  content         = var.meta_private_key
+  filename        = local.combined_private_key
+  file_permission = "0600"
 }
 
 resource "null_resource" "prepare_ansible_inventory" {
@@ -61,7 +61,7 @@ resource "null_resource" "prepare_ansible_inventory" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.combined_private_key} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password}"
   }
-  depends_on = [local_file.create_storage_tuning_parameters, local_file.write_meta_private_key]
+  depends_on = [local_file.create_storage_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {
     build = timestamp()
   }
@@ -73,7 +73,7 @@ resource "null_resource" "prepare_ansible_inventory_wo_bastion" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.combined_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password}"
   }
-  depends_on = [local_file.create_storage_tuning_parameters, local_file.write_meta_private_key]
+  depends_on = [local_file.create_storage_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {
     build = timestamp()
   }
