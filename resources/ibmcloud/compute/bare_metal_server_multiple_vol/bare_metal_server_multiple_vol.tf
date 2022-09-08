@@ -58,7 +58,7 @@ echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
 echo -e "sleep 150\nethtool -L ens1 combined 16" >> /etc/rc.d/rc.local
 chmod +x /etc/rc.d/rc.local
 ethtool -L ens1 combined 16
-sudo chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
+chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
