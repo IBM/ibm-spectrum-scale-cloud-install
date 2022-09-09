@@ -104,6 +104,7 @@ then
 fi
 echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
