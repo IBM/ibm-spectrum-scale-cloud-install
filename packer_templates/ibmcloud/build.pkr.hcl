@@ -2,7 +2,7 @@ build {
   sources = ["source.ibmcloud-vpc.itself"]
 
   provisioner "file" {
-    source = "/opt/IBM/5.1.1/rpms.zip"
+    source      = "/opt/IBM/5.1.1/rpms.zip"
     destination = "/home/vpcuser/rpms.zip"
   }
 

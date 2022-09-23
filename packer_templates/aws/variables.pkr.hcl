@@ -44,6 +44,11 @@ variable "s3_spectrumscale_bucket" {
   description = "S3 bucket which contains IBM Spectrum Scale rpm(s)."
 }
 
+variable "scale_version" {
+  type        = string
+  description = "Spectrum Scale version."
+}
+
 variable "volume_size" {
   type        = string
   default     = "200"

@@ -44,7 +44,7 @@ The following steps will provision IBM Cloud resources (new vpc, bastion, comput
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.44.2 |
 
 #### Inputs
 

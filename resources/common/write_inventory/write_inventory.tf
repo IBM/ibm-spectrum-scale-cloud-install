@@ -24,9 +24,9 @@ variable "storage_cluster_desc_instance_ids" {}
 variable "storage_cluster_desc_instance_private_ips" {}
 variable "storage_cluster_desc_data_volume_mapping" {}
 
-resource "local_file" "itself" {
-  count             = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
-  sensitive_content = <<EOT
+resource "local_sensitive_file" "itself" {
+  count    = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
+  content  = <<EOT
 {
     "cloud_platform": ${var.cloud_platform},
     "resource_prefix": ${var.resource_prefix},
@@ -48,10 +48,10 @@ resource "local_file" "itself" {
     "storage_cluster_desc_data_volume_mapping": ${var.storage_cluster_desc_data_volume_mapping}
 }
 EOT
-  filename          = var.inventory_path
+  filename = var.inventory_path
 }
 
 output "write_inventory_complete" {
   value      = true
-  depends_on = [local_file.itself]
+  depends_on = [local_sensitive_file.itself]
 }

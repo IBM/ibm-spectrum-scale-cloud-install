@@ -493,6 +493,7 @@ module "compute_cluster_configuration" {
   turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
+  create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
@@ -501,6 +502,7 @@ module "compute_cluster_configuration" {
   compute_cluster_gui_username = var.compute_cluster_gui_username
   compute_cluster_gui_password = var.compute_cluster_gui_password
   memory_size                  = data.aws_ec2_instance_type.compute_profile.memory_size
+  max_pagepool_gb              = 4
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
@@ -513,6 +515,7 @@ module "storage_cluster_configuration" {
   turn_on                      = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
+  create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
@@ -521,6 +524,8 @@ module "storage_cluster_configuration" {
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = data.aws_ec2_instance_type.storage_profile.memory_size
+  max_pagepool_gb              = 16
+  vcpu_count                   = data.aws_ec2_instance_type.storage_profile.default_vcpus
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -533,6 +538,7 @@ module "combined_cluster_configuration" {
   turn_on                      = var.create_separate_namespaces == false ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
+  create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
@@ -550,6 +556,7 @@ module "combined_cluster_configuration" {
 module "remote_mount_configuration" {
   source                          = "../../../resources/common/remote_mount_configuration"
   turn_on                         = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0 && var.create_separate_namespaces == true) ? true : false
+  create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
   compute_inventory_path          = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   compute_gui_inventory_path      = format("%s/compute_cluster_gui_details.json", var.scale_ansible_repo_clone_path)

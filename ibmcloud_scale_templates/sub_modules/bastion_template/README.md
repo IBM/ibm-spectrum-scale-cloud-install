@@ -38,7 +38,7 @@ Below steps will provision IBM Cloud Bastion instance required for IBM Spectrum 
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.44.2 |
 
 #### Inputs
 
