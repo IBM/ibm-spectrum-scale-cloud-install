@@ -2,13 +2,14 @@
     Creates AWS Route table.
 */
 
+variable "turn_on" {}
 variable "total_rt" {}
 variable "vpc_id" {}
 variable "vpc_name" {}
 variable "vpc_tags" {}
 
 resource "aws_route_table" "itself" {
-  count  = var.total_rt
+  count  = var.turn_on == true ? var.total_rt : 0
   vpc_id = var.vpc_id
 
   tags = merge(
@@ -20,5 +21,5 @@ resource "aws_route_table" "itself" {
 }
 
 output "table_id" {
-  value = aws_route_table.itself.*.id
+  value = try(aws_route_table.itself.*.id, null)
 }

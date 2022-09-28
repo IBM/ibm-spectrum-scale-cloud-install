@@ -33,137 +33,177 @@ variable "aws_linux_image_map_codes" {
   description = "AWS Linux images vs. search code names"
   type        = map(map(string))
   default = {
-    ap-northeast-1 = {
-      Amazon-Linux2-HVM          = "ami-0cc75a8978fbbc969"
-      Ubuntu-Server-20-04LTS-HVM = "ami-0461b11e2fad8c14a"
-      CentOS-7-HVM               = "ami-06a46da680048c8ae"
-      SUSE-SLES-15-HVM           = "ami-056ac8ad44e6a7e1f"
+    af-south-1 = {
+      Amazon-Linux2-HVM          = "ami-0adee70ff4394e3d5"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0f5298ccab965edeb"
+      CentOS-7-HVM               = "ami-0a2be7731769e6cc1"
+      SUSE-SLES-15-HVM           = "ami-0b182a175a9344329"
     }
     ap-northeast-2 = {
-      Amazon-Linux2-HVM          = "ami-0bd7691bf6470fe9c"
-      Ubuntu-Server-20-04LTS-HVM = "ami-0dbad3c7f731477cb"
+
+      Amazon-Linux2-HVM          = "ami-0e1d09d8b7c751816"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0565d651769eb3de5"
       CentOS-7-HVM               = "ami-06e83aceba2cb0907"
-      SUSE-SLES-15-HVM           = "ami-0f81fff879bafe6b8"
+      SUSE-SLES-15-HVM           = "ami-0fe8ef15442bbbacb"
     }
-    ap-south-1 = {
-      Amazon-Linux2-HVM          = "ami-0ebc1ac48dfd14136"
-      Ubuntu-Server-20-04LTS-HVM = "ami-0ebd654017556e025"
-      CentOS-7-HVM               = "ami-026f33d38b6410e30"
-      SUSE-SLES-15-HVM           = "ami-01be89269d32f2a16"
+    ap-northeast-3 = {
+
+      Amazon-Linux2-HVM          = "ami-0253beba286f3e848"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0e6078093a109801c"
+      CentOS-7-HVM               = "ami-02d6b455335e3af14"
+      SUSE-SLES-15-HVM           = "ami-0bb84400e7507097c"
     }
-    ap-southeast-1 = {
-      Amazon-Linux2-HVM          = "ami-0cd31be676780afa7"
-      Ubuntu-Server-20-04LTS-HVM = "ami-0ba1d1f3433cd4c68"
-      CentOS-7-HVM               = "ami-07f65177cb990d65b"
-      SUSE-SLES-15-HVM           = "ami-070356c21596ddc67"
-    }
-    ap-southeast-2 = {
-      Amazon-Linux2-HVM          = "ami-0ded330691a314693"
-      Ubuntu-Server-20-04LTS-HVM = "ami-02be36619a83e9a16"
-      CentOS-7-HVM               = "ami-0b2045146eb00b617"
-      SUSE-SLES-15-HVM           = "ami-0c4245381c67efb39"
-    }
-    ca-central-1 = {
-      Amazon-Linux2-HVM          = "ami-013d1df4bcea6ba95"
-      Ubuntu-Server-20-04LTS-HVM = "ami-071c33c681c9d4a00"
-      CentOS-7-HVM               = "ami-04a25c39dc7a8aebb"
-      SUSE-SLES-15-HVM           = "ami-0c97d9b588207dad6"
-    }
-    eu-central-1 = {
-      Amazon-Linux2-HVM          = "ami-0c115dbd34c69a004"
-      Ubuntu-Server-20-04LTS-HVM = "ami-0c2b1c303a2e4cb49"
-      CentOS-7-HVM               = "ami-0e8286b71b81c3cc1"
-      SUSE-SLES-15-HVM           = "ami-05dfd265ea534a3e9"
-    }
-    me-south-1 = {
-      Amazon-Linux2-HVM          = "ami-01f41d49c363da2ad"
-      Ubuntu-Server-20-04LTS-HVM = "ami-07f9fe3f7a8c82448"
-      CentOS-7-HVM               = "ami-011c71a894b10f35b"
-      SUSE-SLES-15-HVM           = "ami-0252c6d3a59c7473b"
-    }
-    ap-east-1 = {
-      Amazon-Linux2-HVM          = "ami-47317236"
-      Ubuntu-Server-20-04LTS-HVM = "ami-545b1825"
-      CentOS-7-HVM               = "ami-0e5c29e6c87a9644f"
-      SUSE-SLES-15-HVM           = "ami-0ad6e15bcbb2dbe38"
-    }
-    eu-north-1 = {
-      Amazon-Linux2-HVM          = "ami-039609244d2810a6b"
-      Ubuntu-Server-20-04LTS-HVM = "ami-08baf9e3c347b7092"
-      CentOS-7-HVM               = "ami-05788af9005ef9a93"
-      SUSE-SLES-15-HVM           = "ami-0741fa1a008af40ad"
-    }
-    eu-south-1 = {
-      Amazon-Linux2-HVM          = "ami-08a2aed6e0a6f9c7d"
-      Ubuntu-Server-20-04LTS-HVM = "ami-01eec6bdfa20f008e"
-      CENTOS-7-HVM               = "ami-0a84267606bcea16b"
-      SUSE-SLES-15-HVM           = "ami-051cbea0e7660063d"
-    }
-    eu-west-1 = {
-      Amazon-Linux2-HVM          = "ami-07d9160fa81ccffb5"
-      Ubuntu-Server-20-04LTS-HVM = "ami-0f1d11c92a9467c07"
-      CENTOS-7-HVM               = "ami-0b850cf02cc00fdc8"
-      SUSE-SLES-15-HVM           = "ami-0a58a1b152ba55f1d"
-    }
-    eu-west-2 = {
-      Amazon-Linux2-HVM          = "ami-0a13d44dccf1f5cf6"
-      Ubuntu-Server-20-04LTS-HVM = "ami-082335b69bcfdb15b"
-      CENTOS-7-HVM               = "ami-09e5afc68eed60ef4"
-      SUSE-SLES-15-HVM           = "ami-01497522185aaa4ee"
-    }
-    eu-west-3 = {
-      Amazon-Linux2-HVM          = "ami-093fa4c538885becf"
-      Ubuntu-Server-20-04LTS-HVM = "ami-00f6fb16625871821"
-      CENTOS-7-HVM               = "ami-0cb72d2e599cffbf9"
-      SUSE-SLES-15-HVM           = "ami-0f238bd4c6fdbefb0"
-    }
-    sa-east-1 = {
-      Amazon-Linux2-HVM          = "ami-018ccfb6b4745882a"
-      Ubuntu-Server-20-04LTS-HVM = "ami-083aa2af86ff2bd11"
-      CENTOS-7-HVM               = "ami-0b30f38d939dd4b54"
-      SUSE-SLES-15-HVM           = "ami-0772af912976aa692"
-    }
-    us-east-1 = {
-      Amazon-Linux2-HVM          = "ami-02354e95b39ca8dec"
-      Ubuntu-Server-20-04LTS-HVM = "ami-0758470213bdd23b1"
-      CENTOS-7-HVM               = "ami-0affd4508a5d2481b"
-      SUSE-SLES-15-HVM           = "ami-0b1764f3d7d2e2316"
+    ap-southeast-3 = {
+
+      Amazon-Linux2-HVM          = "ami-0483d92a8124da6c9"
+      Ubuntu-Server-20-04LTS-HVM = "ami-09915141a4f1dafdd"
+      CentOS-7-HVM               = "ami-0c654ac429998fb1c"
+      SUSE-SLES-15-HVM           = "ami-005899737135b4201"
     }
     us-gov-west-1 = {
-      Amazon-Linux2-HVM = "ami-74c4f215"
-      SUSE-SLES-15-HVM  = "ami-57c0ba36"
+
+      Amazon-Linux2-HVM          = "ami-0456d1223a9a0764a"
+      Ubuntu-Server-20-04LTS-HVM = "ami-84556de5"
+      CentOS-7-HVM               = "ami-bbba86da"
+      SUSE-SLES-15-HVM           = "ami-0602869f1391f1ba3"
+    }
+    ap-northeast-1 = {
+      Amazon-Linux2-HVM          = "ami-06ce6680729711877"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0986c991cc80c6ad9"
+      CentOS-7-HVM               = "ami-06a46da680048c8ae"
+      SUSE-SLES-15-HVM           = "ami-08d5afff14b78a281"
+    }
+    ap-northeast-2 = {
+      Amazon-Linux2-HVM          = "ami-0e1d09d8b7c751816"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0565d651769eb3de5"
+      CentOS-7-HVM               = "ami-06e83aceba2cb0907"
+      SUSE-SLES-15-HVM           = "ami-0fe8ef15442bbbacb"
+    }
+    ap-south-1 = {
+      Amazon-Linux2-HVM          = "ami-09de362f44ba0a166"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0325e3016099f9112"
+      CentOS-7-HVM               = "ami-026f33d38b6410e30"
+      SUSE-SLES-15-HVM           = "ami-0931494f2532d950d"
+    }
+    ap-southeast-1 = {
+      Amazon-Linux2-HVM          = "ami-0adf622550366ea53"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0eaf04122a1ae7b3b"
+      CentOS-7-HVM               = "ami-054bf1c1a522aa6e8"
+      SUSE-SLES-15-HVM           = "ami-0cc06d620beca2a35"
+    }
+    ap-southeast-2 = {
+      Amazon-Linux2-HVM          = "ami-03b836d87d294e89e"
+      Ubuntu-Server-20-04LTS-HVM = "ami-048a2d001938101dd"
+      CentOS-7-HVM               = "ami-0d1eb46a368923d43"
+      SUSE-SLES-15-HVM           = "ami-03790de3a37ba87cc"
+    }
+    ca-central-1 = {
+      Amazon-Linux2-HVM          = "ami-04c12937e87474def"
+      Ubuntu-Server-20-04LTS-HVM = "ami-04a579d2f00bb4001"
+      CentOS-7-HVM               = "ami-04a25c39dc7a8aebb"
+      SUSE-SLES-15-HVM           = "ami-054bc3c58e249d26f"
+    }
+    eu-central-1 = {
+      Amazon-Linux2-HVM          = "ami-094c442a8e9a67935"
+      Ubuntu-Server-20-04LTS-HVM = "ami-06cac34c3836ff90b"
+      CentOS-7-HVM               = "ami-0e8286b71b81c3cc1"
+      SUSE-SLES-15-HVM           = "ami-00c80956d89173342"
+    }
+    me-south-1 = {
+      Amazon-Linux2-HVM          = "ami-07a68e42e669daed0"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0c769d841005394ee"
+      CentOS-7-HVM               = "ami-011c71a894b10f35b"
+      SUSE-SLES-15-HVM           = "ami-01517fccda7ee908a"
+    }
+    ap-east-1 = {
+      Amazon-Linux2-HVM          = "ami-0b751f901b93720a5"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0dfad1f1f65cd083b"
+      CentOS-7-HVM               = "ami-0e5c29e6c87a9644f"
+      SUSE-SLES-15-HVM           = "ami-0ca7ed1fd25821f56"
+    }
+    eu-north-1 = {
+      Amazon-Linux2-HVM          = "ami-04e8b0e36ed3403dc"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0ede84a5f28ec932a"
+      CentOS-7-HVM               = "ami-05788af9005ef9a93"
+      SUSE-SLES-15-HVM           = "ami-0c61d9bf4e84dd26a"
+    }
+    eu-south-1 = {
+      Amazon-Linux2-HVM          = "ami-0432f14b68c3e0273"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0a39f417b8836bc59"
+      CENTOS-7-HVM               = "ami-03014b98e9665115a"
+      SUSE-SLES-15-HVM           = "ami-0324f5c2cb963f12b"
+    }
+    eu-west-1 = {
+      Amazon-Linux2-HVM          = "ami-0bba0a4cb75835f71"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0141514361b6a3c1b"
+      CENTOS-7-HVM               = "ami-0fc585b7cdf48bbb0"
+      SUSE-SLES-15-HVM           = "ami-0688ec3cb81e58545"
+    }
+    eu-west-2 = {
+      Amazon-Linux2-HVM          = "ami-030770b178fa9d374"
+      Ubuntu-Server-20-04LTS-HVM = "ami-014b642f603e350c3"
+      CENTOS-7-HVM               = "ami-09e5afc68eed60ef4"
+      SUSE-SLES-15-HVM           = "ami-09dc0d3735677ec06"
+    }
+    eu-west-3 = {
+      Amazon-Linux2-HVM          = "ami-0614433a16ab15878"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0d0b8d91779dec1e5"
+      CENTOS-7-HVM               = "ami-0cb72d2e599cffbf9"
+      SUSE-SLES-15-HVM           = "ami-055d9fcbed9687d9f"
+    }
+    sa-east-1 = {
+      Amazon-Linux2-HVM          = "ami-0656df2cc0dfd150a"
+      Ubuntu-Server-20-04LTS-HVM = "ami-088afbba294231fe0"
+      CENTOS-7-HVM               = "ami-0b30f38d939dd4b54"
+      SUSE-SLES-15-HVM           = "ami-0964ddd286e7d4a4f"
+    }
+    us-east-1 = {
+      Amazon-Linux2-HVM          = "ami-065efef2c739d613b"
+      Ubuntu-Server-20-04LTS-HVM = "ami-0070c5311b7677678"
+      CENTOS-7-HVM               = "ami-0810ddd646a26b133"
+      SUSE-SLES-15-HVM           = "ami-08199c714a509d3bc"
+    }
+    us-gov-west-1 = {
+      Amazon-Linux2-HVM          = "ami-0456d1223a9a0764a"
+      Ubuntu-Server-20-04LTS-HVM = "ami-84556de5"
+      CENTOS-7-HVM               = "ami-bbba86da"
+      SUSE-SLES-15-HVM           = "ami-0602869f1391f1ba3"
     }
     us-gov-east-1 = {
-      Amazon-Linux2-HVM = "ami-30e00c41"
-      SUSE-SLES-15-HVM  = "ami-05e4bedfad53425e9"
+      Amazon-Linux2-HVM          = "ami-0c371616b3ca56690"
+      Ubuntu-Server-20-04LTS-HVM = "ami-dee008af"
+      CENTOS-7-HVM               = "ami-00e30c71"
+      SUSE-SLES-15-HVM           = "ami-0c49e39cbc98483b4"
     }
     us-east-2 = {
-      Amazon-Linux2-HVM          = "ami-07c8bc5c1ce9598c3"
-      Ubuntu-Server-20-04LTS-HVM = "ami-07fb7bd53bacdfc16"
+      Amazon-Linux2-HVM          = "ami-07251f912d2a831a3"
+      Ubuntu-Server-20-04LTS-HVM = "ami-07f84a50d2dec2fa4"
       CENTOS-7-HVM               = "ami-01e36b7901e884a10"
-      SUSE-SLES-15-HVM           = "ami-05ea824317ffc0c20"
+      SUSE-SLES-15-HVM           = "ami-013d257c3198b3759"
     }
     us-west-1 = {
-      AMZNLINUX2       = "ami-05655c267c89566dd"
-      US2004HVM        = "ami-0cd230f950c3de5d8"
-      CentOS-7-HVM     = "ami-098f55b4287a885ba"
-      SUSE-SLES-15-HVM = "ami-00e34a7624e5a7107"
+      AMZNLINUX2       = "ami-09b2f6d85764ec71b"
+      US2004HVM        = "ami-040a251ee9d7d1a9b"
+      CentOS-7-HVM     = "ami-0a2e84f9f7388300f"
+      SUSE-SLES-15-HVM = "ami-0d36c27f11154fad6"
     }
     us-west-2 = {
-      Amazon-Linux2-HVM = "ami-0873b46c45c11058d"
-      US2004HVM         = "ami-056cb9ae6e2df09e8"
+      Amazon-Linux2-HVM = "ami-0d08ef957f0e4722b"
+      US2004HVM         = "ami-0aab355e1bfa1e72e"
       CentOS-7-HVM      = "ami-0bc06212a56393ee1"
-      SLES15HVM         = "ami-0f1e3b3fb0fec0361"
+      SLES15HVM         = "ami-0bfb58754b8025d15"
     }
     cn-north-1 = {
-      Amazon-Linux2-HVM = "ami-010e92a33d9d1fc40"
-      CentOS-7-HVM      = "ami-0e02aaefeb74c3373"
-      SUSE-SLES-15-HVM  = "ami-021392849b6221a81"
+      Amazon-Linux2-HVM = "ami-06b608ec1cc843660"
+      US2004HVM         = "ami-0ee7de898385f3816"
+      CentOS-7-HVM      = "ami-08c16f7e830c0e393"
+      SUSE-SLES-15-HVM  = "ami-07563af55cf2eb31d"
     }
     cn-northwest-1 = {
-      Amazon-Linux2-HVM = "ami-0959f8e18a2aac0fb"
-      CentOS-7-HVM      = "ami-07183a7702633260b"
-      SUSE-SLES-15-HVM  = "ami-00e1de3ee6d0d28ea"
+      Amazon-Linux2-HVM = "ami-0f0625eb0f9444fd7"
+      US2004HVM         = "ami-08e0c0a54f075c9bc"
+      CentOS-7-HVM      = "ami-0f21aa96a61df8c44"
+      SUSE-SLES-15-HVM  = "ami-019b04518c072a050"
     }
   }
 }

@@ -1,10 +1,14 @@
 variable "vpc_region" {
   type        = string
+  nullable    = true
+  default     = null
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
 }
 
 variable "vpc_availability_zones" {
   type        = list(string)
+  nullable    = true
+  default     = null
   description = "A list of availability zones names or ids in the region."
 }
 
@@ -16,31 +20,36 @@ variable "resource_prefix" {
 
 variable "vpc_cidr_block" {
   type        = string
-  default     = "10.0.0.0/16"
+  nullable    = true
+  default     = null
   description = "The CIDR block for the VPC."
 }
 
 variable "vpc_public_subnets_cidr_blocks" {
   type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  nullable    = true
+  default     = null
   description = "List of cidr_blocks of public subnets."
 }
 
 variable "vpc_storage_cluster_private_subnets_cidr_blocks" {
   type        = list(string)
-  default     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  nullable    = true
+  default     = null
   description = "List of cidr_blocks of storage cluster private subnets."
 }
 
 variable "vpc_create_separate_subnets" {
   type        = bool
-  default     = true
+  nullable    = true
+  default     = null
   description = "Flag to select if separate private subnet to be created for compute cluster."
 }
 
 variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
   type        = list(string)
-  default     = ["10.0.7.0/24"]
+  nullable    = true
+  default     = null
   description = "List of cidr_blocks of compute private subnets."
 }
 

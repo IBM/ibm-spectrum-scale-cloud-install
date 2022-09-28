@@ -12,8 +12,8 @@ locals {
 }
 
 locals {
-  compute_instance_image_id = var.compute_vsi_osimage_id != "" ? var.compute_vsi_osimage_id : data.ibm_is_image.compute_instance_image[0].id
-  storage_instance_image_id = var.storage_vsi_osimage_id != "" ? var.storage_vsi_osimage_id : data.ibm_is_image.storage_instance_image[0].id
+  compute_instance_image_id   = var.compute_vsi_osimage_id != "" ? var.compute_vsi_osimage_id : data.ibm_is_image.compute_instance_image[0].id
+  storage_instance_image_id   = var.storage_vsi_osimage_id != "" ? var.storage_vsi_osimage_id : data.ibm_is_image.storage_instance_image[0].id
   storage_bare_metal_image_id = var.storage_bare_metal_osimage_id != "" ? var.storage_bare_metal_osimage_id : data.ibm_is_image.storage_bare_metal_image[0].id
 }
 
@@ -28,12 +28,12 @@ module "generate_storage_cluster_keys" {
 }
 
 module "deploy_security_group" {
-  source                = "../../../resources/ibmcloud/security/security_group"
-  turn_on               = var.deploy_controller_sec_group_id == null ? true : false
-  sec_group_name        = ["Deploy-Sec-group"]
-  vpc_id                = var.vpc_id
-  resource_group_id     = var.resource_group_id
-  resource_tags         = var.scale_cluster_resource_tags
+  source            = "../../../resources/ibmcloud/security/security_group"
+  turn_on           = var.deploy_controller_sec_group_id == null ? true : false
+  sec_group_name    = ["Deploy-Sec-group"]
+  vpc_id            = var.vpc_id
+  resource_group_id = var.resource_group_id
+  resource_tags     = var.scale_cluster_resource_tags
 }
 
 locals {
@@ -140,7 +140,7 @@ data "ibm_is_instance_profile" "compute_profile" {
 }
 
 data "ibm_is_image" "compute_instance_image" {
-  name = var.compute_vsi_osimage_name
+  name  = var.compute_vsi_osimage_name
   count = var.compute_vsi_osimage_id != "" ? 0 : 1
 }
 
@@ -178,23 +178,23 @@ data "ibm_is_ssh_key" "storage_ssh_key" {
 }
 
 data "ibm_is_image" "storage_instance_image" {
-  name = var.storage_vsi_osimage_name
-  count = var.storage_vsi_osimage_id != "" ? 0:1
+  name  = var.storage_vsi_osimage_name
+  count = var.storage_vsi_osimage_id != "" ? 0 : 1
 }
 
 data "ibm_is_image" "storage_bare_metal_image" {
-  name = var.storage_bare_metal_osimage_name
-  count = var.storage_bare_metal_osimage_id != "" ? 0:1
+  name  = var.storage_bare_metal_osimage_name
+  count = var.storage_bare_metal_osimage_id != "" ? 0 : 1
 }
 
 resource "time_sleep" "wait_300_seconds" {
-  depends_on = [module.storage_cluster_security_group]
+  depends_on       = [module.storage_cluster_security_group]
   destroy_duration = "300s"
 }
 
 
 module "storage_cluster_instances" {
-  count = var.storage_type == "scratch" ? 1 : 0
+  count                = var.storage_type == "scratch" ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   total_vsis           = var.total_storage_cluster_instances
   vsi_name_prefix      = format("%s-storage", var.resource_prefix)
@@ -216,9 +216,9 @@ module "storage_cluster_instances" {
 }
 
 module "storage_cluster_bare_metal_server" {
-  count = var.storage_type == "scratch" ? 0 : 1
-  source = "../../../resources/ibmcloud/compute/bare_metal_server_multiple_vol"
-  total_vsis = var.total_storage_cluster_instances
+  count                = var.storage_type == "scratch" ? 0 : 1
+  source               = "../../../resources/ibmcloud/compute/bare_metal_server_multiple_vol"
+  total_vsis           = var.total_storage_cluster_instances
   vsi_name_prefix      = format("%s-storage-baremetal", var.resource_prefix)
   vpc_id               = var.vpc_id
   resource_group_id    = var.resource_group_id
@@ -234,7 +234,7 @@ module "storage_cluster_bare_metal_server" {
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   resource_tags        = var.scale_cluster_resource_tags
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule,time_sleep.wait_300_seconds]
+  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule, time_sleep.wait_300_seconds]
 }
 module "storage_cluster_tie_breaker_instance" {
   source               = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
@@ -317,9 +317,9 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_ids              = jsonencode([])
   compute_cluster_instance_private_ips      = jsonencode([])
   storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) :jsonencode(one(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
   storage_cluster_instance_private_ips      = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
-  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) :jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
+  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
   storage_cluster_desc_instance_ids         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
   storage_cluster_desc_instance_private_ips = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping  = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
@@ -342,9 +342,9 @@ module "write_cluster_inventory" {
   compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
   compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
   storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) :jsonencode(one(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
   storage_cluster_instance_private_ips      = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
-  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) :jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
+  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
   storage_cluster_desc_instance_ids         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids) : jsonencode([])
   storage_cluster_desc_instance_private_ips = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
   storage_cluster_desc_data_volume_mapping  = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping) : jsonencode({})

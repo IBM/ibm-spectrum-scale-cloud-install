@@ -2,11 +2,13 @@
     Creates AWS internet gateway.
 */
 
+variable "turn_on" {}
 variable "vpc_id" {}
 variable "vpc_name" {}
 variable "vpc_tags" {}
 
 resource "aws_internet_gateway" "itself" {
+  count  = var.turn_on == true ? 1 : 0
   vpc_id = var.vpc_id
   tags = merge(
     {
@@ -17,5 +19,5 @@ resource "aws_internet_gateway" "itself" {
 }
 
 output "internet_gw_id" {
-  value = aws_internet_gateway.itself.id
+  value = try(aws_internet_gateway.itself[0].id, null)
 }

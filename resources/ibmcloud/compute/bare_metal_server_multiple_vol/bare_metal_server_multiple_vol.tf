@@ -28,7 +28,7 @@ variable "resource_group_id" {}
 variable "resource_tags" {}
 
 data "ibm_is_bare_metal_server_profile" "itself" {
-  name        = var.vsi_profile
+  name = var.vsi_profile
 }
 
 data "template_file" "metadata_startup_script" {
@@ -97,10 +97,10 @@ resource "ibm_is_bare_metal_server" "itself" {
   keys    = var.vsi_user_public_key
   tags    = var.resource_tags
   primary_network_interface {
-    subnet     = each.value.subnet_id
+    subnet          = each.value.subnet_id
     security_groups = var.vsi_security_group
   }
-  vpc   = var.vpc_id
+  vpc            = var.vpc_id
   resource_group = var.resource_group_id
   user_data      = data.template_file.metadata_startup_script.rendered
   timeouts {
@@ -123,7 +123,7 @@ resource "ibm_dns_resource_record" "a_itself" {
   name        = each.value.name
   #rdata       = each.value.network_ip
   rdata = format("%s", each.value.network_ip)
-  ttl         = 300
+  ttl   = 300
 }
 
 resource "ibm_dns_resource_record" "ptr_itself" {

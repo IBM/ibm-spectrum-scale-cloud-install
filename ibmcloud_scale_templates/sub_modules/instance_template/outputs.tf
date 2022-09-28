@@ -39,7 +39,7 @@ output "storage_cluster_desc_data_volume_mapping" {
 }
 
 output "baremetal_cluster_instance_ids" {
-  value = module.storage_cluster_bare_metal_server[*].instance_ids
+  value       = module.storage_cluster_bare_metal_server[*].instance_ids
   description = "storage cluster bare metal server ids"
 }
 
