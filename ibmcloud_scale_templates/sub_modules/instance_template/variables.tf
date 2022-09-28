@@ -250,20 +250,20 @@ variable "scale_cluster_resource_tags" {
 }
 
 variable "compute_vsi_osimage_id" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Image id to use for provisioning the compute cluster instances."
 }
 
 variable "storage_vsi_osimage_id" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Image id to use for provisioning the storage cluster instances."
 }
 
 variable "storage_bare_metal_server_profile" {
-  type = string
-  default = "cx2d-metal-96x192"
+  type        = string
+  default     = "cx2d-metal-96x192"
   description = "Specify the virtual server instance profile type name to be used to create the Baremetal Storage nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
 }
 

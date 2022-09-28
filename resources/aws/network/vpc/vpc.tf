@@ -2,11 +2,14 @@
     Creates new AWS Virtual Private Cloud.
 */
 
+variable "turn_on" {}
 variable "cidr_block" {}
 variable "vpc_name" {}
+variable "domain_name" {}
 variable "vpc_tags" {}
 
 resource "aws_vpc" "itself" {
+  count                            = var.turn_on ? 1 : 0
   cidr_block                       = var.cidr_block
   instance_tenancy                 = "default"
   enable_dns_hostnames             = true
@@ -22,7 +25,8 @@ resource "aws_vpc" "itself" {
 }
 
 resource "aws_default_network_acl" "itself" {
-  default_network_acl_id = aws_vpc.itself.default_network_acl_id
+  count                  = var.turn_on ? 1 : 0
+  default_network_acl_id = try(aws_vpc.itself[0].default_network_acl_id, null)
   ingress {
     protocol   = -1
     rule_no    = 100
@@ -50,7 +54,8 @@ resource "aws_default_network_acl" "itself" {
 }
 
 resource "aws_default_route_table" "itself" {
-  default_route_table_id = aws_vpc.itself.default_route_table_id
+  count                  = var.turn_on ? 1 : 0
+  default_route_table_id = try(aws_vpc.itself[0].default_route_table_id, null)
   tags = merge(
     {
       "Name" = format("%s", var.vpc_name)
@@ -60,7 +65,8 @@ resource "aws_default_route_table" "itself" {
 }
 
 resource "aws_default_security_group" "itself" {
-  vpc_id = aws_vpc.itself.id
+  count  = var.turn_on ? 1 : 0
+  vpc_id = try(aws_vpc.itself[0].id, null)
   ingress {
     protocol  = -1
     self      = true
@@ -83,7 +89,13 @@ resource "aws_default_security_group" "itself" {
   )
 }
 
-resource "aws_default_vpc_dhcp_options" "itself" {
+// Note: Each AWS region comes with a default set of DHCP options. Terraform cannot destroy it.
+// Hence using our own dhcp options set which can be deleted.
+resource "aws_vpc_dhcp_options" "itself" {
+  count               = var.turn_on ? 1 : 0
+  domain_name         = var.domain_name
+  domain_name_servers = ["AmazonProvidedDNS"]
+
   tags = merge(
     {
       "Name" = format("%s", var.vpc_name)
@@ -93,14 +105,20 @@ resource "aws_default_vpc_dhcp_options" "itself" {
   depends_on = [aws_vpc.itself]
 }
 
+resource "aws_vpc_dhcp_options_association" "itself" {
+  count           = var.turn_on ? 1 : 0
+  vpc_id          = try(aws_vpc.itself[0].id, null)
+  dhcp_options_id = try(aws_vpc_dhcp_options.itself[0].id, null)
+}
+
 output "vpc_id" {
-  value = aws_vpc.itself.id
+  value = try(aws_vpc.itself[0].id, null)
 }
 
 output "vpc_main_route_table_id" {
-  value = aws_vpc.itself.main_route_table_id
+  value = try(aws_vpc.itself[0].main_route_table_id, null)
 }
 
 output "vpc_dhcp_options_id" {
-  value = aws_default_vpc_dhcp_options.itself.id
+  value = try(aws_vpc_dhcp_options.itself[0].id, null)
 }
