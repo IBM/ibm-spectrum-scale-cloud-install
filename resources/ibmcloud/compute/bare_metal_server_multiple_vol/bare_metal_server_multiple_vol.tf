@@ -59,6 +59,10 @@ sed -i -e "s#QUEUE_COUNT=3#QUEUE_COUNT=\`ethtool -l \$iface | echo \$(awk '\$1 ~
 ethtool -L ens1 combined 16
 chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
+if rpm -q "gpfs.gpl"
+then
+    /usr/lpp/mmfs/bin/mmbuildgpl
+fi
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
 firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
