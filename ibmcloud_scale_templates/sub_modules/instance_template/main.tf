@@ -194,7 +194,7 @@ resource "time_sleep" "wait_300_seconds" {
 
 
 module "storage_cluster_instances" {
-  count                = var.storage_type == "scratch" ? 1 : 0
+  count                = var.storage_type != "persistent" ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   total_vsis           = var.total_storage_cluster_instances
   vsi_name_prefix      = format("%s-storage", var.resource_prefix)
@@ -216,7 +216,7 @@ module "storage_cluster_instances" {
 }
 
 module "storage_cluster_bare_metal_server" {
-  count                = var.storage_type == "scratch" ? 0 : 1
+  count                = var.storage_type == "persistent" ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/bare_metal_server_multiple_vol"
   total_vsis           = var.total_storage_cluster_instances
   vsi_name_prefix      = format("%s-storage-baremetal", var.resource_prefix)
@@ -317,9 +317,9 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_ids              = jsonencode([])
   compute_cluster_instance_private_ips      = jsonencode([])
   storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
-  storage_cluster_instance_private_ips      = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
-  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
+  storage_cluster_instance_ids              = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_private_ips      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
+  storage_cluster_with_data_volume_mapping  = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
   storage_cluster_desc_instance_ids         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
   storage_cluster_desc_instance_private_ips = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping  = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
@@ -342,9 +342,9 @@ module "write_cluster_inventory" {
   compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
   compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
   storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids              = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
-  storage_cluster_instance_private_ips      = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
-  storage_cluster_with_data_volume_mapping  = var.storage_type != "scratch" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
+  storage_cluster_instance_ids              = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_private_ips      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
+  storage_cluster_with_data_volume_mapping  = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
   storage_cluster_desc_instance_ids         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids) : jsonencode([])
   storage_cluster_desc_instance_private_ips = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
   storage_cluster_desc_data_volume_mapping  = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping) : jsonencode({})
@@ -385,9 +385,9 @@ module "storage_cluster_configuration" {
   using_rest_initialization    = true
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
-  max_pagepool_gb              = var.storage_type != "scratch" ? 32 : 16
-  vcpu_count                   = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  memory_size                  = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
+  max_pagepool_gb              = var.storage_type == "persistent" ? 32 : 16
+  vcpu_count                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -407,7 +407,7 @@ module "combined_cluster_configuration" {
   using_direct_connection      = var.using_direct_connection
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = var.storage_type != "scratch" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
+  memory_size                  = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
