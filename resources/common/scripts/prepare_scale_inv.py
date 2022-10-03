@@ -98,6 +98,28 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
     until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
     retries: 60
     delay: 10
+# Validate Scale packages existence to skip node role
+- name: Check if Scale packages already installed on node
+  hosts: scale_nodes
+  any_errors_fatal: true
+  gather_facts: false
+  vars:
+    scale_packages:
+      - gpfs.base
+      - gpfs.adv
+      - gpfs.crypto
+      - gpfs.docs
+      - gpfs.gpl
+      - gpfs.gskit
+      - gpfs.gss.pmcollector
+      - gpfs.gss.pmsensors
+      - gpfs.gui
+      - gpfs.java
+  tasks:
+  - name: Check if scale packages are already installed
+    shell: rpm -q "{{{{ item }}}}"
+    loop: "{{{{ scale_packages }}}}"
+    register: scale_packages_installed
 
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
@@ -106,14 +128,14 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - include_vars: group_vars/{cluster_config}
   roles:
      - core/precheck
-     - core/node
+     - {{ role: core/node, when: "scale_packages_installed is undefined" }}
      - core/cluster
      - gui/precheck
-     - gui/node
+     - {{ role: gui/node, when: "scale_packages_installed is undefined" }}
      - gui/cluster
      - gui/postcheck
      - zimon/precheck
-     - zimon/node
+     - {{ role: zimon/node, when: "scale_packages_installed is undefined" }}
      - zimon/cluster
      - zimon/postcheck
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
