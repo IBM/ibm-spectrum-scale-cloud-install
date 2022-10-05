@@ -55,6 +55,7 @@ resource "local_file" "create_storage_tuning_parameters" {
  minMissedPingTimeout=60
  failureDetectionTime=60
  autoload=yes
+ autoBuildGPL=yes
 EOT
   filename = local.scale_tuning_config_path
 }
