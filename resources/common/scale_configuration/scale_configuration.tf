@@ -44,6 +44,7 @@ resource "local_file" "create_storage_tuning_parameters" {
  prefetchaggressivenesswrite=0
  prefetchaggressivenessread=2
  autoload=yes
+ autoBuildGPL=yes
 EOT
   filename = local.scale_tuning_config_path
 }
