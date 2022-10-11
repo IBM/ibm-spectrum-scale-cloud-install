@@ -357,7 +357,7 @@ module "storage_cluster_instances" {
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
-  subnet_ids                             = length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets
+  subnet_ids                             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
   root_volume_type                       = var.storage_cluster_root_volume_type
   user_public_key                        = var.storage_cluster_key_pair
   meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
@@ -380,14 +380,14 @@ module "storage_cluster_instances" {
 
 module "storage_cluster_tie_breaker_instance" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
-  instances_count                        = (length(var.vpc_storage_cluster_private_subnets) > 1 && var.total_storage_cluster_instances != null) ? 1 : 0
+  instances_count                        = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 1 && var.total_storage_cluster_instances != null) ? 1 : 0) : 0
   name_prefix                            = format("%s-storage-tie", var.resource_prefix)
   ami_id                                 = var.storage_cluster_image_id
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
-  subnet_ids                             = length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets
+  subnet_ids                             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets) : null
   root_volume_type                       = var.storage_cluster_root_volume_type
   user_public_key                        = var.storage_cluster_key_pair
   meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
