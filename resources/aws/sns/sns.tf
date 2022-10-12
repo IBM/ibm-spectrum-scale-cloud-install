@@ -2,21 +2,37 @@
     Creates new AWS SNS topic.
 */
 
-variable "turn_on" {}
 variable "vpc_region" {}
 variable "operator_email" {}
 variable "topic_name" {}
 
-#tfsec:ignore:AWS016
 resource "aws_sns_topic" "itself" {
-  count = var.turn_on
-  name = var.topic_name
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = "aws sns subscribe --topic-arn ${aws_sns_topic.itself[0].arn} --protocol email --notification-endpoint ${var.operator_email} --region ${var.vpc_region}"
-  }
+  name            = var.topic_name
+  delivery_policy = jsonencode({
+    "http" : {
+      "defaultHealthyRetryPolicy" : {
+        "minDelayTarget" : 20,
+        "maxDelayTarget" : 20,
+        "numRetries" : 3,
+        "numMaxDelayRetries" : 0,
+        "numNoDelayRetries" : 0,
+        "numMinDelayRetries" : 0,
+        "backoffFunction" : "linear"
+      },
+      "disableSubscriptionOverrides" : false,
+      "defaultThrottlePolicy" : {
+        "maxReceivesPerSecond" : 1
+      }
+    }
+  })
+}
+
+resource "aws_sns_topic_subscription" "itself" {
+  topic_arn = aws_sns_topic.itself.arn
+  protocol  = "email"
+  endpoint  = var.operator_email
 }
 
 output "topic_arn" {
-  value = try(aws_sns_topic.itself[0].arn, null)
+  value = aws_sns_topic_subscription.itself.arn
 }
