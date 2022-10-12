@@ -277,8 +277,6 @@ variable "spectrumscale_rpms_path" {
 
 variable "operator_email" {
   type        = string
-  nullable    = true
-  default     = null
   description = "SNS notifications will be sent to provided email id."
 }
 
