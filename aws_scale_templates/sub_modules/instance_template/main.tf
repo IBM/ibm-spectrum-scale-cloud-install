@@ -315,7 +315,6 @@ module "bicluster_ingress_security_rule" {
 
 module "email_notification" {
   source         = "../../../resources/aws/sns"
-  turn_on        = var.operator_email != null ? 1 : 0
   operator_email = var.operator_email
   topic_name     = format("%s-topic", var.resource_prefix)
   vpc_region     = var.vpc_region
