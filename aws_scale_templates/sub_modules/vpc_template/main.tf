@@ -81,7 +81,7 @@ module "eip" {
 module "nat_gateway" {
   source           = "../../../resources/aws/network/nat_gw"
   turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false
-  total_nat_gws    = var.vpc_create_separate_subnets == true && (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? length(var.vpc_availability_zones) + 1 : length(var.vpc_availability_zones)
+  total_nat_gws    = (var.vpc_create_separate_subnets == true && var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? length(var.vpc_availability_zones) + 1 : length(var.vpc_availability_zones)
   eip_id           = module.eip.eip_id
   target_subnet_id = module.public_subnet.subnet_id
   vpc_name         = format("%s-nat", var.resource_prefix)
