@@ -156,3 +156,8 @@ output "instance_ids" {
 output "instance_ips_with_ebs_mapping" {
   value = tobool(var.enable_nvme_block_device) == true ? try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.nvme_block_device_count) }, {}) : try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
 }
+
+output "instance_private_dns_ip_map" {
+  value = try({ for instance_details in aws_instance.itself : instance_details.private_ip => instance_details.private_dns }, {})
+}
+
