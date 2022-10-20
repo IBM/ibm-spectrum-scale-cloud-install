@@ -342,3 +342,9 @@ variable "create_scale_cluster" {
   default     = null
   description = "Flag to represent whether to create scale cluster or not."
 }
+
+variable "inventory_format" {
+  type        = string
+  default     = "ini"
+  description = "Specify inventory format suited for ansible playbooks."
+}
