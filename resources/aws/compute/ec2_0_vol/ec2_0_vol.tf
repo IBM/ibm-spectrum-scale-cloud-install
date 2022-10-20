@@ -95,3 +95,8 @@ output "instance_private_ips" {
 output "instance_ids" {
   value = try(toset([for instance_details in aws_instance.itself : instance_details.id]), [])
 }
+
+output "instance_private_dns_ip_map" {
+  value = try({ for instance_details in aws_instance.itself : instance_details.private_ip => instance_details.private_dns }, {})
+}
+
