@@ -104,6 +104,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   any_errors_fatal: true
   gather_facts: false
   vars:
+    scale_packages_installed: true
     scale_packages:
       - gpfs.base
       - gpfs.adv
@@ -119,7 +120,15 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   - name: Check if scale packages are already installed
     shell: rpm -q "{{{{ item }}}}"
     loop: "{{{{ scale_packages }}}}"
-    register: scale_packages_installed
+    register: scale_packages_check
+    ignore_errors: true
+
+  - name: Set scale packages installation variable
+    set_fact:
+      scale_packages_installed: false
+    when:  item.rc != 0
+    loop: "{{{{ scale_packages_check.results }}}}"
+    ignore_errors: true
 
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
@@ -128,14 +137,14 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - include_vars: group_vars/{cluster_config}
   roles:
      - core/precheck
-     - {{ role: core/node, when: "scale_packages_installed is undefined" }}
+     - {{ role: core/node, when: "scale_packages_installed is false" }}
      - core/cluster
      - gui/precheck
-     - {{ role: gui/node, when: "scale_packages_installed is undefined" }}
+     - {{ role: gui/node, when: "scale_packages_installed is false" }}
      - gui/cluster
      - gui/postcheck
      - zimon/precheck
-     - {{ role: zimon/node, when: "scale_packages_installed is undefined" }}
+     - {{ role: zimon/node, when: "scale_packages_installed is false" }}
      - zimon/cluster
      - zimon/postcheck
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
