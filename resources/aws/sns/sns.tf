@@ -7,7 +7,7 @@ variable "operator_email" {}
 variable "topic_name" {}
 
 resource "aws_sns_topic" "itself" {
-  name            = var.topic_name
+  name = var.topic_name
   delivery_policy = jsonencode({
     "http" : {
       "defaultHealthyRetryPolicy" : {
