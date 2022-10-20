@@ -54,3 +54,9 @@ variable "vpc_storage_cluster_dns_domain" {
   default     = "strgscale.com"
   description = "IBM Cloud DNS domain name to be used for storage cluster."
 }
+
+variable "inventory_format" {
+  type        = string
+  default     = "ini"
+  description = "Specify inventory format suited for ansible playbooks."
+}
