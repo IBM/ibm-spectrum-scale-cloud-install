@@ -101,7 +101,6 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
 # Validate Scale packages existence to skip node role
 - name: Check if Scale packages already installed on node
   hosts: scale_nodes
-  any_errors_fatal: true
   gather_facts: false
   vars:
     scale_packages_installed: true
