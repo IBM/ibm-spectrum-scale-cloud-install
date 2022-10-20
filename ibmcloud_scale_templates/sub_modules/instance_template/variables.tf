@@ -284,3 +284,9 @@ variable "storage_type" {
   default     = "scratch"
   description = "Select the required scale filesystem deployment method. Note: Choosing the scale scratch or evaluation type will deploy scale filesystem on VSI and scale persistent type will deploy scale filesystem on Baremetal server."
 }
+
+variable "inventory_format" {
+  type        = string
+  default     = "ini"
+  description = "Specify inventory format suited for ansible playbooks."
+}
