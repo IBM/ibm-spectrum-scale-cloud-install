@@ -441,7 +441,6 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode([])
   storage_cluster_desc_data_volume_mapping         = jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
-
 }
 
 module "write_storage_cluster_inventory" {
@@ -507,6 +506,7 @@ module "compute_cluster_configuration" {
   turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances != null) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
@@ -529,6 +529,7 @@ module "storage_cluster_configuration" {
   turn_on                      = (var.create_separate_namespaces == true && var.total_storage_cluster_instances != null) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
@@ -552,6 +553,7 @@ module "combined_cluster_configuration" {
   turn_on                      = var.create_separate_namespaces == false ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
