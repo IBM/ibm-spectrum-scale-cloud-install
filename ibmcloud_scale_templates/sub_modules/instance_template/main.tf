@@ -276,78 +276,87 @@ module "prepare_ansible_configuration" {
 }
 
 module "write_compute_cluster_inventory" {
-  source                                    = "../../../resources/common/write_inventory"
-  write_inventory                           = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? 1 : 0
-  clone_complete                            = module.prepare_ansible_configuration.clone_complete
-  inventory_path                            = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                            = jsonencode("IBMCloud")
-  resource_prefix                           = jsonencode(var.resource_prefix)
-  vpc_region                                = jsonencode(var.vpc_region)
-  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
-  scale_version                             = jsonencode(local.scale_version)
-  filesystem_block_size                     = jsonencode("None")
-  compute_cluster_filesystem_mountpoint     = jsonencode(var.compute_cluster_filesystem_mountpoint)
-  bastion_instance_id                       = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
-  bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
-  compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
-  storage_cluster_filesystem_mountpoint     = jsonencode("None")
-  storage_cluster_instance_ids              = jsonencode([])
-  storage_cluster_instance_private_ips      = jsonencode([])
-  storage_cluster_with_data_volume_mapping  = jsonencode({})
-  storage_cluster_desc_instance_ids         = jsonencode([])
-  storage_cluster_desc_instance_private_ips = jsonencode([])
-  storage_cluster_desc_data_volume_mapping  = jsonencode({})
+  source                                           = "../../../resources/common/write_inventory"
+  write_inventory                                  = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? 1 : 0
+  clone_complete                                   = module.prepare_ansible_configuration.clone_complete
+  inventory_path                                   = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                                   = jsonencode("IBMCloud")
+  resource_prefix                                  = jsonencode(var.resource_prefix)
+  vpc_region                                       = jsonencode(var.vpc_region)
+  vpc_availability_zones                           = jsonencode(var.vpc_availability_zones)
+  scale_version                                    = jsonencode(local.scale_version)
+  filesystem_block_size                            = jsonencode("None")
+  compute_cluster_filesystem_mountpoint            = jsonencode(var.compute_cluster_filesystem_mountpoint)
+  bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  compute_cluster_instance_ids                     = jsonencode(module.compute_cluster_instances.instance_ids)
+  compute_cluster_instance_private_ips             = jsonencode(module.compute_cluster_instances.instance_private_ips)
+  compute_cluster_instance_private_dns_ip_map      = jsonencode(module.compute_cluster_instances.instance_private_dns_ip_map)
+  storage_cluster_filesystem_mountpoint            = jsonencode("None")
+  storage_cluster_instance_ids                     = jsonencode([])
+  storage_cluster_instance_private_ips             = jsonencode([])
+  storage_cluster_with_data_volume_mapping         = jsonencode({})
+  storage_cluster_instance_private_dns_ip_map      = jsonencode({})
+  storage_cluster_desc_instance_ids                = jsonencode([])
+  storage_cluster_desc_instance_private_ips        = jsonencode([])
+  storage_cluster_desc_data_volume_mapping         = jsonencode({})
+  storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
 }
 
 module "write_storage_cluster_inventory" {
-  source                                    = "../../../resources/common/write_inventory"
-  write_inventory                           = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? 1 : 0
-  clone_complete                            = module.prepare_ansible_configuration.clone_complete
-  inventory_path                            = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                            = jsonencode("IBMCloud")
-  resource_prefix                           = jsonencode(var.resource_prefix)
-  vpc_region                                = jsonencode(var.vpc_region)
-  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
-  scale_version                             = jsonencode(local.scale_version)
-  filesystem_block_size                     = jsonencode(var.filesystem_block_size)
-  compute_cluster_filesystem_mountpoint     = jsonencode("None")
-  bastion_instance_id                       = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
-  bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids              = jsonencode([])
-  compute_cluster_instance_private_ips      = jsonencode([])
-  storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids              = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
-  storage_cluster_instance_private_ips      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
-  storage_cluster_with_data_volume_mapping  = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
-  storage_cluster_desc_instance_ids         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
-  storage_cluster_desc_instance_private_ips = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
-  storage_cluster_desc_data_volume_mapping  = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
+  source                                           = "../../../resources/common/write_inventory"
+  write_inventory                                  = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? 1 : 0
+  clone_complete                                   = module.prepare_ansible_configuration.clone_complete
+  inventory_path                                   = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                                   = jsonencode("IBMCloud")
+  resource_prefix                                  = jsonencode(var.resource_prefix)
+  vpc_region                                       = jsonencode(var.vpc_region)
+  vpc_availability_zones                           = jsonencode(var.vpc_availability_zones)
+  scale_version                                    = jsonencode(local.scale_version)
+  filesystem_block_size                            = jsonencode(var.filesystem_block_size)
+  compute_cluster_filesystem_mountpoint            = jsonencode("None")
+  bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  compute_cluster_instance_ids                     = jsonencode([])
+  compute_cluster_instance_private_ips             = jsonencode([])
+  compute_cluster_instance_private_dns_ip_map      = jsonencode({})
+  storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
+  storage_cluster_instance_ids                     = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_private_ips             = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
+  storage_cluster_with_data_volume_mapping         = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
+  storage_cluster_instance_private_dns_ip_map      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_dns_ip_map)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_dns_ip_map))
+  storage_cluster_desc_instance_ids                = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
+  storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
+  storage_cluster_desc_data_volume_mapping         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
+  storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
 }
 
 module "write_cluster_inventory" {
-  source                                    = "../../../resources/common/write_inventory"
-  write_inventory                           = var.create_separate_namespaces == false ? 1 : 0
-  clone_complete                            = module.prepare_ansible_configuration.clone_complete
-  inventory_path                            = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                            = jsonencode("IBMCloud")
-  resource_prefix                           = jsonencode(var.resource_prefix)
-  vpc_region                                = jsonencode(var.vpc_region)
-  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
-  scale_version                             = jsonencode(local.scale_version)
-  filesystem_block_size                     = jsonencode(var.filesystem_block_size)
-  compute_cluster_filesystem_mountpoint     = jsonencode("None")
-  bastion_instance_id                       = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
-  bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids              = jsonencode(module.compute_cluster_instances.instance_ids)
-  compute_cluster_instance_private_ips      = jsonencode(module.compute_cluster_instances.instance_private_ips)
-  storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids              = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
-  storage_cluster_instance_private_ips      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
-  storage_cluster_with_data_volume_mapping  = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
-  storage_cluster_desc_instance_ids         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids) : jsonencode([])
-  storage_cluster_desc_instance_private_ips = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
-  storage_cluster_desc_data_volume_mapping  = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping) : jsonencode({})
+  source                                           = "../../../resources/common/write_inventory"
+  write_inventory                                  = var.create_separate_namespaces == false ? 1 : 0
+  clone_complete                                   = module.prepare_ansible_configuration.clone_complete
+  inventory_path                                   = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                                   = jsonencode("IBMCloud")
+  resource_prefix                                  = jsonencode(var.resource_prefix)
+  vpc_region                                       = jsonencode(var.vpc_region)
+  vpc_availability_zones                           = jsonencode(var.vpc_availability_zones)
+  scale_version                                    = jsonencode(local.scale_version)
+  filesystem_block_size                            = jsonencode(var.filesystem_block_size)
+  compute_cluster_filesystem_mountpoint            = jsonencode("None")
+  bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  compute_cluster_instance_ids                     = jsonencode(module.compute_cluster_instances.instance_ids)
+  compute_cluster_instance_private_ips             = jsonencode(module.compute_cluster_instances.instance_private_ips)
+  compute_cluster_instance_private_dns_ip_map      = jsonencode(module.compute_cluster_instances.instance_private_dns_ip_map)
+  storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
+  storage_cluster_instance_ids                     = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ids)) : jsonencode(one(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_private_ips             = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_ips)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_ips))
+  storage_cluster_with_data_volume_mapping         = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
+  storage_cluster_instance_private_dns_ip_map      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_dns_ip_map)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_dns_ip_map))
+  storage_cluster_desc_instance_ids                = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids) : jsonencode([])
+  storage_cluster_desc_instance_private_ips        = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
+  storage_cluster_desc_data_volume_mapping         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping) : jsonencode({})
+  storage_cluster_desc_instance_private_dns_ip_map = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map) : jsonencode({})
 }
 
 module "compute_cluster_configuration" {
@@ -355,6 +364,7 @@ module "compute_cluster_configuration" {
   turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
@@ -377,6 +387,7 @@ module "storage_cluster_configuration" {
   turn_on                      = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
@@ -400,6 +411,7 @@ module "combined_cluster_configuration" {
   turn_on                      = var.create_separate_namespaces == false ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
