@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Copyright IBM Corporation 2018
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
 
+You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
@@ -845,8 +846,6 @@ if __name__ == "__main__":
                         help='Spectrum Scale instances SSH private key path')
     PARSER.add_argument('--bastion_ip',
                         help='Bastion SSH public ip address')
-    PARSER.add_argument('--bastion_user',
-                        help='Bastion user name')
     PARSER.add_argument('--bastion_ssh_private_key',
                         help='Bastion SSH private key path')
     PARSER.add_argument('--memory_size', help='Instance memory size')
@@ -869,6 +868,14 @@ if __name__ == "__main__":
 
     if ARGUMENTS.verbose:
         print("Parsed terraform output: %s" % json.dumps(TF, indent=4))
+
+    if TF['cloud_platform'] == 'AWS':
+        bastion_user = "ec2-user"
+    elif TF['cloud_platform'] == 'Azure':
+        bastion_user = "azureuser"
+    elif TF['cloud_platform'] == 'IBMCloud':
+        bastion_user = "ubuntu"
+
 
     # Step-2: Identify the cluster type
     if len(TF['storage_cluster_instance_private_ips']) == 0 and \
@@ -966,10 +973,10 @@ if __name__ == "__main__":
                                gui_username,
                                gui_password,
                                profile_path,
-                               replica_config, 
-                               ARGUMENTS.bastion_ip, 
+                               replica_config,
+                               ARGUMENTS.bastion_ip,
                                ARGUMENTS.bastion_ssh_private_key,
-                               ARGUMENTS.bastion_user)
+                               bastion_user)
 
     initialize_callhome_details()
 
@@ -1018,4 +1025,3 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Completed writing cloud infrastructure details to: ",
               ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
-
