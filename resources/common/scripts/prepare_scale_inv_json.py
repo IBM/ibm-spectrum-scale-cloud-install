@@ -64,7 +64,8 @@ def calculate_pagepool(memory_size, max_pagepool_gb):
 
 def initialize_cluster_details(scale_version, cluster_name, username,
                                password, scale_profile_path,
-                               scale_replica_config):
+                               scale_replica_config, bastion_ip,
+                               bastion_key_file, bastion_user):
     """ Initialize cluster details.
     :args: cluster_name (string), scale_profile_file (string), scale_replica_config (bool)
     """
@@ -81,6 +82,9 @@ def initialize_cluster_details(scale_version, cluster_name, username,
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_path).stem)
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(pathlib.PurePath(scale_profile_path).parent)
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host'] = bastion_ip
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_private_key'] = bastion_key_file
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_user'] = bastion_user
 
 
 def initialize_callhome_details():
@@ -152,10 +156,6 @@ def initialize_node_details(az_count, cls_type,
         start_quorum_assign = quorum_count - 1
         for each_ip in compute_private_ips:
 
-            node_dns_name = each_ip
-            if each_ip in compute_dns_map:
-                node_dns_name = compute_dns_map[each_ip]
-
             if compute_private_ips.index(each_ip) <= (start_quorum_assign) and \
                     compute_private_ips.index(each_ip) <= (manager_count - 1):
                 if compute_private_ips.index(each_ip) == 0:
@@ -164,11 +164,8 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_gui': True, 'is_collector': True, 'is_nsd': False,
                     #         'is_admin': True, 'user': user, 'key_file': key_file,
                     #         'class': "computenodegrp"}
-                    # write_json_file({'compute_cluster_gui_ip_address': each_ip},
-                    #                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                    #                            "compute_cluster_gui_details.json"))
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "computenodegrp",
@@ -187,7 +184,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': False, 'user': user, 'key_file': key_file,
                     #         'class': "computenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "computenodegrp",
@@ -206,7 +203,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': False, 'user': user, 'key_file': key_file,
                     #         'class': "computenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "computenodegrp",
@@ -226,7 +223,7 @@ def initialize_node_details(az_count, cls_type,
                 #         'is_admin': False, 'user': user, 'key_file': key_file,
                 #         'class': "computenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "computenodegrp",
@@ -245,7 +242,7 @@ def initialize_node_details(az_count, cls_type,
                 #         'is_admin': False, 'user': user, 'key_file': key_file,
                 #         'class': "computenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "computenodegrp",
@@ -261,10 +258,6 @@ def initialize_node_details(az_count, cls_type,
         start_quorum_assign = quorum_count - 1
         for each_ip in storage_private_ips:
 
-            node_dns_name = each_ip
-            if each_ip in storage_dns_map:
-                node_dns_name = storage_dns_map[each_ip]
-
             if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
                     storage_private_ips.index(each_ip) <= (manager_count - 1):
                 if storage_private_ips.index(each_ip) == 0:
@@ -277,7 +270,7 @@ def initialize_node_details(az_count, cls_type,
                     #                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                     #                           "storage_cluster_gui_details.json"))
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -296,7 +289,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': False, 'user': user, 'key_file': key_file,
                     #         'class': "storagenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -315,7 +308,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': False, 'user': user, 'key_file': key_file,
                     #         'class': "storagenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -335,7 +328,7 @@ def initialize_node_details(az_count, cls_type,
                 #         'is_admin': False, 'user': user, 'key_file': key_file,
                 #         'class': "storagenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "storagenodegrp",
@@ -354,7 +347,7 @@ def initialize_node_details(az_count, cls_type,
                 #         'is_admin': False, 'user': user, 'key_file': key_file,
                 #         'class': "storagenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "storagenodegrp",
@@ -369,17 +362,12 @@ def initialize_node_details(az_count, cls_type,
     elif cls_type == 'storage' and az_count > 1:
         for each_ip in desc_private_ips:
 
-            node_dns_name = each_ip
-            if each_ip in desc_dns_map:
-                node_dns_name = desc_dns_map[each_ip]
-
-
             # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
             #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
             #         'is_admin': False, 'user': user, 'key_file': key_file,
             #         'class': "computedescnodegrp"}
 
-            set_node_details(node_dns_name,
+            set_node_details(each_ip,
                              each_ip,
                              key_file,
                              "computedescnodegrp",
@@ -400,10 +388,6 @@ def initialize_node_details(az_count, cls_type,
 
         for each_ip in storage_private_ips:
 
-            node_dns_name = each_ip
-            if each_ip in storage_dns_map:
-                node_dns_name = storage_dns_map[each_ip]
-
             if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
                     storage_private_ips.index(each_ip) <= (manager_count - 1):
                 if storage_private_ips.index(each_ip) == 0:
@@ -413,7 +397,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': True, 'user': user, 'key_file': key_file,
                     #         'class': "storagenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -435,7 +419,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': True, 'user': user, 'key_file': key_file,
                     #         'class': "storagenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -454,7 +438,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': True, 'user': user, 'key_file': key_file,
                     #         'class': "storagenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -474,7 +458,7 @@ def initialize_node_details(az_count, cls_type,
                 #         'is_admin': True, 'user': user, 'key_file': key_file,
                 #         'class': "storagenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "storagenodegrp",
@@ -493,7 +477,7 @@ def initialize_node_details(az_count, cls_type,
                 #         'is_admin': False, 'user': user, 'key_file': key_file,
                 #         'class': "storagenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "storagenodegrp",
@@ -508,16 +492,12 @@ def initialize_node_details(az_count, cls_type,
     elif cls_type == 'combined':
         for each_ip in desc_private_ips:
 
-            node_dns_name = each_ip
-            if each_ip in desc_dns_map:
-                node_dns_name = desc_dns_map[each_ip]
-
             # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
             #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
             #         'is_admin': False, 'user': user, 'key_file': key_file,
             #         'class': "computedescnodegrp"}
 
-            set_node_details(node_dns_name,
+            set_node_details(each_ip,
                              each_ip,
                              key_file,
                              "computedescnodegrp",
@@ -538,10 +518,6 @@ def initialize_node_details(az_count, cls_type,
 
         for each_ip in storage_private_ips:
 
-            node_dns_name = each_ip
-            if each_ip in storage_dns_map:
-                node_dns_name = storage_dns_map[each_ip]
-
             if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
                     storage_private_ips.index(each_ip) <= (manager_count - 1):
                 if storage_private_ips.index(each_ip) == 0:
@@ -551,7 +527,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': True, 'user': user, 'key_file': key_file,
                     #         'class': "storagenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -570,7 +546,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': True, 'user': user, 'key_file': key_file,
                     #         'class': "storagenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -589,7 +565,7 @@ def initialize_node_details(az_count, cls_type,
                     #         'is_admin': True, 'user': user, 'key_file': key_file,
                     #         'class': "storagenodegrp"}
 
-                    set_node_details(node_dns_name,
+                    set_node_details(each_ip,
                                      each_ip,
                                      key_file,
                                      "storagenodegrp",
@@ -609,7 +585,7 @@ def initialize_node_details(az_count, cls_type,
                 #         'is_admin': True, 'user': user, 'key_file': key_file,
                 #         'class': "storagenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "storagenodegrp",
@@ -628,7 +604,7 @@ def initialize_node_details(az_count, cls_type,
                 #         'is_admin': False, 'user': user, 'key_file': key_file,
                 #         'class': "storagenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "storagenodegrp",
@@ -656,16 +632,12 @@ def initialize_node_details(az_count, cls_type,
         if quorums_left > 0:
             for each_ip in compute_private_ips[0:quorums_left]:
 
-                node_dns_name = each_ip
-                if each_ip in compute_dns_map:
-                    node_dns_name = compute_dns_map[each_ip]
-
                 # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                 #         'is_admin': True, 'user': user, 'key_file': key_file,
                 #         'class': "computenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "computenodegrp",
@@ -679,16 +651,12 @@ def initialize_node_details(az_count, cls_type,
 
             for each_ip in compute_private_ips[quorums_left:]:
 
-                node_dns_name = each_ip
-                if each_ip in compute_dns_map:
-                    node_dns_name = compute_dns_map[each_ip]
-
                 # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                 #         'is_admin': False, 'user': user, 'key_file': key_file,
                 #         'class': "computenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "computenodegrp",
@@ -703,16 +671,12 @@ def initialize_node_details(az_count, cls_type,
         if quorums_left == 0:
             for each_ip in compute_private_ips:
 
-                node_dns_name = each_ip
-                if each_ip in compute_dns_map:
-                    node_dns_name = compute_dns_map[each_ip]
-
                 # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                 #         'is_admin': False, 'user': user, 'key_file': key_file,
                 #         'class': "computenodegrp"}
 
-                set_node_details(node_dns_name,
+                set_node_details(each_ip,
                                  each_ip,
                                  key_file,
                                  "computenodegrp",
@@ -773,10 +737,6 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
     nsd_count = 1
     for each_ip, disk_per_ip in disk_mapping.items():
 
-        node_dns_name = each_ip
-        if each_ip in storage_dns_map:
-            node_dns_name = storage_dns_map[each_ip]
-
         if each_ip in failure_group1:
             for each_disk in disk_per_ip:
 
@@ -818,9 +778,6 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
     # Append "descOnly" disk details
     if len(desc_disk_mapping.keys()):
         ip_address = list(desc_disk_mapping.keys())[0]
-        node_dns_name = ip_address
-        if ip_address in desc_dns_map:
-            node_dns_name = desc_dns_map[ip_address]
 
         # TODO: FIX Include disk "size"
         disks_list.append({"nsd": "nsd" + str(nsd_count+1),
@@ -888,6 +845,8 @@ if __name__ == "__main__":
                         help='Spectrum Scale instances SSH private key path')
     PARSER.add_argument('--bastion_ip',
                         help='Bastion SSH public ip address')
+    PARSER.add_argument('--bastion_user',
+                        help='Bastion user name')
     PARSER.add_argument('--bastion_ssh_private_key',
                         help='Bastion SSH private key path')
     PARSER.add_argument('--memory_size', help='Instance memory size')
@@ -908,8 +867,8 @@ if __name__ == "__main__":
     # Step-1: Read the inventory file
     TF = read_json_file(ARGUMENTS.tf_inv_path)
 
-    #if ARGUMENTS.verbose:
-    #    print("Parsed terraform output: %s" % json.dumps(TF, indent=4))
+    if ARGUMENTS.verbose:
+        print("Parsed terraform output: %s" % json.dumps(TF, indent=4))
 
     # Step-2: Identify the cluster type
     if len(TF['storage_cluster_instance_private_ips']) == 0 and \
@@ -1007,7 +966,10 @@ if __name__ == "__main__":
                                gui_username,
                                gui_password,
                                profile_path,
-                               replica_config)
+                               replica_config, 
+                               ARGUMENTS.bastion_ip, 
+                               ARGUMENTS.bastion_ssh_private_key,
+                               ARGUMENTS.bastion_user)
 
     initialize_callhome_details()
 
@@ -1056,3 +1018,4 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Completed writing cloud infrastructure details to: ",
               ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
+
