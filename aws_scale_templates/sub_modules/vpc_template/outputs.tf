@@ -27,3 +27,8 @@ output "vpc_internet_gateway" {
   value       = module.vpc_internet_gw.internet_gw_id
   description = "The ID of the Internet Gateway."
 }
+
+output "vpc_s3_endpoint" {
+  value = module.vpc_endpoint.vpce_id
+  description = "The ID of the vpc s3 endpoint."
+}
