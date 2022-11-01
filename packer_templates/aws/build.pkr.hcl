@@ -4,7 +4,7 @@ build {
   provisioner "shell" {
     inline = [
       "sleep 30",
-      "sudo dnf install -y unzip @python39",
+      "sudo dnf install -y unzip python3",
       "sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`",
       "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils iptables",
       "sudo sh -c \"echo '[GPFSRepository]' >> /etc/yum.repos.d/scale.repo\"",
