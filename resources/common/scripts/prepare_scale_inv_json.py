@@ -28,8 +28,6 @@ SCALE_CLUSTER_DEFINITION_PATH = "/ibm-spectrum-scale-install-infra/vars/scale_cl
 CLUSTER_DEFINITION_JSON = {"scale_cluster": {},
                            "scale_callhome_params": {},
                            "node_details": [],
-                           "scale_filesystem": [],
-                           "scale_disks": [],
                            "scale_config": []}
 
 def read_json_file(json_path):
@@ -1002,8 +1000,8 @@ if __name__ == "__main__":
                                                          TF['storage_cluster_filesystem_mountpoint'],
                                                          TF['filesystem_block_size'])
 
-        CLUSTER_DEFINITION_JSON["scale_filesystem"].extend(scale_storage)
-        CLUSTER_DEFINITION_JSON["scale_disks"].extend(disks_list)
+        CLUSTER_DEFINITION_JSON.update({"scale_filesystem": scale_storage})
+        CLUSTER_DEFINITION_JSON.update({"scale_disks": disks_list})
 
 
     if ARGUMENTS.verbose:
