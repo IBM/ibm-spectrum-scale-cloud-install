@@ -9,6 +9,6 @@ variable "vpce_id" {}
 
 resource "aws_vpc_endpoint_route_table_association" "itself" {
   count           = var.turn_on == true ? var.total_vpce_associations : 0
-  route_table_id  = var.route_table_id[0][count.index]
-  vpc_endpoint_id = var.vpce_id[0][count.index]
+  route_table_id  = element(var.route_table_id, count.index)
+  vpc_endpoint_id = element(var.vpce_id, count.index)
 }

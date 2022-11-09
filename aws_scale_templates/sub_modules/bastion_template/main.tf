@@ -82,7 +82,7 @@ module "bastion_instance_iam_profile" {
 module "bastion_security_group" {
   source                = "../../../resources/aws/security/security_group"
   turn_on               = true
-  sec_group_name        = ["bastion-sec-group-"]
+  sec_group_name        = [format("%s-%s", var.resource_prefix, "bastion-sg")]
   sec_group_description = ["Enable SSH access to the bastion host from external via SSH port"]
   vpc_id                = var.vpc_id
   sec_group_tag         = ["bastion-sec-group"]
@@ -107,7 +107,7 @@ module "bastion_security_rule" {
 
 module "bastion_autoscaling_launch_config" {
   source                    = "../../../resources/aws/asg/asg_launch_config"
-  launch_config_name_prefix = "bastion-asg-launch-config-"
+  launch_config_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-config")
   image_id                  = var.aws_linux_image_map_codes[var.vpc_region][var.bastion_ami_name]
   instance_type             = var.bastion_instance_type
   assoc_public_ip           = true
@@ -118,12 +118,12 @@ module "bastion_autoscaling_launch_config" {
 
 module "bastion_autoscaling_group" {
   source                     = "../../../resources/aws/asg/asg_group"
-  asg_name_prefix            = "bastion-asg"
+  asg_name_prefix            = format("%s-%s", var.resource_prefix, "bastion-asg")
   asg_launch_config_name     = module.bastion_autoscaling_launch_config.asg_launch_config_name
   asg_max_size               = 1
   asg_min_size               = 1
   asg_desired_size           = 1
   auto_scaling_group_subnets = var.vpc_auto_scaling_group_subnets
   asg_suspend_processes      = ["HealthCheck", "ReplaceUnhealthy", "AZRebalance"]
-  asg_tags                   = [tomap({ "key" = "Name", "value" = "bastion-asg", "propagate_at_launch" = true })]
+  asg_tags                   = [tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "bastion-asg"), "propagate_at_launch" = true })]
 }

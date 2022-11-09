@@ -89,10 +89,10 @@ module "nat_gateway" {
 }
 
 # We need s3 vpc endpoint.
-module "vpc_endpoint" {
+module "vpc_public_endpoint" {
   source              = "../../../resources/aws/network/vpc_endpoint"
   turn_on             = var.vpc_cidr_block != null ? true : false
-  total_vpc_endpoints = length(var.vpc_availability_zones)
+  total_vpc_endpoints = 1
   vpc_id              = module.vpc.vpc_id
   service_name        = "com.amazonaws.${var.vpc_region}.s3"
 }
@@ -101,9 +101,18 @@ module "vpc_endpoint" {
 module "vpc_endpoint_public_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
   turn_on                 = (var.vpc_cidr_block != null && var.vpc_public_subnets_cidr_blocks != null) ? true : false
-  total_vpce_associations = length(var.vpc_availability_zones)
-  route_table_id          = try(module.public_route_table.*.table_id, null)
-  vpce_id                 = try(module.vpc_endpoint.*.vpce_id, null)
+  total_vpce_associations = 1
+  route_table_id          = try(module.public_route_table.table_id, null)
+  vpce_id                 = try(module.vpc_public_endpoint.vpce_id, null)
+}
+
+# We need s3 vpc endpoint.
+module "vpc_private_endpoint" {
+  source              = "../../../resources/aws/network/vpc_endpoint"
+  turn_on             = var.vpc_cidr_block != null ? true : false
+  total_vpc_endpoints = length(var.vpc_availability_zones)
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.vpc_region}.s3"
 }
 
 # One storage private subnet per provided AZ.
@@ -170,13 +179,14 @@ module "compute_private_route" {
   nat_gateway_id  = [element(module.nat_gateway.nat_gw_id, length(var.vpc_availability_zones) - 1)]
 }
 
+
 # s3 vpc end point association with all storage cluster private route tables.
 module "vpc_endpoint_storage_private_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
   turn_on                 = var.vpc_storage_cluster_private_subnets_cidr_blocks != null ? true : false
   total_vpce_associations = length(var.vpc_availability_zones)
-  route_table_id          = try(module.storage_private_route_table.*.table_id, null)
-  vpce_id                 = try(module.vpc_endpoint.*.vpce_id, null)
+  route_table_id          = try(module.storage_private_route_table.table_id, null)
+  vpce_id                 = try(module.vpc_private_endpoint.vpce_id, null)
 }
 
 # s3 vpc end point association with all compute private route tables.
@@ -184,8 +194,8 @@ module "vpc_endpoint_compute_private_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
   turn_on                 = var.vpc_compute_cluster_private_subnets_cidr_blocks != null ? true : false
   total_vpce_associations = length(var.vpc_availability_zones)
-  route_table_id          = try(module.compute_private_route_table.*.table_id, null)
-  vpce_id                 = try(module.vpc_endpoint.*.vpce_id, null)
+  route_table_id          = try(module.compute_private_route_table.table_id, null)
+  vpce_id                 = try(module.vpc_private_endpoint.vpce_id, null)
 }
 
 # Associate each private subnet to one private route table.
