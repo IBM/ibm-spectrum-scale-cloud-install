@@ -37,3 +37,13 @@ output "storage_cluster_desc_data_volume_mapping" {
   value       = module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping
   description = "Mapping of storage cluster desc instance ip vs. device path."
 }
+
+output "storage_cluster_security_group_id" {
+  value       = module.storage_cluster_security_group.sec_group_id
+  description = "Storage cluster security group id."
+}
+
+output "compute_cluster_security_group_id" {
+  value       = module.compute_cluster_security_group.sec_group_id
+  description = "Compute cluster security group id."
+}

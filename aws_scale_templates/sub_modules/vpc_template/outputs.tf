@@ -29,6 +29,6 @@ output "vpc_internet_gateway" {
 }
 
 output "vpc_s3_endpoint" {
-  value = module.vpc_public_endpoint.vpce_id
+  value       = module.vpc_public_endpoint.vpce_id
   description = "The ID of the vpc s3 endpoint."
 }

@@ -783,7 +783,7 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
                            "filesystem": pathlib.PurePath(fs_mount).name,
                            "device": list(desc_disk_mapping.values())[0][0],
                            "failureGroup": 3,
-                           "servers": each_ip,
+                           "servers": list(desc_disk_mapping.keys())[0],
                            "usage": "descOnly",
                            "pool": "system"})
 
