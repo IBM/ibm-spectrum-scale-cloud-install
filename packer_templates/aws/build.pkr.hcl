@@ -6,7 +6,7 @@ build {
       "sleep 30",
       "sudo dnf install -y unzip python3",
       "sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`",
-      "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils iptables",
+      "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils nftables iptables",
       "sudo sh -c \"echo '[GPFSRepository]' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'name=Spectrum Scale Repository' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'baseurl=http://\"${var.s3_spectrumscale_bucket}\".s3-website.\"${var.vpc_region}\".amazonaws.com/\"${var.scale_version}\"/gpfs_rpms/' >> /etc/yum.repos.d/scale.repo\"",
