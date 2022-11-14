@@ -966,8 +966,13 @@ if __name__ == "__main__":
         print("Total quorum count: ", quorum_count)
 
     # Define cluster details
+    if TF['resource_prefix']:
+        cluster_name = TF['resource_prefix']
+    else:
+        cluster_name = "%s.%s" % ("spectrum-scale", cluster_type)
+
     initialize_cluster_details(TF['scale_version'],
-                               "%s.%s" % ("spectrum-scale", cluster_type), #TODO: FIX
+                               cluster_name,
                                gui_username,
                                gui_password,
                                profile_path,

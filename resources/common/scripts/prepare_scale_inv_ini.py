@@ -558,6 +558,7 @@ if __name__ == "__main__":
                         help='Spectrum Scale GUI password')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
+
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
@@ -742,9 +743,13 @@ if __name__ == "__main__":
                 "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'"
             node_template = node_template + each_entry + "\n"
 
+    if TF['resource_prefix']:
+        cluster_name = TF['resource_prefix']
+    else:
+        cluster_name = "%s.%s" % ("spectrum-scale", cluster_type)
+
     config['all:vars'] = initialize_cluster_details(TF['scale_version'],
-                                                    "%s.%s" % (
-                                                        "spectrum-scale", cluster_type),
+                                                    cluster_name,
                                                     gui_username,
                                                     gui_password,
                                                     profile_path,
