@@ -76,6 +76,7 @@ def initialize_cluster_details(scale_version, cluster_name, username,
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_password'] = password
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_role'] = "Administrator"
 
+    CLUSTER_DEFINITION_JSON['scale_cluster']['ephemeral_port_range'] = "60000-61000"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_clustername'] = cluster_name
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "True"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
