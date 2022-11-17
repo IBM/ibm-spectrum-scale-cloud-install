@@ -10,9 +10,6 @@ The below steps will provision the AWS VPC required for the IBM Spectrum Scale c
 
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
-    | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zone` keyword. Ex: `"vpc_availability_zones"=["us-east-1a", "us-east-1b", "us-east-1c"]` |
-    | --- |
-
     Minimal Example-1:
 
     ```cli
@@ -108,14 +105,14 @@ The below steps will provision the AWS VPC required for the IBM Spectrum Scale c
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 <!-- BEGIN_TF_DOCS -->
-## Requirements
+#### Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
 | <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 4.0 |
 
-## Inputs
+#### Inputs
 
 | Name | Description | Type |
 |------|-------------|------|
@@ -128,7 +125,7 @@ The below steps will provision the AWS VPC required for the IBM Spectrum Scale c
 | <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of storage cluster private subnets. | `list(string)` |
 | <a name="input_vpc_tags"></a> [vpc_tags](#input_vpc_tags) | Additional tags for the VPC | `map(string)` |
 
-## Outputs
+#### Outputs
 
 | Name | Description |
 |------|-------------|

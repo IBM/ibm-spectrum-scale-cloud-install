@@ -2,10 +2,10 @@
     Creates new AWS SNS topic.
 */
 
-variable "vpc_region" {}
 variable "operator_email" {}
 variable "topic_name" {}
 
+#tfsec:ignore:aws-sns-enable-topic-encryption
 resource "aws_sns_topic" "itself" {
   name = var.topic_name
   delivery_policy = jsonencode({
