@@ -9,11 +9,19 @@
     6. PrivateSubnet {1, 2 ..3}
     7. NAT gateway attachment
     8. VPC s3 endpoint
+
+    Notes:
+    - Storage and compute are seperated and would require different subnets.
+    - Public subnets are also enabled with vpc s3 endpoint.
 */
+
+locals {
+  cluster_type = (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks == null) ? "storage" : (var.vpc_storage_cluster_private_subnets_cidr_blocks == null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "compute" : "combined"
+}
 
 module "vpc" {
   source      = "../../../resources/aws/network/vpc"
-  turn_on     = var.vpc_cidr_block != null ? true : false
+  turn_on     = true
   vpc_name    = var.resource_prefix
   cidr_block  = var.vpc_cidr_block
   domain_name = var.vpc_region == "us-east-1" ? "ec2.internal" : "${var.vpc_region}.compute.internal"
@@ -70,28 +78,46 @@ module "public_route_table_association" {
   route_table_id     = module.public_route_table.table_id
 }
 
-# One EIP per provided AZ.
-module "eip" {
+# One storage EIP per provided AZ.
+module "storage_eip" {
   source     = "../../../resources/aws/network/eip"
   turn_on    = var.vpc_public_subnets_cidr_blocks != null ? true : false
-  total_eips = var.vpc_create_separate_subnets == true ? length(var.vpc_availability_zones) + 1 : length(var.vpc_availability_zones)
+  total_eips = (local.cluster_type == "storage" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
 }
 
-# Public subnet id registred to NAT gateway.
-module "nat_gateway" {
+# One compute EIP per provided AZ.
+module "compute_eip" {
+  source     = "../../../resources/aws/network/eip"
+  turn_on    = var.vpc_public_subnets_cidr_blocks != null ? true : false
+  total_eips = (local.cluster_type == "compute" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
+}
+
+# Storage public subnet id registred to NAT gateway.
+module "storage_nat_gateway" {
   source           = "../../../resources/aws/network/nat_gw"
   turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false
-  total_nat_gws    = (var.vpc_create_separate_subnets == true && var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? length(var.vpc_availability_zones) + 1 : length(var.vpc_availability_zones)
-  eip_id           = module.eip.eip_id
+  total_nat_gws    = (local.cluster_type == "storage" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
+  eip_id           = module.storage_eip.eip_id
   target_subnet_id = module.public_subnet.subnet_id
   vpc_name         = format("%s-nat", var.resource_prefix)
   vpc_tags         = var.vpc_tags
 }
 
-# We need s3 vpc endpoint.
+# Compute public subnet id registred to NAT gateway.
+module "compute_nat_gateway" {
+  source           = "../../../resources/aws/network/nat_gw"
+  turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false
+  total_nat_gws    = (local.cluster_type == "compute" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
+  eip_id           = module.compute_eip.eip_id
+  target_subnet_id = module.public_subnet.subnet_id
+  vpc_name         = format("%s-nat", var.resource_prefix)
+  vpc_tags         = var.vpc_tags
+}
+
+# s3 vpc endpoint to be associated with public subnets
 module "vpc_public_endpoint" {
   source              = "../../../resources/aws/network/vpc_endpoint"
-  turn_on             = var.vpc_cidr_block != null ? true : false
+  turn_on             = true
   total_vpc_endpoints = 1
   vpc_id              = module.vpc.vpc_id
   service_name        = "com.amazonaws.${var.vpc_region}.s3"
@@ -100,16 +126,16 @@ module "vpc_public_endpoint" {
 # s3 vpc end point association with all public route tables.
 module "vpc_endpoint_public_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
-  turn_on                 = (var.vpc_cidr_block != null && var.vpc_public_subnets_cidr_blocks != null) ? true : false
+  turn_on                 = var.vpc_public_subnets_cidr_blocks != null ? true : false
   total_vpce_associations = 1
   route_table_id          = try(module.public_route_table.table_id, null)
   vpce_id                 = try(module.vpc_public_endpoint.vpce_id, null)
 }
 
-# We need s3 vpc endpoint.
+# s3 vpc endpoint to be associated with private subnets.
 module "vpc_private_endpoint" {
   source              = "../../../resources/aws/network/vpc_endpoint"
-  turn_on             = var.vpc_cidr_block != null ? true : false
+  turn_on             = true
   total_vpc_endpoints = length(var.vpc_availability_zones)
   vpc_id              = module.vpc.vpc_id
   service_name        = "com.amazonaws.${var.vpc_region}.s3"
@@ -118,7 +144,7 @@ module "vpc_private_endpoint" {
 # One storage private subnet per provided AZ.
 module "storage_private_subnet" {
   source       = "../../../resources/aws/network/subnet"
-  turn_on      = var.vpc_storage_cluster_private_subnets_cidr_blocks != null ? true : false
+  turn_on      = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   vpc_id       = module.vpc.vpc_id
   subnets_cidr = var.vpc_storage_cluster_private_subnets_cidr_blocks
   avail_zones  = var.vpc_availability_zones
@@ -126,32 +152,32 @@ module "storage_private_subnet" {
   vpc_tags     = var.vpc_tags
 }
 
-# One compute private subnet in first AZ element.
+# One compute private subnet per provided AZ.
 module "compute_private_subnet" {
   source       = "../../../resources/aws/network/subnet"
-  turn_on      = var.vpc_compute_cluster_private_subnets_cidr_blocks != null ? true : false
+  turn_on      = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
   vpc_id       = module.vpc.vpc_id
   subnets_cidr = var.vpc_compute_cluster_private_subnets_cidr_blocks
-  avail_zones  = var.vpc_create_separate_subnets == true ? [var.vpc_availability_zones[0]] : []
+  avail_zones  = var.vpc_availability_zones
   vpc_name     = format("%s-comp-pvt", var.resource_prefix)
   vpc_tags     = var.vpc_tags
 }
 
-# private route tables equal to number of provided AZ's.
+# Storage private route tables equal to number of provided AZ's.
 module "storage_private_route_table" {
   source   = "../../../resources/aws/network/route_table"
-  turn_on  = var.vpc_storage_cluster_private_subnets_cidr_blocks != null ? true : false
+  turn_on  = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   total_rt = length(var.vpc_availability_zones)
   vpc_id   = module.vpc.vpc_id
   vpc_name = format("%s-strg-pvt", var.resource_prefix)
   vpc_tags = var.vpc_tags
 }
 
-# Compute private route table will be provisioned in first AZ element.
+# Compute private route tables equal to number of provided AZ's.
 module "compute_private_route_table" {
   source   = "../../../resources/aws/network/route_table"
-  turn_on  = var.vpc_compute_cluster_private_subnets_cidr_blocks != null ? true : false
-  total_rt = var.vpc_create_separate_subnets == true ? 1 : 0
+  turn_on  = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  total_rt = length(var.vpc_availability_zones)
   vpc_id   = module.vpc.vpc_id
   vpc_name = format("%s-comp-pvt", var.resource_prefix)
   vpc_tags = var.vpc_tags
@@ -160,30 +186,29 @@ module "compute_private_route_table" {
 # NAT gateways attached to all storage private routes.
 module "storage_private_route" {
   source          = "../../../resources/aws/network/route"
-  turn_on         = var.vpc_storage_cluster_private_subnets_cidr_blocks != null ? true : false
+  turn_on         = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   total_routes    = length(var.vpc_availability_zones)
   route_table_id  = module.storage_private_route_table.table_id
   dest_cidr_block = "0.0.0.0/0"
   gateway_id      = null
-  nat_gateway_id  = module.nat_gateway.nat_gw_id
+  nat_gateway_id  = module.storage_nat_gateway.nat_gw_id
 }
 
-# NAT gateways attached to compute private route.
+# NAT gateways attached to all compute private routes.
 module "compute_private_route" {
   source          = "../../../resources/aws/network/route"
-  turn_on         = var.vpc_compute_cluster_private_subnets_cidr_blocks != null ? true : false
-  total_routes    = var.vpc_create_separate_subnets == true ? 1 : 0
+  turn_on         = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  total_routes    = length(var.vpc_availability_zones)
   route_table_id  = module.compute_private_route_table.table_id
   dest_cidr_block = "0.0.0.0/0"
   gateway_id      = null
-  nat_gateway_id  = [element(module.nat_gateway.nat_gw_id, length(var.vpc_availability_zones) - 1)]
+  nat_gateway_id  = module.compute_nat_gateway.nat_gw_id
 }
-
 
 # s3 vpc end point association with all storage cluster private route tables.
 module "vpc_endpoint_storage_private_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
-  turn_on                 = var.vpc_storage_cluster_private_subnets_cidr_blocks != null ? true : false
+  turn_on                 = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   total_vpce_associations = length(var.vpc_availability_zones)
   route_table_id          = try(module.storage_private_route_table.table_id, null)
   vpce_id                 = try(module.vpc_private_endpoint.vpce_id, null)
@@ -192,26 +217,26 @@ module "vpc_endpoint_storage_private_association" {
 # s3 vpc end point association with all compute private route tables.
 module "vpc_endpoint_compute_private_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
-  turn_on                 = var.vpc_compute_cluster_private_subnets_cidr_blocks != null ? true : false
+  turn_on                 = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
   total_vpce_associations = length(var.vpc_availability_zones)
-  route_table_id          = try(module.compute_private_route_table.table_id, null)
-  vpce_id                 = try(module.vpc_private_endpoint.vpce_id, null)
+  route_table_id          = module.compute_private_route_table.table_id
+  vpce_id                 = module.vpc_private_endpoint.vpce_id
 }
 
-# Associate each private subnet to one private route table.
+# Associate each storage private subnet to one private route table.
 module "storage_private_route_table_association" {
   source             = "../../../resources/aws/network/route_table_association"
-  turn_on            = var.vpc_storage_cluster_private_subnets_cidr_blocks != null ? true : false
+  turn_on            = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   total_associations = length(var.vpc_availability_zones)
   subnet_id          = module.storage_private_subnet.subnet_id
   route_table_id     = module.storage_private_route_table.table_id
 }
 
-# Associate each private subnet to one private route table.
+# Associate each compute private subnet to one private route table.
 module "compute_private_route_table_association" {
   source             = "../../../resources/aws/network/route_table_association"
-  turn_on            = var.vpc_compute_cluster_private_subnets_cidr_blocks != null ? true : false
-  total_associations = var.vpc_create_separate_subnets == true ? length(var.vpc_availability_zones) : 0
+  turn_on            = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  total_associations = length(var.vpc_availability_zones)
   subnet_id          = module.compute_private_subnet.subnet_id
   route_table_id     = module.compute_private_route_table.table_id
 }
