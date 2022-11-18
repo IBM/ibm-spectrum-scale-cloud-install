@@ -12,7 +12,7 @@ variable "traffic_protocol" {}
 variable "cidr_blocks" {}
 variable "security_prefix_list_ids" {}
 
-#tfsec:ignore:aws-ec2-no-public-egress-sgr
+#tfsec:ignore:aws-ec2-no-public-egress-sgr #tfsec:ignore:aws-ec2-no-public-ingress-sgr
 resource "aws_security_group_rule" "itself" {
   count             = var.total_rules
   security_group_id = var.security_group_id[count.index]
@@ -26,5 +26,5 @@ resource "aws_security_group_rule" "itself" {
 }
 
 output "security_rule_id" {
-  value = aws_security_group_rule.itself
+  value = aws_security_group_rule.itself[*].id
 }

@@ -125,5 +125,5 @@ module "bastion_autoscaling_group" {
   asg_desired_size           = 1
   auto_scaling_group_subnets = var.vpc_auto_scaling_group_subnets
   asg_suspend_processes      = ["HealthCheck", "ReplaceUnhealthy", "AZRebalance"]
-  asg_tags                   = [tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "bastion-asg"), "propagate_at_launch" = true })]
+  asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "bastion-asg") })
 }

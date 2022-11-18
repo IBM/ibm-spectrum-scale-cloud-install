@@ -11,6 +11,7 @@ variable "traffic_to_port" {}
 variable "traffic_protocol" {}
 variable "source_security_group_id" {}
 
+#tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group_rule" "itself" {
   count                    = var.total_rules
   security_group_id        = element(var.security_group_id, count.index)
@@ -23,5 +24,5 @@ resource "aws_security_group_rule" "itself" {
 }
 
 output "src_security_rule_id" {
-  value = aws_security_group_rule.itself.*.id
+  value = aws_security_group_rule.itself[*].id
 }
