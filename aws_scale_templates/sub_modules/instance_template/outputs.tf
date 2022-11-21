@@ -1,3 +1,8 @@
+output "placement_group_id" {
+  value       = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
+  description = "Placement group id."
+}
+
 output "compute_cluster_instance_ids" {
   value       = module.compute_cluster_instances.instance_ids
   description = "Compute cluster instance ids."
@@ -8,6 +13,11 @@ output "compute_cluster_instance_private_ips" {
   description = "Private IP address of compute cluster instances."
 }
 
+output "compute_instance_memory_size" {
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? data.aws_ec2_instance_type.compute_profile[0].memory_size : null
+  description = "Compute instance profile memory size."
+}
+
 output "storage_cluster_instance_ids" {
   value       = module.storage_cluster_instances.instance_ids
   description = "Storage cluster instance ids."
@@ -16,6 +26,11 @@ output "storage_cluster_instance_ids" {
 output "storage_cluster_instance_private_ips" {
   value       = module.storage_cluster_instances.instance_private_ips
   description = "Private IP address of storage cluster instances."
+}
+
+output "storage_instance_memory_size" {
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? data.aws_ec2_instance_type.storage_profile[0].memory_size : null
+  description = "Storage instance profile memory size."
 }
 
 output "storage_cluster_with_data_volume_mapping" {

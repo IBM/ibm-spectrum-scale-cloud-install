@@ -7,6 +7,8 @@
 */
 
 locals {
+  cluster_type           = (var.total_storage_cluster_instances != null && var.total_compute_cluster_instances == null) ? "storage" : (var.total_storage_cluster_instances == null && var.total_compute_cluster_instances != null) ? "compute" : "combined"
+  create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
   "/dev/xvdk", "/dev/xvdl", "/dev/xvdm", "/dev/xvdn", "/dev/xvdo", "/dev/xvdp", "/dev/xvdq", "/dev/xvdr", "/dev/xvds", "/dev/xvdt"]
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
@@ -15,12 +17,12 @@ locals {
 
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = var.total_compute_cluster_instances != null ? true : false
+  turn_on = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
 }
 
 module "generate_storage_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = var.total_storage_cluster_instances != null ? true : false
+  turn_on = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
 }
 
 module "cluster_host_iam_role" {
@@ -89,7 +91,7 @@ module "cluster_instance_iam_profile" {
 
 module "compute_cluster_security_group" {
   source                = "../../../resources/aws/security/security_group"
-  turn_on               = var.total_compute_cluster_instances != null ? true : false
+  turn_on               = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
   sec_group_name        = ["compute-sec-group-"]
   sec_group_description = ["Enable SSH access to the compute cluster hosts"]
   vpc_id                = var.vpc_id
@@ -98,7 +100,7 @@ module "compute_cluster_security_group" {
 
 module "compute_cluster_ingress_security_rule" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = (var.total_compute_cluster_instances != null && var.using_direct_connection == false) ? 17 : 0
+  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == false) ? 17 : 0
   security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to compute instances",
     "Allow SSH traffic from bastion to compute instances",
@@ -134,7 +136,7 @@ module "compute_cluster_ingress_security_rule" {
 
 module "compute_cluster_ingress_security_rule_wo_bastion" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = (var.total_compute_cluster_instances != null && var.using_direct_connection == true) ? 15 : 0
+  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 15 : 0
   security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic within compute instances",
     "Allow SSH traffic within compute instances",
@@ -160,9 +162,9 @@ module "compute_cluster_ingress_security_rule_wo_bastion" {
 
 module "cluster_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = (var.total_compute_cluster_instances != null && var.total_storage_cluster_instances != null) ? 2 : 1
-  security_group_id         = (var.total_compute_cluster_instances != null && var.total_storage_cluster_instances != null) ? [module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id] : (var.total_compute_cluster_instances != null ? [module.compute_cluster_security_group.sec_group_id] : [module.storage_cluster_security_group.sec_group_id])
-  security_rule_description = (var.total_compute_cluster_instances != null && var.total_storage_cluster_instances != null) ? ["Outgoing traffic from compute instances", "Outgoing traffic from storage instances"] : (var.total_compute_cluster_instances != null ? ["Outgoing traffic from compute instances"] : ["Outgoing traffic from storage instances"])
+  total_rules               = local.cluster_type == "combined" ? 2 : 1
+  security_group_id         = local.cluster_type == "combined" ? [module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id] : (var.total_compute_cluster_instances != null ? [module.compute_cluster_security_group.sec_group_id] : [module.storage_cluster_security_group.sec_group_id])
+  security_rule_description = local.cluster_type == "combined" ? ["Outgoing traffic from compute instances", "Outgoing traffic from storage instances"] : (var.total_compute_cluster_instances != null ? ["Outgoing traffic from compute instances"] : ["Outgoing traffic from storage instances"])
   security_rule_type        = ["egress", "egress"]
   traffic_protocol          = ["-1", "-1"]
   traffic_from_port         = ["0", "0"]
@@ -173,7 +175,7 @@ module "cluster_egress_security_rule" {
 
 module "storage_cluster_security_group" {
   source                = "../../../resources/aws/security/security_group"
-  turn_on               = var.total_storage_cluster_instances != null ? true : false
+  turn_on               = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   sec_group_name        = ["storage-sec-group-"]
   sec_group_description = ["Enable SSH access to the storage cluster hosts"]
   vpc_id                = var.vpc_id
@@ -182,7 +184,7 @@ module "storage_cluster_security_group" {
 
 module "storage_cluster_ingress_security_rule" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = (var.total_storage_cluster_instances != null && var.using_direct_connection == false) ? 17 : 0
+  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == false) ? 17 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to storage instances",
     "Allow SSH traffic from bastion to storage instances",
@@ -218,7 +220,7 @@ module "storage_cluster_ingress_security_rule" {
 
 module "storage_cluster_ingress_security_rule_wo_bastion" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = (var.total_storage_cluster_instances != null && var.using_direct_connection == true) ? 15 : 0
+  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 15 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic within storage instances",
     "Allow SSH traffic within storage instances",
@@ -244,7 +246,7 @@ module "storage_cluster_ingress_security_rule_wo_bastion" {
 
 module "bicluster_ingress_security_rule" {
   source      = "../../../resources/aws/security/security_rule_source"
-  total_rules = (var.total_storage_cluster_instances != null && var.total_compute_cluster_instances != null) ? 30 : 0
+  total_rules = local.cluster_type == "combined" ? 30 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
@@ -315,55 +317,61 @@ module "bicluster_ingress_security_rule" {
 
 module "email_notification" {
   source         = "../../../resources/aws/sns"
+  turn_on        = var.operator_email != null ? true : false
   operator_email = var.operator_email
   topic_name     = format("%s-topic", var.resource_prefix)
-  vpc_region     = var.vpc_region
 }
 
 data "aws_ec2_instance_type" "compute_profile" {
-  count         = var.compute_cluster_instance_type != null ? 1 : 0
+  count         = (local.cluster_type == "compute" || local.cluster_type == "combined") ? 1 : 0
   instance_type = var.compute_cluster_instance_type
+}
+
+resource "aws_placement_group" "itself" {
+  count    = local.create_placement_group == true ? 1 : 0
+  name     = var.resource_prefix
+  strategy = "cluster"
 }
 
 module "compute_cluster_instances" {
   source               = "../../../resources/aws/compute/ec2_0_vol"
-  instances_count      = var.total_compute_cluster_instances != null ? var.total_compute_cluster_instances : 0
+  instances_count      = local.cluster_type == "compute" || local.cluster_type == "combined" ? var.total_compute_cluster_instances : 0
   name_prefix          = format("%s-compute", var.resource_prefix)
   ami_id               = var.compute_cluster_image_id
   instance_type        = var.compute_cluster_instance_type
   security_groups      = [module.compute_cluster_security_group.sec_group_id]
   iam_instance_profile = module.cluster_instance_iam_profile.iam_instance_profile_name
-  placement_group      = null
+  placement_group      = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
   subnet_ids           = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   root_volume_type     = var.compute_cluster_root_volume_type
   user_public_key      = var.compute_cluster_key_pair
-  meta_private_key     = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
-  meta_public_key      = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
+  meta_private_key     = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
+  meta_public_key      = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   volume_tags          = var.compute_cluster_volume_tags
   tags                 = var.compute_cluster_tags
 }
 
 data "aws_ec2_instance_type" "storage_profile" {
-  count         = var.storage_cluster_instance_type != null ? 1 : 0
+  count         = (local.cluster_type == "storage" || local.cluster_type == "combined") ? 1 : 0
   instance_type = var.storage_cluster_instance_type
 }
 
 module "storage_cluster_instances" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
-  instances_count                        = var.total_storage_cluster_instances != null ? var.total_storage_cluster_instances : 0
+  instances_count                        = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_storage_cluster_instances : 0
   name_prefix                            = format("%s-storage", var.resource_prefix)
   ami_id                                 = var.storage_cluster_image_id
   instance_type                          = var.storage_cluster_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
-  placement_group                        = null
+  placement_group                        = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
   subnet_ids                             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
   root_volume_type                       = var.storage_cluster_root_volume_type
   user_public_key                        = var.storage_cluster_key_pair
   meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
   volume_tags                            = var.storage_cluster_volume_tags
-  ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile.0.ebs_optimized_support, null) == "unsupported" ? false : true
+  ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
   ebs_block_devices                      = var.ebs_block_devices_per_storage_instance
   ebs_block_device_names                 = local.ebs_device_names
   ebs_block_device_delete_on_termination = var.ebs_block_device_delete_on_termination
@@ -374,13 +382,13 @@ module "storage_cluster_instances" {
   ebs_block_device_iops                  = var.ebs_block_device_iops
   ebs_block_device_throughput            = var.ebs_block_device_throughput
   enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile.0.instance_disks, null))[0].count : 0
+  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
 module "storage_cluster_tie_breaker_instance" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
-  instances_count                        = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 1 && var.total_storage_cluster_instances != null) ? 1 : 0) : 0
+  instances_count                        = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 1 && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? 1 : 0) : 0
   name_prefix                            = format("%s-storage-tie", var.resource_prefix)
   ami_id                                 = var.storage_cluster_image_id
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
@@ -393,7 +401,7 @@ module "storage_cluster_tie_breaker_instance" {
   meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
   volume_tags                            = var.storage_cluster_volume_tags
-  ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile.0.ebs_optimized_support, null) == "unsupported" ? false : true
+  ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
   ebs_block_devices                      = 1
   ebs_block_device_names                 = local.ebs_device_names
   ebs_block_device_delete_on_termination = var.ebs_block_device_delete_on_termination
@@ -404,7 +412,7 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_iops                  = var.ebs_block_device_iops
   ebs_block_device_throughput            = var.ebs_block_device_throughput
   enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile.0.instance_disks, null))[0].count : 0
+  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
@@ -417,7 +425,7 @@ module "prepare_ansible_configuration" {
 
 module "write_compute_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = (var.create_separate_namespaces == true && var.total_compute_cluster_instances != null) ? 1 : 0
+  write_inventory                                  = (var.create_remote_mount_cluster == true && var.total_compute_cluster_instances != null) ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
   inventory_path                                   = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("AWS")
@@ -445,7 +453,7 @@ module "write_compute_cluster_inventory" {
 
 module "write_storage_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = (var.create_separate_namespaces == true && var.total_storage_cluster_instances != null) ? 1 : 0
+  write_inventory                                  = (var.create_remote_mount_cluster == true && var.total_storage_cluster_instances != null) ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
   inventory_path                                   = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("AWS")
@@ -474,7 +482,7 @@ module "write_storage_cluster_inventory" {
 
 module "write_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = var.create_separate_namespaces == false ? 1 : 0
+  write_inventory                                  = var.create_remote_mount_cluster == false ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
   inventory_path                                   = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("AWS")
@@ -503,7 +511,7 @@ module "write_cluster_inventory" {
 
 module "compute_cluster_configuration" {
   source                       = "../../../resources/common/compute_configuration"
-  turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances != null) ? true : false
+  turn_on                      = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
   inventory_format             = var.inventory_format
@@ -515,7 +523,7 @@ module "compute_cluster_configuration" {
   using_rest_initialization    = var.using_rest_api_remote_mount
   compute_cluster_gui_username = var.compute_cluster_gui_username
   compute_cluster_gui_password = var.compute_cluster_gui_password
-  memory_size                  = try(data.aws_ec2_instance_type.compute_profile.0.memory_size, null)
+  memory_size                  = try(data.aws_ec2_instance_type.compute_profile[0].memory_size, null)
   max_pagepool_gb              = 4
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
@@ -526,7 +534,7 @@ module "compute_cluster_configuration" {
 
 module "storage_cluster_configuration" {
   source                       = "../../../resources/common/storage_configuration"
-  turn_on                      = (var.create_separate_namespaces == true && var.total_storage_cluster_instances != null) ? true : false
+  turn_on                      = ((local.cluster_type == "storage" && local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
   inventory_format             = var.inventory_format
@@ -538,9 +546,9 @@ module "storage_cluster_configuration" {
   using_rest_initialization    = true
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = try(data.aws_ec2_instance_type.storage_profile.0.memory_size, null)
+  memory_size                  = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
   max_pagepool_gb              = 16
-  vcpu_count                   = try(data.aws_ec2_instance_type.storage_profile.0.default_vcpus, null)
+  vcpu_count                   = try(data.aws_ec2_instance_type.storage_profile[0].default_vcpus, null)
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -550,7 +558,7 @@ module "storage_cluster_configuration" {
 
 module "combined_cluster_configuration" {
   source                       = "../../../resources/common/scale_configuration"
-  turn_on                      = var.create_separate_namespaces == false ? true : false
+  turn_on                      = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
   inventory_format             = var.inventory_format
@@ -561,7 +569,7 @@ module "combined_cluster_configuration" {
   using_direct_connection      = var.using_direct_connection
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = try(data.aws_ec2_instance_type.storage_profile.0.memory_size, null)
+  memory_size                  = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -571,7 +579,7 @@ module "combined_cluster_configuration" {
 
 module "remote_mount_configuration" {
   source                          = "../../../resources/common/remote_mount_configuration"
-  turn_on                         = (var.total_compute_cluster_instances != null && var.total_storage_cluster_instances != null && var.create_separate_namespaces == true) ? true : false
+  turn_on                         = (local.cluster_type == "combined" && var.create_remote_mount_cluster == true) ? true : false
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
   compute_inventory_path          = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
