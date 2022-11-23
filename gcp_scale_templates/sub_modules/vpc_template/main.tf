@@ -1,7 +1,6 @@
 /*
-    For Scale deployment, we need 1 VPC (creates a new one).
+    IBM Spectrum scale cloud deployment requires one VPC with below resources.
 
-    GCP VPC Blueprint;
     1.  VPC
     2.  PublicSubnet
     3.  PrivateSubnet
