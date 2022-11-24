@@ -425,7 +425,7 @@ module "prepare_ansible_configuration" {
 
 module "write_compute_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = (var.create_remote_mount_cluster == true && var.total_compute_cluster_instances != null) ? 1 : 0
+  write_inventory                                  = (var.create_remote_mount_cluster == true && local.cluster_type == "compute") ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
   inventory_path                                   = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("AWS")
@@ -453,7 +453,7 @@ module "write_compute_cluster_inventory" {
 
 module "write_storage_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = (var.create_remote_mount_cluster == true && var.total_storage_cluster_instances != null) ? 1 : 0
+  write_inventory                                  = (var.create_remote_mount_cluster == true && local.cluster_type == "storage") ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
   inventory_path                                   = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("AWS")
@@ -482,7 +482,7 @@ module "write_storage_cluster_inventory" {
 
 module "write_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = var.create_remote_mount_cluster == false ? 1 : 0
+  write_inventory                                  = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
   inventory_path                                   = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("AWS")
