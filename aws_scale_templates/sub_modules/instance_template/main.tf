@@ -534,7 +534,7 @@ module "compute_cluster_configuration" {
 
 module "storage_cluster_configuration" {
   source                       = "../../../resources/common/storage_configuration"
-  turn_on                      = ((local.cluster_type == "storage" && local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
+  turn_on                      = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
   write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
   inventory_format             = var.inventory_format
