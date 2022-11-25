@@ -99,7 +99,7 @@ module "storage_nat_gateway" {
   total_nat_gws    = (local.cluster_type == "storage" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
   eip_id           = module.storage_eip.eip_id
   target_subnet_id = module.public_subnet.subnet_id
-  vpc_name         = format("%s-nat", var.resource_prefix)
+  vpc_name         = format("%s-strg-nat", var.resource_prefix)
   vpc_tags         = var.vpc_tags
 }
 
@@ -110,7 +110,7 @@ module "compute_nat_gateway" {
   total_nat_gws    = (local.cluster_type == "compute" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
   eip_id           = module.compute_eip.eip_id
   target_subnet_id = module.public_subnet.subnet_id
-  vpc_name         = format("%s-nat", var.resource_prefix)
+  vpc_name         = format("%s-cmp-nat", var.resource_prefix)
   vpc_tags         = var.vpc_tags
 }
 
