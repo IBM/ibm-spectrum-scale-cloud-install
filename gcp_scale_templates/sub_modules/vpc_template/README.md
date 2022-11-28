@@ -53,21 +53,25 @@ IBM Spectrum Scale Cloud deployment.
 |------|-------------|------|
 | <a name="input_credentials_file_path"></a> [credentials_file_path](#input_credentials_file_path) | The path of a GCP service account key file in JSON format. | `string` |
 | <a name="input_gcp_project_id"></a> [gcp_project_id](#input_gcp_project_id) | GCP project ID to manage resources. | `string` |
-| <a name="input_region"></a> [region](#input_region) | GCP region where the resources will be created. | `string` |
-| <a name="input_private_subnet_cidr"></a> [private_subnet_cidr](#input_private_subnet_cidr) | Range of internal addresses. | `string` |
-| <a name="input_public_subnet_cidr"></a> [public_subnet_cidr](#input_public_subnet_cidr) | Range of internal addresses. | `string` |
-| <a name="input_stack_name"></a> [stack_name](#input_stack_name) | GCP stack name, will be used for tagging resources. | `string` |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
+| <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the VPC. | `string` |
+| <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of compute private subnets. | `list(string)` |
 | <a name="input_vpc_description"></a> [vpc_description](#input_vpc_description) | Description of VPC. | `string` |
+| <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | Range of internal addresses. | `list(string)` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | GCP region where the resources will be created. | `string` |
 | <a name="input_vpc_routing_mode"></a> [vpc_routing_mode](#input_vpc_routing_mode) | Network-wide routing mode to use (valid: REGIONAL, GLOBAL). | `string` |
+| <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of storage cluster private subnets. | `list(string)` |
 
 #### Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_private_subnet_id"></a> [private_subnet_id](#output_private_subnet_id) | The ID of Private subnet. |
-| <a name="output_private_subnet_name"></a> [private_subnet_name](#output_private_subnet_name) | The name of Private subnet. |
-| <a name="output_public_subnet_id"></a> [public_subnet_id](#output_public_subnet_id) | The ID of public subnet. |
-| <a name="output_public_subnet_name"></a> [public_subnet_name](#output_public_subnet_name) | The name of Public subnet. |
+| <a name="output_cluster_type"></a> [cluster_type](#output_cluster_type) | n/a |
+| <a name="output_vpc_compute_cluster_nat"></a> [vpc_compute_cluster_nat](#output_vpc_compute_cluster_nat) | List of IDs of compute cluster nat. |
+| <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | The ID of the VPC. |
 | <a name="output_vpc_name"></a> [vpc_name](#output_vpc_name) | VPC name. |
+| <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
+| <a name="output_vpc_storage_cluster_nat"></a> [vpc_storage_cluster_nat](#output_vpc_storage_cluster_nat) | List of IDs of storage cluster nat. |
+| <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |
 <!-- END_TF_DOCS -->

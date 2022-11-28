@@ -20,8 +20,10 @@ variable "vpc_routing_mode" {
   description = "Network-wide routing mode to use (valid: REGIONAL, GLOBAL)"
 }
 
+variable "turn_on" {}
 
-resource "google_compute_network" "main" {
+resource "google_compute_network" "itself" {
+  count                   = var.turn_on ? 1 : 0
   name                    = format("%s-vpc", var.vpc_name_prefix)
   description             = var.vpc_description
   routing_mode            = var.vpc_routing_mode
@@ -31,13 +33,13 @@ resource "google_compute_network" "main" {
 
 output "vpc_name" {
   value      = format("%s-vpc", var.vpc_name_prefix)
-  depends_on = [google_compute_network.main]
+  depends_on = [google_compute_network.itself]
 }
 
 output "vpc_id" {
-  value = google_compute_network.main.id
+  value = google_compute_network.itself[*].id
 }
 
 output "vpc_uri" {
-  value = google_compute_network.main.self_link
+  value = google_compute_network.itself[*].self_link
 }

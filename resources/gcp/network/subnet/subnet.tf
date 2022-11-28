@@ -18,22 +18,20 @@ variable "subnet_description" {
   description = "Description of the subnet"
 }
 
-variable "subnet_cidr_range" {
-  type        = string
-  description = "Range of internal addresses that are owned by this subnetwork"
-}
-
 variable "private_google_access" {
   type        = bool
   default     = false
   description = "When enabled, VMs in this subnetwork without external IP addresses can access Google APIs"
 }
 
+variable "subnet_cidr_range" {}
+variable "turn_on" {}
 
 resource "google_compute_subnetwork" "subnet" {
-  name                     = format("%s-subnet", var.subnet_name_prefix)
+  count                    = var.turn_on == true ? length(var.subnet_cidr_range) : 0
+  name                     = format("%s-subnet-%s", var.subnet_name_prefix, count.index)
   network                  = var.vpc_name
-  ip_cidr_range            = var.subnet_cidr_range
+  ip_cidr_range            = element(var.subnet_cidr_range, count.index)
   private_ip_google_access = var.private_google_access
   description              = var.subnet_description
 
@@ -51,13 +49,13 @@ output "subnet_name" {
 }
 
 output "subnet_id" {
-  value = google_compute_subnetwork.subnet.id
+  value = google_compute_subnetwork.subnet[*].id
 }
 
 output "subnet_gateway_address" {
-  value = google_compute_subnetwork.subnet.gateway_address
+  value = google_compute_subnetwork.subnet[*].gateway_address
 }
 
 output "subnet_uri" {
-  value = google_compute_subnetwork.subnet.self_link
+  value = google_compute_subnetwork.subnet[*].self_link
 }

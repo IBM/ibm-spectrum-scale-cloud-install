@@ -1,16 +1,20 @@
-variable "region" {
+variable "vpc_region" {
   type        = string
+  nullable    = true
+  default     = null
   description = "GCP region where the resources will be created."
 }
 
-variable "stack_name" {
+variable "resource_prefix" {
   type        = string
   default     = "spectrum-scale"
-  description = "GCP stack name, will be used for tagging resources."
+  description = "Prefix is added to all resources that are created."
 }
 
 variable "gcp_project_id" {
   type        = string
+  nullable    = true
+  default     = null
   description = "GCP project ID to manage resources."
 }
 
@@ -31,14 +35,30 @@ variable "vpc_description" {
   description = "Description of VPC."
 }
 
-variable "public_subnet_cidr" {
+variable "vpc_cidr_block" {
   type        = string
-  default     = "192.168.0.0/24"
+  nullable    = true
+  default     = null
+  description = "The CIDR block for the VPC."
+}
+
+variable "vpc_public_subnets_cidr_blocks" {
+  type        = list(string)
+  nullable    = true
+  default     = null
   description = "Range of internal addresses."
 }
 
-variable "private_subnet_cidr" {
-  type        = string
-  default     = "192.168.1.0/24"
-  description = "Range of internal addresses."
+variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of cidr_blocks of compute private subnets."
+}
+
+variable "vpc_storage_cluster_private_subnets_cidr_blocks" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of cidr_blocks of storage cluster private subnets."
 }

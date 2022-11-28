@@ -8,22 +8,27 @@ output "vpc_id" {
   description = "The ID of the VPC."
 }
 
-output "private_subnet_name" {
-  value       = module.private_subnet.subnet_name
-  description = "The name of Private subnet."
-}
-
-output "public_subnet_name" {
-  value       = module.public_subnet.subnet_name
-  description = "The name of Public subnet."
-}
-
-output "public_subnet_id" {
+output "vpc_public_subnets" {
   value       = module.public_subnet.subnet_id
-  description = "The ID of public subnet."
+  description = "List of IDs of public subnets."
 }
 
-output "private_subnet_id" {
-  value       = module.private_subnet.subnet_id
-  description = "The ID of Private subnet."
+output "vpc_storage_cluster_private_subnets" {
+  value       = module.storage_private_subnet.subnet_id
+  description = "List of IDs of storage cluster private subnets."
+}
+
+output "vpc_compute_cluster_private_subnets" {
+  value       = module.compute_private_subnet.subnet_id
+  description = "List of IDs of compute cluster private subnets."
+}
+
+output "vpc_compute_cluster_nat" {
+  value       = module.compute_cloud_nat.cloud_nat_id
+  description = "List of IDs of compute cluster nat."
+}
+
+output "vpc_storage_cluster_nat" {
+  value       = module.storage_cloud_nat.cloud_nat_id
+  description = "List of IDs of storage cluster nat."
 }
