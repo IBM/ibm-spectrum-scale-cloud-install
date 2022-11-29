@@ -1,8 +1,8 @@
 # Existing VPC Template
 
-The following steps will provision AWS resources (compute and storage instances in existing VPC) and configures IBM Spectrum Scale cloud solution.
+The following steps will provision AWS resources (compute and storage instances in existing VPC) and configure the IBM Spectrum Scale cloud solution.
 
-1. Change working directory to `aws_scale_templates/sub_modules/instance_template`.
+1. Change the working directory to `aws_scale_templates/sub_modules/instance_template`.
 
     ```cli
     cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/instance_template/
@@ -190,7 +190,7 @@ The following steps will provision AWS resources (compute and storage instances 
     }
     ```
 
-    Minimal Example-7 (create single cluster with both compute and storage instances):
+    Minimal Example-7 (create a single cluster with both compute and storage instances):
 
     ```jsonc
     {
