@@ -1,4 +1,4 @@
-# Configure AWS VPC
+# Configure GCP VPC
 
 The below steps will provision the GCP VPC required for the IBM Spectrum Scale cloud solution.
 
