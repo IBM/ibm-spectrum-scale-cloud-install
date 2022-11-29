@@ -1,7 +1,5 @@
 variable "vpc_region" {
   type        = string
-  nullable    = true
-  default     = null
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
 }
 
@@ -65,13 +63,6 @@ variable "compute_cluster_instance_type" {
   nullable    = true
   default     = null
   description = "Instance type to use for provisioning the compute cluster instances."
-}
-
-variable "using_rest_api_remote_mount" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
 }
 
 variable "compute_cluster_root_volume_type" {
@@ -183,6 +174,13 @@ variable "storage_cluster_gui_password" {
   description = "Password for Storage cluster GUI"
 }
 
+variable "using_rest_api_remote_mount" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
+}
+
 variable "using_packer_image" {
   type        = bool
   nullable    = true
@@ -195,6 +193,13 @@ variable "using_direct_connection" {
   nullable    = true
   default     = null
   description = "If true, will skip the jump/bastion host configuration."
+}
+
+variable "enable_placement_group" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
 }
 
 variable "ebs_block_devices_per_storage_instance" {
@@ -251,7 +256,7 @@ variable "ebs_block_device_volume_type" {
   type        = string
   nullable    = true
   default     = null
-  description = "EBS volume types: io1, io2, gp2, gp3, st1 and sc1."
+  description = "EBS volume types: io1, io2, gp2, gp3."
 }
 
 variable "enable_nvme_block_device" {
@@ -277,6 +282,8 @@ variable "spectrumscale_rpms_path" {
 
 variable "operator_email" {
   type        = string
+  nullable    = true
+  default     = null
   description = "SNS notifications will be sent to provided email id."
 }
 
@@ -301,11 +308,11 @@ variable "filesystem_block_size" {
   description = "Filesystem block size."
 }
 
-variable "create_separate_namespaces" {
+variable "create_remote_mount_cluster" {
   type        = bool
   nullable    = true
   default     = null
-  description = "Flag to select if separate namespace needs to be created for compute instances."
+  description = "Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup."
 }
 
 variable "bastion_instance_public_ip" {

@@ -1,7 +1,6 @@
 variable "vpc_region" {
   type        = string
-  nullable    = true
-  default     = null
+  default     = "us-east-1"
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
 }
 
@@ -20,8 +19,7 @@ variable "resource_prefix" {
 
 variable "vpc_cidr_block" {
   type        = string
-  nullable    = true
-  default     = null
+  default     = "10.0.0.0/16"
   description = "The CIDR block for the VPC."
 }
 
@@ -37,13 +35,6 @@ variable "vpc_storage_cluster_private_subnets_cidr_blocks" {
   nullable    = true
   default     = null
   description = "List of cidr_blocks of storage cluster private subnets."
-}
-
-variable "vpc_create_separate_subnets" {
-  type        = bool
-  nullable    = true
-  default     = null
-  description = "Flag to select if separate private subnet to be created for compute cluster."
 }
 
 variable "vpc_compute_cluster_private_subnets_cidr_blocks" {

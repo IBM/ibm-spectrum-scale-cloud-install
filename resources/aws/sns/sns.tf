@@ -2,12 +2,14 @@
     Creates new AWS SNS topic.
 */
 
-variable "vpc_region" {}
+variable "turn_on" {}
 variable "operator_email" {}
 variable "topic_name" {}
 
+#tfsec:ignore:aws-sns-enable-topic-encryption
 resource "aws_sns_topic" "itself" {
-  name = var.topic_name
+  count = var.turn_on ? 1 : 0
+  name  = var.topic_name
   delivery_policy = jsonencode({
     "http" : {
       "defaultHealthyRetryPolicy" : {
@@ -28,11 +30,12 @@ resource "aws_sns_topic" "itself" {
 }
 
 resource "aws_sns_topic_subscription" "itself" {
-  topic_arn = aws_sns_topic.itself.arn
+  count     = var.turn_on ? 1 : 0
+  topic_arn = element(aws_sns_topic.itself[*].arn, count.index)
   protocol  = "email"
   endpoint  = var.operator_email
 }
 
 output "topic_arn" {
-  value = aws_sns_topic_subscription.itself.arn
+  value = aws_sns_topic_subscription.itself[*].arn
 }

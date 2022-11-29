@@ -8,6 +8,7 @@ variable "vpc_name" {}
 variable "domain_name" {}
 variable "vpc_tags" {}
 
+#tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 resource "aws_vpc" "itself" {
   count                            = var.turn_on ? 1 : 0
   cidr_block                       = var.cidr_block
@@ -89,8 +90,8 @@ resource "aws_default_security_group" "itself" {
   )
 }
 
-// Note: Each AWS region comes with a default set of DHCP options. Terraform cannot destroy it.
-// Hence using our own dhcp options set which can be deleted.
+# Note: Each AWS region comes with a default set of DHCP options. Terraform cannot destroy it.
+# Hence using our own dhcp options set which can be deleted.
 resource "aws_vpc_dhcp_options" "itself" {
   count               = var.turn_on ? 1 : 0
   domain_name         = var.domain_name

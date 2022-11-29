@@ -23,7 +23,11 @@ resource "aws_autoscaling_group" "itself" {
   vpc_zone_identifier       = var.auto_scaling_group_subnets
   suspended_processes       = var.asg_suspend_processes
 
-  tags = var.asg_tags
+  tag {
+    key                 = lookup(var.asg_tags, "key")
+    value               = lookup(var.asg_tags, "value")
+    propagate_at_launch = true
+  }
   lifecycle {
     create_before_destroy = true
   }
@@ -33,7 +37,7 @@ data "aws_instances" "itself" {
   depends_on = [aws_autoscaling_group.itself]
 
   instance_tags = {
-    Name = var.asg_tags[0]["value"]
+    Name = var.asg_tags["value"]
   }
 }
 
@@ -49,13 +53,13 @@ output "asg_arn" {
 }
 
 output "asg_instance_id" {
-  value = data.aws_instance.itself.*.id
+  value = data.aws_instance.itself[*].id
 }
 
 output "asg_instance_public_ip" {
-  value = data.aws_instance.itself.*.public_ip
+  value = data.aws_instance.itself[*].public_ip
 }
 
 output "asg_instance_private_ip" {
-  value = data.aws_instance.itself.*.private_ip
+  value = data.aws_instance.itself[*].private_ip
 }

@@ -10,6 +10,7 @@ variable "instance_iam_profile" {}
 variable "key_name" {}
 variable "sec_groups" {}
 
+#tfsec:ignore:aws-ec2-no-public-ip
 resource "aws_launch_configuration" "itself" {
   name_prefix                 = var.launch_config_name_prefix
   image_id                    = var.image_id
@@ -18,6 +19,9 @@ resource "aws_launch_configuration" "itself" {
   iam_instance_profile        = var.instance_iam_profile
   key_name                    = var.key_name
   security_groups             = var.sec_groups
+  metadata_options {
+    http_tokens = "required"
+  }
   root_block_device {
     encrypted = true
   }

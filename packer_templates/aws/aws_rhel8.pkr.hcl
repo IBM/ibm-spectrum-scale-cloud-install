@@ -4,10 +4,10 @@ source "amazon-ebs" "itself" {
   associate_public_ip_address = true
   security_group_id           = var.vpc_security_group_id
   launch_block_device_mappings {
-    device_name = "/dev/sda1"
-    volume_size = var.volume_size
-    volume_type = var.volume_type
-    delete_on_termination = true 
+    device_name           = "/dev/sda1"
+    volume_size           = var.volume_size
+    volume_type           = var.volume_type
+    delete_on_termination = true
   }
   ami_description           = var.ami_description
   ami_virtualization_type   = "hvm"
