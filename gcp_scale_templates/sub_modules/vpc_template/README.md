@@ -1,43 +1,108 @@
-# Configure GCP VPC
-This terraform template creates GCP VPC required for IBM Spectrum Scale cloud solution.
+# Configure AWS VPC
 
-## Before Starting
+The below steps will provision the GCP VPC required for the IBM Spectrum Scale cloud solution.
 
-Ensure that you have configured and  get GCP credentials json file via any of the following GCP authentication ways.
-1.	[Application default credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc)
-2.	[Service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys)
+1. Change the working directory to `gcp_scale_templates/sub_modules/vpc_template`.
 
-Make a note of credentials file full path which is required in next section
-
-## VPC Template
-
-The following steps will provision GCP resources (**new VPC) required for
-IBM Spectrum Scale Cloud deployment.
-
-1. Change working directory to `vpc_template/`.
-
-    ```
-    $ cd ibm-spectrum-scale-cloud-install/gcp_scale_templates/sub_modules/vpc_template/
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/gcp_scale_templates/sub_modules/vpc_template/
     ```
 
-2. Create terraform variable definitions file (terraform.tfvars.json) and provide infrastructure inputs.
+2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
-    Minimal Example-1 :
-
-    Default vpc network creation with two subnet, one public and one private with "192.168.0.0/24" and "192.168.1.0/24" respectively.
-
-    ```
-    $ cat new_vpc_default.tfvars.json
+    Minimal Example-1:
+    
+    ```cli
+    cat <<EOF > combined_1az.auto.tfvars.json
     {
-        "region"               : "us-central1",
-        "gcp_project_id"       : "spectrum-scale-XXXXXX",
-        "credentials_file_path": "/home/james/gcp_data/spectrum-scale.json" .
+         "vpc_region": "us-central1",
+         "gcp_project_id": "spectrum-scale-XXXXXX",
+         "credentials_file_path": "/home/gcp_data/spectrum-scale.json",
+         "vpc_cidr_block": "10.0.0.0/16",
+         "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
+         "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"],
+         "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.7.0/24"]
     }
+    EOF
     ```
-    Note : 'credentials_file_path' key needs to update with the credentials file path got from previous section
 
+    Minimal Example-2:
 
-    4. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+    ```cli
+    cat <<EOF > combined_3az.auto.tfvars.json
+    {
+        "vpc_region": "us-central1",
+        "gcp_project_id": "spectrum-scale-XXXXXX",
+        "credentials_file_path": "/home/gcp_data/spectrum-scale.json",
+        "vpc_cidr_block": "10.0.0.0/16",
+        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
+        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"],
+        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.7.0/24", "10.0.8.0/24", "10.0.9.0/24"]
+    }
+    EOF
+    ```
+
+    Minimal Example-3:
+
+    ```cli
+    cat <<EOF > compute_1az.auto.tfvars.json
+    {
+        "vpc_region": "us-central1",
+        "gcp_project_id": "spectrum-scale-XXXXXX",
+        "credentials_file_path": "/home/gcp_data/spectrum-scale.json",
+        "vpc_cidr_block": "10.0.0.0/16",
+        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
+        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"]
+    }
+    EOF
+    ```
+
+    Minimal Example-4:
+
+    ```cli
+    cat <<EOF > compute_3az.auto.tfvars.json
+    {
+        "vpc_region": "us-central1",
+        "gcp_project_id": "spectrum-scale-XXXXXX",
+        "credentials_file_path": "/home/gcp_data/spectrum-scale.json" ,
+        "vpc_cidr_block": "10.0.0.0/16",
+        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
+        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+    }
+    EOF
+    ```
+
+    Minimal Example-5:
+
+    ```cli
+    cat <<EOF > storage_1az.auto.tfvars.json
+    {
+        "vpc_region": "us-central1",
+        "gcp_project_id": "spectrum-scale-XXXXXX",
+        "credentials_file_path": "/home/gcp_data/spectrum-scale.json" ,
+        "vpc_cidr_block": "10.0.0.0/16",
+        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
+        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"]
+    }
+    EOF
+    ```
+
+    Minimal Example-6:
+
+    ```cli
+    cat <<EOF > storage_3az.auto.tfvars.json
+    {
+        "vpc_region": "us-central1",
+        "gcp_project_id": "spectrum-scale-XXXXXX",
+        "credentials_file_path": "/home/gcp_data/spectrum-scale.json" ,
+        "vpc_cidr_block": "10.0.0.0/16",
+        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
+        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+    }
+    EOF
+    ```
+
+3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
