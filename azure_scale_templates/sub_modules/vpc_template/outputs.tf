@@ -24,13 +24,16 @@ output "vpc_compute_cluster_private_subnets" {
 }
 
 output "strg_priv_dns_zone_name" {
-  value = module.strg_private_dns_zone.private_dns_zone_name
+  value       = module.strg_private_dns_zone.private_dns_zone_name
+  description = "The dns zone for storage private zone."
 }
 
 output "comp_priv_dns_zone_name" {
-  value = module.comp_private_dns_zone.private_dns_zone_name
+  value       = module.comp_private_dns_zone.private_dns_zone_name
+  description = "The dns zone for compute private zone."
 }
 
 output "private_endpoint_dns_name" {
-  value = module.strg_private_endpoint.endpoint_dns_name[0].fqdn
+  value       = module.strg_private_endpoint.endpoint_dns_name[0].fqdn
+  description = "The dns name of the private endpoint."
 }

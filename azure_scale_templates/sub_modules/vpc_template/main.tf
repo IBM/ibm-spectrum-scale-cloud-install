@@ -7,7 +7,9 @@
     4. PublicSubnet
     5. NAT GW with Public IP
     6. PrivateSubnet.
-    8. Link DNS zone with VPC.
+    7. Link DNS zone with VPC.
+    8. Create storage account.
+    9. Create private storage endpoint.
 */
 
 module "resource_group" {
@@ -104,13 +106,6 @@ module "vpc_comp_private_subnet" {
   ]
 }
 
-# TODO:
-# [ ] 1. Create Private DNS Zone each for strg and comp.
-# [ ] 2. Create Virtual Network Links for strg and comp.
-# [ ] 3. Create Storage account.
-# [ ] 4. Create Storage Account Private Endpoint.
-# [ ] 5. Create DNS A record.
-
 module "strg_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
   turn_on             = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
@@ -168,6 +163,10 @@ module "create_storage_account" {
   name                = var.storage_account_name
   location            = var.vpc_location
   resource_group_name = module.resource_group.resource_group_name
+
+  depends_on = [
+    module.resource_group
+  ]
 }
 
 module "strg_private_endpoint" {
@@ -178,4 +177,10 @@ module "strg_private_endpoint" {
   resource_group_name            = module.resource_group.resource_group_name
   subnet_id                      = module.vpc_strg_private_subnet.sub_id[0]
   private_connection_resource_id = module.create_storage_account.storage_account_id
+
+  depends_on = [
+    module.resource_group,
+    module.vpc,
+    module.create_storage_account
+  ]
 }
