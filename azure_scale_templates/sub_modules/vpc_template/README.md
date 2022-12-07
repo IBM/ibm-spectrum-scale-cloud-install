@@ -13,13 +13,25 @@ Below steps will provision Azure VPC required for IBM Spectrum Scale cloud solut
     Minimal Example:
 
     ```json
-    {
+    {    
         "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
         "client_secret": "0e760437-bf34-4aad-9f8d-870be799c55d",
         "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
         "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee",
         "vpc_location": "eastus",
-        "resource_group_name": "spectrum-scale"
+        "resource_group_name": "spectrum-scale",
+        "resource_prefix": "spectrum-scale",
+        "vpc_address_space": ["10.0.0.0/16"],
+        "vpc_public_subnet_address_spaces": ["10.0.1.0/24"],
+        "vpc_strg_priv_subnet_address_spaces": ["10.0.2.0/24"],
+        "vpc_comp_priv_subnet_address_spaces": ["10.0.3.0/24"],
+        "comp_dns_domain": "strgscale.com",
+        "strg_dns_domain": "compscale.com",
+        "storage_account_name": "spectrumscalestorageaccnt",
+        "vpc_tags": {
+            "Region": "eastus",
+            "Evnironment": "Staging"
+        }
     }
     ```
 
