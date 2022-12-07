@@ -259,6 +259,13 @@ variable "ebs_block_device_volume_type" {
   description = "EBS volume types: io1, io2, gp2, gp3."
 }
 
+variable "enable_instance_store_block_device" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Enable instance storage block devices."
+}
+
 variable "enable_nvme_block_device" {
   type        = bool
   nullable    = true

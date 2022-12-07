@@ -7,7 +7,11 @@
 */
 
 locals {
-  cluster_type           = (var.total_storage_cluster_instances != null && var.total_compute_cluster_instances == null) ? "storage" : (var.total_storage_cluster_instances == null && var.total_compute_cluster_instances != null) ? "compute" : "combined"
+    cluster_type = (
+    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks == null) ? "storage" :
+    (var.vpc_storage_cluster_private_subnets_cidr_blocks == null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "compute" :
+    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "combined" : "none"
+  )
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
   "/dev/xvdk", "/dev/xvdl", "/dev/xvdm", "/dev/xvdn", "/dev/xvdo", "/dev/xvdp", "/dev/xvdq", "/dev/xvdr", "/dev/xvds", "/dev/xvdt"]
@@ -381,8 +385,9 @@ module "storage_cluster_instances" {
   ebs_block_device_volume_type           = var.ebs_block_device_volume_type
   ebs_block_device_iops                  = var.ebs_block_device_iops
   ebs_block_device_throughput            = var.ebs_block_device_throughput
+  enable_instance_store_block_device     = var.enable_instance_store_block_device
   enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  nvme_block_device_count                = (var.enable_nvme_block_device == true || var.enable_instance_store_block_device == true) ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
