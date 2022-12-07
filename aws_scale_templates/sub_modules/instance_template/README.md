@@ -256,6 +256,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_ebs_block_device_volume_size"></a> [ebs_block_device_volume_size](#input_ebs_block_device_volume_size) | Size of the volume in gibibytes (GiB). | `number` |
 | <a name="input_ebs_block_device_volume_type"></a> [ebs_block_device_volume_type](#input_ebs_block_device_volume_type) | EBS volume types: io1, io2, gp2, gp3. | `string` |
 | <a name="input_ebs_block_devices_per_storage_instance"></a> [ebs_block_devices_per_storage_instance](#input_ebs_block_devices_per_storage_instance) | Additional EBS block devices to attach per storage cluster instance. | `number` |
+| <a name="input_enable_instance_store_block_device"></a> [enable_instance_store_block_device](#input_enable_instance_store_block_device) | Enable instance storage block devices. | `bool` |
 | <a name="input_enable_nvme_block_device"></a> [enable_nvme_block_device](#input_enable_nvme_block_device) | Enable NVMe block devices (built on Nitro instances). | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, a placement group will be created and all instances will be created with strategy - cluster. | `bool` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
