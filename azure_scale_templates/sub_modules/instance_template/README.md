@@ -139,11 +139,13 @@ The following steps will provision Azure resources (compute and storage instance
 | <a name="input_compute_cluster_os_disk_caching"></a> [compute_cluster_os_disk_caching](#input_compute_cluster_os_disk_caching) | Specifies the caching requirements for the OS Disk (Ex: None, ReadOnly and ReadWrite). | `string` |
 | <a name="input_compute_cluster_os_storage_account_type"></a> [compute_cluster_os_storage_account_type](#input_compute_cluster_os_storage_account_type) | Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS). | `string` |
 | <a name="input_compute_cluster_vm_size"></a> [compute_cluster_vm_size](#input_compute_cluster_vm_size) | Instance type to use for provisioning the compute cluster instances. | `string` |
+| <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
 | <a name="input_create_separate_namespaces"></a> [create_separate_namespaces](#input_create_separate_namespaces) | Flag to select if separate namespace needs to be created for compute instances. | `bool` |
 | <a name="input_data_disk_size"></a> [data_disk_size](#input_data_disk_size) | Size of the volume in gibibytes (GB). | `number` |
 | <a name="input_data_disk_storage_account_type"></a> [data_disk_storage_account_type](#input_data_disk_storage_account_type) | Type of storage to use for the managed disk (Ex: Standard_LRS, Premium_LRS, StandardSSD_LRS or UltraSSD_LRS). | `string` |
 | <a name="input_data_disks_per_storage_instance"></a> [data_disks_per_storage_instance](#input_data_disks_per_storage_instance) | Additional Data disks to attach per storage cluster instance. | `number` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
+| <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |

@@ -4,19 +4,19 @@
 
 variable "turn_on" {}
 variable "resource_group_name" {}
-variable "vnet_zone_link_name" {}
+variable "vpc_zone_link_name" {}
 variable "private_dns_zone_name" {}
-variable "vnet_id" {}
+variable "vpc_id" {}
 
 resource "azurerm_private_dns_zone_virtual_network_link" "itself" {
   count                 = tobool(var.turn_on) == true ? 1 : 0
-  name                  = var.vnet_zone_link_name
+  name                  = var.vpc_zone_link_name
   resource_group_name   = var.resource_group_name
   private_dns_zone_name = var.private_dns_zone_name
-  virtual_network_id    = var.vnet_id
+  virtual_network_id    = var.vpc_id
   registration_enabled  = false # Note: Auto registration is intentionally disabled.
 }
 
-output "private_dns_zone_vnet_link_id" {
+output "private_dns_zone_vpc_link_id" {
   value = try(azurerm_private_dns_zone_virtual_network_link.itself[0].id, " ")
 }
