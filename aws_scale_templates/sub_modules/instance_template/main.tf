@@ -7,12 +7,17 @@
 */
 
 locals {
-  cluster_type           = (var.total_storage_cluster_instances != null && var.total_compute_cluster_instances == null) ? "storage" : (var.total_storage_cluster_instances == null && var.total_compute_cluster_instances != null) ? "compute" : "combined"
+  cluster_type = (
+    (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets == null) ? "storage" :
+    (var.vpc_storage_cluster_private_subnets == null && var.vpc_compute_cluster_private_subnets != null) ? "compute" :
+    (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets != null) ? "combined" : "none"
+  )
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
   "/dev/xvdk", "/dev/xvdl", "/dev/xvdm", "/dev/xvdn", "/dev/xvdo", "/dev/xvdp", "/dev/xvdq", "/dev/xvdr", "/dev/xvds", "/dev/xvdt"]
-  gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
-  scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
+  instance_storage_device_names = ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"]
+  gpfs_base_rpm_path            = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
+  scale_version                 = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
 
 module "generate_compute_cluster_keys" {
@@ -373,7 +378,7 @@ module "storage_cluster_instances" {
   volume_tags                            = var.storage_cluster_volume_tags
   ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
   ebs_block_devices                      = var.ebs_block_devices_per_storage_instance
-  ebs_block_device_names                 = local.ebs_device_names
+  ebs_block_device_names                 = var.enable_instance_store_block_device == true ? local.instance_storage_device_names : local.ebs_device_names
   ebs_block_device_delete_on_termination = var.ebs_block_device_delete_on_termination
   ebs_block_device_encrypted             = var.ebs_block_device_encrypted
   ebs_block_device_kms_key_id            = var.ebs_block_device_kms_key_id
@@ -381,8 +386,9 @@ module "storage_cluster_instances" {
   ebs_block_device_volume_type           = var.ebs_block_device_volume_type
   ebs_block_device_iops                  = var.ebs_block_device_iops
   ebs_block_device_throughput            = var.ebs_block_device_throughput
+  enable_instance_store_block_device     = var.enable_instance_store_block_device
   enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  nvme_block_device_count                = (var.enable_nvme_block_device == true || var.enable_instance_store_block_device == true) ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
@@ -412,6 +418,7 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_iops                  = var.ebs_block_device_iops
   ebs_block_device_throughput            = var.ebs_block_device_throughput
   enable_nvme_block_device               = var.enable_nvme_block_device
+  enable_instance_store_block_device     = false
   nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }

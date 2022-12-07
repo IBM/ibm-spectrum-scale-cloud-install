@@ -25,6 +25,7 @@ variable "ebs_block_device_volume_size" {}
 variable "ebs_block_device_volume_type" {}
 variable "ebs_block_device_iops" {}
 variable "ebs_block_device_throughput" {}
+variable "enable_instance_store_block_device" {}
 variable "enable_nvme_block_device" {}
 variable "nvme_block_device_count" {}
 variable "tags" {}
@@ -154,7 +155,7 @@ output "instance_ids" {
 }
 
 output "instance_ips_with_ebs_mapping" {
-  value = tobool(var.enable_nvme_block_device) == true ? try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.nvme_block_device_count) }, {}) : try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
+  value = tobool(var.enable_nvme_block_device) == true || tobool(var.enable_instance_store_block_device) == true ? try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.nvme_block_device_count) }, {}) : try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
 }
 
 output "instance_private_dns_ip_map" {
