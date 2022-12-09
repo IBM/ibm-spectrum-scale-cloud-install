@@ -2,7 +2,7 @@
     Creates GCP Bastion VM instance (which obtains a public ip).
 */
 
-variable "instance_name_prefix" {}
+variable "instance_name" {}
 variable "zone" {}
 variable "machine_type" {}
 variable "subnet_name" {}
@@ -13,12 +13,9 @@ variable "network_tier" {}
 variable "ssh_user_name" {}
 variable "ssh_key_path" {}
 variable "vm_instance_tags" {}
-variable "operator_email" {}
-variable "scopes" {}
-
 
 resource "google_compute_instance" "bastion_instance" {
-  name         = format("%s-%s", var.instance_name_prefix, "bastion")
+  name         = var.instance_name
   machine_type = var.machine_type
   zone         = var.zone
 
@@ -52,11 +49,6 @@ resource "google_compute_instance" "bastion_instance" {
     block-project-ssh-keys = true
   }
 
-  service_account {
-    email  = var.operator_email
-    scopes = var.scopes
-  }
-
   lifecycle {
     ignore_changes = [attached_disk]
   }
@@ -66,13 +58,12 @@ resource "google_compute_instance" "bastion_instance" {
   }
 }
 
-
 output "bastion_instance_id" {
   value = google_compute_instance.bastion_instance.instance_id
 }
 
 output "bastion_instance_name" {
-  value      = format("%s-%s", var.instance_name_prefix, "bastion")
+  value      = var.instance_name
   depends_on = [google_compute_instance.bastion_instance]
 }
 

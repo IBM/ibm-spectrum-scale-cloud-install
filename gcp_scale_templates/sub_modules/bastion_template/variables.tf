@@ -52,6 +52,12 @@ variable "bastion_instance_name_prefix" {
   description = "Bastion instance name prefix (Rules: 1-63 characters long, comply with RFC1035 and match regex [a-z]([-a-z0-9]*[a-z0-9])?"
 }
 
+variable "bastion_instance_tags" {
+  type        = list(string)
+  default     = ["spectrum-scale-bastion"]
+  description = "List of tags to attach to the bastion instance."
+}
+
 variable "bastion_boot_disk_size" {
   type        = number
   default     = 100
@@ -87,13 +93,8 @@ variable "bastion_ssh_key_path" {
   description = "SSH public key local path, will be used to login bastion instance."
 }
 
-variable "operator_email" {
-  type        = string
-  description = "GCP service account e-mail address."
-}
-
-variable "scopes" {
+variable "bastion_source_range" {
   type        = list(string)
-  default     = ["cloud-platform"]
-  description = "List of service scopes."
+  default     = ["0.0.0.0/0"]
+  description = "Firewall will allow only to traffic that has source IP address in these ranges."
 }
