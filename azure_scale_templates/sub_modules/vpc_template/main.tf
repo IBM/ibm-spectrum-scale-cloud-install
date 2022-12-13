@@ -1,186 +1,111 @@
 /*
-    IBM Spectrum scale cloud deployment requires 1 VPC with below resources.
+    IBM Spectrum scale cloud deployment requires 1 vnet with below resources.
 
     1. Resource group
-    2. VPC
+    2. vnet
     3. DNS (seperate zone for compute and storage)
     4. PublicSubnet
     5. NAT GW with Public IP
     6. PrivateSubnet.
-    7. Link DNS zone with VPC.
-    8. Create storage account.
-    9. Create private storage endpoint.
+    7. Link DNS zone with vnet.
 */
 
 module "resource_group" {
   source              = "../../../resources/azure/resource_group"
-  location            = var.vpc_location
+  location            = var.vnet_location
   resource_group_name = format("%s-rg", var.resource_prefix)
 }
 
-module "vpc" {
+module "vnet" {
   source              = "../../../resources/azure/network/vpc"
-  vpc_name            = format("%s-vpc", var.resource_prefix)
-  vpc_location        = var.vpc_location
+  vnet_name           = format("%s-vnet", var.resource_prefix)
+  vnet_location       = var.vnet_location
   resource_group_name = module.resource_group.resource_group_name
-  vpc_address_space   = var.vpc_address_space
-  vpc_tags            = var.vpc_tags
-
-  depends_on = [
-    module.resource_group
-  ]
+  vnet_address_space  = var.vnet_address_space
+  vnet_tags           = var.vnet_tags
 }
 
 module "public_subnet" {
   source              = "../../../resources/azure/network/subnet"
-  turn_on             = var.vpc_public_subnet_address_spaces != null ? true : false
+  turn_on             = var.vnet_public_subnet_address_spaces != null ? true : false
   resource_group_name = module.resource_group.resource_group_name
   subnet_name         = "AzureBastionSubnet"
-  address_prefixes    = var.vpc_public_subnet_address_spaces
-  vpc_name            = module.vpc.vpc_name
-
-  depends_on = [
-    module.resource_group,
-    module.vpc
-  ]
+  address_prefixes    = var.vnet_public_subnet_address_spaces
+  vnet_name           = module.vnet.vnet_name
 }
 
 module "public_ip" {
   source              = "../../../resources/azure/network/public_ip"
   public_ip_name      = format("%s-snet-pubip", var.resource_prefix)
   resource_group_name = module.resource_group.resource_group_name
-  location            = var.vpc_location
-
-  depends_on = [
-    module.resource_group
-  ]
+  location            = var.vnet_location
 }
 
 module "nat_gateway" {
   source              = "../../../resources/azure/network/nat_gateway"
   name                = format("%s-ngw", var.resource_prefix)
-  location            = var.vpc_location
+  location            = var.vnet_location
   resource_group_name = module.resource_group.resource_group_name
+}
 
-  depends_on = [
-    module.resource_group
-  ]
+module "nat_gw_public_pip_association" {
+  source               = "../../../resources/azure/network/nat_gw_publicip_association"
+  public_ip_address_id = module.public_ip.id
+  nat_gateway_id       = module.nat_gateway.nat_gateway_id
 }
 
 module "nat_gw_public_snet_association" {
   source         = "../../../resources/azure/network/nat_gw_subnet_association"
   subnet_id      = module.public_subnet.sub_id[0]
   nat_gateway_id = module.nat_gateway.nat_gateway_id
-
-  depends_on = [
-    module.public_subnet,
-    module.nat_gateway
-  ]
 }
 
-module "vpc_strg_private_subnet" {
+module "vnet_strg_private_subnet" {
   source              = "../../../resources/azure/network/subnet"
   turn_on             = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
   subnet_name         = format("%s-strg-priv-snet", var.resource_prefix)
   resource_group_name = module.resource_group.resource_group_name
-  vpc_name            = module.vpc.vpc_name
-  address_prefixes    = var.vpc_strg_priv_subnet_address_spaces
-
-  depends_on = [
-    module.resource_group,
-    module.vpc
-  ]
+  vnet_name           = module.vnet.vnet_name
+  address_prefixes    = var.vnet_strg_priv_subnet_address_spaces
 }
 
-module "vpc_comp_private_subnet" {
+module "vnet_comp_private_subnet" {
   source              = "../../../resources/azure/network/subnet"
   turn_on             = (local.cluster_type == "compute" || local.cluster_type == "combined") == true ? true : false
   subnet_name         = format("%s-comp-priv-snet", var.resource_prefix)
   resource_group_name = module.resource_group.resource_group_name
-  vpc_name            = module.vpc.vpc_name
-  address_prefixes    = var.vpc_comp_priv_subnet_address_spaces
-
-  depends_on = [
-    module.resource_group,
-    module.vpc
-  ]
+  vnet_name           = module.vnet.vnet_name
+  address_prefixes    = var.vnet_comp_priv_subnet_address_spaces
 }
 
-module "strg_private_dns_zone" {
+module "storage_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
   turn_on             = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
-  dns_domain_name     = format("%s.%s", var.vpc_location, var.strg_dns_domain)
+  dns_domain_name     = format("%s.%s", var.vnet_location, var.strg_dns_domain)
   resource_group_name = module.resource_group.resource_group_name
-
-  depends_on = [
-    module.resource_group,
-  ]
 }
 
-module "comp_private_dns_zone" {
+module "compute_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
   turn_on             = (local.cluster_type == "compute" || local.cluster_type == "combined") == true ? true : false
-  dns_domain_name     = format("%s.%s", var.vpc_location, var.comp_dns_domain)
+  dns_domain_name     = format("%s.%s", var.vnet_location, var.comp_dns_domain)
   resource_group_name = module.resource_group.resource_group_name
-
-  depends_on = [
-    module.resource_group,
-  ]
 }
 
-module "link_storage_dns_zone_vpc" {
+module "link_storage_dns_zone_vnet" {
   source                = "../../../resources/azure/network/private_dns_zone_vpc_link"
   turn_on               = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
-  private_dns_zone_name = module.strg_private_dns_zone.private_dns_zone_name
+  private_dns_zone_name = module.storage_private_dns_zone.private_dns_zone_name
   resource_group_name   = module.resource_group.resource_group_name
-  vpc_id                = module.vpc.vpc_id
-  vpc_zone_link_name    = format("%s-strg-link", var.resource_prefix)
-
-  depends_on = [
-    module.resource_group,
-    module.vpc,
-    module.strg_private_dns_zone
-  ]
+  vnet_id               = module.vnet.vnet_id
+  vnet_zone_link_name   = format("%s-strg-link", var.resource_prefix)
 }
 
-module "link_compute_dns_zone_vpc" {
+module "link_compute_dns_zone_vnet" {
   source                = "../../../resources/azure/network/private_dns_zone_vpc_link"
   turn_on               = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
-  private_dns_zone_name = module.comp_private_dns_zone.private_dns_zone_name
+  private_dns_zone_name = module.compute_private_dns_zone.private_dns_zone_name
   resource_group_name   = module.resource_group.resource_group_name
-  vpc_id                = module.vpc.vpc_id
-  vpc_zone_link_name    = format("%s-comp-link", var.resource_prefix)
-
-  depends_on = [
-    module.resource_group,
-    module.vpc,
-    module.comp_private_dns_zone
-  ]
-}
-
-module "create_storage_account" {
-  source              = "../../../resources/azure/storage/storage_account"
-  name                = var.storage_account_name
-  location            = var.vpc_location
-  resource_group_name = module.resource_group.resource_group_name
-
-  depends_on = [
-    module.resource_group
-  ]
-}
-
-module "strg_private_endpoint" {
-  source                         = "../../../resources/azure/network/endpoint"
-  name                           = format("%s-endpoint", var.resource_prefix)
-  location                       = var.vpc_location
-  resource_prefix                = var.resource_prefix
-  resource_group_name            = module.resource_group.resource_group_name
-  subnet_id                      = module.vpc_strg_private_subnet.sub_id[0]
-  private_connection_resource_id = module.create_storage_account.storage_account_id
-
-  depends_on = [
-    module.resource_group,
-    module.vpc,
-    module.create_storage_account
-  ]
+  vnet_id               = module.vnet.vnet_id
+  vnet_zone_link_name   = format("%s-comp-link", var.resource_prefix)
 }

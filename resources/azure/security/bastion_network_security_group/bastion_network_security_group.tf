@@ -6,7 +6,7 @@ variable "security_group_name" {}
 variable "location" {}
 variable "resource_group_name" {}
 
-#tfsec:ignore:AZU024 tfsec:ignore:AZU017
+# tfsec:ignore:azure-network-no-public-egress
 resource "azurerm_network_security_group" "itself" {
   name                = var.security_group_name
   location            = var.location
