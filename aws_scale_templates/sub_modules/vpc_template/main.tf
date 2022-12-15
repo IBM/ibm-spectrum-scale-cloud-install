@@ -122,6 +122,7 @@ module "vpc_public_endpoint" {
   source              = "../../../resources/aws/network/vpc_endpoint"
   turn_on             = true
   total_vpc_endpoints = 1
+  resource_prefix     = var.resource_prefix
   vpc_id              = module.vpc.vpc_id
   service_name        = "com.amazonaws.${var.vpc_region}.s3"
 }
@@ -140,6 +141,7 @@ module "vpc_private_endpoint" {
   source              = "../../../resources/aws/network/vpc_endpoint"
   turn_on             = true
   total_vpc_endpoints = length(var.vpc_availability_zones)
+  resource_prefix     = var.resource_prefix
   vpc_id              = module.vpc.vpc_id
   service_name        = "com.amazonaws.${var.vpc_region}.s3"
 }
