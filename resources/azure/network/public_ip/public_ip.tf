@@ -12,6 +12,7 @@ resource "azurerm_public_ip" "itself" {
   location            = var.location
   sku                 = "Standard"
   allocation_method   = "Static"
+  zones               = ["1"]
 }
 
 output "id" {
@@ -20,4 +21,8 @@ output "id" {
 
 output "public_ip" {
   value = azurerm_public_ip.itself.ip_address
+}
+
+output "public_ip_zone" {
+  value = azurerm_public_ip.itself.zones
 }

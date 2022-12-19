@@ -1,5 +1,5 @@
 /*
-    Creates a new Azure VNet.
+    Creates a new Azure vnet.
 */
 
 variable "vnet_name" {}

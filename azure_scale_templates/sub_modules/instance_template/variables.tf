@@ -290,3 +290,17 @@ variable "ansible_jump_host_ssh_private_key" {
   default     = null
   description = "Ansible jump host SSH private key path, which will be used to login to ansible jump host."
 }
+
+variable "create_scale_cluster" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Flag to represent whether to create scale cluster or not."
+}
+
+variable "inventory_format" {
+  type        = string
+  nullable    = true
+  default     = "ini"
+  description = "Specify inventory format suited for ansible playbooks."
+}
