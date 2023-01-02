@@ -193,6 +193,8 @@ if __name__ == "__main__":
         else:
             if STRG_TF['cloud_platform'] == 'AWS':
                 bastion_user = "ec2-user"
+            elif STRG_TF['cloud_platform'] == 'Azure':
+                bastion_user = "azureuser"
             if STRG_TF['cloud_platform'] == 'IBMCloud':
                 bastion_user = "ubuntu"
             proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"

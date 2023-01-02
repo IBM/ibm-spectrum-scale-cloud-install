@@ -12,6 +12,7 @@ resource "azurerm_bastion_host" "itself" {
   name                = var.bastion_host_name
   location            = var.location
   resource_group_name = var.resource_group_name
+  sku                 = "Standard"
 
   ip_configuration {
     name                 = format("%s-config", var.bastion_host_name)
