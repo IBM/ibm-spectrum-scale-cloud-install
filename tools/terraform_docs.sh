@@ -27,6 +27,7 @@ ibmDocModules=(
 
 gcpDocModules=(
     "$root_dir/gcp_scale_templates/sub_modules/vpc_template"
+    "$root_dir/gcp_scale_templates/sub_modules/bastion_template"
 )
 
 #Updates terraform docs if not already updated
