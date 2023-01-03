@@ -8,16 +8,16 @@ variable "service_account_json" {
   default = "Service account credential json file path to be used"
 }
 
-variable "vpc_zone" {
-  type        = string
-  default     = "us-central1-a"
-  description = "The VPC zone you want to use for building image."
-}
-
 variable "vpc_region" {
   type        = string
   default     = "us-central1"
   description = "The region where GCP operations will take place. Examples are us-central1, us-east1 etc."
+}
+
+variable "vpc_zone" {
+  type        = string
+  default     = "us-central1-a"
+  description = "The VPC zone you want to use for building image."
 }
 
 variable "image_name" {
@@ -38,14 +38,14 @@ variable "machine_type" {
 }
 
 variable "source_image_family" {
-  type    = string
-  default = "rhel-8"
+  type        = string
+  default     = "rhel-8"
   description = "The source image family whose root volume will be copied and provisioned on the currently running instance."
 }
 
-variable "gcs_spectrumscale_bucket" {
+variable "gcs_artifact_registry_name" {
   type        = string
-  description = "GCS bucket which contains IBM Spectrum Scale rpm(s)."
+  description = "GCS artifact registry name which contains IBM Spectrum Scale rpm(s)."
 }
 
 variable "disk_size" {
@@ -57,11 +57,16 @@ variable "disk_size" {
 variable "disk_type" {
   type        = string
   default     = "pd-ssd"
-  description = "The volume type. gp2 & gp3 for General Purpose (SSD) volumes."
+  description = "The volume type."
 }
 
 variable "user_account" {
   type        = string
   default     = "gcpuser"
   description = "The username to login/connect to SSH with."
+}
+
+variable "service_account_email" {
+  type        = string
+  description = "The service account to be used for launched instance."
 }

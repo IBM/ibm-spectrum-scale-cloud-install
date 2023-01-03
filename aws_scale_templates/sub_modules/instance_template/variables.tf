@@ -322,6 +322,13 @@ variable "create_remote_mount_cluster" {
   description = "Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup."
 }
 
+variable "bastion_user" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion login username."
+}
+
 variable "bastion_instance_public_ip" {
   type        = string
   nullable    = true

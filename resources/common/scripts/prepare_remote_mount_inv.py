@@ -126,6 +126,8 @@ if __name__ == "__main__":
                         help='Spectrum Scale instances SSH private key path')
     PARSER.add_argument('--using_rest_initialization',
                         help='skips gui configuration')
+    PARSER.add_argument('--bastion_user',
+                        help='Bastion OS Login username')
     PARSER.add_argument('--bastion_ip',
                         help='Bastion SSH public ip address')
     PARSER.add_argument('--bastion_ssh_private_key',
@@ -191,11 +193,7 @@ if __name__ == "__main__":
         if ARGUMENTS.bastion_ssh_private_key is None:
             node_template = node_template + each_entry + "\n"
         else:
-            if STRG_TF['cloud_platform'] == 'AWS':
-                bastion_user = "ec2-user"
-            if STRG_TF['cloud_platform'] == 'IBMCloud':
-                bastion_user = "ubuntu"
-            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
+            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
             each_entry = each_entry + " " + \
                 "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'"
             node_template = node_template + each_entry + "\n"

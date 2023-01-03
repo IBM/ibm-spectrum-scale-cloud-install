@@ -42,7 +42,7 @@ def calculate_pagepool(memory_size, max_pagepool_gb):
     if pagepool_gb > int(max_pagepool_gb):
         pagepool = int(max_pagepool_gb)
     else:
-        pagepool =pagepool_gb
+        pagepool = pagepool_gb
     return "{}G".format(pagepool)
 
 
@@ -542,6 +542,8 @@ if __name__ == "__main__":
                         help='Spectrum Scale install infra clone parent path')
     PARSER.add_argument('--instance_private_key', required=True,
                         help='Spectrum Scale instances SSH private key path')
+    PARSER.add_argument('--bastion_user',
+                        help='Bastion OS Login username')
     PARSER.add_argument('--bastion_ip',
                         help='Bastion SSH public ip address')
     PARSER.add_argument('--bastion_ssh_private_key',
@@ -587,7 +589,8 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/computesncparams" % ARGUMENTS.install_infra_path
         replica_config = False
-        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+        pagepool_size = calculate_pagepool(
+            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
         scale_config = initialize_scale_config_details(
             ["computenodegrp"], "pagepool", pagepool_size)
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
@@ -610,7 +613,8 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
-        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+        pagepool_size = calculate_pagepool(
+            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
         scale_config = initialize_scale_config_details(
             ["storagenodegrp"], "pagepool", pagepool_size)
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
@@ -634,7 +638,8 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
-        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+        pagepool_size = calculate_pagepool(
+            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
         scale_config = initialize_scale_config_details(
             ["storagenodegrp", "computedescnodegrp"], "pagepool", pagepool_size)
     else:
@@ -652,7 +657,8 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/scalesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
-        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+        pagepool_size = calculate_pagepool(
+            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
         if len(TF['vpc_availability_zones']) == 1:
             scale_config = initialize_scale_config_details(
                 ["storagenodegrp", "computenodegrp"], "pagepool", pagepool_size)
@@ -732,13 +738,7 @@ if __name__ == "__main__":
         if ARGUMENTS.bastion_ssh_private_key is None:
             node_template = node_template + each_entry + "\n"
         else:
-            if TF['cloud_platform'] == 'AWS':
-                bastion_user = "ec2-user"
-            elif TF['cloud_platform'] == 'Azure':
-                bastion_user = "azureuser"
-            elif TF['cloud_platform'] == 'IBMCloud':
-                bastion_user = "ubuntu"
-            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
+            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
             each_entry = each_entry + " " + \
                 "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'"
             node_template = node_template + each_entry + "\n"
