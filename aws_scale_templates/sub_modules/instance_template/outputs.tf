@@ -1,3 +1,8 @@
+output "bastion_user" {
+  value       = var.bastion_user
+  description = "Bastion OS Login username."
+}
+
 output "placement_group_id" {
   value       = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
   description = "Placement group id."
