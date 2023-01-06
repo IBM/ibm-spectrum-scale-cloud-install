@@ -20,6 +20,7 @@ Below steps will provision Azure Bastion service required for IBM Spectrum Scale
         "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee",
         "vnet_location": "eastus",
         "resource_group_name": "spectrum-scale-rg",
+        "resource_prefix": "spectrum-scale",
         "vnet_public_subnet_id": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vnet/subnets/AzureBastionSubnet"
     }
     ```
@@ -32,7 +33,7 @@ Below steps will provision Azure Bastion service required for IBM Spectrum Scale
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 3.34 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 3.37 |
 
 #### Inputs
 

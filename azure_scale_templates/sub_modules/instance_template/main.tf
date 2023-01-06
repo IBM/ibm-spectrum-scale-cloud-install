@@ -6,21 +6,14 @@
     4. Configure clusters, filesystem creation and remote mount
 */
 
-locals {
-  data_disk_device_names = ["/dev/sdc", "/dev/sdd", "/dev/sde", "/dev/sdf", "/dev/sdg",
-  "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk"]
-  gpfs_base_rpm_path = fileset(var.spectrumscale_rpms_path, "gpfs.base-*")
-  scale_version      = regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0]
-}
-
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = var.total_compute_cluster_instances > 0 ? true : false
+  turn_on = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
 }
 
 module "generate_storage_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = var.total_storage_cluster_instances > 0 ? true : false
+  turn_on = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
 }
 
 module "compute_cluster_instances" {
