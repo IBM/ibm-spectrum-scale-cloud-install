@@ -43,7 +43,7 @@ Below steps will provision Azure VPC required for IBM Spectrum Scale cloud solut
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 3.34 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 3.37 |
 
 #### Inputs
 
