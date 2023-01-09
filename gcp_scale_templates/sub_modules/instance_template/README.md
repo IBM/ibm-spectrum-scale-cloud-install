@@ -54,6 +54,28 @@ The following steps will provision GCP resources (compute and storage instances 
     EOF
     ```
 
+    Minimal Example-2 (create three storage cluster only with local NVME ssd disk):
+
+    ```cli
+    cat <<EOF > terraform.tfvars.json
+    {
+        "vpc_region": "us-central1",
+        "vpc_availability_zones" : ["us-central1-a"],
+        "gcp_project_id": "spectrum-scale-XXXX",                          // Use an existing gcp project id
+        "credentials_file_path": "/home/gcp_data/spectrum-scale.json",    // Use service account credential file path
+        "operator_email": "example@xyz.com",                              // Use an existing service account email id
+        "instances_ssh_public_key_path" : "/home/.ssh/id_ed25519.pub",   // Use an existing public ssh path
+        "total_storage_cluster_instances": 3,
+        "data_disk_type" : "local-ssd",
+        "total_compute_cluster_instances": 0,
+        "data_disks_per_instance" : "2",
+        "data_disk_size" : "200",
+        "vpc_storage_cluster_private_subnets" : ["spectrum-scale-strg-pvt-subnet-0"],
+        "vpc_compute_cluster_private_subnets" : []
+    }
+    EOF
+    ```
+
     Minimal Example-3 (create three compute cluster with multi zone):
 
     ```cli

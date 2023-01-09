@@ -72,10 +72,10 @@ variable "vm_instance_tags" {
 }
 
 #Disk variables
-variable "total_data_disks" {
+variable "total_persistent_disks" {
   type        = number
   default     = 0
-  description = "Number of data disks that needs to be attached to compute instance."
+  description = "Number of persistent data disks that needs to be attached to compute instance."
 }
 
 variable "data_disk_name_prefix" {
@@ -106,6 +106,12 @@ variable "data_disk_size" {
   type        = string
   default     = 500
   description = "Data disk size in gigabytes."
+}
+
+variable "total_local_ssd_disks" {
+  type        = number
+  default     = 0
+  description = "Local ssd nvme disk."
 }
 
 variable "private_key_content" {
@@ -196,6 +202,13 @@ resource "google_compute_instance" "scale_instance" {
     scopes = var.scopes
   }
 
+  dynamic "scratch_disk" {
+    for_each = range(var.total_local_ssd_disks)
+    content {
+      interface = "NVME"
+    }
+  }
+
   lifecycle {
     ignore_changes = [attached_disk, metadata_startup_script]
   }
@@ -203,7 +216,7 @@ resource "google_compute_instance" "scale_instance" {
 
 #tfsec:ignore:google-compute-disk-encryption-customer-key
 resource "google_compute_disk" "data_disk" {
-  count                     = var.total_data_disks
+  count                     = var.total_persistent_disks
   zone                      = var.zone
   name                      = format("%s-%s-%s", var.data_disk_name_prefix, google_compute_instance.scale_instance.instance_id, count.index + 1)
   description               = var.data_disk_description

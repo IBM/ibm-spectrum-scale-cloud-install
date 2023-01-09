@@ -106,28 +106,34 @@ variable "public_key_content" {
   description = "SSH public key content."
 }
 
-module "compute_instances_multiple" {
-  count               = var.total_cluster_instances != null ? var.total_cluster_instances : 0
-  source              = "../vm_instance"
-  zone                = var.zone
-  machine_type        = var.machine_type
-  instance_name       = "${var.instance_name_prefix}-${count.index}"
-  boot_disk_size      = var.boot_disk_size
-  boot_disk_type      = var.boot_disk_type
-  boot_image          = var.boot_image
-  data_disk_type      = var.data_disk_type
-  data_disk_size      = var.data_disk_size
-  total_data_disks    = var.total_data_disks
-  vm_instance_tags    = var.vm_instance_tags
-  subnet_name         = var.subnet_name
-  ssh_user_name       = var.instances_ssh_user_name
-  ssh_key_path        = var.instances_ssh_public_key_path
-  private_key_content = var.private_key_content
-  public_key_content  = var.public_key_content
-  operator_email      = var.operator_email
-  scopes              = var.scopes
+# Disable persistent disk if data_disk_type equals to  'local-ssd' and hence ensure to provision only local ssd
+locals {
+  total_local_ssd_disks  = var.data_disk_type == "local-ssd" ? var.total_data_disks : 0
+  total_persistent_disks = var.data_disk_type != "local-ssd" ? var.total_data_disks : 0
 }
 
+module "compute_instances_multiple" {
+  count                  = var.total_cluster_instances != null ? var.total_cluster_instances : 0
+  source                 = "../vm_instance"
+  zone                   = var.zone
+  machine_type           = var.machine_type
+  instance_name          = "${var.instance_name_prefix}-${count.index}"
+  boot_disk_size         = var.boot_disk_size
+  boot_disk_type         = var.boot_disk_type
+  boot_image             = var.boot_image
+  data_disk_type         = var.data_disk_type
+  data_disk_size         = var.data_disk_size
+  total_persistent_disks = local.total_persistent_disks
+  total_local_ssd_disks  = local.total_local_ssd_disks
+  vm_instance_tags       = var.vm_instance_tags
+  subnet_name            = var.subnet_name
+  ssh_user_name          = var.instances_ssh_user_name
+  ssh_key_path           = var.instances_ssh_public_key_path
+  private_key_content    = var.private_key_content
+  public_key_content     = var.public_key_content
+  operator_email         = var.operator_email
+  scopes                 = var.scopes
+}
 
 #Instance details
 output "instance_ids" {

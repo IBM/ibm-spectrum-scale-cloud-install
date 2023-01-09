@@ -152,7 +152,7 @@ variable "storage_boot_image" {
 variable "data_disk_type" {
   type        = string
   default     = "pd-standard"
-  description = "GCE disk type (valid: pd-standard, pd-ssd)."
+  description = "GCE disk type (valid: pd-standard, pd-ssd , local-ssd)."
 }
 
 variable "data_disk_size" {
