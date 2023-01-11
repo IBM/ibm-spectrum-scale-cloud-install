@@ -127,37 +127,13 @@ variable "public_key_content" {
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
-mkdir -p ~/.ssh/
 echo "${var.private_key_content}" > ~/.ssh/id_rsa
-echo "${var.public_key_content}" > ~/.ssh/id_rsa.pub
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-sed -i 's/PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
-systemctl restart sshd
 chmod 600 ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa.pub
-chmod 600 ~/.ssh/authorized_keys
+echo "${var.public_key_content}" >> ~/.ssh/authorized_keys
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
 if grep -q "Red Hat" /etc/os-release
 then
-    if grep -q "platform:el8" /etc/os-release
-    then
-        dnf install -y python3 git wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
-    else
-        yum install -y python3 git wget unzip kernel-devel-$(uname -r) kernel-headers-$(uname -r)
-    fi
-    echo "exclude=kernel* redhat-release*" >> /etc/yum.conf
-elif grep -q "Ubuntu" /etc/os-release
-then
-    apt update
-    apt-get install -y python3 git wget unzip python3-pip
-elif grep -q "SLES" /etc/os-release
-then
-    zypper install -y python3 git wget unzip
-fi
-pip3 install -U ansible PyYAML
-if [[ ! "$PATH" =~ "/usr/local/bin" ]]
-then
-    echo 'export PATH=$PATH:$HOME/bin:/usr/local/bin' >> ~/.bash_profile
+    yum install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
 fi
 EOF
 }

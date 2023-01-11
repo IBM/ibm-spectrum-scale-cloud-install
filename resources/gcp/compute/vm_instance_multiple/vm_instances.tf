@@ -62,8 +62,8 @@ variable "instances_ssh_public_key_path" {
 }
 
 variable "subnet_name" {
-  type        = string
-  nullable    = true
+  type        = list(string)
+  default     = []
   description = "Subnetwork of a Virtual Private Cloud network with one primary IP range"
 }
 
@@ -110,10 +110,11 @@ variable "public_key_content" {
 locals {
   total_local_ssd_disks  = var.data_disk_type == "local-ssd" ? var.total_data_disks : 0
   total_persistent_disks = var.data_disk_type != "local-ssd" ? var.total_data_disks : 0
+  subnet_list            = flatten([for i in var.subnet_name : [for i in range(var.total_cluster_instances) : var.subnet_name[i]]])
 }
 
 module "compute_instances_multiple" {
-  count                  = var.total_cluster_instances != null ? var.total_cluster_instances : 0
+  count                  = length(local.subnet_list)
   source                 = "../vm_instance"
   zone                   = var.zone
   machine_type           = var.machine_type
@@ -126,7 +127,7 @@ module "compute_instances_multiple" {
   total_persistent_disks = local.total_persistent_disks
   total_local_ssd_disks  = local.total_local_ssd_disks
   vm_instance_tags       = var.vm_instance_tags
-  subnet_name            = var.subnet_name
+  subnet_name            = local.subnet_list[count.index]
   ssh_user_name          = var.instances_ssh_user_name
   ssh_key_path           = var.instances_ssh_public_key_path
   private_key_content    = var.private_key_content

@@ -97,7 +97,7 @@ variable "compute_boot_image" {
 
 variable "compute_instance_tags" {
   type        = list(string)
-  default     = ["spectrum-scale-allow-bastion-internal", "spectrum-scale-allow-internal"]
+  default     = ["spectrum-scale-compute-cluster"]
   description = "List of tags to attach to the compute instance."
 }
 
@@ -121,7 +121,7 @@ variable "storage_instance_name_prefix" {
 
 variable "storage_instance_tags" {
   type        = list(string)
-  default     = ["spectrum-scale-allow-bastion-internal", "spectrum-scale-allow-internal"]
+  default     = ["spectrum-scale-storage-cluster"]
   description = "List of tags to attach to the compute instance."
 }
 
@@ -172,14 +172,20 @@ variable "scopes" {
   description = "List of service scopes."
 }
 
-variable "bastion_subnet_cidr" {
-  type        = string
-  default     = "35.235.240.0/20"
-  description = "Range of internal addresses."
+variable "storage_subnet_cidrs" {
+  type        = list(string)
+  default     = ["10.0.1.0/24"]
+  description = "Range of storage cidr."
 }
 
-variable "private_subnet_cidr" {
-  type        = string
-  default     = "10.0.1.0/24"
-  description = "Range of internal addresses."
+variable "compute_subnet_cidrs" {
+  type        = list(string)
+  default     = ["10.0.1.0/24"]
+  description = "Range of storage cidr."
+}
+
+variable "bastion_instance_tags" {
+  type        = list(string)
+  default     = ["scale-bastion"]
+  description = "List of tags to attach to the bastion instance."
 }
