@@ -37,7 +37,11 @@ The following steps will provision Azure resources (compute and storage instance
         "storage_cluster_gui_password": "Passw0rd",
         "ansible_jump_host_id": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Compute/virtualMachines/spectrum-scale-jumphost-0",
         "ansible_jump_host_public_ip": "40.87.95.66",
-        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa"
+        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa",
+        "inventory_format": "json",
+        "create_scale_cluster": false,
+        "using_direct_connection": false,
+        "spectrumscale_rpms_path": "/opt/IBM/ibm-spectrumscale-cloud-deploy"
     }
     ```
 
@@ -65,7 +69,11 @@ The following steps will provision Azure resources (compute and storage instance
         "storage_cluster_gui_password": "Passw0rd",
         "ansible_jump_host_id": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Compute/virtualMachines/spectrum-scale-jumphost-0",
         "ansible_jump_host_public_ip": "40.87.95.66",
-        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa"
+        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa",
+        "inventory_format": "json",
+        "create_scale_cluster": false,
+        "using_direct_connection": false,
+        "spectrumscale_rpms_path": "/opt/IBM/ibm-spectrumscale-cloud-deploy"
     }
     ```
 
@@ -92,7 +100,11 @@ The following steps will provision Azure resources (compute and storage instance
         "storage_cluster_gui_password": "Passw0rd",
         "ansible_jump_host_id": "/subscriptions/e652d8de-aea2-4177-a0f1-7117adc604ee/resourceGroups/spectrum-scale-rg/providers/Microsoft.Compute/virtualMachines/spectrum-scale-jumphost-0",
         "ansible_jump_host_public_ip": "40.87.95.66",
-        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa"
+        "ansible_jump_host_ssh_private_key": "/root/.ssh/id_rsa",
+        "inventory_format": "json",
+        "create_scale_cluster": false,
+        "using_direct_connection": false,
+        "spectrumscale_rpms_path": "/opt/IBM/ibm-spectrumscale-cloud-deploy"
     }
     ```
 
