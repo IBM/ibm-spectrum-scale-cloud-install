@@ -430,6 +430,7 @@ module "prepare_ansible_configuration" {
   clone_path = var.scale_ansible_repo_clone_path
 }
 
+# Write the compute cluster related inventory.
 module "write_compute_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
   write_inventory                                  = (var.create_remote_mount_cluster == true && local.cluster_type == "compute") ? 1 : 0
@@ -443,6 +444,7 @@ module "write_compute_cluster_inventory" {
   filesystem_block_size                            = jsonencode("None")
   compute_cluster_filesystem_mountpoint            = jsonencode(var.compute_cluster_filesystem_mountpoint)
   bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   compute_cluster_instance_ids                     = jsonencode(module.compute_cluster_instances.instance_ids)
   compute_cluster_instance_private_ips             = jsonencode(module.compute_cluster_instances.instance_private_ips)
@@ -458,6 +460,7 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
 }
 
+# Write the storage cluster related inventory.
 module "write_storage_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
   write_inventory                                  = (var.create_remote_mount_cluster == true && local.cluster_type == "storage") ? 1 : 0
@@ -471,6 +474,7 @@ module "write_storage_cluster_inventory" {
   filesystem_block_size                            = jsonencode(var.filesystem_block_size)
   compute_cluster_filesystem_mountpoint            = jsonencode("None")
   bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   compute_cluster_instance_ids                     = jsonencode([])
   compute_cluster_instance_private_ips             = jsonencode([])
@@ -487,6 +491,7 @@ module "write_storage_cluster_inventory" {
 
 }
 
+# Write combined cluster related inventory.
 module "write_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
   write_inventory                                  = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? 1 : 0
@@ -500,6 +505,7 @@ module "write_cluster_inventory" {
   filesystem_block_size                            = jsonencode(var.filesystem_block_size)
   compute_cluster_filesystem_mountpoint            = jsonencode("None")
   bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   compute_cluster_instance_ids                     = jsonencode(module.compute_cluster_instances.instance_ids)
   compute_cluster_instance_private_ips             = jsonencode(module.compute_cluster_instances.instance_private_ips)
@@ -516,6 +522,7 @@ module "write_cluster_inventory" {
 
 }
 
+# Configure the compute cluster using ansible based on the create_scale_cluster input.
 module "compute_cluster_configuration" {
   source                       = "../../../resources/common/compute_configuration"
   turn_on                      = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
@@ -532,6 +539,7 @@ module "compute_cluster_configuration" {
   compute_cluster_gui_password = var.compute_cluster_gui_password
   memory_size                  = try(data.aws_ec2_instance_type.compute_profile[0].memory_size, null)
   max_pagepool_gb              = 4
+  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
@@ -539,6 +547,7 @@ module "compute_cluster_configuration" {
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 
+# Configure the storage cluster using ansible based on the create_scale_cluster input.
 module "storage_cluster_configuration" {
   source                       = "../../../resources/common/storage_configuration"
   turn_on                      = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
@@ -556,6 +565,7 @@ module "storage_cluster_configuration" {
   memory_size                  = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
   max_pagepool_gb              = 16
   vcpu_count                   = try(data.aws_ec2_instance_type.storage_profile[0].default_vcpus, null)
+  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -563,6 +573,7 @@ module "storage_cluster_configuration" {
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 
+# Configure the combined cluster using ansible based on the create_scale_cluster input.
 module "combined_cluster_configuration" {
   source                       = "../../../resources/common/scale_configuration"
   turn_on                      = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? true : false
@@ -577,6 +588,7 @@ module "combined_cluster_configuration" {
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
+  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -584,6 +596,7 @@ module "combined_cluster_configuration" {
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
 
+# Configure the remote mount relationship between the created compute & storage cluster.
 module "remote_mount_configuration" {
   source                          = "../../../resources/common/remote_mount_configuration"
   turn_on                         = (local.cluster_type == "combined" && var.create_remote_mount_cluster == true) ? true : false
@@ -599,6 +612,7 @@ module "remote_mount_configuration" {
   storage_cluster_gui_password    = var.storage_cluster_gui_password
   using_direct_connection         = var.using_direct_connection
   using_rest_initialization       = var.using_rest_api_remote_mount
+  bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   clone_complete                  = module.prepare_ansible_configuration.clone_complete

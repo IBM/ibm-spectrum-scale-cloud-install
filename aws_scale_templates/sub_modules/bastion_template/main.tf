@@ -108,7 +108,7 @@ module "bastion_security_rule" {
 module "bastion_autoscaling_launch_config" {
   source                    = "../../../resources/aws/asg/asg_launch_config"
   launch_config_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-config")
-  image_id                  = var.aws_linux_image_map_codes[var.vpc_region][var.bastion_ami_name]
+  image_id                  = var.bastion_ami_id
   instance_type             = var.bastion_instance_type
   assoc_public_ip           = true
   instance_iam_profile      = module.bastion_instance_iam_profile.iam_instance_profile_name

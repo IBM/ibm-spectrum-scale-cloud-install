@@ -24,11 +24,12 @@ import os
 
 # Note: Don't use socket for FQDN resolution.
 
-SCALE_CLUSTER_DEFINITION_PATH = "/ibm-spectrum-scale-install-infra/vars/scale_clusterdefinition.json" #TODO: FIX
+SCALE_CLUSTER_DEFINITION_PATH = "/ibm-spectrum-scale-install-infra/vars/scale_clusterdefinition.json"  # TODO: FIX
 CLUSTER_DEFINITION_JSON = {"scale_cluster": {},
                            "scale_callhome_params": {},
                            "node_details": [],
                            "scale_config": []}
+
 
 def read_json_file(json_path):
     """ Read inventory as json file """
@@ -47,6 +48,7 @@ def read_json_file(json_path):
 
     return tf_inv
 
+
 def calculate_pagepool(memory_size, max_pagepool_gb):
     """ Calculate pagepool """
     # 1 MiB = 1.048576 MB
@@ -57,7 +59,7 @@ def calculate_pagepool(memory_size, max_pagepool_gb):
     if pagepool_gb > int(max_pagepool_gb):
         pagepool = int(max_pagepool_gb)
     else:
-        pagepool =pagepool_gb
+        pagepool = pagepool_gb
     return "{}G".format(pagepool)
 
 
@@ -80,8 +82,10 @@ def initialize_cluster_details(scale_version, cluster_name, username,
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_clustername'] = cluster_name
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "True"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(pathlib.PurePath(scale_profile_path).stem)
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(pathlib.PurePath(scale_profile_path).parent)
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(
+        pathlib.PurePath(scale_profile_path).stem)
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(
+        pathlib.PurePath(scale_profile_path).parent)
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host'] = bastion_ip
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_private_key'] = bastion_key_file
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_user'] = bastion_user
@@ -98,12 +102,12 @@ def initialize_scale_config_details(node_class, param_key, param_value):
     CLUSTER_DEFINITION_JSON['scale_config'].append({"nodeclass": node_class,
                                                     "params": [{param_key: param_value}]})
 
+
 def set_node_details(fqdn, ip_address, ansible_ssh_private_key_file,
                      node_class, user, is_quorum_node=False,
                      is_manager_node=False, is_gui_server=False,
                      is_collector_node=False, is_nsd_server=False,
                      is_admin_node=True):
-
     """ Initialize node details for cluster definition.
     :args: json_data (json), fqdn (string), ip_address (string), node_class (string),
            is_nsd_server (bool), is_quorum_node (bool),
@@ -111,34 +115,34 @@ def set_node_details(fqdn, ip_address, ansible_ssh_private_key_file,
            is_admin_node (bool)
     """
     CLUSTER_DEFINITION_JSON['node_details'].append({
-                                                    'fqdn': fqdn,
-                                                    'ip_address': ip_address,
-                                                    'ansible_ssh_private_key_file': ansible_ssh_private_key_file,
-                                                    'scale_state': 'present',
-                                                    'is_nsd_server': is_nsd_server,
-                                                    'is_quorum_node': is_quorum_node,
-                                                    'is_manager_node': is_manager_node,
-                                                    'is_collector_node': is_collector_node,
-                                                    'is_gui_server': is_gui_server,
-                                                    'is_admin_node': is_admin_node,
-                                                    'scale_nodeclass': node_class,
-                                                    "os": "rhel8", # TODO: FIX
-                                                    "arch": "x86_64", # TODO: FIX
-                                                    "is_object_store": "false",
-                                                    "is_nfs": "false",
-                                                    "is_smb": "false",
-                                                    "is_hdfs": "false",
-                                                    "is_protocol_node": "false",
-                                                    "is_ems_node": "false",
-                                                    "is_callhome_node": "false",
-                                                    "is_broker_node": "false",
-                                                    "is_node_offline": "false",
-                                                    "is_node_reachable": "true",
-                                                    "is_node_excluded": "false",
-                                                    "is_mestor_node": "false",
-                                                    "scale_daemon_nodename": fqdn,
-                                                    "upgrade_prompt": "false"
-                                                   })
+        'fqdn': fqdn,
+        'ip_address': ip_address,
+        'ansible_ssh_private_key_file': ansible_ssh_private_key_file,
+        'scale_state': 'present',
+        'is_nsd_server': is_nsd_server,
+        'is_quorum_node': is_quorum_node,
+        'is_manager_node': is_manager_node,
+        'is_collector_node': is_collector_node,
+        'is_gui_server': is_gui_server,
+        'is_admin_node': is_admin_node,
+        'scale_nodeclass': node_class,
+        "os": "rhel8",  # TODO: FIX
+        "arch": "x86_64",  # TODO: FIX
+        "is_object_store": "false",
+        "is_nfs": "false",
+        "is_smb": "false",
+        "is_hdfs": "false",
+        "is_protocol_node": "false",
+        "is_ems_node": "false",
+        "is_callhome_node": "false",
+        "is_broker_node": "false",
+        "is_node_offline": "false",
+        "is_node_reachable": "true",
+        "is_node_excluded": "false",
+        "is_mestor_node": "false",
+        "scale_daemon_nodename": fqdn,
+        "upgrade_prompt": "false"
+    })
 
 
 def initialize_node_details(az_count, cls_type,
@@ -746,14 +750,14 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                                   "nsd": "nsd" + str(nsd_count),
-                                   "filesystem": pathlib.PurePath(fs_mount).name,
-                                   "device": each_disk,
-                                   "failureGroup": 1,
-                                   "servers": each_ip,
-                                   "usage": "dataAndMetadata",
-                                   "pool": "system"
-                                   })
+                    "nsd": "nsd" + str(nsd_count),
+                    "filesystem": pathlib.PurePath(fs_mount).name,
+                    "device": each_disk,
+                    "failureGroup": 1,
+                    "servers": each_ip,
+                    "usage": "dataAndMetadata",
+                    "pool": "system"
+                })
                 nsd_count = nsd_count + 1
 
         if each_ip in failure_group2:
@@ -765,14 +769,14 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                                   "nsd": "nsd" + str(nsd_count),
-                                   "filesystem": pathlib.PurePath(fs_mount).name,
-                                   "device": each_disk,
-                                   "failureGroup": 2,
-                                   "servers": each_ip,
-                                   "usage": "dataAndMetadata",
-                                   "pool": "system"
-                                   })
+                    "nsd": "nsd" + str(nsd_count),
+                    "filesystem": pathlib.PurePath(fs_mount).name,
+                    "device": each_disk,
+                    "failureGroup": 2,
+                    "servers": each_ip,
+                    "usage": "dataAndMetadata",
+                    "pool": "system"
+                })
                 nsd_count = nsd_count + 1
 
     # Append "descOnly" disk details
@@ -804,7 +808,7 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size):
         data_replicas = 1
         metadata_replicas = 2
 
-    #"scale_filesystem": [
+    # "scale_filesystem": [
     #    {
     #        "filesystem": "FS1",
     #        "defaultMountPoint": "/ibm/FS1",
@@ -817,19 +821,19 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size):
     #        "logfileset": ".audit_log",
     #        "retention": "365"
     #    }
-    #]
+    # ]
 
     # TODO: FIX. Add "automaticMountOption": "true"
     storage.append({"filesystem": pathlib.PurePath(fs_mount).name,
-                                     "defaultMountPoint": fs_mount,
-                                     "blockSize": block_size,
-                                     "defaultDataReplicas": data_replicas,
-                                     "maxDataReplicas": "2",
-                                     "defaultMetadataReplicas": metadata_replicas,
-                                     "maxMetadataReplicas": "2",
-                                     "scale_fal_enable": "False",
-                                     "logfileset": ".audit_log",
-                                     "retention": "365"})
+                    "defaultMountPoint": fs_mount,
+                    "blockSize": block_size,
+                    "defaultDataReplicas": data_replicas,
+                    "maxDataReplicas": "2",
+                    "defaultMetadataReplicas": metadata_replicas,
+                    "maxMetadataReplicas": "2",
+                    "scale_fal_enable": "False",
+                    "logfileset": ".audit_log",
+                    "retention": "365"})
     return storage
 
 
@@ -843,6 +847,8 @@ if __name__ == "__main__":
                         help='Spectrum Scale install infra clone parent path')
     PARSER.add_argument('--instance_private_key', required=True,
                         help='Spectrum Scale instances SSH private key path')
+    PARSER.add_argument('--bastion_user',
+                        help='Bastion OS Login username')
     PARSER.add_argument('--bastion_ip',
                         help='Bastion SSH public ip address')
     PARSER.add_argument('--bastion_ssh_private_key',
@@ -868,14 +874,6 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Parsed terraform output: %s" % json.dumps(TF, indent=4))
 
-    if TF['cloud_platform'] == 'AWS':
-        bastion_user = "ec2-user"
-    elif TF['cloud_platform'] == 'Azure':
-        bastion_user = "azureuser"
-    elif TF['cloud_platform'] == 'IBMCloud':
-        bastion_user = "ubuntu"
-
-
     # Step-2: Identify the cluster type
     if len(TF['storage_cluster_instance_private_ips']) == 0 and \
        len(TF['compute_cluster_instance_private_ips']) > 0:
@@ -890,8 +888,8 @@ if __name__ == "__main__":
                                                        "pagepool",
                                                        pagepool_size)
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
-         len(TF['storage_cluster_instance_private_ips']) > 0 and \
-         len(TF['vpc_availability_zones']) == 1:
+            len(TF['storage_cluster_instance_private_ips']) > 0 and \
+            len(TF['vpc_availability_zones']) == 1:
         # single az storage cluster
         cluster_type = "storage"
         gui_username = ARGUMENTS.gui_username
@@ -927,25 +925,31 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/scalesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
-        pagepool_size = calculate_pagepool(ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+        pagepool_size = calculate_pagepool(
+            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
         if len(TF['vpc_availability_zones']) == 1:
-            scale_config = initialize_scale_config_details("storagenodegrp", "pagepool", pagepool_size)
-            scale_config = initialize_scale_config_details("computenodegrp", "pagepool", pagepool_size)
+            scale_config = initialize_scale_config_details(
+                "storagenodegrp", "pagepool", pagepool_size)
+            scale_config = initialize_scale_config_details(
+                "computenodegrp", "pagepool", pagepool_size)
         else:
-            scale_config = initialize_scale_config_details("storagenodegrp", "pagepool", pagepool_size)
-            scale_config = initialize_scale_config_details("computenodegrp", "pagepool", pagepool_size)
-            scale_config = initialize_scale_config_details("computedescnodegrp", "pagepool", pagepool_size)
+            scale_config = initialize_scale_config_details(
+                "storagenodegrp", "pagepool", pagepool_size)
+            scale_config = initialize_scale_config_details(
+                "computenodegrp", "pagepool", pagepool_size)
+            scale_config = initialize_scale_config_details(
+                "computedescnodegrp", "pagepool", pagepool_size)
 
     print("Identified cluster type: %s" % cluster_type)
 
     # Step-3: Identify if tie breaker needs to be counted for storage
     if len(TF['vpc_availability_zones']) > 1:
         total_node_count = len(TF['compute_cluster_instance_private_ips']) + \
-                           len(TF['storage_cluster_desc_instance_private_ips']) + \
-                           len(TF['storage_cluster_instance_private_ips'])
+            len(TF['storage_cluster_desc_instance_private_ips']) + \
+            len(TF['storage_cluster_instance_private_ips'])
     else:
         total_node_count = len(TF['compute_cluster_instance_private_ips']) + \
-                           len(TF['storage_cluster_instance_private_ips'])
+            len(TF['storage_cluster_instance_private_ips'])
 
     if ARGUMENTS.verbose:
         print("Total node count: ", total_node_count)
@@ -980,7 +984,7 @@ if __name__ == "__main__":
                                replica_config,
                                ARGUMENTS.bastion_ip,
                                ARGUMENTS.bastion_ssh_private_key,
-                               bastion_user)
+                               ARGUMENTS.bastion_user)
 
     initialize_callhome_details()
 
@@ -1009,7 +1013,6 @@ if __name__ == "__main__":
         CLUSTER_DEFINITION_JSON.update({"scale_filesystem": scale_storage})
         CLUSTER_DEFINITION_JSON.update({"scale_disks": disks_list})
 
-
     if ARGUMENTS.verbose:
         print("Content of scale_clusterdefinition.json: ",
               json.dumps(CLUSTER_DEFINITION_JSON, indent=4))
@@ -1021,7 +1024,8 @@ if __name__ == "__main__":
 
     # Create vars directory if missing
     if not os.path.exists(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH):
-        os.makedirs(os.path.dirname(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH))
+        os.makedirs(os.path.dirname(ARGUMENTS.install_infra_path.rstrip(
+            '/') + SCALE_CLUSTER_DEFINITION_PATH))
 
     with open(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH, 'w') as json_fh:
         json.dump(CLUSTER_DEFINITION_JSON, json_fh, indent=4)
