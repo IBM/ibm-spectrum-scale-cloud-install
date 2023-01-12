@@ -304,3 +304,15 @@ variable "inventory_format" {
   default     = "ini"
   description = "Specify inventory format suited for ansible playbooks."
 }
+
+variable "bastion_user" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion login username."
+}
+
+output "bastion_user" {
+  value       = var.bastion_user
+  description = "Bastion OS Login username."
+}

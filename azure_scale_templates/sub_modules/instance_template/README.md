@@ -142,6 +142,7 @@ The following steps will provision Azure resources (compute and storage instance
 | <a name="input_ansible_jump_host_id"></a> [ansible_jump_host_id](#input_ansible_jump_host_id) | Ansible jump host instance id. | `string` |
 | <a name="input_ansible_jump_host_public_ip"></a> [ansible_jump_host_public_ip](#input_ansible_jump_host_public_ip) | Ansible jump host instance public ip address. | `string` |
 | <a name="input_ansible_jump_host_ssh_private_key"></a> [ansible_jump_host_ssh_private_key](#input_ansible_jump_host_ssh_private_key) | Ansible jump host SSH private key path, which will be used to login to ansible jump host. | `string` |
+| <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_image_offer"></a> [compute_cluster_image_offer](#input_compute_cluster_image_offer) | Specifies the offer of the image used to create the compute cluster virtual machines. | `string` |
 | <a name="input_compute_cluster_image_publisher"></a> [compute_cluster_image_publisher](#input_compute_cluster_image_publisher) | Specifies the publisher of the image used to create the compute cluster virtual machines. | `string` |
@@ -180,6 +181,7 @@ The following steps will provision Azure resources (compute and storage instance
 
 | Name | Description |
 |------|-------------|
+| <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |

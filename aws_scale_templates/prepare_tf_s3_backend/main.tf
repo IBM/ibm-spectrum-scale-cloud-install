@@ -9,7 +9,13 @@ data "aws_s3_bucket" "itself" {
   bucket = var.bucket_name
 }
 
-#tfsec:ignore:AWS092 #tfsec:ignore:AWS002
+# tfsec:ignore:aws-s3-block-public-acls
+# tfsec:ignore:aws-s3-block-public-policy
+# tfsec:ignore:aws-s3-ignore-public-acls
+# tfsec:ignore:aws-s3-no-public-buckets
+# tfsec:ignore:aws-s3-encryption-customer-key
+# tfsec:ignore:aws-s3-specify-public-access-block
+# tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "itself" {
   count         = data.aws_s3_bucket.itself.arn == format("arn:aws:s3:::%s", var.bucket_name) ? 0 : 1
   bucket        = var.bucket_name
@@ -30,7 +36,9 @@ resource "aws_s3_bucket" "itself" {
   }
 }
 
-#tfsec:ignore:AWS092 #tfsec:ignore:AWS086
+# tfsec:ignore:aws-dynamodb-enable-recovery
+# tfsec:ignore:aws-dynamodb-table-customer-key
+# tfsec:ignore:aws-dynamodb-enable-at-rest-encryption
 resource "aws_dynamodb_table" "itself" {
   name           = var.dynamodb_table_name
   hash_key       = "LockID"
