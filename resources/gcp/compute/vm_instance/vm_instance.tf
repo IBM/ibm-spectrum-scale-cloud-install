@@ -114,6 +114,12 @@ variable "total_local_ssd_disks" {
   description = "Local ssd nvme disk."
 }
 
+variable "block_device_names" {
+  type        = list(string)
+  default     = []
+  description = "List block devices names."
+}
+
 variable "private_key_content" {
   type        = string
   description = "SSH private key content."
@@ -211,7 +217,7 @@ resource "google_compute_attached_disk" "attach_data_disk" {
 
 #Instance details
 output "scale_instance_ids" {
-  value = google_compute_instance.scale_instance.id
+  value = google_compute_instance.scale_instance.instance_id
 }
 
 output "scale_instance_uris" {
@@ -233,4 +239,16 @@ output "data_disk_uri" {
 
 output "data_disk_attachment_id" {
   value = google_compute_attached_disk.attach_data_disk[*].id
+}
+
+output "subnet_name" {
+  value = var.subnet_name
+}
+
+output "disk_device_mapping" {
+  value = (var.total_persistent_disks > 0) && (length(var.block_device_names) >= var.total_persistent_disks) ? { (google_compute_instance.scale_instance.network_interface[0].network_ip) = slice(var.block_device_names, 0, var.total_persistent_disks) } : {}
+}
+
+output "dns_hostname" {
+  value = { (google_compute_instance.scale_instance.network_interface[0].network_ip) = "${google_compute_instance.scale_instance.name}.${var.zone}.c.${google_compute_instance.scale_instance.project}.internal" }
 }

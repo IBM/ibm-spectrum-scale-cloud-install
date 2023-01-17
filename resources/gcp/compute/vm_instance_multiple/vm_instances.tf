@@ -110,7 +110,10 @@ variable "public_key_content" {
 locals {
   total_local_ssd_disks  = var.data_disk_type == "local-ssd" ? var.total_data_disks : 0
   total_persistent_disks = var.data_disk_type != "local-ssd" ? var.total_data_disks : 0
-  subnet_list            = flatten([for i in var.subnet_name : [for i in range(var.total_cluster_instances) : var.subnet_name[i]]])
+  subnet_list            = flatten([for network in var.subnet_name : [for i in range(var.total_cluster_instances) : network]])
+
+  block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
+  "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
 }
 
 module "compute_instances_multiple" {
@@ -127,6 +130,7 @@ module "compute_instances_multiple" {
   total_persistent_disks = local.total_persistent_disks
   total_local_ssd_disks  = local.total_local_ssd_disks
   vm_instance_tags       = var.vm_instance_tags
+  block_device_names     = local.block_device_names
   subnet_name            = local.subnet_list[count.index]
   ssh_user_name          = var.instances_ssh_user_name
   ssh_key_path           = var.instances_ssh_public_key_path
@@ -156,4 +160,30 @@ output "attached_data_disk_id" {
 
 output "attached_data_disk_uri" {
   value = module.compute_instances_multiple[*].data_disk_uri
+}
+
+output "subnet_name" {
+  value = module.compute_instances_multiple[*].subnet_name
+}
+
+output "zone" {
+  value = var.zone
+}
+
+output "disk_device_mapping" {
+  value = zipmap(
+    flatten(
+      [for item in flatten(module.compute_instances_multiple[*].disk_device_mapping) : keys(item)]
+    ),
+    [for item in flatten(module.compute_instances_multiple[*].disk_device_mapping) : flatten(values(item))]
+  )
+}
+
+output "dns_hostname" {
+  value = zipmap(
+    flatten(
+      [for item in flatten(module.compute_instances_multiple[*].dns_hostname) : keys(item)]
+    ),
+    flatten([for item in flatten(module.compute_instances_multiple[*].dns_hostname) : flatten(values(item))])
+  )
 }
