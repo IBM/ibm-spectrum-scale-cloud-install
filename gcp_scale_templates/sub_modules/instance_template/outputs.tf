@@ -3,7 +3,7 @@ output "compute_cluster_instance_details" {
   description = "GCP compute instance details."
 }
 
-output "stroage_cluster_instance_details" {
+output "storage_cluster_instance_details" {
   value       = module.storage_cluster_instances
   description = "GCP compute instance details."
 }

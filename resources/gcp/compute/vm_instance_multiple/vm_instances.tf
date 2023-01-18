@@ -171,12 +171,7 @@ output "zone" {
 }
 
 output "disk_device_mapping" {
-  value = zipmap(
-    flatten(
-      [for item in flatten(module.compute_instances_multiple[*].disk_device_mapping) : keys(item)]
-    ),
-    [for item in flatten(module.compute_instances_multiple[*].disk_device_mapping) : flatten(values(item))]
-  )
+  value = merge(module.compute_instances_multiple[*].disk_device_mapping...)
 }
 
 output "dns_hostname" {

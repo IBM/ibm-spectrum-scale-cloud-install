@@ -35,9 +35,14 @@ variable "instances_ssh_user_name" {
   description = "Name of the administrator to access the bastion instance."
 }
 
-variable "instances_ssh_public_key_path" {
+variable "compute_cluster_public_key_path" {
   type        = string
-  description = "SSH public key local path."
+  description = "SSH public key local path for compute instances."
+}
+
+variable "storage_cluster_public_key_path" {
+  type        = string
+  description = "SSH public key local path for storage instances."
 }
 
 variable "credentials_file_path" {
@@ -186,7 +191,7 @@ variable "compute_subnet_cidrs" {
 
 variable "bastion_instance_tags" {
   type        = list(string)
-  default     = ["scale-bastion"]
+  default     = ["spectrum-scale-bastion"]
   description = "List of tags to attach to the bastion instance."
 }
 
