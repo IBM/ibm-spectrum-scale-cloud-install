@@ -346,7 +346,7 @@ module "compute_cluster_instances" {
   instance_type        = var.compute_cluster_instance_type
   security_groups      = [module.compute_cluster_security_group.sec_group_id]
   iam_instance_profile = module.cluster_instance_iam_profile.iam_instance_profile_name
-  placement_group      = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
+  placement_group      = null
   subnet_ids           = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   root_volume_type     = var.compute_cluster_root_volume_type
   user_public_key      = var.compute_cluster_key_pair
