@@ -19,15 +19,6 @@ source "amazon-ebs" "itself" {
   ssh_clear_authorized_keys = true
   temporary_key_pair_name   = "amazon-packer-{{timestamp}}"
 
-  temporary_iam_instance_profile_policy_document {
-    Statement {
-      Action   = ["s3:*"]
-      Effect   = "Allow"
-      Resource = ["*"]
-    }
-    Version = "2012-10-17"
-  }
-
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"

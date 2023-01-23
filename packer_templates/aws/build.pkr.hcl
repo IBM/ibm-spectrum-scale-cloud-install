@@ -4,7 +4,7 @@ build {
   provisioner "shell" {
     inline = [
       "sleep 30",
-      "sudo dnf install -y unzip python3",
+      "sudo dnf install -y unzip python3 jq numactl",
       "sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`",
       "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils nftables iptables",
       "sudo sh -c \"echo '[GPFSRepository]' >> /etc/yum.repos.d/scale.repo\"",
@@ -33,6 +33,7 @@ build {
       "sudo dnf install gpfs* -y",
       "sudo /usr/lpp/mmfs/bin/mmbuildgpl",
       "sudo sh -c \"echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc\"",
+      "sudo rm -rf /etc/yum.repos.d/scale.repo",
       "sudo rm -rf /root/.bash_history",
       "sudo rm -rf /home/ec2-user/.bash_history"
     ]
