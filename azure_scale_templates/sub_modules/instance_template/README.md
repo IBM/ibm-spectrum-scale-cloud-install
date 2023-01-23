@@ -110,6 +110,11 @@ The following steps will provision Azure resources (compute and storage instance
 
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
+#### Proximity Placement Groups
+The instances deployed as part of the cluster now supported Proximity Placement Groups._(Proximity Placement Groups is a logical grouping used to make sure that resources are physically located close to each other)_.
+
+**This feature is supported only for single AZ's.**
+
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
 
