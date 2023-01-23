@@ -17,10 +17,16 @@ module "generate_storage_cluster_keys" {
 }
 
 module "proximity_group" {
-  source               = "../../../resources/azure/compute/proximity_placement_group"
-  proximity_group_name = var.resource_prefix
-  resource_group_name  = var.resource_group_name
-  location             = var.vnet_location
+  source                  = "../../../resources/azure/compute/proximity_placement_group"
+  proximity_group_name    = var.resource_prefix
+  resource_group_name     = var.resource_group_name
+  location                = var.vnet_location
+  vnet_availability_zones = var.vnet_availability_zones
+}
+
+resource "time_sleep" "wait_30_seconds" {
+  depends_on       = [module.proximity_group]
+  destroy_duration = "30s"
 }
 
 module "compute_cluster_instances" {
@@ -37,6 +43,7 @@ module "compute_cluster_instances" {
   vm_size                      = var.compute_cluster_vm_size
   login_username               = var.compute_cluster_login_username
   proximity_placement_group_id = length(var.vnet_availability_zones) > 1 ? null : module.proximity_group.proximity_group_compute_id
+  os_diff_disk                 = var.os_diff_disk
   os_disk_caching              = var.compute_cluster_os_disk_caching
   os_storage_account_type      = var.compute_cluster_os_storage_account_type
   user_public_key              = var.create_separate_namespaces == true ? var.compute_cluster_ssh_public_key : var.storage_cluster_ssh_public_key
@@ -44,6 +51,8 @@ module "compute_cluster_instances" {
   meta_public_key              = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   dns_zone                     = var.compute_cluster_dns_zone
   vnet_availability_zones      = var.vnet_availability_zones
+
+  depends_on = [time_sleep.wait_30_seconds]
 }
 
 module "storage_cluster_instances" {
@@ -60,6 +69,7 @@ module "storage_cluster_instances" {
   vm_size                         = var.storage_cluster_vm_size
   login_username                  = var.storage_cluster_login_username
   proximity_placement_group_id    = length(var.vnet_availability_zones) > 1 ? null : module.proximity_group.proximity_group_storage_id
+  os_diff_disk                    = var.os_diff_disk
   os_disk_caching                 = var.storage_cluster_os_disk_caching
   os_storage_account_type         = var.storage_cluster_os_storage_account_type
   data_disks_per_storage_instance = var.data_disks_per_storage_instance
@@ -71,6 +81,8 @@ module "storage_cluster_instances" {
   meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
   dns_zone                        = var.storage_cluster_dns_zone
   vnet_availability_zones         = var.vnet_availability_zones
+
+  depends_on = [time_sleep.wait_30_seconds]
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -87,6 +99,7 @@ module "storage_cluster_tie_breaker_instance" {
   vm_size                         = var.storage_cluster_vm_size
   login_username                  = var.storage_cluster_login_username
   proximity_placement_group_id    = length(var.vnet_availability_zones) > 1 ? null : module.proximity_group.proximity_group_storage_id
+  os_diff_disk                    = var.os_diff_disk
   os_disk_caching                 = var.storage_cluster_os_disk_caching
   os_storage_account_type         = var.storage_cluster_os_storage_account_type
   data_disks_per_storage_instance = 1
@@ -98,6 +111,8 @@ module "storage_cluster_tie_breaker_instance" {
   meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
   dns_zone                        = var.storage_cluster_dns_zone
   vnet_availability_zones         = var.vnet_availability_zones
+
+  depends_on = [time_sleep.wait_30_seconds]
 }
 
 module "prepare_ansible_configuration" {

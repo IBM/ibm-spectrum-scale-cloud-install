@@ -22,6 +22,12 @@ output "storage_cluster_with_data_volume_mapping" {
   value       = module.storage_cluster_instances.instance_ips_with_data_mapping
   description = "Mapping of storage cluster instance ip vs. device path."
 }
+
+output "bastion_user" {
+  value       = var.bastion_user
+  description = "Bastion OS Login username."
+}
+
 /*
 output "storage_cluster_desc_instance_ids" {
   value       = module.storage_cluster_tie_breaker_instance.instance_ids

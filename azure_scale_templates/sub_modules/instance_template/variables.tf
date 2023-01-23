@@ -312,7 +312,9 @@ variable "bastion_user" {
   description = "Bastion login username."
 }
 
-output "bastion_user" {
-  value       = var.bastion_user
-  description = "Bastion OS Login username."
+variable "os_diff_disk" {
+  type        = string
+  nullable    = true
+  default     = "CacheDisk"
+  description = "Ephemeral OS disk placement option, possible values: CacheDisk, ResourceDisk"
 }

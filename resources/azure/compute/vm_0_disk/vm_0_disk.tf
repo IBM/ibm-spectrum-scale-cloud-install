@@ -14,6 +14,7 @@ variable "vm_size" {}
 variable "subnet_ids" {}
 variable "login_username" {}
 variable "proximity_placement_group_id" {}
+variable "os_diff_disk" {}
 variable "os_disk_caching" {}
 variable "os_storage_account_type" {}
 variable "user_public_key" {}
@@ -90,7 +91,7 @@ resource "azurerm_linux_virtual_machine" "itself" {
     for idx, count_number in range(1, var.vm_count + 1) : idx => {
       sequence_string      = tostring(count_number)
       network_interface_id = element(tolist([for nic_details in azurerm_network_interface.itself : nic_details.id]), idx)
-      zone_id              = length(var.vnet_availability_zones) > 1 ? "(idx % 3) + 1" : "1"
+      zone_id              = length(var.vnet_availability_zones) > 1 ? ((idx % 3) + 1) : "1"
     }
   }
 
@@ -111,6 +112,10 @@ resource "azurerm_linux_virtual_machine" "itself" {
   os_disk {
     caching              = var.os_disk_caching
     storage_account_type = var.os_storage_account_type
+    diff_disk_settings {
+      option    = "Local"
+      placement = var.os_diff_disk
+    }
   }
 
   source_image_reference {
