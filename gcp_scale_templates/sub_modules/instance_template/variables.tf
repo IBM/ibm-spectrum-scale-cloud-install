@@ -35,9 +35,14 @@ variable "instances_ssh_user_name" {
   description = "Name of the administrator to access the bastion instance."
 }
 
-variable "instances_ssh_public_key_path" {
+variable "compute_cluster_public_key_path" {
   type        = string
-  description = "SSH public key local path."
+  description = "SSH public key local path for compute instances."
+}
+
+variable "storage_cluster_public_key_path" {
+  type        = string
+  description = "SSH public key local path for storage instances."
 }
 
 variable "credentials_file_path" {
@@ -186,6 +191,69 @@ variable "compute_subnet_cidrs" {
 
 variable "bastion_instance_tags" {
   type        = list(string)
-  default     = ["scale-bastion"]
+  default     = ["spectrum-scale-bastion"]
   description = "List of tags to attach to the bastion instance."
+}
+
+variable "scale_ansible_repo_clone_path" {
+  type        = string
+  nullable    = true
+  default     = "/tmp/"
+  description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
+}
+
+variable "create_remote_mount_cluster" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup."
+}
+
+variable "spectrumscale_rpms_path" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Path that contains IBM Spectrum Scale product cloud rpms."
+}
+
+variable "compute_cluster_filesystem_mountpoint" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Compute cluster (accessingCluster) Filesystem mount point."
+}
+
+variable "bastion_instance_id" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion instance id."
+}
+
+variable "bastion_user" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion login username."
+}
+
+variable "bastion_instance_public_ip" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion instance public ip address."
+}
+
+variable "storage_cluster_filesystem_mountpoint" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Storage cluster (owningCluster) Filesystem mount point."
+}
+
+variable "filesystem_block_size" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Filesystem block size."
 }

@@ -26,8 +26,10 @@ ibmDocModules=(
 )
 
 gcpDocModules=(
+    "$root_dir/gcp_scale_templates/gcp_new_vpc_scale"
     "$root_dir/gcp_scale_templates/sub_modules/vpc_template"
     "$root_dir/gcp_scale_templates/sub_modules/bastion_template"
+    "$root_dir/gcp_scale_templates/sub_modules/instance_template"
 )
 
 #Updates terraform docs if not already updated
