@@ -750,7 +750,7 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                    "nsd": "nsd" + str(nsd_count),
+                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk),
                     "filesystem": pathlib.PurePath(fs_mount).name,
                     "device": each_disk,
                     "failureGroup": 1,
@@ -769,7 +769,7 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                    "nsd": "nsd" + str(nsd_count),
+                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk),
                     "filesystem": pathlib.PurePath(fs_mount).name,
                     "device": each_disk,
                     "failureGroup": 2,
@@ -782,13 +782,14 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
     # Append "descOnly" disk details
     if len(desc_disk_mapping.keys()):
         ip_address = list(desc_disk_mapping.keys())[0]
+        device = list(desc_disk_mapping.values())[0][0]
 
         # TODO: FIX Include disk "size"
-        disks_list.append({"nsd": "nsd" + str(nsd_count+1),
+        disks_list.append({"nsd": "nsd_" + ip_address.replace(".", "_") + "_" + os.path.basename(device),
                            "filesystem": pathlib.PurePath(fs_mount).name,
-                           "device": list(desc_disk_mapping.values())[0][0],
+                           "device": device,
                            "failureGroup": 3,
-                           "servers": list(desc_disk_mapping.keys())[0],
+                           "servers": ip_address,
                            "usage": "descOnly",
                            "pool": "system"})
 
