@@ -414,9 +414,9 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_encrypted             = var.ebs_block_device_encrypted
   ebs_block_device_kms_key_id            = var.ebs_block_device_kms_key_id
   ebs_block_device_volume_size           = 5
-  ebs_block_device_volume_type           = var.ebs_block_device_volume_type
-  ebs_block_device_iops                  = var.ebs_block_device_iops
-  ebs_block_device_throughput            = var.ebs_block_device_throughput
+  ebs_block_device_volume_type           = "gp2"
+  ebs_block_device_iops                  = null
+  ebs_block_device_throughput            = null
   enable_nvme_block_device               = var.enable_nvme_block_device
   enable_instance_store_block_device     = false
   nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
