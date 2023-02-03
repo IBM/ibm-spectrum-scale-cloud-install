@@ -87,6 +87,12 @@ variable "data_disk_size" {
   description = "Data disk size in gigabytes."
 }
 
+variable "storage_boot_disk_size" {
+  type        = number
+  default     = 100
+  description = "Storage instances boot disk size in gigabytes."
+}
+
 variable "create_remote_mount_cluster" {
   type        = bool
   nullable    = true
@@ -120,6 +126,12 @@ variable "compute_boot_image" {
   type        = string
   default     = "ubuntu-os-cloud/ubuntu-1804-lts"
   description = "Image from which to initialize Spectrum Scale compute instances."
+}
+
+variable "compute_boot_disk_size" {
+  type        = number
+  default     = 100
+  description = "Compute instances boot disk size in gigabytes."
 }
 
 variable "storage_boot_image" {

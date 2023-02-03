@@ -49,6 +49,8 @@ module "instance_modules" {
   data_disk_type                      = var.data_disk_type
   storage_boot_image                  = var.storage_boot_image
   compute_boot_image                  = var.compute_boot_image
+  storage_boot_disk_size              = var.storage_boot_disk_size
+  compute_boot_disk_size              = var.compute_boot_disk_size
   vpc_compute_cluster_private_subnets = module.vpc_module.vpc_compute_cluster_private_subnets
   vpc_storage_cluster_private_subnets = module.vpc_module.vpc_storage_cluster_private_subnets
   create_remote_mount_cluster         = var.create_remote_mount_cluster

@@ -20,6 +20,24 @@ variable "vpc_zone" {
   description = "The VPC zone you want to use for building image."
 }
 
+variable "network" {
+  type        = string
+  default     = null
+  description = "The vpc network id or URL to use for the launched instance."
+}
+
+variable "subnetwork" {
+  type        = string
+  default     = null
+  description = "The vpc subnetwork id or URL to use for the launched instance."
+}
+
+variable "tags" {
+  type        = list(string)
+  default     = ["packer-vm"]
+  description = "The network tags to apply firewall rules to packer VM instance."
+}
+
 variable "image_name" {
   type        = string
   description = "The name of the resulting image. To make this unique, timestamp will be appended."
