@@ -390,11 +390,34 @@ def initialize_node_details(az_count, cls_type,
             # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
             start_quorum_assign = quorum_count - 1
 
-        for each_ip in storage_private_ips:
+        failure_group1, failure_group2 = [], []
 
-            if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    storage_private_ips.index(each_ip) <= (manager_count - 1):
-                if storage_private_ips.index(each_ip) == 0:
+        subnet_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
+        subnet1A = subnet_pattern.findall(storage_private_ips[0])
+        for each_ip in storage_private_ips:
+            current_subnet = subnet_pattern.findall(each_ip)
+            if current_subnet[0] == subnet1A[0]:
+                failure_group1.append(each_ip)
+            else:
+                failure_group2.append(each_ip)
+
+        storage_instances = []
+        max_len = max(len(failure_group1), len(failure_group2))
+        idx = 0
+        while idx < max_len:
+            if idx < len(failure_group1):
+                storage_instances.append(failure_group1[idx])
+
+            if idx < len(failure_group2):
+                storage_instances.append(failure_group2[idx])
+
+            idx = idx + 1
+
+        for each_ip in storage_instances:
+
+            if storage_instances.index(each_ip) <= (start_quorum_assign) and \
+                    storage_instances.index(each_ip) <= (manager_count - 1):
+                if storage_instances.index(each_ip) == 0:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': True, 'is_collector': True, 'is_nsd': True,
@@ -416,7 +439,7 @@ def initialize_node_details(az_count, cls_type,
                     # write_json_file({'storage_cluster_gui_ip_address': each_ip},
                     #                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                     #                            "storage_cluster_gui_details.json"))
-                elif storage_private_ips.index(each_ip) == 1:
+                elif storage_instances.index(each_ip) == 1:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': False, 'is_collector': True, 'is_nsd': True,
@@ -454,8 +477,8 @@ def initialize_node_details(az_count, cls_type,
                                      is_nsd_server=True,
                                      is_admin_node=True)
 
-            elif storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    storage_private_ips.index(each_ip) > (manager_count - 1):
+            elif storage_instances.index(each_ip) <= (start_quorum_assign) and \
+                    storage_instances.index(each_ip) > (manager_count - 1):
 
                 # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
