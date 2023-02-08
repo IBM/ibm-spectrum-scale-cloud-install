@@ -88,7 +88,7 @@ module "bastion_security_group" {
   sec_group_tag         = ["bastion-sec-group"]
 }
 
-module "bastion_ingress_security_rule" {
+module "bastion_security_rule" {
   source      = "../../../resources/aws/security/security_rule_cidr"
   total_rules = 2
   security_group_id = [module.bastion_security_group.sec_group_id,
@@ -96,7 +96,7 @@ module "bastion_ingress_security_rule" {
   security_rule_description = ["Incoming traffic to bastion",
   "Incoming ICMP traffic to bastion"]
   security_rule_type       = ["ingress", "ingress"]
-  traffic_protocol         = ["TCP", "icmp", "-1"]
+  traffic_protocol         = ["TCP", "icmp"]
   traffic_from_port        = [var.bastion_public_ssh_port, "-1"]
   traffic_to_port          = [var.bastion_public_ssh_port, "-1"]
   cidr_blocks              = var.remote_cidr_blocks
@@ -112,10 +112,9 @@ module "bastion_egress_security_rule" {
   traffic_protocol          = ["-1"]
   traffic_from_port         = ["0"]
   traffic_to_port           = ["65535"]
-  cidr_blocks               = "0.0.0.0/0"
+  cidr_blocks               = ["0.0.0.0/0"]
   security_prefix_list_ids  = null
 }
-
 
 module "bastion_autoscaling_launch_template" {
   source                      = "../../../resources/aws/asg/launch_template"
