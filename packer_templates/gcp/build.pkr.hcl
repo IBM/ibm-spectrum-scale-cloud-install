@@ -33,4 +33,9 @@ build {
       "sudo sh -c \"echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc\""
     ]
   }
+
+  post-processor "manifest" {
+    output     = "${path.root}/manifest.json"
+    strip_path = true
+  }
 }

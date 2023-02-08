@@ -11,8 +11,8 @@ source "googlecompute" "itself" {
   ssh_username          = var.user_account
   zone                  = var.vpc_zone
   tags                  = var.tags
-  network               = var.network
-  subnetwork            = var.subnetwork
+  network               = var.vpc_id
+  subnetwork            = var.vpc_subnet_id
   service_account_email = var.service_account_email
   scopes                = ["https://www.googleapis.com/auth/cloud-platform"]
 }

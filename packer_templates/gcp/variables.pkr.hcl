@@ -20,13 +20,13 @@ variable "vpc_zone" {
   description = "The VPC zone you want to use for building image."
 }
 
-variable "network" {
+variable "vpc_id" {
   type        = string
   default     = null
   description = "The vpc network id or URL to use for the launched instance."
 }
 
-variable "subnetwork" {
+variable "vpc_subnet_id" {
   type        = string
   default     = null
   description = "The vpc subnetwork id or URL to use for the launched instance."
