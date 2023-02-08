@@ -34,7 +34,7 @@ variable "instance_type" {
   description = "The EC2 instance type to use while building the AMI."
 }
 
-variable "source_ami_id" {
+variable "source_image_reference" {
   type        = string
   description = "The source AMI id whose root volume will be copied and provisioned on the currently running instance."
 }
