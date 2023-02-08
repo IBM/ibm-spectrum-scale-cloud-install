@@ -14,7 +14,7 @@ source "amazon-ebs" "itself" {
   ami_name                  = "${var.ami_name}-{{timestamp}}"
   instance_type             = var.instance_type
   region                    = var.vpc_region
-  source_ami                = var.source_ami_id
+  source_ami                = var.source_image_reference
   ssh_username              = "ec2-user"
   ssh_clear_authorized_keys = true
   temporary_key_pair_name   = "amazon-packer-{{timestamp}}"
