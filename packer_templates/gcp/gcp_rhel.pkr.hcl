@@ -1,14 +1,14 @@
 source "googlecompute" "itself" {
-  account_file          = var.service_account_json
-  disk_size             = var.disk_size
-  disk_type             = var.disk_type
-  image_name            = "${var.image_name}-{{timestamp}}"
+  account_file          = var.credential_json_path
+  disk_size             = var.volume_size
+  disk_type             = var.volume_type
+  image_name            = "${var.resource_prefix}-{{timestamp}}"
   image_description     = var.image_description
   machine_type          = var.machine_type
   project_id            = var.project_id
   region                = var.vpc_region
   source_image_family   = var.source_image_reference
-  ssh_username          = var.user_account
+  ssh_username          = var.os_login_username
   zone                  = var.vpc_zone
   tags                  = var.tags
   network               = var.vpc_id
