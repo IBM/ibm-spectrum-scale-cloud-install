@@ -9,9 +9,9 @@ source "amazon-ebs" "itself" {
     volume_type           = var.volume_type
     delete_on_termination = true
   }
-  ami_description           = var.ami_description
+  ami_description           = var.image_description
   ami_virtualization_type   = "hvm"
-  ami_name                  = "${var.ami_name}-{{timestamp}}"
+  ami_name                  = "${var.resource_prefix}-{{timestamp}}"
   instance_type             = var.instance_type
   region                    = var.vpc_region
   source_ami                = var.source_image_reference
