@@ -46,7 +46,7 @@ variable "image_name" {
 variable "image_description" {
   type        = string
   default     = "IBM Spectrum Scale Image"
-  description = "The description to set for the resulting Image."
+  description = "The description to set for the resulting image."
 }
 
 variable "machine_type" {
