@@ -46,7 +46,7 @@ variable "image_name" {
 variable "image_description" {
   type        = string
   default     = "IBM Spectrum Scale Image"
-  description = "The description to set for the resulting AMI."
+  description = "The description to set for the resulting Image."
 }
 
 variable "machine_type" {
@@ -55,7 +55,7 @@ variable "machine_type" {
   description = "The GCP VM machine type to use while building the image."
 }
 
-variable "source_image_family" {
+variable "source_image_reference" {
   type        = string
   default     = "rhel-8"
   description = "The source image family whose root volume will be copied and provisioned on the currently running instance."

@@ -7,7 +7,7 @@ source "googlecompute" "itself" {
   machine_type          = var.machine_type
   project_id            = var.project_id
   region                = var.vpc_region
-  source_image_family   = var.source_image_family
+  source_image_family   = var.source_image_reference
   ssh_username          = var.user_account
   zone                  = var.vpc_zone
   tags                  = var.tags
