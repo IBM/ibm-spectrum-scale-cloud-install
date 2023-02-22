@@ -18,12 +18,12 @@ variable "vpc_subnet_id" {
   description = "The subnet ID to use for the instance."
 }
 
-variable "ami_name" {
+variable "resource_prefix" {
   type        = string
   description = "The name of the resulting AMI. To make this unique, timestamp will be appended."
 }
 
-variable "ami_description" {
+variable "image_description" {
   type        = string
   default     = "IBM Spectrum Scale AMI"
   description = "The description to set for the resulting AMI."
@@ -34,12 +34,12 @@ variable "instance_type" {
   description = "The EC2 instance type to use while building the AMI."
 }
 
-variable "source_ami_id" {
+variable "source_image_reference" {
   type        = string
   description = "The source AMI id whose root volume will be copied and provisioned on the currently running instance."
 }
 
-variable "s3_spectrumscale_bucket" {
+variable "package_repository" {
   type        = string
   description = "S3 bucket which contains IBM Spectrum Scale rpm(s)."
 }
@@ -59,4 +59,13 @@ variable "volume_type" {
   type        = string
   default     = "gp2"
   description = "The volume type. gp2 & gp3 for General Purpose (SSD) volumes."
+}
+
+variable "manifest_path" {
+  type    = string
+  default = ""
+}
+
+locals {
+  manifest_path = var.manifest_path != "" ? var.manifest_path : path.root
 }

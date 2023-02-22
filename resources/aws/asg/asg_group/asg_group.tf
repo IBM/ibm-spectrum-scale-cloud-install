@@ -8,12 +8,15 @@ variable "asg_min_size" {}
 variable "asg_desired_size" {}
 variable "auto_scaling_group_subnets" {}
 variable "asg_suspend_processes" {}
-variable "asg_launch_config_name" {}
+variable "asg_launch_template_id" {}
 variable "asg_tags" {}
 
 resource "aws_autoscaling_group" "itself" {
-  name_prefix               = var.asg_name_prefix
-  launch_configuration      = var.asg_launch_config_name
+  name_prefix = var.asg_name_prefix
+  launch_template {
+    id      = var.asg_launch_template_id
+    version = "$Latest"
+  }
   default_cooldown          = 180
   health_check_grace_period = 300
   health_check_type         = "EC2"

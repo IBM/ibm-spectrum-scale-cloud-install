@@ -90,40 +90,50 @@ module "bastion_security_group" {
 
 module "bastion_security_rule" {
   source      = "../../../resources/aws/security/security_rule_cidr"
-  total_rules = 3
+  total_rules = 2
   security_group_id = [module.bastion_security_group.sec_group_id,
-    module.bastion_security_group.sec_group_id,
   module.bastion_security_group.sec_group_id]
   security_rule_description = ["Incoming traffic to bastion",
-    "Incoming ICMP traffic to bastion",
-  "Outgoing traffic from bastion to instances"]
-  security_rule_type       = ["ingress", "ingress", "egress"]
-  traffic_protocol         = ["TCP", "icmp", "-1"]
-  traffic_from_port        = [var.bastion_public_ssh_port, "-1", "0"]
-  traffic_to_port          = [var.bastion_public_ssh_port, "-1", "65535"]
+  "Incoming ICMP traffic to bastion"]
+  security_rule_type       = ["ingress", "ingress"]
+  traffic_protocol         = ["TCP", "icmp"]
+  traffic_from_port        = [var.bastion_public_ssh_port, "-1"]
+  traffic_to_port          = [var.bastion_public_ssh_port, "-1"]
   cidr_blocks              = var.remote_cidr_blocks
   security_prefix_list_ids = null
 }
 
-module "bastion_autoscaling_launch_config" {
-  source                    = "../../../resources/aws/asg/asg_launch_config"
-  launch_config_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-config")
-  image_id                  = var.bastion_ami_id
-  instance_type             = var.bastion_instance_type
-  assoc_public_ip           = true
-  instance_iam_profile      = module.bastion_instance_iam_profile.iam_instance_profile_name
-  key_name                  = var.bastion_key_pair
-  sec_groups                = [module.bastion_security_group.sec_group_id]
+module "bastion_egress_security_rule" {
+  source                    = "../../../resources/aws/security/security_rule_cidr"
+  total_rules               = 1
+  security_group_id         = [module.bastion_security_group.sec_group_id]
+  security_rule_description = ["Outgoing traffic from bastion to instances"]
+  security_rule_type        = ["egress"]
+  traffic_protocol          = ["-1"]
+  traffic_from_port         = ["0"]
+  traffic_to_port           = ["65535"]
+  cidr_blocks               = ["0.0.0.0/0"]
+  security_prefix_list_ids  = null
+}
+
+module "bastion_autoscaling_launch_template" {
+  source                      = "../../../resources/aws/asg/launch_template"
+  launch_template_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-tmpl")
+  image_id                    = var.bastion_ami_id
+  instance_type               = var.bastion_instance_type
+  instance_iam_profile        = module.bastion_instance_iam_profile.iam_instance_profile_name
+  key_name                    = var.bastion_key_pair
+  sec_groups                  = [module.bastion_security_group.sec_group_id]
 }
 
 module "bastion_autoscaling_group" {
   source                     = "../../../resources/aws/asg/asg_group"
   asg_name_prefix            = format("%s-%s", var.resource_prefix, "bastion-asg")
-  asg_launch_config_name     = module.bastion_autoscaling_launch_config.asg_launch_config_name
+  asg_launch_template_id     = module.bastion_autoscaling_launch_template.asg_launch_template_id
   asg_max_size               = 1
   asg_min_size               = 1
   asg_desired_size           = 1
   auto_scaling_group_subnets = var.vpc_auto_scaling_group_subnets
-  asg_suspend_processes      = ["HealthCheck", "ReplaceUnhealthy", "AZRebalance"]
+  asg_suspend_processes      = ["AZRebalance"]
   asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "bastion-asg") })
 }

@@ -9,24 +9,15 @@ source "amazon-ebs" "itself" {
     volume_type           = var.volume_type
     delete_on_termination = true
   }
-  ami_description           = var.ami_description
+  ami_description           = var.image_description
   ami_virtualization_type   = "hvm"
-  ami_name                  = "${var.ami_name}-{{timestamp}}"
+  ami_name                  = "${var.resource_prefix}-{{timestamp}}"
   instance_type             = var.instance_type
   region                    = var.vpc_region
-  source_ami                = var.source_ami_id
+  source_ami                = var.source_image_reference
   ssh_username              = "ec2-user"
   ssh_clear_authorized_keys = true
   temporary_key_pair_name   = "amazon-packer-{{timestamp}}"
-
-  temporary_iam_instance_profile_policy_document {
-    Statement {
-      Action   = ["s3:*"]
-      Effect   = "Allow"
-      Resource = ["*"]
-    }
-    Version = "2012-10-17"
-  }
 
   metadata_options {
     http_endpoint               = "enabled"

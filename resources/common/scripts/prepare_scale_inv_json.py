@@ -390,11 +390,34 @@ def initialize_node_details(az_count, cls_type,
             # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
             start_quorum_assign = quorum_count - 1
 
-        for each_ip in storage_private_ips:
+        failure_group1, failure_group2 = [], []
 
-            if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    storage_private_ips.index(each_ip) <= (manager_count - 1):
-                if storage_private_ips.index(each_ip) == 0:
+        subnet_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
+        subnet1A = subnet_pattern.findall(storage_private_ips[0])
+        for each_ip in storage_private_ips:
+            current_subnet = subnet_pattern.findall(each_ip)
+            if current_subnet[0] == subnet1A[0]:
+                failure_group1.append(each_ip)
+            else:
+                failure_group2.append(each_ip)
+
+        storage_instances = []
+        max_len = max(len(failure_group1), len(failure_group2))
+        idx = 0
+        while idx < max_len:
+            if idx < len(failure_group1):
+                storage_instances.append(failure_group1[idx])
+
+            if idx < len(failure_group2):
+                storage_instances.append(failure_group2[idx])
+
+            idx = idx + 1
+
+        for each_ip in storage_instances:
+
+            if storage_instances.index(each_ip) <= (start_quorum_assign) and \
+                    storage_instances.index(each_ip) <= (manager_count - 1):
+                if storage_instances.index(each_ip) == 0:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': True, 'is_collector': True, 'is_nsd': True,
@@ -416,7 +439,7 @@ def initialize_node_details(az_count, cls_type,
                     # write_json_file({'storage_cluster_gui_ip_address': each_ip},
                     #                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                     #                            "storage_cluster_gui_details.json"))
-                elif storage_private_ips.index(each_ip) == 1:
+                elif storage_instances.index(each_ip) == 1:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': False, 'is_collector': True, 'is_nsd': True,
@@ -454,8 +477,8 @@ def initialize_node_details(az_count, cls_type,
                                      is_nsd_server=True,
                                      is_admin_node=True)
 
-            elif storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    storage_private_ips.index(each_ip) > (manager_count - 1):
+            elif storage_instances.index(each_ip) <= (start_quorum_assign) and \
+                    storage_instances.index(each_ip) > (manager_count - 1):
 
                 # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
@@ -750,7 +773,7 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                    "nsd": "nsd" + str(nsd_count),
+                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk),
                     "filesystem": pathlib.PurePath(fs_mount).name,
                     "device": each_disk,
                     "failureGroup": 1,
@@ -769,7 +792,7 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                    "nsd": "nsd" + str(nsd_count),
+                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk),
                     "filesystem": pathlib.PurePath(fs_mount).name,
                     "device": each_disk,
                     "failureGroup": 2,
@@ -782,13 +805,14 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
     # Append "descOnly" disk details
     if len(desc_disk_mapping.keys()):
         ip_address = list(desc_disk_mapping.keys())[0]
+        device = list(desc_disk_mapping.values())[0][0]
 
         # TODO: FIX Include disk "size"
-        disks_list.append({"nsd": "nsd" + str(nsd_count+1),
+        disks_list.append({"nsd": "nsd_" + ip_address.replace(".", "_") + "_" + os.path.basename(device),
                            "filesystem": pathlib.PurePath(fs_mount).name,
-                           "device": list(desc_disk_mapping.values())[0][0],
+                           "device": device,
                            "failureGroup": 3,
-                           "servers": list(desc_disk_mapping.keys())[0],
+                           "servers": ip_address,
                            "usage": "descOnly",
                            "pool": "system"})
 

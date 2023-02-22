@@ -24,6 +24,12 @@ variable "source_range" {
   description = "Firewall will apply only to traffic that has source IP address in these ranges"
 }
 
+variable "target_tags" {
+  type        = list(string)
+  default     = ["spectrum-scale-bastion"]
+  description = "Destination or target tags where firewall to be applied."
+}
+
 resource "google_compute_firewall" "allow_bastion" {
   name        = format("%s-allow-bastion", var.firewall_name_prefix)
   network     = var.vpc_name
@@ -39,6 +45,8 @@ resource "google_compute_firewall" "allow_bastion" {
     protocol = "tcp"
     ports    = ["22"]
   }
+
+  target_tags = var.target_tags
 }
 
 output "firewall_id" {
