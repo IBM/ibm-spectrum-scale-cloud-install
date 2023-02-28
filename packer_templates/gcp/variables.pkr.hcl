@@ -57,6 +57,12 @@ variable "machine_type" {
 
 variable "source_image_reference" {
   type        = string
+  default     = "rhel-8-v20230202"
+  description = "The source image name used to create instance."
+}
+
+variable "source_image_family" {
+  type        = string
   default     = "rhel-8"
   description = "The source image family whose root volume will be copied and provisioned on the currently running instance."
 }
@@ -87,4 +93,13 @@ variable "os_login_username" {
 variable "service_account_email" {
   type        = string
   description = "The service account to be used for launched instance."
+}
+
+variable "manifest_path" {
+  type    = string
+  default = ""
+}
+
+locals {
+  manifest_path = var.manifest_path != "" ? var.manifest_path : path.root
 }

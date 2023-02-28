@@ -35,7 +35,7 @@ build {
   }
 
   post-processor "manifest" {
-    output     = "${path.root}/manifest.json"
+    output     = "${local.manifest_path}/manifest.json"
     strip_path = true
   }
 }
