@@ -304,3 +304,17 @@ variable "inventory_format" {
   default     = "ini"
   description = "Specify inventory format suited for ansible playbooks."
 }
+
+variable "bastion_user" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion login username."
+}
+
+variable "os_diff_disk" {
+  type        = string
+  nullable    = true
+  default     = "CacheDisk"
+  description = "Ephemeral OS disk placement option, possible values: CacheDisk, ResourceDisk"
+}

@@ -16,6 +16,19 @@ module "generate_storage_cluster_keys" {
   turn_on = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
 }
 
+module "proximity_group" {
+  source                  = "../../../resources/azure/compute/proximity_placement_group"
+  proximity_group_name    = var.resource_prefix
+  resource_group_name     = var.resource_group_name
+  location                = var.vnet_location
+  vnet_availability_zones = var.vnet_availability_zones
+}
+
+resource "time_sleep" "wait_30_seconds" {
+  depends_on       = [module.proximity_group]
+  destroy_duration = "30s"
+}
+
 module "compute_cluster_instances" {
   source                       = "../../../resources/azure/compute/vm_0_disk"
   vm_count                     = var.total_compute_cluster_instances
@@ -29,13 +42,17 @@ module "compute_cluster_instances" {
   location                     = var.vnet_location
   vm_size                      = var.compute_cluster_vm_size
   login_username               = var.compute_cluster_login_username
-  proximity_placement_group_id = null
+  proximity_placement_group_id = length(var.vnet_availability_zones) > 1 ? null : module.proximity_group.proximity_group_compute_id
+  os_diff_disk                 = var.os_diff_disk
   os_disk_caching              = var.compute_cluster_os_disk_caching
   os_storage_account_type      = var.compute_cluster_os_storage_account_type
   user_public_key              = var.create_separate_namespaces == true ? var.compute_cluster_ssh_public_key : var.storage_cluster_ssh_public_key
   meta_private_key             = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key              = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   dns_zone                     = var.compute_cluster_dns_zone
+  vnet_availability_zones      = var.vnet_availability_zones
+
+  depends_on = [time_sleep.wait_30_seconds]
 }
 
 module "storage_cluster_instances" {
@@ -46,12 +63,13 @@ module "storage_cluster_instances" {
   image_offer                     = var.storage_cluster_image_offer
   image_sku                       = var.storage_cluster_image_sku
   image_version                   = var.storage_cluster_image_version
-  subnet_ids                      = length(var.vnet_availability_zones) > 1 ? slice(var.vnet_storage_cluster_private_subnets, 0, 2) : var.vnet_storage_cluster_private_subnets
+  subnet_ids                      = var.vnet_storage_cluster_private_subnets
   resource_group_name             = var.resource_group_name
   location                        = var.vnet_location
   vm_size                         = var.storage_cluster_vm_size
   login_username                  = var.storage_cluster_login_username
-  proximity_placement_group_id    = null
+  proximity_placement_group_id    = length(var.vnet_availability_zones) > 1 ? null : module.proximity_group.proximity_group_storage_id
+  os_diff_disk                    = var.os_diff_disk
   os_disk_caching                 = var.storage_cluster_os_disk_caching
   os_storage_account_type         = var.storage_cluster_os_storage_account_type
   data_disks_per_storage_instance = var.data_disks_per_storage_instance
@@ -62,6 +80,9 @@ module "storage_cluster_instances" {
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
   dns_zone                        = var.storage_cluster_dns_zone
+  vnet_availability_zones         = var.vnet_availability_zones
+
+  depends_on = [time_sleep.wait_30_seconds]
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -72,12 +93,13 @@ module "storage_cluster_tie_breaker_instance" {
   image_offer                     = var.storage_cluster_image_offer
   image_sku                       = var.storage_cluster_image_sku
   image_version                   = var.storage_cluster_image_version
-  subnet_ids                      = length(var.vnet_availability_zones) > 1 ? [var.vnet_storage_cluster_private_subnets[2]] : var.vnet_storage_cluster_private_subnets
+  subnet_ids                      = var.vnet_storage_cluster_private_subnets
   resource_group_name             = var.resource_group_name
   location                        = var.vnet_location
   vm_size                         = var.storage_cluster_vm_size
   login_username                  = var.storage_cluster_login_username
-  proximity_placement_group_id    = null
+  proximity_placement_group_id    = length(var.vnet_availability_zones) > 1 ? null : module.proximity_group.proximity_group_storage_id
+  os_diff_disk                    = var.os_diff_disk
   os_disk_caching                 = var.storage_cluster_os_disk_caching
   os_storage_account_type         = var.storage_cluster_os_storage_account_type
   data_disks_per_storage_instance = 1
@@ -88,6 +110,9 @@ module "storage_cluster_tie_breaker_instance" {
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
   dns_zone                        = var.storage_cluster_dns_zone
+  vnet_availability_zones         = var.vnet_availability_zones
+
+  depends_on = [time_sleep.wait_30_seconds]
 }
 
 module "prepare_ansible_configuration" {
@@ -123,6 +148,7 @@ module "write_compute_cluster_inventory" {
   compute_cluster_instance_private_dns_ip_map      = jsonencode([])
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode([])
   storage_cluster_instance_private_dns_ip_map      = jsonencode([])
+  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
 }
 
 module "write_storage_cluster_inventory" {
@@ -151,6 +177,7 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_private_dns_ip_map      = jsonencode([])
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode([])
   storage_cluster_instance_private_dns_ip_map      = jsonencode([])
+  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
 }
 
 module "write_cluster_inventory" {
@@ -179,6 +206,7 @@ module "write_cluster_inventory" {
   storage_cluster_instance_private_dns_ip_map      = jsonencode([])
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode([])
   compute_cluster_instance_private_dns_ip_map      = jsonencode([])
+  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
 }
 
 module "compute_cluster_configuration" {
@@ -202,6 +230,7 @@ module "compute_cluster_configuration" {
   inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
   max_pagepool_gb              = 4
+  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
 }
 
 module "storage_cluster_configuration" {
@@ -226,6 +255,7 @@ module "storage_cluster_configuration" {
   max_pagepool_gb              = 16
   vcpu_count                   = 2
   create_scale_cluster         = var.create_scale_cluster
+  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
 }
 
 module "combined_cluster_configuration" {
@@ -247,6 +277,7 @@ module "combined_cluster_configuration" {
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
   inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
+  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
 }
 
 module "remote_mount_configuration" {
@@ -269,4 +300,5 @@ module "remote_mount_configuration" {
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
   create_scale_cluster            = var.create_scale_cluster
+  bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
 }

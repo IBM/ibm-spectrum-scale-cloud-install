@@ -14,12 +14,14 @@ variable "vm_size" {}
 variable "subnet_ids" {}
 variable "login_username" {}
 variable "proximity_placement_group_id" {}
+variable "os_diff_disk" {}
 variable "os_disk_caching" {}
 variable "os_storage_account_type" {}
 variable "user_public_key" {}
 variable "meta_private_key" {}
 variable "meta_public_key" {}
 variable "dns_zone" {}
+variable "vnet_availability_zones" {}
 
 data "template_file" "user_data" {
   template = <<EOF
@@ -89,6 +91,7 @@ resource "azurerm_linux_virtual_machine" "itself" {
     for idx, count_number in range(1, var.vm_count + 1) : idx => {
       sequence_string      = tostring(count_number)
       network_interface_id = element(tolist([for nic_details in azurerm_network_interface.itself : nic_details.id]), idx)
+      zone_id              = length(var.vnet_availability_zones) > 1 ? ((idx % 3) + 1) : "1"
     }
   }
 
@@ -99,15 +102,20 @@ resource "azurerm_linux_virtual_machine" "itself" {
   admin_username               = var.login_username
   network_interface_ids        = [each.value.network_interface_id]
   proximity_placement_group_id = var.proximity_placement_group_id
+  zone                         = each.value.zone_id
 
   admin_ssh_key {
     username   = var.login_username
-    public_key = var.user_public_key
+    public_key = file(var.user_public_key)
   }
 
   os_disk {
     caching              = var.os_disk_caching
     storage_account_type = var.os_storage_account_type
+    diff_disk_settings {
+      option    = "Local"
+      placement = var.os_diff_disk
+    }
   }
 
   source_image_reference {

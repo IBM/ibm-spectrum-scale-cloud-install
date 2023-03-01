@@ -110,6 +110,11 @@ The following steps will provision Azure resources (compute and storage instance
 
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
+#### Proximity Placement Groups
+The instances deployed as part of the cluster now supported Proximity Placement Groups._(Proximity Placement Groups is a logical grouping used to make sure that resources are physically located close to each other)_.
+
+**This feature is supported only for single AZ's.**
+
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
 
@@ -142,6 +147,7 @@ The following steps will provision Azure resources (compute and storage instance
 | <a name="input_ansible_jump_host_id"></a> [ansible_jump_host_id](#input_ansible_jump_host_id) | Ansible jump host instance id. | `string` |
 | <a name="input_ansible_jump_host_public_ip"></a> [ansible_jump_host_public_ip](#input_ansible_jump_host_public_ip) | Ansible jump host instance public ip address. | `string` |
 | <a name="input_ansible_jump_host_ssh_private_key"></a> [ansible_jump_host_ssh_private_key](#input_ansible_jump_host_ssh_private_key) | Ansible jump host SSH private key path, which will be used to login to ansible jump host. | `string` |
+| <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_image_offer"></a> [compute_cluster_image_offer](#input_compute_cluster_image_offer) | Specifies the offer of the image used to create the compute cluster virtual machines. | `string` |
 | <a name="input_compute_cluster_image_publisher"></a> [compute_cluster_image_publisher](#input_compute_cluster_image_publisher) | Specifies the publisher of the image used to create the compute cluster virtual machines. | `string` |
@@ -158,6 +164,7 @@ The following steps will provision Azure resources (compute and storage instance
 | <a name="input_data_disks_per_storage_instance"></a> [data_disks_per_storage_instance](#input_data_disks_per_storage_instance) | Additional Data disks to attach per storage cluster instance. | `number` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
+| <a name="input_os_diff_disk"></a> [os_diff_disk](#input_os_diff_disk) | Ephemeral OS disk placement option, possible values: CacheDisk, ResourceDisk | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
@@ -180,6 +187,7 @@ The following steps will provision Azure resources (compute and storage instance
 
 | Name | Description |
 |------|-------------|
+| <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |

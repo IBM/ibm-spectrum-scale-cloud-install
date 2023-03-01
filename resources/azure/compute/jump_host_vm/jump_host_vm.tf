@@ -24,6 +24,7 @@ resource "azurerm_public_ip" "itself" {
   resource_group_name = var.resource_group_name
   location            = var.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "itself" {
@@ -36,7 +37,7 @@ resource "azurerm_network_interface" "itself" {
     name                          = format("%s-ip-config", var.vm_name_prefix)
     subnet_id                     = element(var.subnet_ids, count.index)
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = element(azurerm_public_ip.itself.*.id, count.index)
+    public_ip_address_id          = element(azurerm_public_ip.itself[*].id, count.index)
   }
 }
 
@@ -47,18 +48,20 @@ resource "azurerm_linux_virtual_machine" "itself" {
   location                     = var.location
   size                         = var.vm_size
   admin_username               = var.login_username
-  network_interface_ids        = [element(azurerm_network_interface.itself.*.id, count.index)]
+  network_interface_ids        = [element(azurerm_network_interface.itself[*].id, count.index)]
   proximity_placement_group_id = var.proximity_placement_group_id
 
   admin_ssh_key {
     username   = var.login_username
-    public_key = var.user_public_key
+    public_key = file(var.user_public_key)
   }
 
   os_disk {
     caching              = var.os_disk_caching
     storage_account_type = var.os_storage_account_type
   }
+
+
 
   source_image_reference {
     publisher = var.image_publisher
@@ -69,13 +72,13 @@ resource "azurerm_linux_virtual_machine" "itself" {
 }
 
 output "instance_public_ips" {
-  value = azurerm_linux_virtual_machine.itself.*.public_ip_address
+  value = azurerm_linux_virtual_machine.itself[*].public_ip_address
 }
 
 output "instance_private_ips" {
-  value = azurerm_linux_virtual_machine.itself.*.private_ip_address
+  value = azurerm_linux_virtual_machine.itself[*].private_ip_address
 }
 
 output "instance_ids" {
-  value = azurerm_linux_virtual_machine.itself.*.id
+  value = azurerm_linux_virtual_machine.itself[*].id
 }

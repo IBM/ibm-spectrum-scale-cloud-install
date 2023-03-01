@@ -14,6 +14,7 @@ resource "azurerm_subnet" "itself" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = var.vnet_name
   address_prefixes     = var.address_prefixes
+  service_endpoints    = ["Microsoft.Storage"]
 }
 
 output "sub_id" {
