@@ -24,6 +24,7 @@ resource "azurerm_public_ip" "itself" {
   resource_group_name = var.resource_group_name
   location            = var.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "itself" {
@@ -59,6 +60,8 @@ resource "azurerm_linux_virtual_machine" "itself" {
     caching              = var.os_disk_caching
     storage_account_type = var.os_storage_account_type
   }
+
+
 
   source_image_reference {
     publisher = var.image_publisher
