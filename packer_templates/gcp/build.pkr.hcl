@@ -15,7 +15,7 @@ build {
       "then",
       "sudo sh -c \"echo '[GPFSRepository]' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'name=Spectrum Scale Repository' >> /etc/yum.repos.d/scale.repo\"",
-      "sudo sh -c \"echo 'baseurl=https://\"${var.vpc_region}\"-yum.pkg.dev/projects/\"${var.project_id}\"/\"${var.gcs_artifact_registry_name}\"' >> /etc/yum.repos.d/scale.repo\"",
+      "sudo sh -c \"echo 'baseurl=https://\"${var.vpc_region}\"-yum.pkg.dev/projects/\"${var.project_id}\"/\"${var.artifact_id}\"' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'enabled=1' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'repo_gpgcheck=0' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'gpgcheck=0' >> /etc/yum.repos.d/scale.repo\"",
@@ -23,14 +23,22 @@ build {
       "then",
       "sudo sh -c \"echo '[GPFSRepository]' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'name=Spectrum Scale Repository' >> /etc/yum.repos.d/scale.repo\"",
-      "sudo sh -c \"echo 'baseurl=https://\"${var.vpc_region}\"-yum.pkg.dev/projects/\"${var.project_id}\"/\"${var.gcs_artifact_registry_name}\"' >> /etc/yum.repos.d/scale.repo\"",
+      "sudo sh -c \"echo 'baseurl=https://\"${var.vpc_region}\"-yum.pkg.dev/projects/\"${var.project_id}\"/\"${var.artifact_id}\"' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'enabled=1' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'repo_gpgcheck=0' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'gpgcheck=0' >> /etc/yum.repos.d/scale.repo\"",
       "fi",
       "sudo dnf install -y gpfs*",
       "sudo /usr/lpp/mmfs/bin/mmbuildgpl",
-      "sudo sh -c \"echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc\""
+      "sudo sh -c \"echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc\"",
+      "sudo rm -rf /etc/yum.repos.d/scale.repo",
+      "sudo rm -rf /root/.bash_history",
+      "sudo rm -rf /home/${var.os_login_username}/.bash_history"
     ]
+  }
+
+  post-processor "manifest" {
+    output     = "${local.manifest_path}/manifest.json"
+    strip_path = true
   }
 }
