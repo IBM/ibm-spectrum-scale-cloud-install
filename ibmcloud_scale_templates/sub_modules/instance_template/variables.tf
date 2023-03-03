@@ -290,3 +290,9 @@ variable "inventory_format" {
   default     = "ini"
   description = "Specify inventory format suited for ansible playbooks."
 }
+
+variable "bastion_user" {
+  type        = string
+  default     = "ubuntu"
+  description = "Provide the username for Bastion login."
+}
