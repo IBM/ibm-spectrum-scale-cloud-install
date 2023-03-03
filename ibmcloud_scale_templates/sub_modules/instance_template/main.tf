@@ -279,7 +279,7 @@ module "write_compute_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
   write_inventory                                  = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
-  bastion_user                                     = jsondecode(var.bastion_user)
+  bastion_user                                     = jsonencode(var.bastion_user)
   inventory_path                                   = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("IBMCloud")
   resource_prefix                                  = jsonencode(var.resource_prefix)
@@ -308,7 +308,7 @@ module "write_storage_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
   write_inventory                                  = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
-  bastion_user                                     = jsondecode(var.bastion_user)
+  bastion_user                                     = jsonencode(var.bastion_user)
   inventory_path                                   = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("IBMCloud")
   resource_prefix                                  = jsonencode(var.resource_prefix)
@@ -337,7 +337,7 @@ module "write_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
   write_inventory                                  = var.create_separate_namespaces == false ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
-  bastion_user                                     = jsondecode(var.bastion_user)
+  bastion_user                                     = jsonencode(var.bastion_user)
   inventory_path                                   = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("IBMCloud")
   resource_prefix                                  = jsonencode(var.resource_prefix)
@@ -366,7 +366,7 @@ module "compute_cluster_configuration" {
   source                       = "../../../resources/common/compute_configuration"
   turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
-  bastion_user                 = jsondecode(var.bastion_user)
+  bastion_user                 = jsonencode(var.bastion_user)
   write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
   inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
@@ -390,7 +390,7 @@ module "storage_cluster_configuration" {
   source                       = "../../../resources/common/storage_configuration"
   turn_on                      = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
-  bastion_user                 = jsondecode(var.bastion_user)
+  bastion_user                 = jsonencode(var.bastion_user)
   write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
   inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
@@ -415,7 +415,7 @@ module "combined_cluster_configuration" {
   source                       = "../../../resources/common/scale_configuration"
   turn_on                      = var.create_separate_namespaces == false ? true : false
   clone_complete               = module.prepare_ansible_configuration.clone_complete
-  bastion_user                 = jsondecode(var.bastion_user)
+  bastion_user                 = jsonencode(var.bastion_user)
   write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
   inventory_format             = var.inventory_format
   create_scale_cluster         = var.create_scale_cluster
@@ -437,7 +437,7 @@ module "remote_mount_configuration" {
   source                          = "../../../resources/common/remote_mount_configuration"
   turn_on                         = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0 && var.create_separate_namespaces == true) ? true : false
   create_scale_cluster            = var.create_scale_cluster
-  bastion_user                    = jsondecode(var.bastion_user)
+  bastion_user                    = jsonencode(var.bastion_user)
   clone_path                      = var.scale_ansible_repo_clone_path
   compute_inventory_path          = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   compute_gui_inventory_path      = format("%s/compute_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
