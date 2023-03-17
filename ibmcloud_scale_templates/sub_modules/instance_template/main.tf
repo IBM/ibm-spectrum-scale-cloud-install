@@ -236,6 +236,7 @@ module "storage_cluster_bare_metal_server" {
   resource_tags        = var.scale_cluster_resource_tags
   depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule, time_sleep.wait_300_seconds]
 }
+
 module "storage_cluster_tie_breaker_instance" {
   source               = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   total_vsis           = (length(var.vpc_storage_cluster_private_subnets) > 1 && var.total_storage_cluster_instances > 0) ? 1 : 0
