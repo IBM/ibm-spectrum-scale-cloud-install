@@ -135,7 +135,6 @@ data "template_file" "metadata_startup_script" {
 #!/usr/bin/env bash
 echo "${var.private_key_content}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
-echo "${var.public_key_content}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 if grep -q "Red Hat" /etc/os-release
 then
@@ -173,7 +172,7 @@ resource "google_compute_instance" "scale_instance" {
   }
 
   metadata = {
-    ssh-keys               = format("%s:%s", var.ssh_user_name, file(var.ssh_key_path))
+    ssh-keys               = format("%s:%s\n %s:%s", var.ssh_user_name, file(var.ssh_key_path),"root", var.public_key_content)
     block-project-ssh-keys = true
   }
 
@@ -251,4 +250,8 @@ output "disk_device_mapping" {
 
 output "dns_hostname" {
   value = { (google_compute_instance.scale_instance.network_interface[0].network_ip) = "${google_compute_instance.scale_instance.name}.${var.zone}.c.${google_compute_instance.scale_instance.project}.internal" }
+}
+
+output "publlickeyContent" {
+  value = var.public_key_content
 }

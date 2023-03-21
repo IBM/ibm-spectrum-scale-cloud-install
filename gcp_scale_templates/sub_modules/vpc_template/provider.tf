@@ -8,7 +8,7 @@ terraform {
   required_version = "~> 1.0"
 }
 provider "google" {
-  credentials = file(var.credentials_file_path)
-  project     = var.gcp_project_id
+  credentials = file(var.credential_json_path)
+  project     = var.project_id
   region      = var.vpc_region
 }

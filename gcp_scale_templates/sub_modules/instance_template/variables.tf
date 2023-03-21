@@ -1,4 +1,4 @@
-variable "gcp_project_id" {
+variable "project_id" {
   type        = string
   description = "GCP project ID to manage resources."
 }
@@ -10,7 +10,7 @@ variable "vpc_region" {
   description = "GCP region where the resources will be created."
 }
 
-variable "vpc_name" {
+variable "vpc_id" {
   type        = string
   default     = "spectrum-scale-vpc"
   description = "GCP VPC name."
@@ -37,15 +37,19 @@ variable "instances_ssh_user_name" {
 
 variable "compute_cluster_public_key_path" {
   type        = string
+  nullable    = true
+  default     = null
   description = "SSH public key local path for compute instances."
 }
 
 variable "storage_cluster_public_key_path" {
   type        = string
+  nullable    = true
+  default     = null
   description = "SSH public key local path for storage instances."
 }
 
-variable "credentials_file_path" {
+variable "credential_json_path" {
   type        = string
   description = "The path of a GCP service account key file in JSON format."
 }
@@ -53,7 +57,7 @@ variable "credentials_file_path" {
 variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)
   nullable    = true
-  default     = null
+  default     = ["prvn-test99881-strg-pvt-subnet-0"]
   description = "List of IDs of storage cluster private subnets."
 }
 
@@ -112,7 +116,7 @@ variable "total_storage_cluster_instances" {
   description = "Number of instances to be launched for storage instances."
 }
 
-variable "data_disks_per_instance" {
+variable "block_devices_per_storage_instance" {
   type        = number
   default     = 1
   description = "Number of data disks to be attached to each storage instance."
@@ -130,7 +134,7 @@ variable "storage_instance_tags" {
   description = "List of tags to attach to the compute instance."
 }
 
-variable "storage_machine_type" {
+variable "storage_cluster_instance_type" {
   type        = string
   default     = "n1-standard-1"
   description = "GCP instance machine type to create Spectrum Scale storage instances."
@@ -138,7 +142,7 @@ variable "storage_machine_type" {
 
 variable "storage_boot_disk_size" {
   type        = number
-  default     = 100
+  default     = 200
   description = "Storage instances boot disk size in gigabytes."
 }
 
@@ -150,7 +154,7 @@ variable "storage_boot_disk_type" {
 
 variable "storage_boot_image" {
   type        = string
-  default     = "ubuntu-os-cloud/ubuntu-1804-lts"
+  default     = "rhel-9-v20230203"
   description = "Image from which to initialize Spectrum Scale storage instances."
 }
 
@@ -160,7 +164,7 @@ variable "data_disk_type" {
   description = "GCE disk type (valid: pd-standard, pd-ssd , local-ssd)."
 }
 
-variable "data_disk_size" {
+variable "block_device_volume_size" {
   type        = string
   default     = 500
   description = "Data disk size in gigabytes."
@@ -256,4 +260,54 @@ variable "filesystem_block_size" {
   nullable    = true
   default     = null
   description = "Filesystem block size."
+}
+
+variable "create_scale_cluster" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Flag to represent whether to create scale cluster or not."
+}
+
+variable "inventory_format" {
+  type        = string
+  default     = "json"
+  description = "Specify inventory format suited for ansible playbooks."
+}
+
+variable "using_packer_image" {
+  type        = bool
+  nullable    = true
+  default     = true
+  description = "If true, gpfs rpm copy step will be skipped during the configuration."
+}
+
+variable "using_direct_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "If true, will skip the jump/bastion host configuration."
+}
+
+variable "storage_cluster_gui_username" {
+  type        = string
+  nullable    = true
+  default     = null
+  sensitive   = true
+  description = "GUI user to perform system management and monitoring tasks on storage cluster."
+}
+
+variable "storage_cluster_gui_password" {
+  type        = string
+  nullable    = true
+  default     = null
+  sensitive   = true
+  description = "Password for Storage cluster GUI"
+}
+
+variable "bastion_ssh_private_key" {
+  type        = string
+  nullable    = true
+  default     = "/root/.ssh/gcp_rsa"
+  description = "Bastion SSH private key path, which will be used to login to bastion host."
 }

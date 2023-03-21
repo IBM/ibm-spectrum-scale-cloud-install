@@ -2,24 +2,20 @@
   Creates compute and storage Google Cloud Platform(GCP) VM clusters.
 */
 
-terraform {
-  backend "gcs" {}
-}
-
 locals {
   cluster_type = (
-    (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets == null) ? "storage" :
-    (var.vpc_storage_cluster_private_subnets == null && var.vpc_compute_cluster_private_subnets != null) ? "compute" :
-    (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets != null) ? "combined" : "none"
+    (length(var.vpc_storage_cluster_private_subnets) > 0 && length(var.vpc_compute_cluster_private_subnets) == 0) ? "storage" :
+    (length(var.vpc_storage_cluster_private_subnets) == 0 && length(var.vpc_compute_cluster_private_subnets) > 0) ? "compute" :
+    (length(var.vpc_storage_cluster_private_subnets) > 0 && length(var.vpc_compute_cluster_private_subnets) > 0) ? "combined" : "none"
   )
 
   cluster_comp_stg_vm_tags = concat(var.compute_instance_tags, var.storage_instance_tags)
 
   security_rule_description_bastion = ["Allow ICMP traffic from bastion to scale instances",
-  "Allow SSH traffic from bastion to scale instances"]
+  "Allow SSH traffic from bastion to scale instances","Allow SSH traffic from bastion to scale instances"]
 
-  traffic_protocol_bastion = ["icmp", "TCP"]
-  traffic_port_bastion     = [-1, 22]
+  traffic_protocol_bastion = ["icmp", "TCP", "TCP"]
+  traffic_port_bastion     = [-1, 22, 65535]
 
   security_rule_description_cluster_ingress = [
     "Allow ICMP traffic within scale instances",
@@ -65,7 +61,7 @@ module "allow_traffic_bastion_to_scale_cluster" {
   count                = length(local.traffic_protocol_bastion)
   turn_on_ingress      = local.cluster_type != "none" ? true : false
   firewall_name_prefix = "${var.resource_prefix}-bastion-${count.index}"
-  vpc_name             = var.vpc_name
+  vpc_name             = var.vpc_id
   source_vm_tags       = var.bastion_instance_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_bastion[count.index]
@@ -77,7 +73,7 @@ module "allow_traffic_compute_instances_internal" {
   source               = "../../../resources/gcp/security/allow_internal"
   turn_on              = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
   firewall_name_prefix = "${var.resource_prefix}-compute"
-  vpc_name             = var.vpc_name
+  vpc_name             = var.vpc_id
   subnet_cidr_range    = var.compute_subnet_cidrs
   vm_tags              = local.cluster_comp_stg_vm_tags
 }
@@ -86,17 +82,18 @@ module "allow_traffic_storage_instances_internal" {
   source               = "../../../resources/gcp/security/allow_internal"
   turn_on              = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   firewall_name_prefix = "${var.resource_prefix}-storage"
-  vpc_name             = var.vpc_name
+  vpc_name             = var.vpc_id
   subnet_cidr_range    = var.storage_subnet_cidrs
   vm_tags              = local.cluster_comp_stg_vm_tags
 }
+
 
 module "allow_traffic_scale_cluster" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   count                = length(local.traffic_protocol_cluster_ingress)
   turn_on_ingress      = local.cluster_type != "none" ? true : false
   firewall_name_prefix = "${var.resource_prefix}-scale-cluster-${count.index}"
-  vpc_name             = var.vpc_name
+  vpc_name             = var.vpc_id
   source_vm_tags       = local.cluster_comp_stg_vm_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_cluster_ingress[count.index]
@@ -109,7 +106,7 @@ module "allow_traffic_scale_cluster_egress" {
   count                = length(local.traffic_protocol_egress)
   turn_on_egress       = local.cluster_type != "none" ? true : false
   firewall_name_prefix = "${var.resource_prefix}-cluster-${count.index}"
-  vpc_name             = var.vpc_name
+  vpc_name             = var.vpc_id
   source_vm_tags       = local.cluster_comp_stg_vm_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_egress[count.index]
@@ -137,9 +134,8 @@ module "compute_cluster_instances" {
   boot_disk_size                = var.compute_boot_disk_size
   boot_disk_type                = var.compute_boot_disk_type
   boot_image                    = var.compute_boot_image
-  data_disk_type                = var.data_disk_type
-  data_disk_size                = var.data_disk_size
 }
+
 
 module "storage_cluster_tie_breaker_instance" {
   count                         = local.cluster_type == "storage" || local.cluster_type == "combined" ? length(var.vpc_storage_cluster_private_subnets) > 1 ? (length(var.vpc_availability_zones) > 2 ? 1 : 0) : 0 : 0
@@ -148,7 +144,7 @@ module "storage_cluster_tie_breaker_instance" {
   instances_ssh_public_key_path = var.storage_cluster_public_key_path
   instances_ssh_user_name       = var.instances_ssh_user_name
   total_cluster_instances       = 1
-  total_data_disks              = var.data_disks_per_instance
+  total_data_disks              = var.block_devices_per_storage_instance
   instance_name_prefix          = format("%s-storage-tie", var.resource_prefix)
   machine_type                  = var.compute_machine_type
   subnet_name                   = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : [] : []
@@ -161,7 +157,7 @@ module "storage_cluster_tie_breaker_instance" {
   boot_disk_type                = var.storage_boot_disk_type
   boot_image                    = var.storage_boot_image
   data_disk_type                = var.data_disk_type
-  data_disk_size                = var.data_disk_size
+  data_disk_size                = var.block_device_volume_size
 }
 
 #Creates storage instances
@@ -172,9 +168,9 @@ module "storage_cluster_instances" {
   instances_ssh_public_key_path = var.storage_cluster_public_key_path
   instances_ssh_user_name       = var.instances_ssh_user_name
   total_cluster_instances       = var.total_storage_cluster_instances
-  total_data_disks              = var.data_disks_per_instance
-  instance_name_prefix          = var.storage_instance_name_prefix
-  machine_type                  = var.storage_machine_type
+  total_data_disks              = var.block_devices_per_storage_instance
+  instance_name_prefix          = format("%s-storage", var.resource_prefix)
+  machine_type                  = var.storage_cluster_instance_type
   subnet_name                   = var.vpc_storage_cluster_private_subnets
   private_key_content           = module.generate_storage_cluster_keys.private_key_content
   public_key_content            = module.generate_storage_cluster_keys.public_key_content
@@ -185,7 +181,7 @@ module "storage_cluster_instances" {
   boot_disk_type                = var.storage_boot_disk_type
   boot_image                    = var.storage_boot_image
   data_disk_type                = var.data_disk_type
-  data_disk_size                = var.data_disk_size
+  data_disk_size                = var.block_device_volume_size
 }
 
 module "prepare_ansible_configuration" {
@@ -284,4 +280,32 @@ module "write_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance[*].instance_ips)
   storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(module.storage_cluster_tie_breaker_instance[0].disk_device_mapping) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(module.storage_cluster_tie_breaker_instance[0].dns_hostname) : jsonencode({})
+}
+
+
+# Configure the storage cluster using ansible based on the create_scale_cluster input.
+module "storage_cluster_configuration" {
+  source                       = "../../../resources/common/storage_configuration"
+  turn_on                      = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
+  clone_complete               = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
+  create_scale_cluster         = var.create_scale_cluster
+  clone_path                   = var.scale_ansible_repo_clone_path
+  inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image           = var.using_packer_image
+  using_direct_connection      = var.using_direct_connection
+  using_rest_initialization    = true
+  storage_cluster_gui_username = var.storage_cluster_gui_username
+  storage_cluster_gui_password = var.storage_cluster_gui_password
+  memory_size                  = 5
+  max_pagepool_gb              = 16
+  vcpu_count                   = 2
+  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
+  bastion_instance_public_ip   = var.bastion_instance_public_ip
+  bastion_ssh_private_key      = var.bastion_ssh_private_key
+  meta_private_key             = module.generate_storage_cluster_keys.private_key_content
+  scale_version                = local.scale_version
+  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  depends_on = [module.storage_cluster_instances]
 }

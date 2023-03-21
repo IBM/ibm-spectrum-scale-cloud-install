@@ -5,10 +5,10 @@ variable "vpc_region" {
   description = "GCP region where the resources will be created."
 }
 
-variable "vpc_name" {
+variable "vpc_id" {
   type        = string
   default     = "spectrum-scale-vpc"
-  description = "GCP VPC name"
+  description = "GCP VPC name or id"
 }
 
 variable "resource_prefix" {
@@ -17,21 +17,21 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
-variable "gcp_project_id" {
+variable "project_id" {
   type        = string
   nullable    = true
   default     = null
   description = "GCP project ID to manage resources."
 }
 
-variable "credentials_file_path" {
+variable "credential_json_path" {
   type        = string
   description = "The path of a GCP service account key file in JSON format."
 }
 
-variable "public_subnet_name" {
-  type        = string
-  default     = "spectrum-scale-public-subnet-0"
+variable "vpc_auto_scaling_group_subnets" {
+  type        = list(string)
+  default     = ["spectrum-scale-public-subnet-0"]
   description = "Public subnet name to attach the bastion interface."
 }
 

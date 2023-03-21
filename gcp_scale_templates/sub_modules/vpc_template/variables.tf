@@ -11,14 +11,14 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
-variable "gcp_project_id" {
+variable "project_id" {
   type        = string
   nullable    = true
   default     = null
   description = "GCP project ID to manage resources."
 }
 
-variable "credentials_file_path" {
+variable "credential_json_path" {
   type        = string
   description = "The path of a GCP service account key file in JSON format."
 }
