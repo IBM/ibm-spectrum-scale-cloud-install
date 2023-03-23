@@ -61,7 +61,7 @@ module "allow_traffic_bastion_to_scale_cluster" {
   count                = length(local.traffic_protocol_bastion)
   turn_on_ingress      = local.cluster_type != "none" ? true : false
   firewall_name_prefix = "${var.resource_prefix}-bastion-${count.index}"
-  vpc_name             = var.vpc_id
+  vpc_name             = var.vpc_name
   source_vm_tags       = var.bastion_instance_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_bastion[count.index]
@@ -73,7 +73,7 @@ module "allow_traffic_compute_instances_internal" {
   source               = "../../../resources/gcp/security/allow_internal"
   turn_on              = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
   firewall_name_prefix = "${var.resource_prefix}-compute"
-  vpc_name             = var.vpc_id
+  vpc_name             = var.vpc_name
   subnet_cidr_range    = var.compute_subnet_cidrs
   vm_tags              = local.cluster_comp_stg_vm_tags
 }
@@ -82,7 +82,7 @@ module "allow_traffic_storage_instances_internal" {
   source               = "../../../resources/gcp/security/allow_internal"
   turn_on              = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   firewall_name_prefix = "${var.resource_prefix}-storage"
-  vpc_name             = var.vpc_id
+  vpc_name             = var.vpc_name
   subnet_cidr_range    = var.storage_subnet_cidrs
   vm_tags              = local.cluster_comp_stg_vm_tags
 }
@@ -93,7 +93,7 @@ module "allow_traffic_scale_cluster" {
   count                = length(local.traffic_protocol_cluster_ingress)
   turn_on_ingress      = local.cluster_type != "none" ? true : false
   firewall_name_prefix = "${var.resource_prefix}-scale-cluster-${count.index}"
-  vpc_name             = var.vpc_id
+  vpc_name             = var.vpc_name
   source_vm_tags       = local.cluster_comp_stg_vm_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_cluster_ingress[count.index]
@@ -106,7 +106,7 @@ module "allow_traffic_scale_cluster_egress" {
   count                = length(local.traffic_protocol_egress)
   turn_on_egress       = local.cluster_type != "none" ? true : false
   firewall_name_prefix = "${var.resource_prefix}-cluster-${count.index}"
-  vpc_name             = var.vpc_id
+  vpc_name             = var.vpc_name
   source_vm_tags       = local.cluster_comp_stg_vm_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_egress[count.index]

@@ -6,7 +6,7 @@ module "bastion_firewall" {
   source               = "../../../resources/gcp/network/firewall/allow_bastion/"
   source_range         = var.bastion_source_range
   firewall_name_prefix = var.resource_prefix
-  vpc_name             = var.vpc_id
+  vpc_name             = var.vpc_name
 }
 
 module "bastion_instance" {

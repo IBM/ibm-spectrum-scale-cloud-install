@@ -10,7 +10,7 @@ variable "vpc_region" {
   description = "GCP region where the resources will be created."
 }
 
-variable "vpc_id" {
+variable "vpc_name" {
   type        = string
   default     = "spectrum-scale-vpc"
   description = "GCP VPC name."
