@@ -49,7 +49,7 @@ variable "image_description" {
   description = "The description to set for the resulting image."
 }
 
-variable "machine_type" {
+variable "instance_type" {
   type        = string
   default     = "n1-standard-2"
   description = "The GCP VM machine type to use while building the image."

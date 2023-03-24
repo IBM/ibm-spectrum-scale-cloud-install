@@ -10,6 +10,7 @@ module "bastion_firewall" {
 }
 
 module "bastion_instance" {
+  count            = length(var.vpc_auto_scaling_group_subnets)
   source           = "../../../resources/gcp/compute/bastion_instance/"
   zone             = var.bastion_zone
   machine_type     = var.bastion_machine_type
@@ -19,7 +20,7 @@ module "bastion_instance" {
   boot_image       = var.bastion_boot_image
   network_tier     = var.bastion_network_tier
   vm_instance_tags = var.bastion_instance_tags
-  subnet_name      = var.public_subnet_name
+  subnet_name      = var.vpc_auto_scaling_group_subnets[count.index]
   ssh_user_name    = var.bastion_ssh_user_name
   ssh_key_path     = var.bastion_ssh_key_path
 }

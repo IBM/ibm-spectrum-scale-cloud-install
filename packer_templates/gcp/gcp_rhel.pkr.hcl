@@ -5,7 +5,7 @@ source "googlecompute" "itself" {
   source_image          = var.source_image_reference
   image_name            = "${var.resource_prefix}-{{timestamp}}"
   image_description     = var.image_description
-  machine_type          = var.machine_type
+  machine_type          = var.instance_type
   project_id            = var.project_id
   region                = var.vpc_region
   source_image_family   = var.source_image_family

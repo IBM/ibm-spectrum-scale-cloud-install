@@ -37,9 +37,9 @@ output "vpc_name" {
 }
 
 output "vpc_id" {
-  value = google_compute_network.itself[*].id
+  value =  try(google_compute_network.itself[0].id, null)
 }
 
 output "vpc_uri" {
-  value = google_compute_network.itself[*].self_link
+  value =  try(google_compute_network.itself[0].self_link, null)
 }
