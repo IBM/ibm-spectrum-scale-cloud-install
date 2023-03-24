@@ -11,13 +11,13 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
     Minimal Example-1:
-    
+
     ```cli
     cat <<EOF > combined_1az.auto.tfvars.json
     {
          "vpc_region": "us-central1",
-         "gcp_project_id": "spectrum-scale-XXXXXX",
-         "credentials_file_path": "/home/gcp_data/spectrum-scale.json",
+         "project_id": "spectrum-scale-XXXXXX",
+         "credential_json_path": "/home/gcp_data/spectrum-scale.json",
          "vpc_cidr_block": "10.0.0.0/16",
          "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
          "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"],
@@ -32,8 +32,8 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     cat <<EOF > combined_3az.auto.tfvars.json
     {
         "vpc_region": "us-central1",
-        "gcp_project_id": "spectrum-scale-XXXXXX",
-        "credentials_file_path": "/home/gcp_data/spectrum-scale.json",
+        "project_id": "spectrum-scale-XXXXXX",
+        "credential_json_path": "/home/gcp_data/spectrum-scale.json",
         "vpc_cidr_block": "10.0.0.0/16",
         "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
         "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"],
@@ -48,8 +48,8 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     cat <<EOF > compute_1az.auto.tfvars.json
     {
         "vpc_region": "us-central1",
-        "gcp_project_id": "spectrum-scale-XXXXXX",
-        "credentials_file_path": "/home/gcp_data/spectrum-scale.json",
+        "project_id": "spectrum-scale-XXXXXX",
+        "credential_json_path": "/home/gcp_data/spectrum-scale.json",
         "vpc_cidr_block": "10.0.0.0/16",
         "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
         "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"]
@@ -63,8 +63,8 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     cat <<EOF > compute_3az.auto.tfvars.json
     {
         "vpc_region": "us-central1",
-        "gcp_project_id": "spectrum-scale-XXXXXX",
-        "credentials_file_path": "/home/gcp_data/spectrum-scale.json" ,
+        "project_id": "spectrum-scale-XXXXXX",
+        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
         "vpc_cidr_block": "10.0.0.0/16",
         "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
         "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
@@ -78,8 +78,8 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     cat <<EOF > storage_1az.auto.tfvars.json
     {
         "vpc_region": "us-central1",
-        "gcp_project_id": "spectrum-scale-XXXXXX",
-        "credentials_file_path": "/home/gcp_data/spectrum-scale.json" ,
+        "project_id": "spectrum-scale-XXXXXX",
+        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
         "vpc_cidr_block": "10.0.0.0/16",
         "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
         "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"]
@@ -93,8 +93,8 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     cat <<EOF > storage_3az.auto.tfvars.json
     {
         "vpc_region": "us-central1",
-        "gcp_project_id": "spectrum-scale-XXXXXX",
-        "credentials_file_path": "/home/gcp_data/spectrum-scale.json" ,
+        "project_id": "spectrum-scale-XXXXXX",
+        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
         "vpc_cidr_block": "10.0.0.0/16",
         "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
         "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
@@ -116,8 +116,8 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 
 | Name | Description | Type |
 |------|-------------|------|
-| <a name="input_credentials_file_path"></a> [credentials_file_path](#input_credentials_file_path) | The path of a GCP service account key file in JSON format. | `string` |
-| <a name="input_gcp_project_id"></a> [gcp_project_id](#input_gcp_project_id) | GCP project ID to manage resources. | `string` |
+| <a name="input_credential_json_path"></a> [credential_json_path](#input_credential_json_path) | The path of a GCP service account key file in JSON format. | `string` |
+| <a name="input_project_id"></a> [project_id](#input_project_id) | GCP project ID to manage resources. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the VPC. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of compute private subnets. | `list(string)` |

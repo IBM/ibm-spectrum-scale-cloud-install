@@ -76,7 +76,3 @@ module "storage_cloud_nat" {
   router_name       = module.router.router_name
   private_subnet_id = module.storage_private_subnet.subnet_id
 }
-
-output "cluster_type" {
-  value = local.cluster_type
-}
