@@ -15,7 +15,6 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     ```cli
     cat <<EOF > combined_1az.auto.tfvars.json
     {
-         "resource_prefix": "scale-cluster",
          "vpc_region": "us-central1",
          "project_id": "spectrum-scale-XXXXXX",
          "credential_json_path": "/home/gcp_data/spectrum-scale.json",
@@ -32,7 +31,6 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     ```cli
     cat <<EOF > combined_3az.auto.tfvars.json
     {
-        "resource_prefix": "scale-cluster",
         "vpc_region": "us-central1",
         "project_id": "spectrum-scale-XXXXXX",
         "credential_json_path": "/home/gcp_data/spectrum-scale.json",
@@ -49,7 +47,6 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     ```cli
     cat <<EOF > compute_1az.auto.tfvars.json
     {
-        "resource_prefix": "scale-cluster",
         "vpc_region": "us-central1",
         "project_id": "spectrum-scale-XXXXXX",
         "credential_json_path": "/home/gcp_data/spectrum-scale.json",
@@ -65,7 +62,6 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     ```cli
     cat <<EOF > compute_3az.auto.tfvars.json
     {
-        "resource_prefix": "scale-cluster",
         "vpc_region": "us-central1",
         "project_id": "spectrum-scale-XXXXXX",
         "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
@@ -81,7 +77,6 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     ```cli
     cat <<EOF > storage_1az.auto.tfvars.json
     {
-        "resource_prefix": "scale-cluster",
         "vpc_region": "us-central1",
         "project_id": "spectrum-scale-XXXXXX",
         "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
@@ -97,7 +92,6 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     ```cli
     cat <<EOF > storage_3az.auto.tfvars.json
     {
-        "resource_prefix": "scale-cluster",
         "vpc_region": "us-central1",
         "project_id": "spectrum-scale-XXXXXX",
         "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
