@@ -11,7 +11,6 @@ source "googlecompute" "itself" {
   source_image_family   = var.source_image_family
   ssh_username          = var.os_login_username
   zone                  = var.vpc_zone
-  tags                  = var.tags
   network               = var.vpc_id
   subnetwork            = var.vpc_subnet_id
   service_account_email = var.service_account_email

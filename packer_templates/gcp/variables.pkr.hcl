@@ -32,12 +32,6 @@ variable "vpc_subnet_id" {
   description = "The vpc subnetwork id or URL to use for the launched instance."
 }
 
-variable "tags" {
-  type        = list(string)
-  default     = ["packer-vm"]
-  description = "The network tags to apply firewall rules to packer VM instance."
-}
-
 variable "resource_prefix" {
   type        = string
   description = "The name of the resulting image. To make this unique, timestamp will be appended."
