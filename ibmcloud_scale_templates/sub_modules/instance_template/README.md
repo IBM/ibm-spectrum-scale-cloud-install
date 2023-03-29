@@ -53,7 +53,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.44.2 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.49.0 |
 
 #### Inputs
 

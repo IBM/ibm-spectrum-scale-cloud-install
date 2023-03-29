@@ -119,7 +119,7 @@ module "bastion_egress_security_rule" {
 module "bastion_autoscaling_launch_template" {
   source                      = "../../../resources/aws/asg/launch_template"
   launch_template_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-tmpl")
-  image_id                    = var.bastion_ami_id
+  image_id                    = var.bastion_image_ref
   instance_type               = var.bastion_instance_type
   instance_iam_profile        = module.bastion_instance_iam_profile.iam_instance_profile_name
   key_name                    = var.bastion_key_pair

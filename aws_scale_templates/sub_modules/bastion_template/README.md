@@ -38,7 +38,7 @@ The below steps will provision the AWS Bastion instance required for the IBM Spe
 
 | Name | Description | Type |
 |------|-------------|------|
-| <a name="input_bastion_ami_id"></a> [bastion_ami_id](#input_bastion_ami_id) | Bastion AMI Image id. | `string` |
+| <a name="input_bastion_image_ref"></a> [bastion_image_ref](#input_bastion_image_ref) | Bastion AMI Image id. | `string` |
 | <a name="input_bastion_key_pair"></a> [bastion_key_pair](#input_bastion_key_pair) | The key pair to use to launch the bastion host. | `string` |
 | <a name="input_vpc_auto_scaling_group_subnets"></a> [vpc_auto_scaling_group_subnets](#input_vpc_auto_scaling_group_subnets) | List of subnet were the Auto Scalling Group will deploy the instances. | `list(string)` |
 | <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC id were to deploy the bastion. | `string` |

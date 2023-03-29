@@ -1,7 +1,9 @@
-output "bastion_instance_public_ip" {
-  value = module.bastion_instance[*].bastion_public_ip
+output "bastion_firewall_id" {
+  value       = module.bastion_firewall.firewall_id
+  description = "Bastion firewall id."
 }
 
-output "bastion_instance_private_ip" {
-  value = module.bastion_instance[*].bastion_private_ip
+output "bastion_firewall_name" {
+  value       = module.bastion_firewall.firewall_name
+  description = "Bastion firewall name."
 }
