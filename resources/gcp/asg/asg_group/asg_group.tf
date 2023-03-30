@@ -12,4 +12,15 @@ resource "google_compute_instance_group_manager" "itself" {
   zone = var.vpc_zone
 
   target_size = var.asg_desired_size
+  wait_for_instances = true
+}
+
+data "google_compute_instance_group" "cig_data" {
+    name = resource.google_compute_instance_group_manager.itself.name
+    zone = var.vpc_zone
+}
+
+output "instances" {
+  value       = tolist(data.google_compute_instance_group.cig_data.instances)
+  description = "Instance names."
 }
