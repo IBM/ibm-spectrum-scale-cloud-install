@@ -28,7 +28,7 @@ variable "remote_cidr_blocks" {
   description = "List of CIDRs that can access to the bastion. Default : 0.0.0.0/0"
 }
 
-variable "bastion_ami_id" {
+variable "bastion_image_ref" {
   type        = string
   description = "Bastion AMI Image id."
 }

@@ -35,27 +35,15 @@ variable "vpc_auto_scaling_group_subnets" {
   description = "Public subnet name to attach the bastion interface."
 }
 
-variable "bastion_zone" {
+variable "vpc_zone" {
   type        = string
   description = "Zone in which bastion machine should be created."
 }
 
-variable "bastion_machine_type" {
+variable "bastion_instance_type" {
   type        = string
   default     = "n1-standard-1"
   description = "GCP instance machine type to create bastion instance."
-}
-
-variable "bastion_instance_name_prefix" {
-  type        = string
-  default     = "bastion"
-  description = "Bastion instance name prefix (Rules: 1-63 characters long, comply with RFC1035 and match regex [a-z]([-a-z0-9]*[a-z0-9])?"
-}
-
-variable "bastion_instance_tags" {
-  type        = list(string)
-  default     = ["spectrum-scale-bastion"]
-  description = "List of tags to attach to the bastion instance."
 }
 
 variable "bastion_boot_disk_size" {
@@ -70,7 +58,7 @@ variable "bastion_boot_disk_type" {
   description = "GCE disk type (valid: pd-standard, pd-ssd)."
 }
 
-variable "bastion_boot_image" {
+variable "bastion_image_ref" {
   type        = string
   default     = "ubuntu-os-cloud/ubuntu-1804-lts"
   description = "Image from which to initialize bastion instance."
@@ -93,7 +81,7 @@ variable "bastion_ssh_key_path" {
   description = "SSH public key local path, will be used to login bastion instance."
 }
 
-variable "bastion_source_range" {
+variable "remote_cidr_blocks" {
   type        = list(string)
   default     = ["0.0.0.0/0"]
   description = "Firewall will allow only to traffic that has source IP address in these ranges."

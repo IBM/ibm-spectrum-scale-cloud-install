@@ -4,23 +4,28 @@
 
 module "bastion_firewall" {
   source               = "../../../resources/gcp/network/firewall/allow_bastion/"
-  source_range         = var.bastion_source_range
+  source_range         = var.remote_cidr_blocks
   firewall_name_prefix = var.resource_prefix
   vpc_name             = var.vpc_name
 }
 
-module "bastion_instance" {
-  count            = length(var.vpc_auto_scaling_group_subnets)
-  source           = "../../../resources/gcp/compute/bastion_instance/"
-  zone             = var.bastion_zone
-  machine_type     = var.bastion_machine_type
-  instance_name    = "${var.resource_prefix}-${var.bastion_instance_name_prefix}"
-  boot_disk_size   = var.bastion_boot_disk_size
-  boot_disk_type   = var.bastion_boot_disk_type
-  boot_image       = var.bastion_boot_image
-  network_tier     = var.bastion_network_tier
-  vm_instance_tags = var.bastion_instance_tags
-  subnet_name      = var.vpc_auto_scaling_group_subnets[count.index]
-  ssh_user_name    = var.bastion_ssh_user_name
-  ssh_key_path     = var.bastion_ssh_key_path
+module "bastion_autoscaling_launch_template" {
+  source                      = "../../../resources/gcp/asg/launch_template"
+  launch_template_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-tmpl")
+  image_id                    = var.bastion_image_ref
+  boot_disk_size              = var.bastion_boot_disk_size
+  boot_disk_type              = var.bastion_boot_disk_type
+  instance_type               = var.bastion_instance_type
+  subnetwork_name             = var.vpc_auto_scaling_group_subnets[0]
+  network_tier                = var.bastion_network_tier
+  ssh_user_name               = var.bastion_ssh_user_name
+  ssh_key_path                = var.bastion_ssh_key_path
+}
+
+module "bastion_autoscaling_group" {
+  source            = "../../../resources/gcp/asg/asg_group"
+  asg_name_prefix   = format("%s-%s", var.resource_prefix, "bastion-asg")
+  vpc_zone          = var.vpc_zone
+  asg_desired_size  = 1
+  instance_template = module.bastion_autoscaling_launch_template.asg_launch_template_self_link
 }
