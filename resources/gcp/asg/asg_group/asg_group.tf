@@ -3,6 +3,9 @@ variable "vpc_zone" {}
 variable "asg_desired_size" {}
 variable "instance_template" {}
 
+// Note: google_compute_region_instance_group_manager can be used to balance the instances across
+// availability zones, but lacks data block to fetch the instances. Hence using google_compute_instance_group_manager
+// which spreads within a single zone
 resource "google_compute_instance_group_manager" "itself" {
   name               = var.asg_name_prefix
   base_instance_name = var.asg_name_prefix
@@ -16,8 +19,8 @@ resource "google_compute_instance_group_manager" "itself" {
 }
 
 data "google_compute_instance_group" "cig_data" {
-    name = resource.google_compute_instance_group_manager.itself.name
-    zone = var.vpc_zone
+  name = resource.google_compute_instance_group_manager.itself.name
+  zone = var.vpc_zone
 }
 
 output "instances" {

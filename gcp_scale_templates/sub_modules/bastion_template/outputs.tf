@@ -20,12 +20,12 @@ output "bastion_instance_id" {
 
 output "bastion_instance_private_ip" {
   value       = data.google_compute_instance.bastion_metadata[*].network_interface.0.network_ip
-  description = "Bastion instance ips."
+  description = "Bastion instance private ips."
   depends_on  = [data.google_compute_instance.bastion_metadata]
 }
 
 output "bastion_instance_public_ip" {
   value       = data.google_compute_instance.bastion_metadata[*].network_interface.0.access_config.0.nat_ip
-  description = "Bastion instance ips."
+  description = "Bastion instance public ips."
   depends_on  = [data.google_compute_instance.bastion_metadata]
 }
