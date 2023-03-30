@@ -46,6 +46,12 @@ variable "bastion_instance_type" {
   description = "GCP instance machine type to create bastion instance."
 }
 
+variable "desired_instance_count" {
+  type        = number
+  default     = 1
+  description = "Bastion instance desired count."
+}
+
 variable "bastion_boot_disk_size" {
   type        = number
   default     = 100
