@@ -27,3 +27,4 @@ output "instances" {
   value       = tolist(data.google_compute_instance_group.cig_data.instances)
   description = "Instance names."
 }
+

@@ -29,3 +29,4 @@ output "bastion_instance_public_ip" {
   description = "Bastion instance public ips."
   depends_on  = [data.google_compute_instance.bastion_metadata]
 }
+

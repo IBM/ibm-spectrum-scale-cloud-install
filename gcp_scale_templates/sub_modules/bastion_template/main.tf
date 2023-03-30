@@ -31,10 +31,11 @@ module "bastion_autoscaling_group" {
 }
 
 //Note: module.bastion_autoscaling_group.instances returns instances url which is not vaild to use neither
-// as instance id nor as instance name. Hence needed to apply trimsuffix operation to extract instance name
+//as instance id nor as instance name. Hence needed to apply trimsuffix operation to extract instance name
 data "google_compute_instance" "bastion_metadata" {
   count      = var.desired_instance_count
   name       = ([for instance in module.bastion_autoscaling_group.instances : trimsuffix(element(split("/",instance),10),"\"")])[count.index]
   zone       = var.vpc_zone
   depends_on = [module.bastion_autoscaling_group]
 }
+
