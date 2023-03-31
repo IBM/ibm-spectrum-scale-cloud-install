@@ -8,6 +8,10 @@ variable "network_tier" {}
 variable "ssh_user_name" {}
 variable "ssh_key_path" {}
 
+data "local_sensitive_file" "itself" {
+  filename = var.ssh_key_path
+}
+
 resource "google_compute_instance_template" "itself" {
   name_prefix  = var.launch_template_name_prefix
   machine_type = var.instance_type
@@ -24,10 +28,9 @@ resource "google_compute_instance_template" "itself" {
     }
   }
   metadata = {
-    ssh-keys               = format("%s:%s", var.ssh_user_name, file(var.ssh_key_path))
+    ssh-keys               = format("%s:%s", var.ssh_user_name, data.local_sensitive_file.itself.content)
     block-project-ssh-keys = true
   }
-  tags = [var.launch_template_name_prefix]
 }
 
 output "asg_launch_template_self_link" {

@@ -28,7 +28,7 @@ variable "subnet_cidr_range" {}
 variable "turn_on" {}
 
 #tfsec:ignore:google-compute-enable-vpc-flow-logs
-resource "google_compute_subnetwork" "subnet" {
+resource "google_compute_subnetwork" "itself" {
   count                    = var.turn_on == true ? length(var.subnet_cidr_range) : 0
   name                     = format("%s-subnet-%s", var.subnet_name_prefix, count.index)
   network                  = var.vpc_name
@@ -40,17 +40,17 @@ resource "google_compute_subnetwork" "subnet" {
 
 output "subnet_name" {
   value      = format("%s-subnet", var.subnet_name_prefix)
-  depends_on = [google_compute_subnetwork.subnet]
+  depends_on = [google_compute_subnetwork.itself]
 }
 
 output "subnet_id" {
-  value = google_compute_subnetwork.subnet[*].id
+  value = google_compute_subnetwork.itself[*].id
 }
 
 output "subnet_gateway_address" {
-  value = google_compute_subnetwork.subnet[*].gateway_address
+  value = google_compute_subnetwork.itself[*].gateway_address
 }
 
 output "subnet_uri" {
-  value = google_compute_subnetwork.subnet[*].self_link
+  value = google_compute_subnetwork.itself[*].self_link
 }

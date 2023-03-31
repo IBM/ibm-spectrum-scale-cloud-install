@@ -84,7 +84,7 @@ module "bastion_security_group" {
   turn_on               = true
   sec_group_name        = [format("%s-%s", var.resource_prefix, "bastion-sg")]
   sec_group_description = ["Enable SSH access to the bastion host from external via SSH port"]
-  vpc_id                = var.vpc_id
+  vpc_id                = var.vpc_ref
   sec_group_tag         = ["bastion-sec-group"]
 }
 

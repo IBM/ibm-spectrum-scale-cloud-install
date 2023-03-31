@@ -6,7 +6,8 @@ module "bastion_firewall" {
   source               = "../../../resources/gcp/network/firewall/allow_bastion/"
   source_range         = var.remote_cidr_blocks
   firewall_name_prefix = var.resource_prefix
-  vpc_name             = var.vpc_name
+  traffic_port         = var.bastion_public_ssh_port
+  vpc_name             = var.vpc_ref
 }
 
 module "bastion_autoscaling_launch_template" {
@@ -25,17 +26,16 @@ module "bastion_autoscaling_launch_template" {
 module "bastion_autoscaling_group" {
   source            = "../../../resources/gcp/asg/asg_group"
   asg_name_prefix   = format("%s-%s", var.resource_prefix, "bastion-asg")
-  vpc_zone          = var.vpc_zone
+  vpc_zone          = var.vpc_availability_zones[0]
   asg_desired_size  = var.desired_instance_count
   instance_template = module.bastion_autoscaling_launch_template.asg_launch_template_self_link
 }
 
-//Note: module.bastion_autoscaling_group.instances returns instances url which is not vaild to use neither
-//as instance id nor as instance name. Hence needed to apply trimsuffix operation to extract instance name
-data "google_compute_instance" "bastion_metadata" {
+# Note: module.bastion_autoscaling_group.instances returns instances url which is not vaild to use neither
+# as instance id nor as instance name. Hence needed to apply trimsuffix operation to extract instance name
+data "google_compute_instance" "itself" {
   count      = var.desired_instance_count
-  name       = ([for instance in module.bastion_autoscaling_group.instances : trimsuffix(element(split("/",instance),10),"\"")])[count.index]
-  zone       = var.vpc_zone
+  name       = ([for instance in module.bastion_autoscaling_group.instances : trimsuffix(element(split("/", instance), 10), "\"")])[count.index]
+  zone       = var.vpc_availability_zones[0]
   depends_on = [module.bastion_autoscaling_group]
 }
-

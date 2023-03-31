@@ -3,7 +3,7 @@ output "cluster_type" {
   description = "Cluster type (Ex: storage, compute, combined)"
 }
 
-output "vpc_id" {
+output "vpc_ref" {
   value       = module.vpc.vpc_id
   description = "The ID of the VPC."
 }

@@ -99,7 +99,7 @@ module "compute_cluster_security_group" {
   turn_on               = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
   sec_group_name        = ["compute-sec-group-"]
   sec_group_description = ["Enable SSH access to the compute cluster hosts"]
-  vpc_id                = var.vpc_id
+  vpc_id                = var.vpc_ref
   sec_group_tag         = ["compute-sec-group"]
 }
 
@@ -178,7 +178,7 @@ module "storage_cluster_security_group" {
   turn_on               = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   sec_group_name        = ["storage-sec-group-"]
   sec_group_description = ["Enable SSH access to the storage cluster hosts"]
-  vpc_id                = var.vpc_id
+  vpc_id                = var.vpc_ref
   sec_group_tag         = ["storage-sec-group"]
 }
 
