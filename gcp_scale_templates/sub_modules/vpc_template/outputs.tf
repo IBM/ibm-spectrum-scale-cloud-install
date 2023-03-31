@@ -1,11 +1,6 @@
-output "vpc_name" {
-  value       = module.vpc.vpc_name
+output "vpc_ref" {
+  value       = module.vpc.vpc_self_link
   description = "VPC name."
-}
-
-output "vpc_id" {
-  value       = module.vpc.vpc_id
-  description = "The ID of the VPC."
 }
 
 output "cluster_type" {

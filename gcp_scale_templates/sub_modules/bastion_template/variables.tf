@@ -5,7 +5,7 @@ variable "vpc_region" {
   description = "GCP region where the resources will be created."
 }
 
-variable "vpc_name" {
+variable "vpc_ref" {
   type        = string
   default     = "spectrum-scale-vpc"
   description = "GCP VPC name"
@@ -35,8 +35,8 @@ variable "vpc_auto_scaling_group_subnets" {
   description = "Public subnet name to attach the bastion interface."
 }
 
-variable "vpc_zone" {
-  type        = string
+variable "vpc_availability_zones" {
+  type        = list(string)
   description = "Zone in which bastion machine should be created."
 }
 
@@ -82,8 +82,15 @@ variable "bastion_ssh_user_name" {
   description = "Name of the administrator to access the bastion instance."
 }
 
+variable "bastion_public_ssh_port" {
+  type        = number
+  default     = 22
+  description = "Set the SSH port to use from desktop to the bastion."
+}
+
 variable "bastion_ssh_key_path" {
   type        = string
+  sensitive   = true
   description = "SSH public key local path, will be used to login bastion instance."
 }
 

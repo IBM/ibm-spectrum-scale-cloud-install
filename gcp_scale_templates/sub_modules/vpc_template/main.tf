@@ -27,9 +27,9 @@ module "vpc" {
 module "public_subnet" {
   source                = "../../../resources/gcp/network/subnet"
   turn_on               = var.vpc_public_subnets_cidr_blocks != null ? true : false
-  vpc_name              = module.vpc.vpc_name
+  vpc_name              = module.vpc.vpc_self_link
   subnet_name_prefix    = format("%s-%s", var.resource_prefix, "public")
-  subnet_description    = format("This public subnet belongs to %s", module.vpc.vpc_name)
+  subnet_description    = format("This public subnet belongs to %s", var.resource_prefix)
   subnet_cidr_range     = var.vpc_public_subnets_cidr_blocks
   private_google_access = false
 }
@@ -37,9 +37,9 @@ module "public_subnet" {
 module "compute_private_subnet" {
   source                = "../../../resources/gcp/network/subnet"
   turn_on               = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
-  vpc_name              = module.vpc.vpc_name
+  vpc_name              = module.vpc.vpc_self_link
   subnet_name_prefix    = format("%s-%s", var.resource_prefix, "comp-pvt")
-  subnet_description    = format("This private compute subnet belongs to %s", module.vpc.vpc_name)
+  subnet_description    = format("This private compute subnet belongs to %s", var.resource_prefix)
   subnet_cidr_range     = var.vpc_compute_cluster_private_subnets_cidr_blocks
   private_google_access = true
 }
@@ -47,9 +47,9 @@ module "compute_private_subnet" {
 module "storage_private_subnet" {
   source                = "../../../resources/gcp/network/subnet"
   turn_on               = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
-  vpc_name              = module.vpc.vpc_name
+  vpc_name              = module.vpc.vpc_self_link
   subnet_name_prefix    = format("%s-%s", var.resource_prefix, "strg-pvt")
-  subnet_description    = format("This private storage subnet belongs to %s", module.vpc.vpc_name)
+  subnet_description    = format("This private storage subnet belongs to %s", var.resource_prefix)
   subnet_cidr_range     = var.vpc_storage_cluster_private_subnets_cidr_blocks
   private_google_access = true
 }
@@ -58,7 +58,7 @@ module "router" {
   source      = "../../../resources/gcp/network/router"
   turn_on     = var.vpc_cidr_block != null ? true : false
   router_name = format("%s-%s", var.resource_prefix, "router")
-  vpc_name    = module.vpc.vpc_name
+  vpc_name    = module.vpc.vpc_self_link
 }
 
 module "compute_cloud_nat" {

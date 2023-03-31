@@ -16,7 +16,7 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
-variable "vpc_id" {
+variable "vpc_ref" {
   type        = string
   nullable    = true
   default     = null
