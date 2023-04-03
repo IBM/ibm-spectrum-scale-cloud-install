@@ -37,15 +37,11 @@ variable "instances_ssh_user_name" {
 
 variable "compute_cluster_public_key_path" {
   type        = string
-  nullable    = true
-  default     = null
   description = "SSH public key local path for compute instances."
 }
 
 variable "storage_cluster_public_key_path" {
   type        = string
-  nullable    = true
-  default     = null
   description = "SSH public key local path for storage instances."
 }
 
@@ -78,12 +74,6 @@ variable "compute_machine_type" {
   type        = string
   default     = "n1-standard-1"
   description = "GCP instance machine type to create Spectrum Scale compute instances."
-}
-
-variable "compute_instance_name_prefix" {
-  type        = string
-  default     = "compute-scale"
-  description = "Compute instance name prefix (Rules: 1-63 characters long, comply with RFC1035 and match regex [a-z]([-a-z0-9]*[a-z0-9])?"
 }
 
 variable "compute_boot_disk_size" {
@@ -120,12 +110,6 @@ variable "block_devices_per_storage_instance" {
   type        = number
   default     = 1
   description = "Number of data disks to be attached to each storage instance."
-}
-
-variable "storage_instance_name_prefix" {
-  type        = string
-  default     = "storage-scale"
-  description = "Storage instance name prefix (Rules: 1-63 characters long, comply with RFC1035 and match regex [a-z]([-a-z0-9]*[a-z0-9])?"
 }
 
 variable "storage_instance_tags" {
