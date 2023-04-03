@@ -21,6 +21,7 @@ import json
 import pathlib
 import re
 import os
+import sys
 
 # Note: Don't use socket for FQDN resolution.
 
@@ -122,7 +123,7 @@ def set_node_details(fqdn, ip_address, ansible_ssh_private_key_file,
         'is_nsd_server': is_nsd_server,
         'is_quorum_node': is_quorum_node,
         'is_manager_node': is_manager_node,
-        'is_collector_node': is_collector_node,
+        'scale_zimon_collector': is_collector_node,
         'is_gui_server': is_gui_server,
         'is_admin_node': is_admin_node,
         'scale_nodeclass': node_class,
@@ -158,11 +159,50 @@ def initialize_node_details(az_count, cls_type,
     node_details, node = [], {}
     if cls_type == 'compute':
         start_quorum_assign = quorum_count - 1
-        for each_ip in compute_private_ips:
 
-            if compute_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    compute_private_ips.index(each_ip) <= (manager_count - 1):
-                if compute_private_ips.index(each_ip) == 0:
+        compute_instances = []
+        if az_count > 1:
+            failure_group1, temp_group, failure_group2, failure_group3 = [], [], [], []
+            subnet_pattern = re.compile(
+                r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
+            subnet1A = subnet_pattern.findall(compute_private_ips[0])
+            for each_ip in compute_private_ips:
+                current_subnet = subnet_pattern.findall(each_ip)
+                if current_subnet[0] == subnet1A[0]:
+                    failure_group1.append(each_ip)
+                else:
+                    temp_group.append(each_ip)
+
+            subnet1A = subnet_pattern.findall(temp_group[0])
+            for each_ip in temp_group:
+                current_subnet = subnet_pattern.findall(each_ip)
+                if current_subnet[0] == subnet1A[0]:
+                    failure_group2.append(each_ip)
+                else:
+                    failure_group3.append(each_ip)
+
+            max_len = max(len(failure_group1), len(
+                failure_group2), len(failure_group3))
+            idx = 0
+            while idx < max_len:
+                if idx < len(failure_group1):
+                    compute_instances.append(failure_group1[idx])
+
+                if idx < len(failure_group2):
+                    compute_instances.append(failure_group2[idx])
+
+                if idx < len(failure_group3):
+                    compute_instances.append(failure_group3[idx])
+
+                idx = idx + 1
+        else:
+            compute_instances = compute_private_ips
+
+        for each_ip in compute_instances:
+
+            if compute_instances.index(each_ip) <= (start_quorum_assign) and \
+                    compute_instances.index(each_ip) <= (manager_count - 1):
+                if compute_instances.index(each_ip) == 0:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': True, 'is_collector': True, 'is_nsd': False,
@@ -181,7 +221,7 @@ def initialize_node_details(az_count, cls_type,
                                      is_nsd_server=False,
                                      is_admin_node=True)
 
-                elif compute_private_ips.index(each_ip) == 1:
+                elif compute_instances.index(each_ip) == 1:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': False, 'is_collector': True, 'is_nsd': False,
@@ -219,8 +259,8 @@ def initialize_node_details(az_count, cls_type,
                                      is_nsd_server=False,
                                      is_admin_node=False)
 
-            elif compute_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    compute_private_ips.index(each_ip) > (manager_count - 1):
+            elif compute_instances.index(each_ip) <= (start_quorum_assign) and \
+                    compute_instances.index(each_ip) > (manager_count - 1):
 
                 # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': False,

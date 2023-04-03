@@ -44,7 +44,7 @@ The following steps will provision IBM Cloud resources (new vpc, bastion, comput
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.44.2 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.49.0 |
 
 #### Inputs
 

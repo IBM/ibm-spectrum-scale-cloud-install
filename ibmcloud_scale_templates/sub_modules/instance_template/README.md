@@ -53,7 +53,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.44.2 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.49.0 |
 
 #### Inputs
 
@@ -81,6 +81,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group id. | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
+| <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Provide the username for Bastion login. | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_vsi_osimage_id"></a> [compute_vsi_osimage_id](#input_compute_vsi_osimage_id) | Image id to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_vsi_osimage_name"></a> [compute_vsi_osimage_name](#input_compute_vsi_osimage_name) | Image name to use for provisioning the compute cluster instances. | `string` |

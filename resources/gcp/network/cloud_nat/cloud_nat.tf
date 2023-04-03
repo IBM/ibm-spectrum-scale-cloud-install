@@ -20,7 +20,7 @@ variable "private_subnet_id" {
 
 variable "turn_on" {}
 
-resource "google_compute_router_nat" "nat" {
+resource "google_compute_router_nat" "itself" {
   count  = var.turn_on == true ? length(var.private_subnet_id) : 0
   name   = "${var.nat_name}-${count.index}"
   router = var.router_name
@@ -35,5 +35,5 @@ resource "google_compute_router_nat" "nat" {
 }
 
 output "cloud_nat_id" {
-  value = google_compute_router_nat.nat[*].id
+  value = google_compute_router_nat.itself[*].id
 }

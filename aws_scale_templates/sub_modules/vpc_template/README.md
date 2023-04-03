@@ -132,9 +132,9 @@ The below steps will provision the AWS VPC required for the IBM Spectrum Scale c
 | <a name="output_cluster_type"></a> [cluster_type](#output_cluster_type) | Cluster type (Ex: storage, compute, combined) |
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vpc_compute_nat_gateways"></a> [vpc_compute_nat_gateways](#output_vpc_compute_nat_gateways) | List of allocation ID of Elastic IPs created for AWS NAT Gateway. |
-| <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | The ID of the VPC. |
 | <a name="output_vpc_internet_gateway"></a> [vpc_internet_gateway](#output_vpc_internet_gateway) | The ID of the Internet Gateway. |
 | <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
+| <a name="output_vpc_ref"></a> [vpc_ref](#output_vpc_ref) | The ID of the VPC. |
 | <a name="output_vpc_s3_private_endpoint"></a> [vpc_s3_private_endpoint](#output_vpc_s3_private_endpoint) | The ID of the vpc s3 endpoint associated with private subnets. |
 | <a name="output_vpc_s3_public_endpoint"></a> [vpc_s3_public_endpoint](#output_vpc_s3_public_endpoint) | The ID of the vpc s3 endpoint associated with public subnets. |
 | <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |

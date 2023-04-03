@@ -32,12 +32,6 @@ variable "vpc_subnet_id" {
   description = "The vpc subnetwork id or URL to use for the launched instance."
 }
 
-variable "tags" {
-  type        = list(string)
-  default     = ["packer-vm"]
-  description = "The network tags to apply firewall rules to packer VM instance."
-}
-
 variable "resource_prefix" {
   type        = string
   description = "The name of the resulting image. To make this unique, timestamp will be appended."
@@ -49,7 +43,7 @@ variable "image_description" {
   description = "The description to set for the resulting image."
 }
 
-variable "machine_type" {
+variable "instance_type" {
   type        = string
   default     = "n1-standard-2"
   description = "The GCP VM machine type to use while building the image."

@@ -3,7 +3,7 @@ variable "vpc_region" {
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
 }
 
-variable "vpc_id" {
+variable "vpc_ref" {
   type        = string
   description = "VPC id were to deploy the bastion."
 }
@@ -28,7 +28,7 @@ variable "remote_cidr_blocks" {
   description = "List of CIDRs that can access to the bastion. Default : 0.0.0.0/0"
 }
 
-variable "bastion_ami_id" {
+variable "bastion_image_ref" {
   type        = string
   description = "Bastion AMI Image id."
 }

@@ -1,11 +1,11 @@
-output "vpc_name" {
-  value       = module.vpc.vpc_name
+output "vpc_ref" {
+  value       = module.vpc.vpc_self_link
   description = "VPC name."
 }
 
-output "vpc_id" {
-  value       = module.vpc.vpc_id
-  description = "The ID of the VPC."
+output "cluster_type" {
+  value       = local.cluster_type
+  description = "Cluster type (Ex: storage, compute, combined)"
 }
 
 output "vpc_public_subnets" {
@@ -14,21 +14,21 @@ output "vpc_public_subnets" {
 }
 
 output "vpc_storage_cluster_private_subnets" {
-  value       = module.storage_private_subnet.subnet_id
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? module.storage_private_subnet.subnet_id : null
   description = "List of IDs of storage cluster private subnets."
 }
 
 output "vpc_compute_cluster_private_subnets" {
-  value       = module.compute_private_subnet.subnet_id
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? module.compute_private_subnet.subnet_id : null
   description = "List of IDs of compute cluster private subnets."
 }
 
-output "vpc_compute_cluster_nat" {
-  value       = module.compute_cloud_nat.cloud_nat_id
-  description = "List of IDs of compute cluster nat."
+output "vpc_compute_nat_gateways" {
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? module.compute_cloud_nat.cloud_nat_id : null
+  description = "List of IDs of compute cluster nat gateway."
 }
 
-output "vpc_storage_cluster_nat" {
-  value       = module.storage_cloud_nat.cloud_nat_id
-  description = "List of IDs of storage cluster nat."
+output "vpc_storage_nat_gateways" {
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? module.storage_cloud_nat.cloud_nat_id : null
+  description = "List of IDs of storage cluster nat gateway."
 }
