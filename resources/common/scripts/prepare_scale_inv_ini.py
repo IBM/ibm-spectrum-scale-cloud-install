@@ -91,12 +91,25 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   any_errors_fatal: true
   gather_facts: false
   connection: local
-  tasks:
-  - name: Check passwordless SSH on all scale inventory hosts
-    shell: ssh -i {cluster_key_file} {{{{ inventory_hostname }}}} "echo PASSWDLESS_SSH_ENABLED"
+  pre_tasks:
+  - name: check | Check passwordless SSH on all scale inventory hosts via Bastion
+    shell: ssh {{{{ ansible_ssh_common_args }}}} -i {cluster_key_file} root@{{{{ inventory_hostname }}}} "echo PASSWDLESS_SSH_ENABLED"
+    args:
+      warn: false
+    when: scale_jump_host | bool
     register: result
     until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
-    retries: 60
+    retries: 30
+    delay: 10
+
+  - name: check | Check passwordless SSH on all scale inventory hosts without Bastion
+    shell: ssh -i {cluster_key_file} {{{{ inventory_hostname }}}} "echo PASSWDLESS_SSH_ENABLED"
+    args:
+      warn: false
+    when: not scale_jump_host
+    register: result
+    until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
+    retries: 30
     delay: 10
 # Validate Scale packages existence to skip node role
 - name: Check if Scale packages already installed on node
@@ -224,7 +237,7 @@ def initialize_cluster_details(scale_version, cluster_name, username,
 
 def get_host_format(node):
     """ Return host entries """
-    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']}"
+    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=auto scale_install_prereqs_packages=True scale_nodeclass={node['class']}"
     return host_format
 
 
@@ -736,11 +749,13 @@ if __name__ == "__main__":
     node_template = ""
     for each_entry in node_details:
         if ARGUMENTS.bastion_ssh_private_key is None:
+            each_entry = each_entry + " " + "scale_jump_host=False"       # Added scale_jump_host variable if it is true it will run ssh validation task with bastion host and if false it will run without bastion host(task is in playbook creation function).
             node_template = node_template + each_entry + "\n"
         else:
             proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
             each_entry = each_entry + " " + \
-                "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'"
+                "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'" \
+                    + " " + "scale_jump_host=True"
             node_template = node_template + each_entry + "\n"
 
     if TF['resource_prefix']:
