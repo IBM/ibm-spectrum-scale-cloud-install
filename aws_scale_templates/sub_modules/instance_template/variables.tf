@@ -116,7 +116,7 @@ variable "storage_cluster_key_pair" {
   description = "The key pair to use to launch the storage cluster host."
 }
 
-variable "storage_cluster_image_id" {
+variable "storage_cluster_image_ref" {
   type        = string
   nullable    = true
   default     = null

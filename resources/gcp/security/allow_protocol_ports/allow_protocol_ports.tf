@@ -7,9 +7,10 @@ variable "firewall_name_prefix" {
   description = "GCP firewall name prefix (Rules: 1-63 characters long, comply with RFC1035 and match regex [a-z]([-a-z0-9]*[a-z0-9])?"
 }
 
-variable "vpc_name" {
+variable "vpc_ref" {
   type        = string
-  default     = "spectrum-scale-vpc"
+  nullable    = true
+  default     = null
   description = "VPC name to which this firewall should be associated"
 }
 
@@ -54,7 +55,7 @@ variable "turn_on_egress" {
 resource "google_compute_firewall" "allow_protocal_ingress" {
   count       = tobool(var.turn_on_ingress) == true ? 1 : 0
   name        = format("%s-allow-ingress", var.firewall_name_prefix)
-  network     = var.vpc_name
+  network     = var.vpc_ref
   description = "${var.firewall_description} - ingress traffic"
 
   dynamic "allow" {
@@ -82,7 +83,7 @@ resource "google_compute_firewall" "allow_protocal_ingress" {
 resource "google_compute_firewall" "allow_protocal_egress" {
   count       = tobool(var.turn_on_egress) == true ? 1 : 0
   name        = format("%s-allow-egress", var.firewall_name_prefix)
-  network     = var.vpc_name
+  network     = var.vpc_ref
   description = "${var.firewall_description} - egress traffic"
 
   allow {

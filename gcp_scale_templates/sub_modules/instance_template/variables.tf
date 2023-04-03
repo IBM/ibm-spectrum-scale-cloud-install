@@ -10,10 +10,11 @@ variable "vpc_region" {
   description = "GCP region where the resources will be created."
 }
 
-variable "vpc_name" {
+variable "vpc_ref" {
   type        = string
-  default     = "spectrum-scale-vpc"
-  description = "GCP VPC name."
+  nullable    = true
+  default     = null
+  description = "VPC id were to deploy the bastion."
 }
 
 variable "vpc_availability_zones" {
@@ -31,17 +32,22 @@ variable "resource_prefix" {
 
 variable "instances_ssh_user_name" {
   type        = string
-  default     = "gcpadmin"
+  nullable    = true
+  default     = null
   description = "Name of the administrator to access the bastion instance."
 }
 
 variable "compute_cluster_public_key_path" {
   type        = string
+  nullable    = true
+  default     = null
   description = "SSH public key local path for compute instances."
 }
 
 variable "storage_cluster_public_key_path" {
   type        = string
+  nullable    = true
+  default     = null
   description = "SSH public key local path for storage instances."
 }
 
@@ -53,32 +59,35 @@ variable "credential_json_path" {
 variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)
   nullable    = true
-  default     = ["prvn-test99881-strg-pvt-subnet-0"]
+  default     = null
   description = "List of IDs of storage cluster private subnets."
 }
 
 variable "vpc_compute_cluster_private_subnets" {
   type        = list(string)
   nullable    = true
-  default     = []
+  default     = null
   description = "List of IDs of compute cluster private subnets."
 }
 
 variable "total_compute_cluster_instances" {
   type        = number
-  default     = 2
-  description = "Number of instances to be launched for compute instances."
+  nullable    = true
+  default     = null
+  description = "Number of GCP instances to be launched for compute cluster."
 }
 
-variable "compute_machine_type" {
+variable "compute_cluster_instance_type" {
   type        = string
-  default     = "n1-standard-1"
-  description = "GCP instance machine type to create Spectrum Scale compute instances."
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the compute cluster instances."
 }
 
 variable "compute_boot_disk_size" {
   type        = number
-  default     = 100
+  nullable    = true
+  default     = null
   description = "Compute instances boot disk size in gigabytes."
 }
 
@@ -96,66 +105,77 @@ variable "compute_boot_image" {
 
 variable "compute_instance_tags" {
   type        = list(string)
-  default     = ["spectrum-scale-compute-cluster"]
+  nullable    = true
+  default     = null
   description = "List of tags to attach to the compute instance."
 }
 
 variable "total_storage_cluster_instances" {
   type        = number
-  default     = 2
+  nullable    = true
+  default     = null
   description = "Number of instances to be launched for storage instances."
 }
 
 variable "block_devices_per_storage_instance" {
   type        = number
-  default     = 1
+  nullable    = true
+  default     = null
   description = "Number of data disks to be attached to each storage instance."
 }
 
 variable "storage_instance_tags" {
   type        = list(string)
-  default     = ["spectrum-scale-storage-cluster"]
+  nullable    = true
+  default     = null
   description = "List of tags to attach to the compute instance."
 }
 
 variable "storage_cluster_instance_type" {
   type        = string
-  default     = "n1-standard-1"
+  nullable    = true
+  default     = null
   description = "GCP instance machine type to create Spectrum Scale storage instances."
 }
 
 variable "storage_boot_disk_size" {
   type        = number
-  default     = 200
+  nullable    = true
+  default     = null
   description = "Storage instances boot disk size in gigabytes."
 }
 
 variable "storage_boot_disk_type" {
   type        = string
-  default     = "pd-standard"
+  nullable    = true
+  default     = null
   description = "GCE disk type (valid: pd-standard, pd-ssd)."
 }
 
-variable "storage_boot_image" {
+variable "storage_cluster_image_ref" {
   type        = string
-  default     = "rhel-9-v20230203"
+  nullable    = true
+  default     = null
   description = "Image from which to initialize Spectrum Scale storage instances."
 }
 
 variable "data_disk_type" {
-  type        = string
-  default     = "pd-standard"
+  nullable    = true
+  default     = null
   description = "GCE disk type (valid: pd-standard, pd-ssd , local-ssd)."
 }
 
 variable "block_device_volume_size" {
   type        = string
-  default     = 500
+  nullable    = true
+  default     = null
   description = "Data disk size in gigabytes."
 }
 
 variable "operator_email" {
   type        = string
+  nullable    = true
+  default     = null
   description = "GCP service account e-mail address."
 }
 
@@ -179,14 +199,15 @@ variable "compute_subnet_cidrs" {
 
 variable "bastion_instance_tags" {
   type        = list(string)
-  default     = ["spectrum-scale-bastion"]
+  nullable    = true
+  default     = null
   description = "List of tags to attach to the bastion instance."
 }
 
 variable "scale_ansible_repo_clone_path" {
   type        = string
   nullable    = true
-  default     = "/tmp/"
+  default     = null
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
 
@@ -292,6 +313,6 @@ variable "storage_cluster_gui_password" {
 variable "bastion_ssh_private_key" {
   type        = string
   nullable    = true
-  default     = "/root/.ssh/gcp_rsa"
+  default     = null
   description = "Bastion SSH private key path, which will be used to login to bastion host."
 }

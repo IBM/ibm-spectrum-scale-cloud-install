@@ -64,7 +64,7 @@ module "allow_traffic_bastion_to_scale_cluster" {
   count                = length(local.traffic_protocol_bastion)
   turn_on_ingress      = local.cluster_type != "none" ? true : false
   firewall_name_prefix = "${var.resource_prefix}-bastion-${count.index}"
-  vpc_name             = var.vpc_name
+  vpc_ref              = var.vpc_ref
   source_vm_tags       = var.bastion_instance_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_bastion[count.index]
@@ -75,8 +75,8 @@ module "allow_traffic_bastion_to_scale_cluster" {
 module "allow_traffic_compute_instances_internal" {
   source               = "../../../resources/gcp/security/allow_internal"
   turn_on              = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
-  firewall_name_prefix = "${var.vpc_name}-compute-ingress"
-  vpc_name             = var.vpc_name
+  firewall_name_prefix = "${var.vpc_ref}-compute-ingress"
+  vpc_ref              = var.vpc_ref
   subnet_cidr_range    = var.compute_subnet_cidrs
   vm_tags              = local.cluster_comp_stg_vm_tags
 }
@@ -84,8 +84,8 @@ module "allow_traffic_compute_instances_internal" {
 module "allow_traffic_storage_instances_internal" {
   source               = "../../../resources/gcp/security/allow_internal"
   turn_on              = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
-  firewall_name_prefix = "${var.vpc_name}-storage-ingress"
-  vpc_name             = var.vpc_name
+  firewall_name_prefix = "${var.vpc_ref}-storage-ingress"
+  vpc_ref              = var.vpc_ref
   subnet_cidr_range    = var.storage_subnet_cidrs
   vm_tags              = local.cluster_comp_stg_vm_tags
 }
@@ -95,8 +95,8 @@ module "allow_traffic_scale_cluster" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   count                = length(local.traffic_protocol_cluster_ingress)
   turn_on_ingress      = local.cluster_type != "none" ? true : false
-  firewall_name_prefix = "${var.vpc_name}-scale-cluster-ingress-${count.index}"
-  vpc_name             = var.vpc_name
+  firewall_name_prefix = "${var.vpc_ref}-scale-cluster-ingress-${count.index}"
+  vpc_ref              = var.vpc_ref
   source_vm_tags       = local.cluster_comp_stg_vm_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_cluster_ingress[count.index]
@@ -108,8 +108,8 @@ module "allow_traffic_scale_cluster_egress" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   count                = length(local.traffic_protocol_egress)
   turn_on_egress       = local.cluster_type != "none" ? true : false
-  firewall_name_prefix = "${var.vpc_name}-cluster-egress-${count.index}"
-  vpc_name             = var.vpc_name
+  firewall_name_prefix = "${var.vpc_ref}-cluster-egress-${count.index}"
+  vpc_ref              = var.vpc_ref
   source_vm_tags       = local.cluster_comp_stg_vm_tags
   destination_vm_tags  = local.cluster_comp_stg_vm_tags
   protocol             = local.traffic_protocol_egress[count.index]
@@ -127,7 +127,7 @@ module "compute_cluster_instances" {
   total_persistent_disks        = 0
   total_local_ssd_disks         = 0
   instance_name                 = format("%s-compute", var.resource_prefix)
-  machine_type                  = var.compute_machine_type
+  machine_type                  = var.compute_cluster_instance_type
   vpc_subnets                   = var.vpc_compute_cluster_private_subnets
   private_key_content           = module.generate_compute_cluster_keys.private_key_content
   public_key_content            = module.generate_compute_cluster_keys.public_key_content
@@ -157,7 +157,7 @@ module "storage_cluster_tie_breaker_instance" {
   vm_instance_tags              = var.storage_instance_tags
   boot_disk_size                = var.storage_boot_disk_size
   boot_disk_type                = var.storage_boot_disk_type
-  boot_image                    = var.storage_boot_image
+  boot_image                    = var.storage_cluster_image_ref
   data_disk_type                = var.data_disk_type
   data_disk_size                = var.block_device_volume_size
 }
@@ -181,7 +181,7 @@ module "storage_cluster_instances" {
   vm_instance_tags              = var.storage_instance_tags
   boot_disk_size                = var.storage_boot_disk_size
   boot_disk_type                = var.storage_boot_disk_type
-  boot_image                    = var.storage_boot_image
+  boot_image                    = var.storage_cluster_image_ref
   data_disk_type                = var.data_disk_type
   data_disk_size                = var.block_device_volume_size
 }
