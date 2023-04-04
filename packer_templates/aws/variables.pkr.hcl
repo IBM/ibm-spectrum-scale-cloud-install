@@ -1,4 +1,4 @@
-variable "vpc_id" {
+variable "vpc_ref" {
   type        = string
   description = "The VPC id you want to use for building AMI."
 }
