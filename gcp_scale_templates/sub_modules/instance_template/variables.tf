@@ -120,8 +120,15 @@ variable "total_storage_cluster_instances" {
 variable "block_devices_per_storage_instance" {
   type        = number
   nullable    = true
-  default     = null
+  default     = 0
   description = "Number of data disks to be attached to each storage instance."
+}
+
+variable "scratch_devices_per_storage_instance" {
+  type        = number
+  nullable    = true
+  default     = 0
+  description = "Number of scratch disks to be attached to each storage instance."
 }
 
 variable "storage_instance_tags" {
@@ -159,7 +166,7 @@ variable "storage_cluster_image_ref" {
   description = "Image from which to initialize Spectrum Scale storage instances."
 }
 
-variable "data_disk_type" {
+variable "block_device_volume_type" {
   nullable    = true
   default     = null
   description = "GCE disk type (valid: pd-standard, pd-ssd , local-ssd)."
@@ -172,7 +179,7 @@ variable "block_device_volume_size" {
   description = "Data disk size in gigabytes."
 }
 
-variable "operator_email" {
+variable "service_email" {
   type        = string
   nullable    = true
   default     = null

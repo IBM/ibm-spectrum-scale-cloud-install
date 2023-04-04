@@ -210,49 +210,49 @@ variable "ebs_block_devices_per_storage_instance" {
 }
 
 # Below parameters are only applicable if ebs_block_devices_per_storage_instance is set > 0
-variable "ebs_block_device_delete_on_termination" {
+variable "block_device_delete_on_termination" {
   type        = bool
   nullable    = true
   default     = null
   description = "If true, all ebs volumes will be destroyed on instance termination."
 }
 
-variable "ebs_block_device_encrypted" {
+variable "block_device_encrypted" {
   type        = bool
   nullable    = true
   default     = null
   description = "Whether to enable volume encryption."
 }
 
-variable "ebs_block_device_iops" {
+variable "block_device_iops" {
   type        = number
   nullable    = true
   default     = null
   description = "Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3."
 }
 
-variable "ebs_block_device_throughput" {
+variable "block_device_throughput" {
   type        = number
   nullable    = true
   default     = null
   description = "Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3."
 }
 
-variable "ebs_block_device_kms_key_id" {
+variable "block_device_kms_key_id" {
   type        = string
   nullable    = true
   default     = null
   description = "Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume."
 }
 
-variable "ebs_block_device_volume_size" {
+variable "block_device_volume_size" {
   type        = number
   nullable    = true
   default     = null
   description = "Size of the volume in gibibytes (GiB)."
 }
 
-variable "ebs_block_device_volume_type" {
+variable "block_device_volume_type" {
   type        = string
   nullable    = true
   default     = null

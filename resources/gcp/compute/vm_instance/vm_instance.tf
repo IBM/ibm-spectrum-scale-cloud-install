@@ -2,13 +2,7 @@
   Creates GCP VM instance with specified number of persistent disk
 */
 
-variable "zone" {
-  type        = string
-  default     = "us-central1-a"
-  description = "GCP zone that the instances should be created."
-}
-
-variable "operator_email" {
+variable "service_email" {
   type        = string
   description = "GCP service account e-mail address."
 }
@@ -168,7 +162,7 @@ EOF
 #Create scale instance
 #tfsec:ignore:google-compute-enable-shielded-vm-im
 #tfsec:ignore:google-compute-enable-shielded-vm-vtpm
-resource "google_compute_instance" "scale_instance" {
+resource "google_compute_instance" "itself" {
   count        = length(local.vm_configuration)
   name         = "${local.vm_configuration[count.index].vm_name}"
   machine_type = var.machine_type
@@ -202,7 +196,7 @@ resource "google_compute_instance" "scale_instance" {
   metadata_startup_script = data.template_file.metadata_startup_script.rendered
 
   service_account {
-    email  = var.operator_email
+    email  = var.service_email
     scopes = var.scopes
   }
 
@@ -222,34 +216,33 @@ resource "google_compute_instance" "scale_instance" {
 #tfsec:ignore:google-compute-disk-encryption-customer-key
 resource "google_compute_disk" "data_disk" {
   count                     = length(local.disk_configuration)
-  zone                      = google_compute_instance.scale_instance[local.disk_configuration[count.index].index].zone
-  name                      = format("%s-%s-%s", var.data_disk_name_prefix, google_compute_instance.scale_instance[local.disk_configuration[count.index].index].instance_id, local.disk_configuration[count.index].vm_name_suffix)
+  zone                      = google_compute_instance.itself[local.disk_configuration[count.index].index].zone
+  name                      = format("%s-%s-%s", var.data_disk_name_prefix, google_compute_instance.itself[local.disk_configuration[count.index].index].instance_id, local.disk_configuration[count.index].vm_name_suffix)
   description               = var.data_disk_description
   physical_block_size_bytes = var.physical_block_size_bytes
   type                      = var.data_disk_type
   size                      = var.data_disk_size
-  depends_on                = [google_compute_instance.scale_instance]
+  depends_on                = [google_compute_instance.itself]
 }
 
 resource "google_compute_attached_disk" "attach_data_disk" {
   count      = length(local.disk_configuration)
-  zone       = google_compute_instance.scale_instance[local.disk_configuration[count.index].index].zone
-  disk       = format("%s-%s-%s", var.data_disk_name_prefix, google_compute_instance.scale_instance[local.disk_configuration[count.index].index].instance_id, local.disk_configuration[count.index].vm_name_suffix)
-  instance   = google_compute_instance.scale_instance[local.disk_configuration[count.index].index].instance_id
+  disk       = format("%s-%s-%s", var.data_disk_name_prefix, google_compute_instance.itself[local.disk_configuration[count.index].index].instance_id, local.disk_configuration[count.index].vm_name_suffix)
+  instance   = google_compute_instance.itself[local.disk_configuration[count.index].index].self_link
   depends_on = [google_compute_disk.data_disk]
 }
 
 #Instance details
 output "instance_ids" {
-  value = google_compute_instance.scale_instance[*].instance_id
+  value = google_compute_instance.itself[*].instance_id
 }
 
 output "instance_uris" {
-  value = google_compute_instance.scale_instance[*].self_link
+  value = google_compute_instance.itself[*].self_link
 }
 
 output "instance_ips" {
-  value = google_compute_instance.scale_instance[*].network_interface[0].network_ip
+  value = google_compute_instance.itself[*].network_interface[0].network_ip
 }
 
 #Disk details
@@ -265,17 +258,16 @@ output "data_disk_attachment_id" {
   value = google_compute_attached_disk.attach_data_disk[*].id
 }
 
-output "subnet_name" {
+output "data_disk_zone" {
   value = google_compute_disk.data_disk[*].zone
 }
 
-
 output "disk_device_mapping" {
-  value = (var.total_persistent_disks > 0) && (length(local.block_device_names) >= var.total_persistent_disks) ? { for instances in (google_compute_instance.scale_instance) : (instances.network_interface[0].network_ip) => slice(local.block_device_names, 0, var.total_persistent_disks) } : {}
+  value = (var.total_persistent_disks > 0) && (length(local.block_device_names) >= var.total_persistent_disks) ? { for instances in (google_compute_instance.itself) : (instances.network_interface[0].network_ip) => slice(local.block_device_names, 0, var.total_persistent_disks) } : {}
 }
 
 output "dns_hostname" {
-  value = { for instances in (google_compute_instance.scale_instance) : (instances.network_interface[0].network_ip) => "${instances.name}.${instances.zone}.c.${instances.project}.internal"  }
+  value = { for instances in (google_compute_instance.itself) : (instances.network_interface[0].network_ip) => "${instances.name}.${instances.zone}.c.${instances.project}.internal"  }
 }
 
 output "publlickeyContent" {

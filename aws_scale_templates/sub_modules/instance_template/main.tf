@@ -359,15 +359,15 @@ module "storage_cluster_instances" {
   meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
   volume_tags                            = var.storage_cluster_volume_tags
   ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
-  ebs_block_devices                      = var.ebs_block_devices_per_storage_instance
+  ebs_block_devices                      = var.block_devices_per_storage_instance
   ebs_block_device_names                 = var.enable_instance_store_block_device == true ? local.instance_storage_device_names : local.ebs_device_names
-  ebs_block_device_delete_on_termination = var.ebs_block_device_delete_on_termination
-  ebs_block_device_encrypted             = var.ebs_block_device_encrypted
-  ebs_block_device_kms_key_id            = var.ebs_block_device_kms_key_id
-  ebs_block_device_volume_size           = var.ebs_block_device_volume_size
-  ebs_block_device_volume_type           = var.ebs_block_device_volume_type
-  ebs_block_device_iops                  = var.ebs_block_device_iops
-  ebs_block_device_throughput            = var.ebs_block_device_throughput
+  ebs_block_device_delete_on_termination = var.block_device_delete_on_termination
+  ebs_block_device_encrypted             = var.block_device_encrypted
+  ebs_block_device_kms_key_id            = var.block_device_kms_key_id
+  ebs_block_device_volume_size           = var.block_device_volume_size
+  ebs_block_device_volume_type           = var.block_device_volume_type
+  ebs_block_device_iops                  = var.block_device_iops
+  ebs_block_device_throughput            = var.block_device_throughput
   enable_instance_store_block_device     = var.enable_instance_store_block_device
   enable_nvme_block_device               = var.enable_nvme_block_device
   nvme_block_device_count                = (var.enable_nvme_block_device == true || var.enable_instance_store_block_device == true) ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
@@ -392,9 +392,9 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
   ebs_block_devices                      = 1
   ebs_block_device_names                 = local.ebs_device_names
-  ebs_block_device_delete_on_termination = var.ebs_block_device_delete_on_termination
-  ebs_block_device_encrypted             = var.ebs_block_device_encrypted
-  ebs_block_device_kms_key_id            = var.ebs_block_device_kms_key_id
+  ebs_block_device_delete_on_termination = var.block_device_delete_on_termination
+  ebs_block_device_encrypted             = var.block_device_encrypted
+  ebs_block_device_kms_key_id            = var.block_device_kms_key_id
   ebs_block_device_volume_size           = 5
   ebs_block_device_volume_type           = "gp2"
   ebs_block_device_iops                  = null

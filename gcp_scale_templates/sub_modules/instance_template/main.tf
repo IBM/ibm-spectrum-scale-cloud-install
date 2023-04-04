@@ -44,9 +44,6 @@ locals {
 
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
-
-  total_local_ssd_disks  = var.data_disk_type == "local-ssd" ? var.block_devices_per_storage_instance : 0
-  total_persistent_disks = var.data_disk_type != "local-ssd" ? var.block_devices_per_storage_instance : 0
 }
 
 module "generate_compute_cluster_keys" {
@@ -131,7 +128,7 @@ module "compute_cluster_instances" {
   vpc_subnets                   = var.vpc_compute_cluster_private_subnets
   private_key_content           = module.generate_compute_cluster_keys.private_key_content
   public_key_content            = module.generate_compute_cluster_keys.public_key_content
-  operator_email                = var.operator_email
+  service_email                 = var.service_email
   scopes                        = var.scopes
   vm_instance_tags              = var.compute_instance_tags
   boot_disk_size                = var.compute_boot_disk_size
@@ -141,25 +138,25 @@ module "compute_cluster_instances" {
 
 module "storage_cluster_tie_breaker_instance" {
   source                        = "../../../resources/gcp/compute/vm_instance"
-  vpc_availability_zones        = var.vpc_availability_zones
+  vpc_availability_zones        = length(var.vpc_availability_zones) > 2 ? [var.vpc_availability_zones[2]] : []
   ssh_key_path                  = var.storage_cluster_public_key_path
   ssh_user_name                 = var.instances_ssh_user_name
   total_cluster_instances       = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 1 && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? 1 : 0) : 0
-  total_persistent_disks        = 5
+  total_persistent_disks        = 1
   total_local_ssd_disks         = 0
   instance_name                 = format("%s-storage-tie", var.resource_prefix)
   machine_type                  = var.storage_cluster_instance_type
-  vpc_subnets                   = var.vpc_storage_cluster_private_subnets
+  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets) : null
   private_key_content           = module.generate_storage_cluster_keys.private_key_content
   public_key_content            = module.generate_storage_cluster_keys.public_key_content
-  operator_email                = var.operator_email
+  service_email                 = var.service_email
   scopes                        = var.scopes
   vm_instance_tags              = var.storage_instance_tags
   boot_disk_size                = var.storage_boot_disk_size
   boot_disk_type                = var.storage_boot_disk_type
   boot_image                    = var.storage_cluster_image_ref
-  data_disk_type                = var.data_disk_type
-  data_disk_size                = var.block_device_volume_size
+  data_disk_type                = var.block_device_volume_type
+  data_disk_size                = 5
 }
 
 #Creates storage instances
@@ -169,20 +166,20 @@ module "storage_cluster_instances" {
   ssh_key_path                  = var.storage_cluster_public_key_path
   ssh_user_name                 = var.instances_ssh_user_name
   total_cluster_instances       = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_storage_cluster_instances : 0
-  total_persistent_disks        = local.total_persistent_disks
-  total_local_ssd_disks         = local.total_local_ssd_disks
+  total_persistent_disks        = var.block_devices_per_storage_instance
+  total_local_ssd_disks         = var.scratch_devices_per_storage_instance
   instance_name                 = format("%s-storage", var.resource_prefix)
   machine_type                  = var.storage_cluster_instance_type
   vpc_subnets                   = var.vpc_storage_cluster_private_subnets
   private_key_content           = module.generate_storage_cluster_keys.private_key_content
   public_key_content            = module.generate_storage_cluster_keys.public_key_content
-  operator_email                = var.operator_email
+  service_email                 = var.service_email
   scopes                        = var.scopes
   vm_instance_tags              = var.storage_instance_tags
   boot_disk_size                = var.storage_boot_disk_size
   boot_disk_type                = var.storage_boot_disk_type
   boot_image                    = var.storage_cluster_image_ref
-  data_disk_type                = var.data_disk_type
+  data_disk_type                = var.block_device_volume_type
   data_disk_size                = var.block_device_volume_size
 }
 
