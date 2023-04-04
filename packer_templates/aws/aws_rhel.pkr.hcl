@@ -1,5 +1,5 @@
 source "amazon-ebs" "itself" {
-  vpc_id                      = var.vpc_id
+  vpc_id                      = var.vpc_ref
   subnet_id                   = var.vpc_subnet_id
   associate_public_ip_address = true
   security_group_id           = var.vpc_security_group_id
