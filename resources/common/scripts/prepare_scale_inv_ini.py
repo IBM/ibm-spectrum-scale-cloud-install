@@ -92,7 +92,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   gather_facts: false
   connection: local
   tasks:
-  - name: check | Check passwordless SSH on all scale inventory hosts via Bastion
+  - name: Check passwordless SSH on all scale inventory hosts
     shell: ssh {{{{ ansible_ssh_common_args }}}} -i {cluster_key_file} {{{{ user }}}}{{{{ inventory_hostname }}}} "echo PASSWDLESS_SSH_ENABLED"
     register: result
     until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
