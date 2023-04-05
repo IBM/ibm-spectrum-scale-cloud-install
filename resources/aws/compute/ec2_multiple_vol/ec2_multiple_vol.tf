@@ -1,6 +1,6 @@
 /*
      Creates specified number of AWS EC2 instance(s).
- */
+*/
 
 variable "name_prefix" {}
 variable "instances_count" {}
@@ -68,6 +68,11 @@ data "template_cloudinit_config" "nvme_user_data64" {
   }
 }
 
+data "aws_kms_key" "itself" {
+  count  = var.ebs_block_device_kms_key_id != null ? 1 : 0
+  key_id = var.ebs_block_device_kms_key_id
+}
+
 resource "null_resource" "ebs_mappings" {
   count = var.instances_count > 0 ? var.ebs_block_devices : 0
 
@@ -77,7 +82,7 @@ resource "null_resource" "ebs_mappings" {
     encrypted             = var.ebs_block_device_encrypted == false ? null : true
     iops                  = var.ebs_block_device_iops
     throughput            = var.ebs_block_device_throughput
-    kms_key_id            = var.ebs_block_device_kms_key_id
+    kms_key_id            = try(data.aws_kms_key.itself[0].key_id, null)
     volume_size           = var.ebs_block_device_volume_size
     volume_type           = var.ebs_block_device_volume_type
   }
@@ -103,12 +108,14 @@ resource "aws_instance" "itself" {
   ebs_optimized        = tobool(var.ebs_optimized)
 
   root_block_device {
+    encrypted             = var.ebs_block_device_encrypted == false ? null : true
+    kms_key_id            = try(data.aws_kms_key.itself[0].key_id, null)
     volume_type           = var.root_volume_type
     delete_on_termination = true
   }
 
   dynamic "ebs_block_device" {
-    for_each = null_resource.ebs_mappings.*.triggers
+    for_each = null_resource.ebs_mappings[*].triggers
     content {
       delete_on_termination = lookup(ebs_block_device.value, "delete_on_termination", null)
       device_name           = ebs_block_device.value.device_name
@@ -157,4 +164,3 @@ output "instance_ips_with_ebs_mapping" {
 output "instance_private_dns_ip_map" {
   value = try({ for instance_details in aws_instance.itself : instance_details.private_ip => instance_details.private_dns }, {})
 }
-
