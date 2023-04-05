@@ -121,14 +121,14 @@ variable "public_key_content" {
 variable "vpc_availability_zones" {
   type        = list(string)
   nullable    = true
-  default     = []
+  default     = null
   description = "A list of availability zones names or ids in the region."
 }
 
 variable "vpc_subnets" {
   type        = list(string)
   nullable    = true
-  default     = []
+  default     = null
   description = "Subnetwork of a Virtual Private Cloud network with one primary IP range"
 }
 
@@ -139,8 +139,13 @@ variable "total_cluster_instances" {
 }
 
 locals {
-  vm_configuration    = flatten([for zone_name in var.vpc_availability_zones : [for network in var.vpc_subnets : [for i in range(var.total_cluster_instances) : {zone = zone_name , subnet = network, vm_name = "${var.instance_name}-${i}"}]]])
-  disk_configuration  = flatten([for vm_index in range(var.total_cluster_instances) : [for disk_no in range(var.total_persistent_disks) : { index = vm_index , vm_name_suffix = "${disk_no}" }]])
+  vpc_subnets             = var.vpc_subnets == null ? [] : var.vpc_subnets
+  vpc_availability_zones  = var.vpc_availability_zones == null ? [] : var.vpc_availability_zones
+  total_cluster_instances = var.total_cluster_instances == null ? 0 : var.total_cluster_instances
+  total_persistent_disks  = var.total_persistent_disks == null ? 0 : var.total_persistent_disks
+
+  vm_configuration    = flatten([for zone_name in local.vpc_availability_zones : [for network in local.vpc_subnets : [for i in range(local.total_cluster_instances) : {zone = zone_name , subnet = network, vm_name = "${var.instance_name}-${index(local.vpc_subnets, network)}${i}"}]]])
+  disk_configuration  = flatten([for vm_index in range(local.total_cluster_instances * length(local.vpc_subnets)) : [for disk_no in range(local.total_persistent_disks) : { index = vm_index , vm_name_suffix = "${disk_no}" }]])
 
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
