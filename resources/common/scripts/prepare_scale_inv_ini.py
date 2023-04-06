@@ -93,7 +93,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   connection: local
   tasks:
   - name: Check passwordless SSH on all scale inventory hosts
-    shell: ssh {{{{ ansible_ssh_common_args }}}} -i {cluster_key_file} {{{{ user }}}}{{{{ inventory_hostname }}}} "echo PASSWDLESS_SSH_ENABLED"
+    shell: ssh {{{{ ansible_ssh_common_args }}}} -i {cluster_key_file} root@{{{{ inventory_hostname }}}} "echo PASSWDLESS_SSH_ENABLED"
     register: result
     until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
     retries: 60
@@ -736,13 +736,12 @@ if __name__ == "__main__":
     node_template = ""
     for each_entry in node_details:
         if ARGUMENTS.bastion_ssh_private_key is None:
-            each_entry = each_entry + " " + "ansible_ssh_common_args=""" + " " + "user="""
+            each_entry = each_entry + " " + "ansible_ssh_common_args="""
             node_template = node_template + each_entry + "\n"
         else:
             proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
             each_entry = each_entry + " " + \
-                "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'" \
-                    + " " + "user=root@"
+                "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'"
             node_template = node_template + each_entry + "\n"
 
     if TF['resource_prefix']:
