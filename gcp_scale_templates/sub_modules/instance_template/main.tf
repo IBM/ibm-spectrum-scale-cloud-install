@@ -125,7 +125,7 @@ module "compute_cluster_instances" {
   total_local_ssd_disks         = 0
   instance_name                 = format("%s-compute", var.resource_prefix)
   machine_type                  = var.compute_cluster_instance_type
-  vpc_subnets                   = var.vpc_compute_cluster_private_subnets
+  vpc_subnets                   = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   private_key_content           = module.generate_compute_cluster_keys.private_key_content
   public_key_content            = module.generate_compute_cluster_keys.public_key_content
   service_email                 = var.service_email
@@ -170,7 +170,7 @@ module "storage_cluster_instances" {
   total_local_ssd_disks         = var.scratch_devices_per_storage_instance
   instance_name                 = format("%s-storage", var.resource_prefix)
   machine_type                  = var.storage_cluster_instance_type
-  vpc_subnets                   = var.vpc_storage_cluster_private_subnets
+  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
   private_key_content           = module.generate_storage_cluster_keys.private_key_content
   public_key_content            = module.generate_storage_cluster_keys.public_key_content
   service_email                 = var.service_email

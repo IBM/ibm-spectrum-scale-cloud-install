@@ -144,7 +144,7 @@ locals {
   total_cluster_instances = var.total_cluster_instances == null ? 0 : var.total_cluster_instances
   total_persistent_disks  = var.total_persistent_disks == null ? 0 : var.total_persistent_disks
 
-  vm_configuration    = flatten(toset([for zone_name in local.vpc_availability_zones : [for network in local.vpc_subnets : [for i in range(local.total_cluster_instances) : {zone = zone_name , subnet = network, vm_name = "${var.instance_name}-${index(local.vpc_subnets, network)}${i}"}]]]))
+  vm_configuration    = flatten(toset([for i in range(local.total_cluster_instances) : {subnet = element(var.vpc_subnets, i),zone = element(var.vpc_availability_zones, i),vm_name = "${var.instance_name}-${index(local.vpc_subnets, element(var.vpc_subnets, i))}${i}"}]))
   disk_configuration  = flatten(toset([for disk_no in range(local.total_persistent_disks) : flatten([for vm_meta in local.vm_configuration : { vm_name = vm_meta.vm_name , vm_name_suffix = "${disk_no}" , vm_zone = vm_meta.zone}])]))
 
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
