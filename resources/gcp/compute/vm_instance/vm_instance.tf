@@ -144,15 +144,11 @@ locals {
   total_cluster_instances = var.total_cluster_instances == null ? 0 : var.total_cluster_instances
   total_persistent_disks  = var.total_persistent_disks == null ? 0 : var.total_persistent_disks
 
-  vm_configuration    = flatten([for zone_name in local.vpc_availability_zones : [for network in local.vpc_subnets : [for i in range(local.total_cluster_instances) : {zone = zone_name , subnet = network, vm_name = "${var.instance_name}-${index(local.vpc_subnets, network)}${i}"}]]])
-  disk_configuration  = flatten([for vm_index in range(local.total_cluster_instances * length(local.vpc_subnets)) : [for disk_no in range(local.total_persistent_disks) : { index = vm_index , vm_name_suffix = "${disk_no}" }]])
+  vm_configuration    = flatten(toset([for zone_name in local.vpc_availability_zones : [for network in local.vpc_subnets : [for i in range(local.total_cluster_instances) : {zone = zone_name , subnet = network, vm_name = "${var.instance_name}-${index(local.vpc_subnets, network)}${i}"}]]]))
+  disk_configuration  = flatten(toset([for disk_no in range(local.total_persistent_disks) : flatten([for vm_meta in local.vm_configuration : { vm_name = vm_meta.vm_name , vm_name_suffix = "${disk_no}" , vm_zone = vm_meta.zone}])]))
 
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
-}
-
-output "generate_config" {
-  value = local.vm_configuration[*]
 }
 
 data "template_file" "metadata_startup_script" {
@@ -217,12 +213,11 @@ resource "google_compute_instance" "itself" {
   }
 }
 
-
 #tfsec:ignore:google-compute-disk-encryption-customer-key
 resource "google_compute_disk" "data_disk" {
   count                     = length(local.disk_configuration)
-  zone                      = google_compute_instance.itself[local.disk_configuration[count.index].index].zone
-  name                      = format("%s-%s-%s", var.data_disk_name_prefix, google_compute_instance.itself[local.disk_configuration[count.index].index].instance_id, local.disk_configuration[count.index].vm_name_suffix)
+  zone                      = local.disk_configuration[count.index].vm_zone
+  name                      = format("%s-data-%s", local.disk_configuration[count.index].vm_name, local.disk_configuration[count.index].vm_name_suffix)
   description               = var.data_disk_description
   physical_block_size_bytes = var.physical_block_size_bytes
   type                      = var.data_disk_type
@@ -232,8 +227,9 @@ resource "google_compute_disk" "data_disk" {
 
 resource "google_compute_attached_disk" "attach_data_disk" {
   count      = length(local.disk_configuration)
-  disk       = format("%s-%s-%s", var.data_disk_name_prefix, google_compute_instance.itself[local.disk_configuration[count.index].index].instance_id, local.disk_configuration[count.index].vm_name_suffix)
-  instance   = google_compute_instance.itself[local.disk_configuration[count.index].index].self_link
+  zone       = local.disk_configuration[count.index].vm_zone
+  disk       = format("%s-data-%s", local.disk_configuration[count.index].vm_name, local.disk_configuration[count.index].vm_name_suffix)
+  instance   = local.disk_configuration[count.index].vm_name
   depends_on = [google_compute_disk.data_disk]
 }
 
