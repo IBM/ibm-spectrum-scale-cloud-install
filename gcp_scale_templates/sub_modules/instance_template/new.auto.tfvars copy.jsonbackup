@@ -1,0 +1,36 @@
+{
+  "resource_prefix": "ibm-cls02",
+  "vpc_ref": "prvn-test99881-vpc",
+  "vpc_region": "us-central1",
+  "project_id": "spectrum-scale-349401",
+  "credential_json_path": "/home/dev/Metadata/spectrum-scale-349401-6d757b56bd62.json",
+  "service_email": "cloudkitrepo-sa@spectrum-scale-349401.iam.gserviceaccount.com",
+  "vpc_availability_zones": [
+    "us-central1-a"
+  ],
+  "create_remote_mount_cluster": "true",
+  "storage_cluster_public_key_path": "/root/.ssh/id_ed25519.pub",
+  "compute_cluster_public_key_path": "/root/.ssh/id_ed25519.pub",
+  "total_storage_cluster_instances": 2,
+
+  "block_devices_per_storage_instance": "2",
+  "block_device_volume_size": "200",
+  "vpc_storage_cluster_private_subnets": [
+    "prvn-test99881-strg-pvt-subnet-0"
+  ],
+  "compute_instance_tags": [
+    "compute-bastion"
+  ],
+  "storage_instance_tags": [
+    "storage-scale"
+  ],
+  "bastion_instance_tags": [
+    "bastion-instance"
+  ],
+  "instances_ssh_user_name": "gcpadmin",
+  "storage_cluster_image_ref": "rhel-9-v20230203",
+  "compute_boot_image": "rhel-9-v20230203",
+  "scale_ansible_repo_clone_path": "/tmp",
+  "compute_cluster_instance_type": "n1-standard-1",
+  "storage_cluster_instance_type": "n1-standard-1"
+}
