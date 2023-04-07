@@ -140,15 +140,20 @@ variable "total_cluster_instances" {
 
 locals {
   vpc_subnets             = var.vpc_subnets == null ? [] : var.vpc_subnets
-  vpc_availability_zones  = var.vpc_availability_zones == null ? [] : var.vpc_availability_zones
+  availability_zones      = var.vpc_availability_zones == null ? [] : var.vpc_availability_zones
+  vpc_availability_zones  = length(local.availability_zones) > length(local.vpc_subnets) ? slice(local.availability_zones, 0,length(local.vpc_subnets)) : local.availability_zones
   total_cluster_instances = var.total_cluster_instances == null ? 0 : var.total_cluster_instances
   total_persistent_disks  = var.total_persistent_disks == null ? 0 : var.total_persistent_disks
 
-  vm_configuration    = flatten(toset([for i in range(local.total_cluster_instances) : {subnet = element(var.vpc_subnets, i),zone = element(var.vpc_availability_zones, i),vm_name = "${var.instance_name}-${index(local.vpc_subnets, element(var.vpc_subnets, i))}${i}"}]))
+  vm_configuration    = flatten(toset([for i in range(local.total_cluster_instances) : {subnet = element(var.vpc_subnets, i),zone = element(local.vpc_availability_zones, i),vm_name = "${var.instance_name}-${i}"}]))
   disk_configuration  = flatten(toset([for disk_no in range(local.total_persistent_disks) : flatten([for vm_meta in local.vm_configuration : { vm_name = vm_meta.vm_name , vm_name_suffix = "${disk_no}" , vm_zone = vm_meta.zone}])]))
 
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
+}
+
+output "generate_config" {
+  value = local.vpc_subnets
 }
 
 data "template_file" "metadata_startup_script" {
@@ -238,7 +243,7 @@ output "instance_ids" {
   value = google_compute_instance.itself[*].instance_id
 }
 
-output "instance_uris" {
+output "instance_selflink" {
   value = google_compute_instance.itself[*].self_link
 }
 

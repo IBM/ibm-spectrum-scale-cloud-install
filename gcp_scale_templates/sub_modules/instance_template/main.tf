@@ -55,7 +55,7 @@ module "generate_storage_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
   turn_on = var.total_storage_cluster_instances != null ? true : false
 }
-
+/*
 module "allow_traffic_bastion_to_scale_cluster" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   count                = length(local.traffic_protocol_bastion)
@@ -113,7 +113,7 @@ module "allow_traffic_scale_cluster_egress" {
   ports                = [local.traffic_port_egress[count.index]]
   firewall_description = local.security_rule_description_egress[count.index]
 }
-
+*/
 #Creates compute instances
 module "compute_cluster_instances" {
   source                        = "../../../resources/gcp/compute/vm_instance"
@@ -138,7 +138,7 @@ module "compute_cluster_instances" {
 
 module "storage_cluster_tie_breaker_instance" {
   source                        = "../../../resources/gcp/compute/vm_instance"
-  vpc_availability_zones        = length(var.vpc_availability_zones) > 2 ? [var.vpc_availability_zones[2]] : []
+  vpc_availability_zones        = length(var.vpc_availability_zones) > 1 ? [var.vpc_availability_zones[2]] : []
   ssh_key_path                  = var.storage_cluster_public_key_path
   ssh_user_name                 = var.instances_ssh_user_name
   total_cluster_instances       = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 2 && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? 1 : 0) : 0
@@ -146,7 +146,7 @@ module "storage_cluster_tie_breaker_instance" {
   total_local_ssd_disks         = 0
   instance_name                 = format("%s-storage-tie", var.resource_prefix)
   machine_type                  = var.storage_cluster_instance_type
-  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 2 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets) : null
+  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets) : null
   private_key_content           = module.generate_storage_cluster_keys.private_key_content
   public_key_content            = module.generate_storage_cluster_keys.public_key_content
   service_email                 = var.service_email
@@ -162,7 +162,7 @@ module "storage_cluster_tie_breaker_instance" {
 #Creates storage instances
 module "storage_cluster_instances" {
   source                        = "../../../resources/gcp/compute/vm_instance"
-  vpc_availability_zones        = var.vpc_availability_zones
+  vpc_availability_zones        = length(var.vpc_availability_zones) > 1 ? slice(var.vpc_availability_zones, 0, 2) : var.vpc_availability_zones
   ssh_key_path                  = var.storage_cluster_public_key_path
   ssh_user_name                 = var.instances_ssh_user_name
   total_cluster_instances       = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_storage_cluster_instances : 0
