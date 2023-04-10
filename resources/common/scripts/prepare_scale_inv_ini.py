@@ -227,7 +227,6 @@ def get_host_format(node):
     host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']}"
     return host_format
 
-
 def initialize_node_details(az_count, cls_type, compute_private_ips,
                             storage_private_ips, desc_private_ips, quorum_count,
                             user, key_file):
