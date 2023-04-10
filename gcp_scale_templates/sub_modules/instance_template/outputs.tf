@@ -42,3 +42,13 @@ output "storage_cluster_desc_data_volume_mapping" {
   value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? module.storage_cluster_tie_breaker_instance[*].disk_device_mapping : null
   description = "Mapping of storage cluster desc instance ip vs. device path."
 }
+
+output "storage_cluster_security_id" {
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? concat(module.allow_traffic_scale_cluster_compute_ingress.firewall_uri_ingress, module.allow_traffic_scale_cluster_compute_ingress.firewall_uri_egress) : null
+  description = "Storage cluster security ids."
+}
+
+output "compute_cluster_security_id" {
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? concat(module.allow_traffic_scale_cluster_storage_ingress.firewall_uri_ingress, module.allow_traffic_scale_cluster_storage_ingress.firewall_uri_egress) : null
+  description = "Compute cluster security ids."
+}

@@ -192,16 +192,25 @@ variable "scopes" {
   description = "List of service scopes."
 }
 
-variable "storage_subnet_cidrs" {
+variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
   type        = list(string)
-  default     = ["10.0.1.0/24"]
-  description = "Range of storage cidr."
+  nullable    = true
+  default     = null
+  description = "List of cidr_blocks for compute private subnets."
 }
 
-variable "compute_subnet_cidrs" {
+variable "vpc_storage_cluster_private_subnets_cidr_blocks" {
   type        = list(string)
-  default     = ["10.0.1.0/24"]
-  description = "Range of storage cidr."
+  nullable    = true
+  default     = null
+  description = "List of cidr_blocks for storage cluster private subnets."
+}
+
+variable "vpc_public_subnets_cidr_blocks" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of cidr_blocks for bastion cluster public subnets."
 }
 
 variable "bastion_instance_tags" {
