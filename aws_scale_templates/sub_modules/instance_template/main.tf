@@ -324,15 +324,15 @@ module "compute_cluster_instances" {
   source                 = "../../../resources/aws/compute/ec2_0_vol"
   instances_count        = local.cluster_type == "compute" || local.cluster_type == "combined" ? var.total_compute_cluster_instances : 0
   name_prefix            = format("%s-compute", var.resource_prefix)
-  ami_id                 = var.compute_cluster_image_id
+  ami_id                 = var.compute_cluster_image_ref
   instance_type          = var.compute_cluster_instance_type
   security_groups        = [module.compute_cluster_security_group.sec_group_id]
   iam_instance_profile   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group        = null
   subnet_ids             = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   root_volume_type       = var.compute_cluster_root_volume_type
-  root_volume_encrypted  = var.ebs_block_device_encrypted
-  root_volume_kms_key_id = var.ebs_block_device_kms_key_id
+  root_volume_encrypted  = var.block_device_encrypted
+  root_volume_kms_key_id = var.block_device_kms_key_id
   user_public_key        = var.compute_cluster_key_pair
   meta_private_key       = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
@@ -349,7 +349,7 @@ module "storage_cluster_instances" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
   instances_count                        = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_storage_cluster_instances : 0
   name_prefix                            = format("%s-storage", var.resource_prefix)
-  ami_id                                 = var.storage_cluster_image_id
+  ami_id                                 = var.storage_cluster_image_ref
   instance_type                          = var.storage_cluster_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
@@ -380,7 +380,7 @@ module "storage_cluster_tie_breaker_instance" {
   source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
   instances_count                        = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 1 && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? 1 : 0) : 0
   name_prefix                            = format("%s-storage-tie", var.resource_prefix)
-  ami_id                                 = var.storage_cluster_image_id
+  ami_id                                 = var.storage_cluster_image_ref
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
   iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name

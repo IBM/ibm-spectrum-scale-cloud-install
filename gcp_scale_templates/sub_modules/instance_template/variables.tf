@@ -99,7 +99,8 @@ variable "compute_boot_disk_type" {
 
 variable "compute_boot_image" {
   type        = string
-  default     = "ubuntu-os-cloud/ubuntu-1804-lts"
+  nullable    = true
+  default     = null
   description = "Image from which to initialize Spectrum Scale compute instances."
 }
 
