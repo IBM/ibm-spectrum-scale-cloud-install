@@ -97,7 +97,7 @@ resource "google_compute_firewall" "allow_protocal_egress" {
   count       = tobool(var.turn_on_ingress) == true && var.destination_ranges != null ? length(var.protocol) : 0
   name        = format("%s-allow-egress-%s", var.firewall_name_prefix, count.index)
   network     = var.vpc_ref
-  description = "${var.firewall_description[count.index]} - ingress traffic"
+  description = "${var.firewall_description[count.index]} - egress traffic"
 
   dynamic "allow" {
     for_each = var.protocol[count.index] == "icmp" ? ["icmp"] : []
@@ -160,4 +160,8 @@ output "firewall_name_egress" {
 
 output "firewall_uri_egress" {
   value = google_compute_firewall.allow_protocal_egress[*].self_link
+}
+
+output "firewall_uri_egress_all" {
+  value = google_compute_firewall.allow_internal_egress_all[*].self_link
 }

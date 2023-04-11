@@ -80,7 +80,7 @@ module "allow_traffic_bastion_scale_cluster" {
 module "allow_traffic_scale_cluster_storage_ingress" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress      = local.cluster_type != "none" ? true : false
-  firewall_name_prefix = "${var.vpc_ref}-cluster-comp-strg"
+  firewall_name_prefix = "${var.vpc_ref}-cluster-strg"
   vpc_ref              = var.vpc_ref
   source_ranges        = var.vpc_compute_cluster_private_subnets_cidr_blocks
   protocol             = local.traffic_protocol_cluster_storage_ingress
@@ -91,7 +91,7 @@ module "allow_traffic_scale_cluster_storage_ingress" {
 module "allow_traffic_scale_cluster_compute_ingress" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress      = local.cluster_type != "none" ? true : false
-  firewall_name_prefix = "${var.vpc_ref}-cluster-strg-comp"
+  firewall_name_prefix = "${var.vpc_ref}-cluster-comp"
   vpc_ref              = var.vpc_ref
   source_ranges        = var.vpc_storage_cluster_private_subnets_cidr_blocks
   protocol             = local.traffic_protocol_cluster_compute_ingress
@@ -99,12 +99,12 @@ module "allow_traffic_scale_cluster_compute_ingress" {
   firewall_description = local.security_rule_description_cluster_compute_ingress
 }
 
-module "allow_traffic_scale_cluster_compute_egress_all" {
+module "allow_traffic_scale_cluster_storage_egress_all" {
   source                       = "../../../resources/gcp/security/allow_protocol_ports"
-  firewall_name_prefix         = "${var.vpc_ref}-cluster-comp"
+  firewall_name_prefix         = "${var.vpc_ref}-cluster-strg"
   vpc_ref                      = var.vpc_ref
-  destination_range_egress_all = ["0.0.0.0/0"]
-  firewall_description         = local.security_rule_description_cluster_compute_egress_all
+  destination_range_egress_all = local.cluster_type == "storage" || local.cluster_type == "combined" ? ["0.0.0.0/0"] : null
+  firewall_description         = local.security_rule_description_cluster_storage_egress_all
 }
 
 #Creates compute instances
