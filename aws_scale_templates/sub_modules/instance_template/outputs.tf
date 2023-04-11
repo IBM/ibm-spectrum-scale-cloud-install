@@ -1,3 +1,8 @@
+output "airgap" {
+  value       = var.airgap
+  description = "Air gap environment"
+}
+
 output "bastion_user" {
   value       = var.bastion_user
   description = "Bastion OS Login username."
@@ -6,6 +11,10 @@ output "bastion_user" {
 output "placement_group_id" {
   value       = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
   description = "Placement group id."
+}
+
+output "instance_iam_profile" {
+  value = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
 }
 
 output "compute_cluster_instance_ids" {

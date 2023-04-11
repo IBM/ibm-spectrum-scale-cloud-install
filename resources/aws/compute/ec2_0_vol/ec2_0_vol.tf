@@ -58,7 +58,7 @@ resource "aws_instance" "itself" {
   key_name             = var.user_public_key
   security_groups      = var.security_groups
   subnet_id            = each.value.subnet_id
-  iam_instance_profile = var.iam_instance_profile
+  iam_instance_profile = var.iam_instance_profile != null ? var.iam_instance_profile : null
   placement_group      = var.placement_group
 
   root_block_device {
