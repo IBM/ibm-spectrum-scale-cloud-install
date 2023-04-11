@@ -21,7 +21,7 @@ locals {
     "Allow performance monitoring collector traffic from storage to compute instances",
     "Allow performance monitoring collector traffic from storage to compute instances",
     "Allow http traffic from storage to compute instances",
-    "Allow https traffic from storage to compute instances"]
+  "Allow https traffic from storage to compute instances"]
 
   traffic_protocol_cluster_compute_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
   traffic_port_cluster_compute_ingress     = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
@@ -38,7 +38,7 @@ locals {
     "Allow performance monitoring collector traffic from compute to storage instances",
     "Allow performance monitoring collector traffic from compute to storage instances",
     "Allow http traffic from compute to storage instances",
-    "Allow https traffic from compute to storage instances"]
+  "Allow https traffic from compute to storage instances"]
 
   traffic_protocol_cluster_storage_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
   traffic_port_cluster_storage_ingress     = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
@@ -105,14 +105,6 @@ module "allow_traffic_scale_cluster_compute_egress_all" {
   vpc_ref                      = var.vpc_ref
   destination_range_egress_all = ["0.0.0.0/0"]
   firewall_description         = local.security_rule_description_cluster_compute_egress_all
-}
-
-module "allow_traffic_scale_cluster_storage_egress_all" {
-  source                       = "../../../resources/gcp/security/allow_protocol_ports"
-  firewall_name_prefix         = "${var.vpc_ref}-cluster-strg"
-  vpc_ref                      = var.vpc_ref
-  destination_range_egress_all = ["0.0.0.0/0"]
-  firewall_description         = local.security_rule_description_cluster_storage_egress_all
 }
 
 #Creates compute instances
@@ -207,7 +199,7 @@ module "write_compute_cluster_inventory" {
   bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_ids))
+  compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_selflink))
   compute_cluster_instance_private_ips             = jsonencode(flatten(module.compute_cluster_instances[*].instance_ips))
   compute_cluster_instance_private_dns_ip_map      = length(module.compute_cluster_instances) > 0 ? jsonencode(module.compute_cluster_instances[*].dns_hostname) : jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode("None")
@@ -241,14 +233,14 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_private_ips             = jsonencode([])
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = jsonencode(flatten(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_ids                     = jsonencode(flatten(module.storage_cluster_instances[*].instance_selflink))
   storage_cluster_instance_private_ips             = jsonencode(flatten(module.storage_cluster_instances[*].instance_ips))
-  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode(module.storage_cluster_instances[*].disk_device_mapping) : jsonencode({})
-  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode(module.storage_cluster_instances[*].dns_hostname) : jsonencode({})
-  storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ids))
+  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].disk_device_mapping)[0]) : jsonencode({})
+  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].dns_hostname)[0]) : jsonencode({})
+  storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_selflink))
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance[*].instance_ips)
-  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping)) : jsonencode({})
-  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname)) : jsonencode({})
+  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
+  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
 }
 
 # Write combined cluster related inventory.
@@ -267,18 +259,18 @@ module "write_cluster_inventory" {
   bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_ids))
+  compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_selflink))
   compute_cluster_instance_private_ips             = jsonencode(flatten(module.compute_cluster_instances[*].instance_ips))
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = jsonencode(flatten(module.storage_cluster_instances[*].instance_ids))
+  storage_cluster_instance_ids                     = jsonencode(flatten(module.storage_cluster_instances[*].instance_selflink))
   storage_cluster_instance_private_ips             = jsonencode(flatten(module.storage_cluster_instances[*].instance_ips))
-  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode(module.storage_cluster_instances[*].disk_device_mapping) : jsonencode({})
-  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode(module.storage_cluster_instances[*].dns_hostname) : jsonencode({})
-  storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ids))
+  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].disk_device_mapping)[0]) : jsonencode({})
+  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].dns_hostname)[0]) : jsonencode({})
+  storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_selflink))
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance[*].instance_ips)
-  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping) : jsonencode({})
-  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(module.storage_cluster_tie_breaker_instance[*].dns_hostname) : jsonencode({})
+  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
+  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
 }
 
 
@@ -306,5 +298,6 @@ module "storage_cluster_configuration" {
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  wait_for_instance            = false
   depends_on                   = [module.storage_cluster_instances]
 }

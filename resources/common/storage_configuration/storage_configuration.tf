@@ -23,6 +23,11 @@ variable "bastion_ssh_private_key" {}
 variable "meta_private_key" {}
 variable "scale_version" {}
 variable "spectrumscale_rpms_path" {}
+variable "wait_for_instance" {
+  type        = bool
+  default     = true
+  description = "Wait for instance to boot up."
+}
 
 locals {
   scripts_path             = replace(path.module, "storage_configuration", "scripts")
@@ -106,7 +111,7 @@ resource "null_resource" "wait_for_ssh_availability" {
 }
 
 resource "time_sleep" "wait_60_seconds" {
-  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && var.wait_for_instance == true) ? 1 : 0
   create_duration = "60s"
   depends_on      = [null_resource.wait_for_ssh_availability]
 }
