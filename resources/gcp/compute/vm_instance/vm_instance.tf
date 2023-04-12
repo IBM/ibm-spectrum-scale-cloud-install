@@ -53,12 +53,6 @@ variable "ssh_user_name" {
   description = "Name of the administrator to access the instance."
 }
 
-variable "vm_instance_tags" {
-  type        = list(string)
-  default     = []
-  description = "List of tags to attach to the compute instance."
-}
-
 #Disk variables
 variable "total_persistent_disks" {
   type        = number
@@ -175,7 +169,6 @@ resource "google_compute_instance" "itself" {
   zone         = local.vm_configuration[count.index].zone
 
   allow_stopping_for_update = true
-  tags                      = var.vm_instance_tags
 
   #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
   boot_disk {

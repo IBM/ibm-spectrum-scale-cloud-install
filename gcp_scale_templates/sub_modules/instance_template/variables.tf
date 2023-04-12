@@ -97,17 +97,11 @@ variable "compute_boot_disk_type" {
   description = "GCE disk type (valid: pd-standard, pd-ssd)."
 }
 
-variable "compute_boot_image" {
+variable "compute_cluster_image_ref" {
   type        = string
-  default     = "ubuntu-os-cloud/ubuntu-1804-lts"
-  description = "Image from which to initialize Spectrum Scale compute instances."
-}
-
-variable "compute_instance_tags" {
-  type        = list(string)
   nullable    = true
   default     = null
-  description = "List of tags to attach to the compute instance."
+  description = "Image from which to initialize Spectrum Scale compute instances."
 }
 
 variable "total_storage_cluster_instances" {
@@ -129,13 +123,6 @@ variable "scratch_devices_per_storage_instance" {
   nullable    = true
   default     = 0
   description = "Number of scratch disks to be attached to each storage instance."
-}
-
-variable "storage_instance_tags" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of tags to attach to the compute instance."
 }
 
 variable "storage_cluster_instance_type" {
@@ -211,13 +198,6 @@ variable "vpc_public_subnets_cidr_blocks" {
   nullable    = true
   default     = null
   description = "List of cidr_blocks for bastion cluster public subnets."
-}
-
-variable "bastion_instance_tags" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of tags to attach to the bastion instance."
 }
 
 variable "scale_ansible_repo_clone_path" {

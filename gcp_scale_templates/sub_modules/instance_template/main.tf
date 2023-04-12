@@ -77,12 +77,23 @@ module "allow_traffic_bastion_scale_cluster" {
   firewall_description = local.security_rule_description_bastion_scale_ingress
 }
 
+module "allow_traffic_scale_cluster_storage_internal_ingress" {
+  source               = "../../../resources/gcp/security/allow_protocol_ports"
+  turn_on_ingress      = local.cluster_type != "none" ? true : false
+  firewall_name_prefix = "${var.vpc_ref}-cluster-strg-inter"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = var.vpc_compute_cluster_private_subnets_cidr_blocks
+  protocol             = local.traffic_protocol_cluster_storage_ingress
+  ports                = local.traffic_port_cluster_storage_ingress
+  firewall_description = local.security_rule_description_cluster_storage_ingress
+}
+
 module "allow_traffic_scale_cluster_storage_ingress" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress      = local.cluster_type != "none" ? true : false
   firewall_name_prefix = "${var.vpc_ref}-cluster-strg"
   vpc_ref              = var.vpc_ref
-  source_ranges        = var.vpc_compute_cluster_private_subnets_cidr_blocks
+  source_ranges        = var.vpc_storage_cluster_private_subnets_cidr_blocks
   protocol             = local.traffic_protocol_cluster_storage_ingress
   ports                = local.traffic_port_cluster_storage_ingress
   firewall_description = local.security_rule_description_cluster_storage_ingress
@@ -123,10 +134,9 @@ module "compute_cluster_instances" {
   public_key_content      = module.generate_compute_cluster_keys.public_key_content
   service_email           = var.service_email
   scopes                  = var.scopes
-  vm_instance_tags        = var.compute_instance_tags
   boot_disk_size          = var.compute_boot_disk_size
   boot_disk_type          = var.compute_boot_disk_type
-  boot_image              = var.compute_boot_image
+  boot_image              = var.compute_cluster_image_ref
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -144,7 +154,6 @@ module "storage_cluster_tie_breaker_instance" {
   public_key_content      = module.generate_storage_cluster_keys.public_key_content
   service_email           = var.service_email
   scopes                  = var.scopes
-  vm_instance_tags        = var.storage_instance_tags
   boot_disk_size          = var.storage_boot_disk_size
   boot_disk_type          = var.storage_boot_disk_type
   boot_image              = var.storage_cluster_image_ref
@@ -168,7 +177,6 @@ module "storage_cluster_instances" {
   public_key_content      = module.generate_storage_cluster_keys.public_key_content
   service_email           = var.service_email
   scopes                  = var.scopes
-  vm_instance_tags        = var.storage_instance_tags
   boot_disk_size          = var.storage_boot_disk_size
   boot_disk_type          = var.storage_boot_disk_type
   boot_image              = var.storage_cluster_image_ref
@@ -216,7 +224,7 @@ module "write_compute_cluster_inventory" {
 # Write the storage cluster related inventory.
 module "write_storage_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = (var.create_remote_mount_cluster == true && local.cluster_type == "storage") ? 1 : 0
+  write_inventory                                  = (var.create_remote_mount_cluster == true && local.cluster_type == "storage" || local.cluster_type == "combined") ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
   inventory_path                                   = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("GCP")
