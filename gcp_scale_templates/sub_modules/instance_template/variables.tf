@@ -179,25 +179,11 @@ variable "scopes" {
   description = "List of service scopes."
 }
 
-variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
+variable "vpc_cluster_public_subnets" {
   type        = list(string)
   nullable    = true
   default     = null
-  description = "List of cidr_blocks for compute private subnets."
-}
-
-variable "vpc_storage_cluster_private_subnets_cidr_blocks" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of cidr_blocks for storage cluster private subnets."
-}
-
-variable "vpc_public_subnets_cidr_blocks" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of cidr_blocks for bastion cluster public subnets."
+  description = "List of public subnet for bastion/jumphost cluster."
 }
 
 variable "scale_ansible_repo_clone_path" {

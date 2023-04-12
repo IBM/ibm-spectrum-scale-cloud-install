@@ -94,7 +94,7 @@ resource "google_compute_firewall" "allow_protocal_ingress" {
 
 #tfsec:ignore:google-compute-no-public-egress
 resource "google_compute_firewall" "allow_protocal_egress" {
-  count       = tobool(var.turn_on_ingress) == true && var.destination_ranges != null ? length(var.protocol) : 0
+  count       = tobool(var.turn_on_egress) == true && var.destination_ranges != null ? length(var.protocol) : 0
   name        = format("%s-allow-egress-%s", var.firewall_name_prefix, count.index)
   network     = var.vpc_ref
   description = "${var.firewall_description[count.index]} - egress traffic"
@@ -120,7 +120,7 @@ resource "google_compute_firewall" "allow_protocal_egress" {
 
 #tfsec:ignore:google-compute-no-public-ingress
 resource "google_compute_firewall" "allow_internal_egress_all" {
-  count       = var.destination_range_egress_all != null ? 1 : 0
+  count       = tobool(var.turn_on_egress) == true && var.destination_range_egress_all != null ? 1 : 0
   name        = format("%s-allow-all-egress", var.firewall_name_prefix)
   network     = var.vpc_ref
   description = "${var.firewall_description[0]} - ingress traffic"
