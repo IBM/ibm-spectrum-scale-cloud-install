@@ -32,6 +32,7 @@ module "generate_storage_cluster_keys" {
 
 module "cluster_host_iam_role" {
   source           = "../../../resources/aws/security/iam/iam_role"
+  turn_on          = (var.airgap == true) ? false : true # Disable IAM role creation in airgap mode.
   role_name_prefix = format("%s-cluster-", var.resource_prefix)
   role_policy      = <<EOF
 {
@@ -52,6 +53,7 @@ EOF
 
 module "cluster_host_iam_policy" {
   source                  = "../../../resources/aws/security/iam/iam_role_policy"
+  turn_on                 = (var.airgap == true) ? false : true
   role_policy_name_prefix = format("%s-cluster-", var.resource_prefix)
   iam_role_id             = module.cluster_host_iam_role.iam_role_id
   iam_role_policy         = <<EOF
@@ -90,6 +92,7 @@ EOF
 
 module "cluster_instance_iam_profile" {
   source                       = "../../../resources/aws/security/iam/iam_instance_profile"
+  turn_on                      = (var.airgap == true) ? false : true
   instance_profile_name_prefix = format("%s-cluster-", var.resource_prefix)
   iam_host_role                = module.cluster_host_iam_policy.role_policy_name
 }
@@ -327,7 +330,7 @@ module "compute_cluster_instances" {
   ami_id                 = var.compute_cluster_image_ref
   instance_type          = var.compute_cluster_instance_type
   security_groups        = [module.compute_cluster_security_group.sec_group_id]
-  iam_instance_profile   = module.cluster_instance_iam_profile.iam_instance_profile_name
+  iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
   placement_group        = null
   subnet_ids             = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   root_volume_type       = var.compute_cluster_root_volume_type
@@ -352,7 +355,7 @@ module "storage_cluster_instances" {
   ami_id                                 = var.storage_cluster_image_ref
   instance_type                          = var.storage_cluster_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
-  iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
+  iam_instance_profile                   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
   placement_group                        = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
   subnet_ids                             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
   root_volume_type                       = var.storage_cluster_root_volume_type
@@ -383,7 +386,7 @@ module "storage_cluster_tie_breaker_instance" {
   ami_id                                 = var.storage_cluster_image_ref
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
-  iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
+  iam_instance_profile                   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
   placement_group                        = null
   subnet_ids                             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets) : null
   root_volume_type                       = var.storage_cluster_root_volume_type
@@ -409,6 +412,7 @@ module "storage_cluster_tie_breaker_instance" {
 
 module "prepare_ansible_configuration" {
   source     = "../../../resources/common/git_utils"
+  turn_on    = (var.airgap == true) ? false : true # Disable git module in airgap mode.
   branch     = "scale_cloud"
   tag        = null
   clone_path = var.scale_ansible_repo_clone_path

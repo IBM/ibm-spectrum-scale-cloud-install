@@ -1,3 +1,10 @@
+variable "airgap" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "If true, instance iam profile, git utils which need internet access will be skipped."
+}
+
 variable "vpc_region" {
   type        = string
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
