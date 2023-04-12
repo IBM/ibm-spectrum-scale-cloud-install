@@ -412,6 +412,7 @@ module "storage_cluster_tie_breaker_instance" {
 
 module "prepare_ansible_configuration" {
   source     = "../../../resources/common/git_utils"
+  turn_on    = (var.airgap == true) ? false : true # Disable git module in airgap mode.
   branch     = "scale_cloud"
   tag        = null
   clone_path = var.scale_ansible_repo_clone_path

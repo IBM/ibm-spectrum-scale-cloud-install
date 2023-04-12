@@ -53,13 +53,17 @@ resource "aws_instance" "itself" {
     }
   }
 
-  ami                  = var.ami_id
-  instance_type        = var.instance_type
-  key_name             = var.user_public_key
-  security_groups      = var.security_groups
-  subnet_id            = each.value.subnet_id
-  iam_instance_profile = var.iam_instance_profile != null ? var.iam_instance_profile : null
-  placement_group      = var.placement_group
+  ami             = var.ami_id
+  instance_type   = var.instance_type
+  key_name        = var.user_public_key
+  security_groups = var.security_groups
+  subnet_id       = each.value.subnet_id
+
+  # Only include iam_instance_profile if var.iam_instance_profile is a non-empty string
+  # otherwise, skip the parameter entirely
+  iam_instance_profile = var.iam_instance_profile != "" ? var.iam_instance_profile : null
+
+  placement_group = var.placement_group
 
   root_block_device {
     encrypted             = var.root_volume_encrypted == false ? null : true
