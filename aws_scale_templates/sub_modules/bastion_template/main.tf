@@ -20,6 +20,7 @@ module "bastion_ssh_metric_filter" {
 
 module "bastion_host_iam_role" {
   source           = "../../../resources/aws/security/iam/iam_role"
+  turn_on          = true
   role_name_prefix = format("%s-bastion-", var.resource_prefix)
   role_policy      = <<EOF
 {
@@ -40,6 +41,7 @@ EOF
 
 module "bastion_host_iam_policy" {
   source                  = "../../../resources/aws/security/iam/iam_role_policy"
+  turn_on                 = true
   role_policy_name_prefix = format("%s-bastion-", var.resource_prefix)
   iam_role_id             = module.bastion_host_iam_role.iam_role_id
   iam_role_policy         = <<EOF
@@ -75,6 +77,7 @@ EOF
 
 module "bastion_instance_iam_profile" {
   source                       = "../../../resources/aws/security/iam/iam_instance_profile"
+  turn_on                      = true
   instance_profile_name_prefix = format("%s-bastion-", var.resource_prefix)
   iam_host_role                = module.bastion_host_iam_policy.role_policy_name
 }
@@ -121,7 +124,7 @@ module "bastion_autoscaling_launch_template" {
   launch_template_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-tmpl")
   image_id                    = var.bastion_image_ref
   instance_type               = var.bastion_instance_type
-  instance_iam_profile        = module.bastion_instance_iam_profile.iam_instance_profile_name
+  instance_iam_profile        = module.bastion_instance_iam_profile.iam_instance_profile_name[0]
   key_name                    = var.bastion_key_pair
   sec_groups                  = [module.bastion_security_group.sec_group_id]
 }
