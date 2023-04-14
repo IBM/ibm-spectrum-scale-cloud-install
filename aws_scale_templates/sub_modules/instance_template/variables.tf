@@ -1,3 +1,10 @@
+variable "airgap" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "If true, instance iam profile, git utils which need internet access will be skipped."
+}
+
 variable "vpc_region" {
   type        = string
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
@@ -51,7 +58,7 @@ variable "compute_cluster_key_pair" {
   description = "The key pair to use to launch the compute cluster host."
 }
 
-variable "compute_cluster_image_id" {
+variable "compute_cluster_image_ref" {
   type        = string
   nullable    = true
   default     = null
@@ -202,7 +209,7 @@ variable "enable_placement_group" {
   description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
 }
 
-variable "ebs_block_devices_per_storage_instance" {
+variable "block_devices_per_storage_instance" {
   type        = number
   nullable    = true
   default     = null

@@ -233,15 +233,24 @@ The following steps will provision AWS resources (compute and storage instances 
 | Name | Description | Type |
 |------|-------------|------|
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc. | `string` |
+| <a name="input_airgap"></a> [airgap](#input_airgap) | If true, instance iam profile, git utils which need internet access will be skipped. | `bool` |
 | <a name="input_bastion_instance_id"></a> [bastion_instance_id](#input_bastion_instance_id) | Bastion instance id. | `string` |
 | <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group id. | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
+| <a name="input_block_device_delete_on_termination"></a> [block_device_delete_on_termination](#input_block_device_delete_on_termination) | If true, all ebs volumes will be destroyed on instance termination. | `bool` |
+| <a name="input_block_device_encrypted"></a> [block_device_encrypted](#input_block_device_encrypted) | Whether to enable volume encryption. | `bool` |
+| <a name="input_block_device_iops"></a> [block_device_iops](#input_block_device_iops) | Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3. | `number` |
+| <a name="input_block_device_kms_key_id"></a> [block_device_kms_key_id](#input_block_device_kms_key_id) | Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume. | `string` |
+| <a name="input_block_device_throughput"></a> [block_device_throughput](#input_block_device_throughput) | Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3. | `number` |
+| <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Size of the volume in gibibytes (GiB). | `number` |
+| <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | EBS volume types: io1, io2, gp2, gp3. | `string` |
+| <a name="input_block_devices_per_storage_instance"></a> [block_devices_per_storage_instance](#input_block_devices_per_storage_instance) | Additional EBS block devices to attach per storage cluster instance. | `number` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for Compute cluster GUI. | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
-| <a name="input_compute_cluster_image_id"></a> [compute_cluster_image_id](#input_compute_cluster_image_id) | ID of AMI to use for provisioning the compute cluster instances. | `string` |
+| <a name="input_compute_cluster_image_ref"></a> [compute_cluster_image_ref](#input_compute_cluster_image_ref) | ID of AMI to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_instance_type"></a> [compute_cluster_instance_type](#input_compute_cluster_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_key_pair"></a> [compute_cluster_key_pair](#input_compute_cluster_key_pair) | The key pair to use to launch the compute cluster host. | `string` |
 | <a name="input_compute_cluster_root_volume_type"></a> [compute_cluster_root_volume_type](#input_compute_cluster_root_volume_type) | EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1. | `string` |
@@ -249,14 +258,6 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_compute_cluster_volume_tags"></a> [compute_cluster_volume_tags](#input_compute_cluster_volume_tags) | Additional tags for the compute cluster volume(s). | `map(string)` |
 | <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
-| <a name="input_ebs_block_device_delete_on_termination"></a> [ebs_block_device_delete_on_termination](#input_ebs_block_device_delete_on_termination) | If true, all ebs volumes will be destroyed on instance termination. | `bool` |
-| <a name="input_ebs_block_device_encrypted"></a> [ebs_block_device_encrypted](#input_ebs_block_device_encrypted) | Whether to enable volume encryption. | `bool` |
-| <a name="input_ebs_block_device_iops"></a> [ebs_block_device_iops](#input_ebs_block_device_iops) | Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3. | `number` |
-| <a name="input_ebs_block_device_kms_key_id"></a> [ebs_block_device_kms_key_id](#input_ebs_block_device_kms_key_id) | Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume. | `string` |
-| <a name="input_ebs_block_device_throughput"></a> [ebs_block_device_throughput](#input_ebs_block_device_throughput) | Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3. | `number` |
-| <a name="input_ebs_block_device_volume_size"></a> [ebs_block_device_volume_size](#input_ebs_block_device_volume_size) | Size of the volume in gibibytes (GiB). | `number` |
-| <a name="input_ebs_block_device_volume_type"></a> [ebs_block_device_volume_type](#input_ebs_block_device_volume_type) | EBS volume types: io1, io2, gp2, gp3. | `string` |
-| <a name="input_ebs_block_devices_per_storage_instance"></a> [ebs_block_devices_per_storage_instance](#input_ebs_block_devices_per_storage_instance) | Additional EBS block devices to attach per storage cluster instance. | `number` |
 | <a name="input_enable_instance_store_block_device"></a> [enable_instance_store_block_device](#input_enable_instance_store_block_device) | Enable instance storage block devices. | `bool` |
 | <a name="input_enable_nvme_block_device"></a> [enable_nvme_block_device](#input_enable_nvme_block_device) | Enable NVMe block devices (built on Nitro instances). | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, a placement group will be created and all instances will be created with strategy - cluster. | `bool` |
@@ -269,7 +270,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_storage_cluster_filesystem_mountpoint"></a> [storage_cluster_filesystem_mountpoint](#input_storage_cluster_filesystem_mountpoint) | Storage cluster (owningCluster) Filesystem mount point. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
-| <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | ID of AMI to use for provisioning the storage cluster instances. | `string` |
+| <a name="input_storage_cluster_image_ref"></a> [storage_cluster_image_ref](#input_storage_cluster_image_ref) | ID of AMI to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_cluster_instance_type"></a> [storage_cluster_instance_type](#input_storage_cluster_instance_type) | Instance type to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | The key pair to use to launch the storage cluster host. | `string` |
 | <a name="input_storage_cluster_root_volume_type"></a> [storage_cluster_root_volume_type](#input_storage_cluster_root_volume_type) | EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1. | `string` |
@@ -290,11 +291,13 @@ The following steps will provision AWS resources (compute and storage instances 
 
 | Name | Description |
 |------|-------------|
+| <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
 | <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
 | <a name="output_compute_instance_memory_size"></a> [compute_instance_memory_size](#output_compute_instance_memory_size) | Compute instance profile memory size. |
+| <a name="output_instance_iam_profile"></a> [instance_iam_profile](#output_instance_iam_profile) | n/a |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | Placement group id. |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
