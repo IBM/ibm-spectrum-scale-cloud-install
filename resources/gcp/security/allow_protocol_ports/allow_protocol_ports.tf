@@ -50,7 +50,7 @@ variable "protocol" {
 }
 
 variable "ports" {
-  type        = list(number)
+  type        = list(string)
   nullable    = true
   default     = null
   description = "Firewall ports to be applied."
