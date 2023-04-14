@@ -189,6 +189,7 @@ module "storage_cluster_instances" {
 }
 
 module "prepare_ansible_configuration" {
+  turn_on    = true
   source     = "../../../resources/common/git_utils"
   branch     = "scale_cloud"
   tag        = null
