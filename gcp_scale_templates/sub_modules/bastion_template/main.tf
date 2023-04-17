@@ -1,21 +1,30 @@
 /*
-  Create a new Bastion instance
+  Bastion/Jumphost instance
+   - creates firewall required for bastion instance
+   - launch bastion instance
 */
 
 locals {
-  security_rule_description_bastion_scale_ingress = ["Allow ICMP traffic from compute to storage instances",
+  security_rule_description_bastion_external_ingress = ["Allow ICMP traffic from external cidr to bastion instances",
+  "Allow SSH traffic from external cidr to bastion instances"]
+
+  security_rule_description_bastion_scale_ingress = ["Allow ICMP traffic from bastion to scale instances",
   "Allow SSH traffic from bastion to scale instances"]
 
   traffic_protocol_cluster_bastion_scale_ingress = ["icmp", "TCP"]
   traffic_port_cluster_bastion_scale_ingress     = [-1, 22]
 }
 
-module "bastion_firewall" {
-  source               = "../../../resources/gcp/network/firewall/allow_bastion/"
-  source_range         = var.remote_cidr_blocks
-  firewall_name_prefix = var.resource_prefix
-  traffic_port         = var.bastion_public_ssh_port
-  vpc_name             = var.vpc_ref
+# Allow traffic from external cidr block to bastion instances
+module "allow_traffic_from_external_cidr_to_bastion" {
+  source               = "../../../resources/gcp/security/allow_protocol_ports"
+  turn_on_ingress      = true
+  firewall_name_prefix = "${var.resource_prefix}-bastion-external"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = var.remote_cidr_blocks
+  protocol             = local.traffic_protocol_cluster_bastion_scale_ingress
+  ports                = local.traffic_port_cluster_bastion_scale_ingress
+  firewall_description = local.security_rule_description_bastion_external_ingress
 }
 
 data "google_compute_subnetwork" "public_bastion_cluster" {
@@ -23,7 +32,8 @@ data "google_compute_subnetwork" "public_bastion_cluster" {
   name  = var.vpc_auto_scaling_group_subnets[0]
 }
 
-module "allow_traffic_bastion_scale_cluster" {
+# Allow traffic from bastion to scale cluster
+module "allow_traffic_bastion_to_scale_cluster" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress      = true
   firewall_name_prefix = "${var.resource_prefix}-bastion"
@@ -34,6 +44,7 @@ module "allow_traffic_bastion_scale_cluster" {
   firewall_description = local.security_rule_description_bastion_scale_ingress
 }
 
+# Creates bastion instance template
 module "bastion_autoscaling_launch_template" {
   source                      = "../../../resources/gcp/asg/launch_template"
   launch_template_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-tmpl")
@@ -47,6 +58,7 @@ module "bastion_autoscaling_launch_template" {
   ssh_key_path                = var.bastion_ssh_key_path
 }
 
+# launch bastion instance
 module "bastion_autoscaling_group" {
   source            = "../../../resources/gcp/asg/asg_group"
   asg_name_prefix   = format("%s-%s", var.resource_prefix, "bastion-asg")

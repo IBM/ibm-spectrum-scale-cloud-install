@@ -1,11 +1,6 @@
-output "bastion_firewall_id" {
-  value       = module.bastion_firewall.firewall_id
+output "bastion_security_group_id" {
+  value       = concat(module.allow_traffic_from_external_cidr_to_bastion.firewall_uri_ingress, module.allow_traffic_bastion_to_scale_cluster.firewall_uri_ingress)
   description = "Bastion firewall id."
-}
-
-output "bastion_firewall_name" {
-  value       = module.bastion_firewall.firewall_name
-  description = "Bastion firewall name."
 }
 
 output "bastion_instance_name" {

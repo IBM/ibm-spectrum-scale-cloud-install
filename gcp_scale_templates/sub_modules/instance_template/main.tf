@@ -26,22 +26,22 @@ locals {
   traffic_protocol_cluster_storage_internal_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
   traffic_port_cluster_storage_internal_ingress     = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
 
-  security_rule_description_cluster_storage_ingress = ["Allow ICMP traffic from compute to storage instances",
-    "Allow SSH traffic from compute to storage instances",
-    "Allow GPFS intra cluster traffic from compute to storage instances",
-    "Allow GPFS ephemeral port range from compute to storage instances",
-    "Allow management GUI (http/localhost) TCP traffic from compute to storage instances",
-    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances",
-    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances",
-    "Allow management GUI (localhost) TCP traffic from compute to storage instances",
-    "Allow management GUI (localhost) UDP traffic from compute to storage instances",
-    "Allow performance monitoring collector traffic from compute to storage instances",
-    "Allow performance monitoring collector traffic from compute to storage instances",
-    "Allow http traffic from compute to storage instances",
-  "Allow https traffic from compute to storage instances"]
+  security_rule_description_cluster_compute_ingress = ["Allow ICMP traffic from compute to storage instances and within compute instances",
+    "Allow SSH traffic from compute to storage instances and within compute instances",
+    "Allow GPFS intra cluster traffic from compute to storage instances and within compute instances",
+    "Allow GPFS ephemeral port range from compute to storage instances and within compute instances",
+    "Allow management GUI (http/localhost) TCP traffic from compute to storage instances and within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances and within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances and within compute instances",
+    "Allow management GUI (localhost) TCP traffic from compute to storage instances and within compute instances",
+    "Allow management GUI (localhost) UDP traffic from compute to storage instances and within compute instances",
+    "Allow performance monitoring collector traffic from compute to storage instances and within compute instances",
+    "Allow performance monitoring collector traffic from compute to storage instances and within compute instances",
+    "Allow http traffic from compute to storage instances and within compute instances",
+  "Allow https traffic from compute to storage instances and within compute instances"]
 
-  traffic_protocol_cluster_storage_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_port_cluster_storage_ingress     = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
+  traffic_protocol_cluster_compute_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_port_cluster_comppute_ingress    = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
 
   security_rule_description_cluster_storage_egress_all = ["Allow all traffic from storage instances"]
 
@@ -69,17 +69,19 @@ data "google_compute_subnetwork" "compute_cluster" {
   name  = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
-module "allow_traffic_scale_cluster_compute_to_storage_ingress" {
+# Allow traffic from compute to storage plus compute internals
+module "allow_traffic_scale_cluster_compute_internal_plus_compute_to_storage" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress      = local.cluster_type != "combined" ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-comp-strg"
+  turn_on_ingress      = local.cluster_type == "compute" || local.cluster_type == "combined" ? true : false
+  firewall_name_prefix = "${var.resource_prefix}-comp-inter"
   vpc_ref              = var.vpc_ref
   source_ranges        = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
-  protocol             = local.traffic_protocol_cluster_storage_ingress
-  ports                = local.traffic_port_cluster_storage_ingress
-  firewall_description = local.security_rule_description_cluster_storage_ingress
+  protocol             = local.traffic_protocol_cluster_compute_ingress
+  ports                = local.traffic_port_cluster_comppute_ingress
+  firewall_description = local.security_rule_description_cluster_compute_ingress
 }
 
+# Allow traffic from storage to compute plus storage internals
 module "allow_traffic_scale_cluster_strg_internal_plus_strg_comp_ingress" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress      = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
@@ -91,6 +93,7 @@ module "allow_traffic_scale_cluster_strg_internal_plus_strg_comp_ingress" {
   firewall_description = local.security_rule_description_cluster_storage_internal_ingress
 }
 
+# Allow egress traffic to all instances
 module "allow_traffic_scale_cluster_storage_egress_all" {
   source                       = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_egress               = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
@@ -100,7 +103,7 @@ module "allow_traffic_scale_cluster_storage_egress_all" {
   firewall_description         = local.security_rule_description_cluster_storage_egress_all
 }
 
-#Creates compute instances
+# Creates compute instances
 module "compute_cluster_instances" {
   source                  = "../../../resources/gcp/compute/vm_instance"
   vpc_availability_zones  = var.vpc_availability_zones
@@ -121,6 +124,7 @@ module "compute_cluster_instances" {
   boot_image              = var.compute_cluster_image_ref
 }
 
+# Creates storage tie breaker instance
 module "storage_cluster_tie_breaker_instance" {
   source                  = "../../../resources/gcp/compute/vm_instance"
   vpc_availability_zones  = length(var.vpc_availability_zones) > 1 ? [var.vpc_availability_zones[2]] : []
@@ -143,7 +147,7 @@ module "storage_cluster_tie_breaker_instance" {
   data_disk_size          = 5
 }
 
-#Creates storage instances
+# Creates storage instances
 module "storage_cluster_instances" {
   source                  = "../../../resources/gcp/compute/vm_instance"
   vpc_availability_zones  = length(var.vpc_availability_zones) > 1 ? slice(var.vpc_availability_zones, 0, 2) : var.vpc_availability_zones
@@ -166,6 +170,7 @@ module "storage_cluster_instances" {
   data_disk_size          = var.block_device_volume_size
 }
 
+# Prepare ansible config
 module "prepare_ansible_configuration" {
   turn_on    = true
   source     = "../../../resources/common/git_utils"
