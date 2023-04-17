@@ -69,11 +69,6 @@ data "google_compute_subnetwork" "compute_cluster" {
   name  = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
-data "google_compute_subnetwork" "public_cluster" {
-  count = var.vpc_cluster_public_subnets != null ? length(var.vpc_cluster_public_subnets) : 0
-  name  = var.vpc_cluster_public_subnets[count.index]
-}
-
 module "allow_traffic_scale_cluster_compute_to_storage_ingress" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress      = local.cluster_type != "combined" ? true : false

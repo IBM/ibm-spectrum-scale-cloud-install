@@ -186,13 +186,6 @@ variable "scopes" {
   description = "List of service scopes."
 }
 
-variable "vpc_cluster_public_subnets" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of public subnet for bastion/jumphost cluster."
-}
-
 variable "scale_ansible_repo_clone_path" {
   type        = string
   nullable    = true
