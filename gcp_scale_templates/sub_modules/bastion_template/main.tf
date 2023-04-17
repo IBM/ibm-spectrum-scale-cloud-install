@@ -2,12 +2,36 @@
   Create a new Bastion instance
 */
 
+locals {
+  security_rule_description_bastion_scale_ingress = ["Allow ICMP traffic from compute to storage instances",
+  "Allow SSH traffic from bastion to scale instances"]
+
+  traffic_protocol_cluster_bastion_scale_ingress = ["icmp", "TCP"]
+  traffic_port_cluster_bastion_scale_ingress     = [-1, 22]
+}
+
 module "bastion_firewall" {
   source               = "../../../resources/gcp/network/firewall/allow_bastion/"
   source_range         = var.remote_cidr_blocks
   firewall_name_prefix = var.resource_prefix
   traffic_port         = var.bastion_public_ssh_port
   vpc_name             = var.vpc_ref
+}
+
+data "google_compute_subnetwork" "public_bastion_cluster" {
+  count = var.vpc_auto_scaling_group_subnets != null ? 1 : 0
+  name  = var.vpc_auto_scaling_group_subnets[0]
+}
+
+module "allow_traffic_bastion_scale_cluster" {
+  source               = "../../../resources/gcp/security/allow_protocol_ports"
+  turn_on_ingress      = true
+  firewall_name_prefix = "${var.resource_prefix}-bastion"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = length(data.google_compute_subnetwork.public_bastion_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.public_bastion_cluster[*].ip_cidr_range : null
+  protocol             = local.traffic_protocol_cluster_bastion_scale_ingress
+  ports                = local.traffic_port_cluster_bastion_scale_ingress
+  firewall_description = local.security_rule_description_bastion_scale_ingress
 }
 
 module "bastion_autoscaling_launch_template" {

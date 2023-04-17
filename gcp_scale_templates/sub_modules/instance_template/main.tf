@@ -45,12 +45,6 @@ locals {
 
   security_rule_description_cluster_storage_egress_all = ["Allow all traffic from storage instances"]
 
-  security_rule_description_bastion_scale_ingress = ["Allow ICMP traffic from compute to storage instances",
-  "Allow SSH traffic from bastion to scale instances"]
-
-  traffic_protocol_cluster_bastion_scale_ingress = ["icmp", "TCP"]
-  traffic_port_cluster_bastion_scale_ingress     = [-1, 22]
-
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
@@ -78,17 +72,6 @@ data "google_compute_subnetwork" "compute_cluster" {
 data "google_compute_subnetwork" "public_cluster" {
   count = var.vpc_cluster_public_subnets != null ? length(var.vpc_cluster_public_subnets) : 0
   name  = var.vpc_cluster_public_subnets[count.index]
-}
-
-module "allow_traffic_bastion_scale_cluster" {
-  source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress      = local.cluster_type != "none" ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-bastion"
-  vpc_ref              = var.vpc_ref
-  source_ranges        = length(data.google_compute_subnetwork.public_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.public_cluster[*].ip_cidr_range : null
-  protocol             = local.traffic_protocol_cluster_bastion_scale_ingress
-  ports                = local.traffic_port_cluster_bastion_scale_ingress
-  firewall_description = local.security_rule_description_bastion_scale_ingress
 }
 
 module "allow_traffic_scale_cluster_compute_to_storage_ingress" {
