@@ -258,7 +258,7 @@ variable "ebs_block_device_volume_type" {
   description = "EBS volume types: io1, io2, gp2, gp3, st1 and sc1."
 }
 
-variable "enable_nvme_block_device" {
+variable "enable_nitro_block_device" {
   type        = bool
   default     = false
   description = "Enable NVMe block devices (built on Nitro instances)."

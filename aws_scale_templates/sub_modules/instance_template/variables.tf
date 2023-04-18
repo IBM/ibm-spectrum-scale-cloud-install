@@ -1,10 +1,3 @@
-variable "airgap" {
-  type        = bool
-  nullable    = true
-  default     = null
-  description = "If true, instance iam profile, git utils which need internet access will be skipped."
-}
-
 variable "vpc_region" {
   type        = string
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
@@ -273,7 +266,7 @@ variable "enable_instance_store_block_device" {
   description = "Enable instance storage block devices."
 }
 
-variable "enable_nvme_block_device" {
+variable "enable_nitro_block_device" {
   type        = bool
   nullable    = true
   default     = null

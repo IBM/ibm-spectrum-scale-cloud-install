@@ -68,7 +68,7 @@ module "scale_instances" {
   ebs_block_device_kms_key_id              = var.ebs_block_device_kms_key_id
   ebs_block_device_volume_size             = var.ebs_block_device_volume_size
   ebs_block_device_volume_type             = var.ebs_block_device_volume_type
-  enable_nvme_block_device                 = var.enable_nvme_block_device
+  enable_nitro_block_device                = var.enable_nitro_block_device
   scale_ansible_repo_clone_path            = var.scale_ansible_repo_clone_path
   spectrumscale_rpms_path                  = var.spectrumscale_rpms_path
   operator_email                           = var.operator_email

@@ -32,7 +32,6 @@ module "generate_storage_cluster_keys" {
 
 module "cluster_host_iam_role" {
   source           = "../../../resources/aws/security/iam/iam_role"
-  turn_on          = (var.airgap == true) ? false : true # Disable IAM role creation in airgap mode.
   role_name_prefix = format("%s-cluster-", var.resource_prefix)
   role_policy      = <<EOF
 {
@@ -53,7 +52,6 @@ EOF
 
 module "cluster_host_iam_policy" {
   source                  = "../../../resources/aws/security/iam/iam_role_policy"
-  turn_on                 = (var.airgap == true) ? false : true
   role_policy_name_prefix = format("%s-cluster-", var.resource_prefix)
   iam_role_id             = module.cluster_host_iam_role.iam_role_id
   iam_role_policy         = <<EOF
@@ -92,7 +90,6 @@ EOF
 
 module "cluster_instance_iam_profile" {
   source                       = "../../../resources/aws/security/iam/iam_instance_profile"
-  turn_on                      = (var.airgap == true) ? false : true
   instance_profile_name_prefix = format("%s-cluster-", var.resource_prefix)
   iam_host_role                = module.cluster_host_iam_policy.role_policy_name
 }
@@ -330,7 +327,7 @@ module "compute_cluster_instances" {
   ami_id                 = var.compute_cluster_image_ref
   instance_type          = var.compute_cluster_instance_type
   security_groups        = [module.compute_cluster_security_group.sec_group_id]
-  iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  iam_instance_profile   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group        = null
   subnet_ids             = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   root_volume_type       = var.compute_cluster_root_volume_type
@@ -355,7 +352,7 @@ module "storage_cluster_instances" {
   ami_id                                 = var.storage_cluster_image_ref
   instance_type                          = var.storage_cluster_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
-  iam_instance_profile                   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
   subnet_ids                             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
   root_volume_type                       = var.storage_cluster_root_volume_type
@@ -374,8 +371,8 @@ module "storage_cluster_instances" {
   ebs_block_device_iops                  = var.block_device_iops
   ebs_block_device_throughput            = var.block_device_throughput
   enable_instance_store_block_device     = var.enable_instance_store_block_device
-  enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = (var.enable_nvme_block_device == true || var.enable_instance_store_block_device == true) ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  enable_nitro_block_device              = var.enable_nitro_block_device
+  nvme_block_device_count                = var.enable_instance_store_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
@@ -386,7 +383,7 @@ module "storage_cluster_tie_breaker_instance" {
   ami_id                                 = var.storage_cluster_image_ref
   instance_type                          = var.storage_cluster_tiebreaker_instance_type
   security_groups                        = [module.storage_cluster_security_group.sec_group_id]
-  iam_instance_profile                   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  iam_instance_profile                   = module.cluster_instance_iam_profile.iam_instance_profile_name
   placement_group                        = null
   subnet_ids                             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets) : null
   root_volume_type                       = var.storage_cluster_root_volume_type
@@ -404,15 +401,14 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_volume_type           = "gp2"
   ebs_block_device_iops                  = null
   ebs_block_device_throughput            = null
-  enable_nvme_block_device               = var.enable_nvme_block_device
+  enable_nitro_block_device              = var.enable_nitro_block_device
   enable_instance_store_block_device     = false
-  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  nvme_block_device_count                = var.enable_instance_store_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
 module "prepare_ansible_configuration" {
   source     = "../../../resources/common/git_utils"
-  turn_on    = (var.airgap == true) ? false : true # Disable git module in airgap mode.
   branch     = "scale_cloud"
   tag        = null
   clone_path = var.scale_ansible_repo_clone_path
