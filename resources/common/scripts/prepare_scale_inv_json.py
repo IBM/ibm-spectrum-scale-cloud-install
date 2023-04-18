@@ -87,9 +87,12 @@ def initialize_cluster_details(scale_version, cluster_name, username,
         pathlib.PurePath(scale_profile_path).stem)
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_dir_path'] = str(
         pathlib.PurePath(scale_profile_path).parent)
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host'] = bastion_ip
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_private_key'] = bastion_key_file
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_user'] = bastion_user
+    if bastion_ip is not None:
+        CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host'] = bastion_ip
+    if bastion_key_file is not None:
+        CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_private_key'] = bastion_key_file
+    if bastion_user is not None:
+        CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_user'] = bastion_user
 
 
 def initialize_callhome_details():

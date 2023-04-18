@@ -169,11 +169,18 @@ module "compute_cluster_ingress_security_rule_using_cloud_connection" {
     "Allow performance monitoring collector traffic within compute instances",
     "Allow http traffic within compute instances",
   "Allow https traffic within compute instances"]
-  security_rule_type       = ["ingress"]
-  traffic_protocol         = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_from_port        = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  traffic_to_port          = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref, module.compute_cluster_security_group.sec_group_id]
+  security_rule_type = ["ingress"]
+  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+  module.compute_cluster_security_group.sec_group_id]
 }
 
 # Create security rules to enable scale communication within compute instances in a jumphost connection method.
@@ -295,11 +302,19 @@ module "storage_cluster_ingress_security_rule_using_cloud_connection" {
     "Allow performance monitoring collector traffic within storage instances",
     "Allow http traffic within storage instances",
   "Allow https traffic within storage instances"]
-  security_rule_type       = ["ingress"]
-  traffic_protocol         = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_from_port        = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  traffic_to_port          = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref, module.storage_cluster_security_group.sec_group_id]
+  security_rule_type = ["ingress"]
+  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+  module.storage_cluster_security_group.sec_group_id]
+
 }
 
 # Create security rules to enable scale communication within storage instances in a jumphost connection method.
@@ -570,7 +585,6 @@ module "write_storage_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping)
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
-
 }
 
 # Write combined cluster related inventory.
@@ -622,8 +636,8 @@ module "compute_cluster_configuration" {
   memory_size                  = try(data.aws_ec2_instance_type.compute_profile[0].memory_size, null)
   max_pagepool_gb              = 4
   bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip   = var.bastion_instance_public_ip
-  bastion_ssh_private_key      = var.bastion_ssh_private_key
+  bastion_instance_public_ip   = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  bastion_ssh_private_key      = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
@@ -648,8 +662,8 @@ module "storage_cluster_configuration" {
   max_pagepool_gb              = 16
   vcpu_count                   = try(data.aws_ec2_instance_type.storage_profile[0].default_vcpus, null)
   bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip   = var.bastion_instance_public_ip
-  bastion_ssh_private_key      = var.bastion_ssh_private_key
+  bastion_instance_public_ip   = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  bastion_ssh_private_key      = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
@@ -671,8 +685,8 @@ module "combined_cluster_configuration" {
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
   bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip   = var.bastion_instance_public_ip
-  bastion_ssh_private_key      = var.bastion_ssh_private_key
+  bastion_instance_public_ip   = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  bastion_ssh_private_key      = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
@@ -695,8 +709,8 @@ module "remote_mount_configuration" {
   using_jumphost_connection       = var.using_jumphost_connection
   using_rest_initialization       = var.using_rest_api_remote_mount
   bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip      = var.bastion_instance_public_ip
-  bastion_ssh_private_key         = var.bastion_ssh_private_key
+  bastion_instance_public_ip      = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  bastion_ssh_private_key         = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
   clone_complete                  = module.prepare_ansible_configuration.clone_complete
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
