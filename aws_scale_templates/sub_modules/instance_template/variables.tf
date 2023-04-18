@@ -195,13 +195,6 @@ variable "using_packer_image" {
   description = "If true, gpfs rpm copy step will be skipped during the configuration."
 }
 
-variable "using_direct_connection" {
-  type        = bool
-  nullable    = true
-  default     = null
-  description = "If true, will skip the jump/bastion host configuration."
-}
-
 variable "enable_placement_group" {
   type        = bool
   nullable    = true
@@ -329,6 +322,41 @@ variable "create_remote_mount_cluster" {
   description = "Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup."
 }
 
+variable "using_direct_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud virtual private cloud (VPC) via a VPN or direct connection. This mode requires variable `client_ip_ranges`, as the on-premise client ip will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "using_cloud_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "using_jumphost_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_ref`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "client_ip_ranges" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of gateway/client ip/cidr ranges."
+}
+
+variable "client_security_group_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Client security group reference (id/self-link)."
+}
+
 variable "bastion_user" {
   type        = string
   nullable    = true
@@ -343,11 +371,11 @@ variable "bastion_instance_public_ip" {
   description = "Bastion instance public ip address."
 }
 
-variable "bastion_security_group_id" {
+variable "bastion_security_group_ref" {
   type        = string
   nullable    = true
   default     = null
-  description = "Bastion security group id."
+  description = "Bastion security group reference (id/self-link)."
 }
 
 variable "bastion_instance_id" {

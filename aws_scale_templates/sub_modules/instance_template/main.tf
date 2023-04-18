@@ -106,40 +106,10 @@ module "compute_cluster_security_group" {
   sec_group_tag         = ["compute-sec-group"]
 }
 
+# Create security rules to enable scale communication within compute instances in a direct connection method.
+# This has been split to 2 modules;
+# 1. compute_cluster_ingress_security_rule: Only for scale traffic enablement
 module "compute_cluster_ingress_security_rule" {
-  source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == false) ? 15 : 0
-  security_group_id = [module.compute_cluster_security_group.sec_group_id]
-  security_rule_description = ["Allow ICMP traffic from bastion to compute instances",
-    "Allow SSH traffic from bastion to compute instances",
-    "Allow ICMP traffic within compute instances",
-    "Allow SSH traffic within compute instances",
-    "Allow GPFS intra cluster traffic within compute instances",
-    "Allow GPFS ephemeral port range within compute instances",
-    "Allow management GUI (http/localhost) TCP traffic within compute instances",
-    "Allow management GUI (https/localhost) TCP traffic within compute instances",
-    "Allow management GUI (https/localhost) TCP traffic within compute instances",
-    "Allow management GUI (localhost) TCP traffic within compute instances",
-    "Allow management GUI (localhost) UDP traffic within compute instances",
-    "Allow performance monitoring collector traffic within compute instances",
-    "Allow performance monitoring collector traffic within compute instances",
-    "Allow http traffic within compute instances",
-  "Allow https traffic within compute instances"]
-  security_rule_type = ["ingress"]
-  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  source_security_group_id = [var.bastion_security_group_id, var.bastion_security_group_id,
-    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
-    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
-    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
-    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
-    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
-    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
-  module.compute_cluster_security_group.sec_group_id]
-}
-
-module "compute_cluster_ingress_security_rule_wo_bastion" {
   source            = "../../../resources/aws/security/security_rule_source"
   total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 13 : 0
   security_group_id = [module.compute_cluster_security_group.sec_group_id]
@@ -161,6 +131,83 @@ module "compute_cluster_ingress_security_rule_wo_bastion" {
   traffic_from_port        = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
   traffic_to_port          = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
   source_security_group_id = [module.compute_cluster_security_group.sec_group_id]
+}
+
+# Create security rules to enable scale communication within compute instances in a direct connection method.
+# This has been split to 2 modules;
+# 2. compute_cluster_ingress_security_rule_using_direct_connection: For allowing ingress traffic from client_ip_ranges
+module "compute_cluster_ingress_security_rule_using_direct_connection" {
+  source                    = "../../../resources/aws/security/security_rule_cidr"
+  total_rules               = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 2 : 0
+  security_group_id         = [module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic from client cidr/ip range to compute instances", "Allow SSH traffic from client cidr/ip range to compute instances"]
+  security_rule_type        = ["ingress", "ingress"]
+  traffic_protocol          = ["icmp", "TCP"]
+  traffic_from_port         = [-1, 22]
+  traffic_to_port           = [-1, 22]
+  cidr_blocks               = var.client_ip_ranges
+  security_prefix_list_ids  = null
+}
+
+# Create security rules to enable scale communication within compute instances in a cloud connection method.
+module "compute_cluster_ingress_security_rule_using_cloud_connection" {
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_cloud_connection == true) ? 15 : 0
+  security_group_id = [module.compute_cluster_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic from cloud gateway to compute instances",
+    "Allow SSH traffic from cloud gateway to compute instances",
+    "Allow ICMP traffic within compute instances",
+    "Allow SSH traffic within compute instances",
+    "Allow GPFS intra cluster traffic within compute instances",
+    "Allow GPFS ephemeral port range within compute instances",
+    "Allow management GUI (http/localhost) TCP traffic within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic within compute instances",
+    "Allow management GUI (localhost) TCP traffic within compute instances",
+    "Allow management GUI (localhost) UDP traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow http traffic within compute instances",
+  "Allow https traffic within compute instances"]
+  security_rule_type       = ["ingress"]
+  traffic_protocol         = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_from_port        = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_to_port          = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref, module.compute_cluster_security_group.sec_group_id]
+}
+
+# Create security rules to enable scale communication within compute instances in a jumphost connection method.
+module "compute_cluster_ingress_security_rule_using_jumphost_connection" {
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_jumphost_connection == true) ? 15 : 0
+  security_group_id = [module.compute_cluster_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic from bastion to compute instances",
+    "Allow SSH traffic from bastion to compute instances",
+    "Allow ICMP traffic within compute instances",
+    "Allow SSH traffic within compute instances",
+    "Allow GPFS intra cluster traffic within compute instances",
+    "Allow GPFS ephemeral port range within compute instances",
+    "Allow management GUI (http/localhost) TCP traffic within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic within compute instances",
+    "Allow management GUI (localhost) TCP traffic within compute instances",
+    "Allow management GUI (localhost) UDP traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow http traffic within compute instances",
+  "Allow https traffic within compute instances"]
+  security_rule_type = ["ingress"]
+  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  source_security_group_id = [var.bastion_security_group_ref, var.bastion_security_group_ref,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+    module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
+  module.compute_cluster_security_group.sec_group_id]
 }
 
 module "cluster_egress_security_rule" {
@@ -185,40 +232,10 @@ module "storage_cluster_security_group" {
   sec_group_tag         = ["storage-sec-group"]
 }
 
+# Create security rules to enable scale communication within storage instances in a direct connection method.
+# This has been split to 2 modules;
+# 1. storage_cluster_ingress_security_rule: Only for scale storage traffic enablement
 module "storage_cluster_ingress_security_rule" {
-  source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == false) ? 15 : 0
-  security_group_id = [module.storage_cluster_security_group.sec_group_id]
-  security_rule_description = ["Allow ICMP traffic from bastion to storage instances",
-    "Allow SSH traffic from bastion to storage instances",
-    "Allow ICMP traffic within storage instances",
-    "Allow SSH traffic within storage instances",
-    "Allow GPFS intra cluster traffic within storage instances",
-    "Allow GPFS ephemeral port range within storage instances",
-    "Allow management GUI (http/localhost) TCP traffic within storage instances",
-    "Allow management GUI (https/localhost) TCP traffic within storage instances",
-    "Allow management GUI (https/localhost) TCP traffic within storage instances",
-    "Allow management GUI (localhost) TCP traffic within storage instances",
-    "Allow management GUI (localhost) UDP traffic within storage instances",
-    "Allow performance monitoring collector traffic within storage instances",
-    "Allow performance monitoring collector traffic within storage instances",
-    "Allow http traffic within storage instances",
-  "Allow https traffic within storage instances"]
-  security_rule_type = ["ingress"]
-  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  source_security_group_id = [var.bastion_security_group_id, var.bastion_security_group_id,
-    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
-    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
-    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
-    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
-    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
-    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
-  module.storage_cluster_security_group.sec_group_id]
-}
-
-module "storage_cluster_ingress_security_rule_wo_bastion" {
   source            = "../../../resources/aws/security/security_rule_source"
   total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 13 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
@@ -240,6 +257,83 @@ module "storage_cluster_ingress_security_rule_wo_bastion" {
   traffic_from_port        = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
   traffic_to_port          = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
   source_security_group_id = [module.storage_cluster_security_group.sec_group_id]
+}
+
+# Create security rules to enable scale communication within storage instances in a direct connection method.
+# This has been split to 2 modules;
+# 2. storage_cluster_ingress_security_rule_using_direct_connection: For allowing ingress traffic from client_ip_ranges
+module "storage_cluster_ingress_security_rule_using_direct_connection" {
+  source                    = "../../../resources/aws/security/security_rule_cidr"
+  total_rules               = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 2 : 0
+  security_group_id         = [module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic from client cidr/ip range to storage instances", "Allow SSH traffic from client cidr/ip range to storage instances"]
+  security_rule_type        = ["ingress", "ingress"]
+  traffic_protocol          = ["icmp", "TCP"]
+  traffic_from_port         = [-1, 22]
+  traffic_to_port           = [-1, 22]
+  cidr_blocks               = var.client_ip_ranges
+  security_prefix_list_ids  = null
+}
+
+# Create security rules to enable scale communication within storage instances in a cloud connection method.
+module "storage_cluster_ingress_security_rule_using_cloud_connection" {
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_cloud_connection == true) ? 15 : 0
+  security_group_id = [module.storage_cluster_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic from cloud gateway to storage instances",
+    "Allow SSH traffic from cloud gateway to storage instances",
+    "Allow ICMP traffic within storage instances",
+    "Allow SSH traffic within storage instances",
+    "Allow GPFS intra cluster traffic within storage instances",
+    "Allow GPFS ephemeral port range within storage instances",
+    "Allow management GUI (http/localhost) TCP traffic within storage instances",
+    "Allow management GUI (https/localhost) TCP traffic within storage instances",
+    "Allow management GUI (https/localhost) TCP traffic within storage instances",
+    "Allow management GUI (localhost) TCP traffic within storage instances",
+    "Allow management GUI (localhost) UDP traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow http traffic within storage instances",
+  "Allow https traffic within storage instances"]
+  security_rule_type       = ["ingress"]
+  traffic_protocol         = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_from_port        = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_to_port          = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref, module.storage_cluster_security_group.sec_group_id]
+}
+
+# Create security rules to enable scale communication within storage instances in a jumphost connection method.
+module "storage_cluster_ingress_security_rule_using_jumphost_connection" {
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_jumphost_connection == true) ? 15 : 0
+  security_group_id = [module.storage_cluster_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic from bastion to storage instances",
+    "Allow SSH traffic from bastion to storage instances",
+    "Allow ICMP traffic within storage instances",
+    "Allow SSH traffic within storage instances",
+    "Allow GPFS intra cluster traffic within storage instances",
+    "Allow GPFS ephemeral port range within storage instances",
+    "Allow management GUI (http/localhost) TCP traffic within storage instances",
+    "Allow management GUI (https/localhost) TCP traffic within storage instances",
+    "Allow management GUI (https/localhost) TCP traffic within storage instances",
+    "Allow management GUI (localhost) TCP traffic within storage instances",
+    "Allow management GUI (localhost) UDP traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow performance monitoring collector traffic within storage instances",
+    "Allow http traffic within storage instances",
+  "Allow https traffic within storage instances"]
+  security_rule_type = ["ingress"]
+  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  source_security_group_id = [var.bastion_security_group_ref, var.bastion_security_group_ref,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+    module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
+  module.storage_cluster_security_group.sec_group_id]
 }
 
 module "bicluster_ingress_security_rule" {
@@ -521,7 +615,7 @@ module "compute_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
-  using_direct_connection      = var.using_direct_connection
+  using_jumphost_connection    = var.using_jumphost_connection
   using_rest_initialization    = var.using_rest_api_remote_mount
   compute_cluster_gui_username = var.compute_cluster_gui_username
   compute_cluster_gui_password = var.compute_cluster_gui_password
@@ -546,7 +640,7 @@ module "storage_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
-  using_direct_connection      = var.using_direct_connection
+  using_jumphost_connection    = var.using_jumphost_connection
   using_rest_initialization    = true
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
@@ -572,7 +666,7 @@ module "combined_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
-  using_direct_connection      = var.using_direct_connection
+  using_jumphost_connection    = var.using_jumphost_connection
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
@@ -598,7 +692,7 @@ module "remote_mount_configuration" {
   compute_cluster_gui_password    = var.compute_cluster_gui_password
   storage_cluster_gui_username    = var.storage_cluster_gui_username
   storage_cluster_gui_password    = var.storage_cluster_gui_password
-  using_direct_connection         = var.using_direct_connection
+  using_jumphost_connection       = var.using_jumphost_connection
   using_rest_initialization       = var.using_rest_api_remote_mount
   bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip      = var.bastion_instance_public_ip

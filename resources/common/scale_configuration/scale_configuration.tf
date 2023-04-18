@@ -10,7 +10,7 @@ variable "clone_path" {}
 variable "inventory_path" {}
 variable "inventory_format" {}
 variable "using_packer_image" {}
-variable "using_direct_connection" {}
+variable "using_jumphost_connection" {}
 variable "storage_cluster_gui_username" {}
 variable "storage_cluster_gui_password" {}
 variable "memory_size" {}
@@ -58,8 +58,8 @@ resource "local_sensitive_file" "write_meta_private_key" {
   file_permission = "0600"
 }
 
-resource "null_resource" "prepare_ansible_inventory" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_direct_connection) == false) ? 1 : 0
+resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection" {
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.combined_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password}"
@@ -70,8 +70,8 @@ resource "null_resource" "prepare_ansible_inventory" {
   }
 }
 
-resource "null_resource" "prepare_ansible_inventory_wo_bastion" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_direct_connection) == true) ? 1 : 0
+resource "null_resource" "prepare_ansible_inventory" {
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.combined_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password}"
@@ -88,7 +88,7 @@ resource "null_resource" "wait_for_ssh_availability" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.wait_for_ssh_script_path} --tf_inv_path ${var.inventory_path} --cluster_type combined"
   }
-  depends_on = [null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_wo_bastion]
+  depends_on = [null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection]
   triggers = {
     build = timestamp()
   }
@@ -106,7 +106,7 @@ resource "null_resource" "perform_scale_deployment" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -f 32 -i ${local.combined_inventory_path} ${local.combined_playbook_path} --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""
   }
-  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_wo_bastion]
+  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection]
   triggers = {
     build = timestamp()
   }
