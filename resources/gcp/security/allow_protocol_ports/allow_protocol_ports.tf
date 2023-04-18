@@ -58,7 +58,12 @@ variable "ports" {
 
 variable "turn_on_ingress" {
   type    = bool
-  default = true
+  default = false
+}
+
+variable "turn_on_ingress_bi" {
+  type    = bool
+  default = false
 }
 
 variable "turn_on_egress" {
@@ -90,6 +95,33 @@ resource "google_compute_firewall" "allow_protocal_ingress" {
   }
 
   direction = "INGRESS"
+}
+
+#tfsec:ignore:google-compute-no-public-ingress
+resource "google_compute_firewall" "allow_protocal_ingress_bi" {
+  count         = (tobool(var.turn_on_ingress_bi) == true && var.source_ranges != null && var.destination_ranges != null) ? length(var.protocol) : 0
+  name          = format("%s-allow-ingress-bi-%s", var.firewall_name_prefix, count.index)
+  network       = var.vpc_ref
+  description   = "${var.firewall_description[count.index]} - ingress bi traffic"
+  source_ranges = var.source_ranges
+
+  dynamic "allow" {
+    for_each = var.protocol[count.index] == "icmp" ? ["icmp"] : []
+    content {
+      protocol = "icmp"
+    }
+  }
+
+  dynamic "allow" {
+    for_each = var.protocol[count.index] != "icmp" ? [var.ports[count.index]] : []
+    content {
+      protocol = var.protocol[count.index]
+      ports    = [var.ports[count.index]]
+    }
+  }
+
+  direction          = "INGRESS"
+  destination_ranges = var.destination_ranges
 }
 
 #tfsec:ignore:google-compute-no-public-egress
@@ -146,6 +178,20 @@ output "firewall_name_ingress" {
 
 output "firewall_uri_ingress" {
   value = google_compute_firewall.allow_protocal_ingress[*].self_link
+}
+
+#Ingress bi
+output "firewall_id_ingress_bi" {
+  value = google_compute_firewall.allow_protocal_ingress_bi[*].id
+}
+
+output "firewall_name_ingress_bi" {
+  value      = format("%s-allow-ingress-bi", var.firewall_name_prefix)
+  depends_on = [google_compute_firewall.allow_protocal_ingress_bi]
+}
+
+output "firewall_uri_ingress_bi" {
+  value = google_compute_firewall.allow_protocal_ingress_bi[*].self_link
 }
 
 #Egress

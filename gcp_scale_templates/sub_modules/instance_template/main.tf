@@ -23,25 +23,53 @@ locals {
     "Allow http traffic within storage instances",
   "Allow https traffic within storage instances"]
 
+  security_rule_description_cluster_compute_to_storage_ingress = ["Allow ICMP traffic from compute to storage instances",
+    "Allow SSH traffic from compute to storage instances",
+    "Allow GPFS intra cluster traffic from compute to storage instances",
+    "Allow GPFS ephemeral port range from compute to storage instances",
+    "Allow management GUI (http/localhost) TCP traffic from compute to storage instances",
+    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances",
+    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances",
+    "Allow management GUI (localhost) TCP traffic from compute to storage instances",
+    "Allow management GUI (localhost) UDP traffic from compute to storage instances",
+    "Allow performance monitoring collector traffic from compute to storage instances",
+    "Allow performance monitoring collector traffic from compute to storage instances",
+    "Allow http traffic from compute to storage instances",
+  "Allow https traffic from compute to storage instances"]
+
   traffic_protocol_cluster_storage_internal_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
   traffic_port_cluster_storage_internal_ingress     = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
 
-  security_rule_description_cluster_compute_ingress = ["Allow ICMP traffic from compute to storage instances and within compute instances",
-    "Allow SSH traffic from compute to storage instances and within compute instances",
-    "Allow GPFS intra cluster traffic from compute to storage instances and within compute instances",
-    "Allow GPFS ephemeral port range from compute to storage instances and within compute instances",
-    "Allow management GUI (http/localhost) TCP traffic from compute to storage instances and within compute instances",
-    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances and within compute instances",
-    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances and within compute instances",
-    "Allow management GUI (localhost) TCP traffic from compute to storage instances and within compute instances",
-    "Allow management GUI (localhost) UDP traffic from compute to storage instances and within compute instances",
-    "Allow performance monitoring collector traffic from compute to storage instances and within compute instances",
-    "Allow performance monitoring collector traffic from compute to storage instances and within compute instances",
-    "Allow http traffic from compute to storage instances and within compute instances",
-  "Allow https traffic from compute to storage instances and within compute instances"]
+  security_rule_description_cluster_compute_internal_ingress = ["Allow ICMP traffic within compute instances",
+    "Allow SSH traffic within compute instances",
+    "Allow GPFS intra cluster traffic within compute instances",
+    "Allow GPFS ephemeral port range within compute instances",
+    "Allow management GUI (http/localhost) TCP traffic within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic within compute instances",
+    "Allow management GUI (https/localhost) TCP traffic within compute instances",
+    "Allow management GUI (localhost) TCP traffic within compute instances",
+    "Allow management GUI (localhost) UDP traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow performance monitoring collector traffic within compute instances",
+    "Allow http traffic within compute instances",
+  "Allow https traffic within compute instances"]
+
+  security_rule_description_cluster_storage_to_compute_ingress = ["Allow ICMP traffic from storage to compute instances",
+    "Allow SSH traffic from storage to compute instances",
+    "Allow GPFS intra cluster traffic from storage to compute instances",
+    "Allow GPFS ephemeral port range from storage to compute instances",
+    "Allow management GUI (http/localhost) TCP traffic from storage to compute instances",
+    "Allow management GUI (https/localhost) TCP traffic from storage to compute instances",
+    "Allow management GUI (https/localhost) TCP traffic from storage to compute instances",
+    "Allow management GUI (localhost) TCP traffic from storage to compute instances",
+    "Allow management GUI (localhost) UDP traffic from storage to compute instances",
+    "Allow performance monitoring collector traffic from storage to compute instances",
+    "Allow performance monitoring collector traffic from storage to compute instances",
+    "Allow http traffic from storage to compute instances",
+  "Allow https traffic from storage to compute instances"]
 
   traffic_protocol_cluster_compute_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_port_cluster_comppute_ingress    = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
+  traffic_port_cluster_compute_ingress     = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
 
   security_rule_description_cluster_storage_egress_all = ["Allow all traffic from storage instances"]
 
@@ -49,11 +77,13 @@ locals {
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
 
+# Generate compute cluster ssh keys
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
   turn_on = var.total_compute_cluster_instances != null ? true : false
 }
 
+# Generate storage cluster ssh keys
 module "generate_storage_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
   turn_on = var.total_storage_cluster_instances != null ? true : false
@@ -69,25 +99,53 @@ data "google_compute_subnetwork" "compute_cluster" {
   name  = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
-# Allow traffic from compute to storage plus compute internals
-module "allow_traffic_scale_cluster_compute_internal_plus_compute_to_storage" {
+# Allow traffic within compute internals
+module "allow_traffic_scale_cluster_compute_internal" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress      = local.cluster_type == "compute" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-comp-inter"
+  turn_on_ingress_bi   = local.cluster_type == "compute" || local.cluster_type == "combined" ? true : false
+  firewall_name_prefix = "${var.vpc_ref}-comp-internals"
   vpc_ref              = var.vpc_ref
   source_ranges        = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
+  destination_ranges   = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
   protocol             = local.traffic_protocol_cluster_compute_ingress
-  ports                = local.traffic_port_cluster_comppute_ingress
-  firewall_description = local.security_rule_description_cluster_compute_ingress
+  ports                = local.traffic_port_cluster_compute_ingress
+  firewall_description = local.security_rule_description_cluster_compute_internal_ingress
 }
 
-# Allow traffic from storage to compute plus storage internals
-module "allow_traffic_scale_cluster_strg_internal_plus_strg_comp_ingress" {
+# Allow traffic storage to compute
+module "allow_traffic_scale_cluster_storage_to_compute" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress      = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-strg-inter"
+  turn_on_ingress_bi   = local.cluster_type == "combined" ? true : false
+  firewall_name_prefix = "${var.vpc_ref}-strg-comp"
   vpc_ref              = var.vpc_ref
   source_ranges        = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
+  destination_ranges   = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
+  protocol             = local.traffic_protocol_cluster_compute_ingress
+  ports                = local.traffic_port_cluster_compute_ingress
+  firewall_description = local.security_rule_description_cluster_storage_to_compute_ingress
+}
+
+# Allow traffic from compute to storage
+module "allow_traffic_scale_cluster_compute_to_storage" {
+  source               = "../../../resources/gcp/security/allow_protocol_ports"
+  turn_on_ingress_bi   = local.cluster_type == "combined" ? true : false
+  firewall_name_prefix = "${var.vpc_ref}-comp-strg"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
+  destination_ranges   = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
+  protocol             = local.traffic_protocol_cluster_storage_internal_ingress
+  ports                = local.traffic_port_cluster_storage_internal_ingress
+  firewall_description = local.security_rule_description_cluster_compute_to_storage_ingress
+}
+
+# Allow traffic storage internals
+module "allow_traffic_scale_cluster_storage_internals" {
+  source               = "../../../resources/gcp/security/allow_protocol_ports"
+  turn_on_ingress_bi   = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
+  firewall_name_prefix = "${var.vpc_ref}-strg-internals"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
+  destination_ranges   = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
   protocol             = local.traffic_protocol_cluster_storage_internal_ingress
   ports                = local.traffic_port_cluster_storage_internal_ingress
   firewall_description = local.security_rule_description_cluster_storage_internal_ingress
@@ -97,7 +155,7 @@ module "allow_traffic_scale_cluster_strg_internal_plus_strg_comp_ingress" {
 module "allow_traffic_scale_cluster_storage_egress_all" {
   source                       = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_egress               = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix         = "${var.resource_prefix}-strg"
+  firewall_name_prefix         = "${var.vpc_ref}-strg"
   vpc_ref                      = var.vpc_ref
   destination_range_egress_all = local.cluster_type == "storage" || local.cluster_type == "combined" ? ["0.0.0.0/0"] : null
   firewall_description         = local.security_rule_description_cluster_storage_egress_all
