@@ -1,6 +1,6 @@
-output "bastion_security_group_id" {
+output "bastion_security_group_ref" {
   value       = module.bastion_security_group.sec_group_id
-  description = "Bastion security group id."
+  description = "Bastion security group reference (id/self-link)."
 }
 
 output "bastion_instance_id" {
