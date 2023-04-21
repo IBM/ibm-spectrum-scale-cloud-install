@@ -80,6 +80,12 @@ locals {
   security_rule_description_compute_cluster_ingress_using_direct_connection = ["Allow ICMP traffic from client cidr/ip range to compute instances", "Allow SSH traffic from client cidr/ip range to compute instances"]
   security_rule_description_storage_cluster_ingress_using_direct_connection = ["Allow ICMP traffic from client cidr/ip range to storage instances", "Allow SSH traffic from client cidr/ip range to storage instances"]
 
+  security_rule_description_bastion_scale_ingress = ["Allow ICMP traffic from bastion to scale instances",
+  "Allow SSH traffic from bastion to scale instances"]
+
+  traffic_protocol_cluster_bastion_scale_ingress = ["icmp", "TCP"]
+  traffic_port_cluster_bastion_scale_ingress     = [-1, 22]
+
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
@@ -106,26 +112,28 @@ data "google_compute_subnetwork" "compute_cluster" {
   name  = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
-/*
-## alternative for public cidr 
+data "google_compute_network" "scale-network" {
+  name = var.vpc_ref
+}
 
-data "google_compute_subnetwork" "public_bastion_cluster" {
-  count = var.vpc_auto_scaling_group_subnets != null ? 1 : 0
-  name  = var.vpc_auto_scaling_group_subnets[0]
+data "google_compute_subnetwork" "scale-subnetwork" {
+  count  = length(toset(data.google_compute_network.scale-network.subnetworks_self_links))
+  name   = element(split("/", data.google_compute_network.scale-network.subnetworks_self_links[count.index]), length(split("/", data.google_compute_network.scale-network.subnetworks_self_links[count.index])) - 1)
+  region = var.vpc_region
 }
 
 # Allow traffic from bastion to scale cluster
 module "allow_traffic_bastion_to_scale_cluster" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress      = true
-  firewall_name_prefix = "${var.resource_prefix}-bastion"
+  turn_on_ingress_bi   = true
+  firewall_name_prefix = "${var.resource_prefix}-bastion-to-scale"
   vpc_ref              = var.vpc_ref
-  source_ranges        = length(data.google_compute_subnetwork.public_bastion_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.public_bastion_cluster[*].ip_cidr_range : null
+  source_ranges        = length([for subnet in data.google_compute_subnetwork.scale-subnetwork : subnet.ip_cidr_range if subnet.private_ip_google_access == false]) > 0 ? [for subnet in data.google_compute_subnetwork.scale-subnetwork : subnet.ip_cidr_range if subnet.private_ip_google_access == false] : null
+  destination_ranges   = concat(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range, data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range)
   protocol             = local.traffic_protocol_cluster_bastion_scale_ingress
   ports                = local.traffic_port_cluster_bastion_scale_ingress
   firewall_description = local.security_rule_description_bastion_scale_ingress
 }
-*/
 
 # Allow traffic within compute internals
 module "allow_traffic_scale_cluster_compute_internal" {
