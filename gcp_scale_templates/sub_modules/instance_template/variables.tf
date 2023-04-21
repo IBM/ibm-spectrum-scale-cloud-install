@@ -273,7 +273,28 @@ variable "using_direct_connection" {
   type        = bool
   nullable    = true
   default     = null
-  description = "If true, will skip the jump/bastion host configuration."
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud virtual private cloud (VPC) via a VPN or direct connection. This mode requires variable `client_ip_ranges`, as the on-premise client ip will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "using_cloud_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "using_jumphost_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "client_ip_ranges" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of gateway/client ip/cidr ranges."
 }
 
 variable "storage_cluster_gui_username" {

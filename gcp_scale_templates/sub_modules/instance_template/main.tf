@@ -73,6 +73,13 @@ locals {
 
   security_rule_description_cluster_storage_egress_all = ["Allow all traffic from storage instances"]
 
+
+  # Using direct connection protocol and ports
+  traffic_protocol_cluster_ingress_using_direct_connection                  = ["icmp", "TCP"]
+  traffic_port_cluster_ingress_using_direct_connection                      = [-1, 22]
+  security_rule_description_compute_cluster_ingress_using_direct_connection = ["Allow ICMP traffic from client cidr/ip range to compute instances", "Allow SSH traffic from client cidr/ip range to compute instances"]
+  security_rule_description_storage_cluster_ingress_using_direct_connection = ["Allow ICMP traffic from client cidr/ip range to storage instances", "Allow SSH traffic from client cidr/ip range to storage instances"]
+
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
@@ -103,7 +110,7 @@ data "google_compute_subnetwork" "compute_cluster" {
 module "allow_traffic_scale_cluster_compute_internal" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress_bi   = local.cluster_type == "compute" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.vpc_ref}-comp-internals"
+  firewall_name_prefix = "${var.resource_prefix}-comp-internals"
   vpc_ref              = var.vpc_ref
   source_ranges        = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
   destination_ranges   = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
@@ -116,7 +123,7 @@ module "allow_traffic_scale_cluster_compute_internal" {
 module "allow_traffic_scale_cluster_storage_to_compute" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress_bi   = local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.vpc_ref}-strg-comp"
+  firewall_name_prefix = "${var.resource_prefix}-strg-comp"
   vpc_ref              = var.vpc_ref
   source_ranges        = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
   destination_ranges   = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
@@ -129,7 +136,7 @@ module "allow_traffic_scale_cluster_storage_to_compute" {
 module "allow_traffic_scale_cluster_compute_to_storage" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress_bi   = local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.vpc_ref}-comp-strg"
+  firewall_name_prefix = "${var.resource_prefix}-comp-strg"
   vpc_ref              = var.vpc_ref
   source_ranges        = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
   destination_ranges   = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
@@ -142,7 +149,7 @@ module "allow_traffic_scale_cluster_compute_to_storage" {
 module "allow_traffic_scale_cluster_storage_internals" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_ingress_bi   = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.vpc_ref}-strg-internals"
+  firewall_name_prefix = "${var.resource_prefix}-strg-internals"
   vpc_ref              = var.vpc_ref
   source_ranges        = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
   destination_ranges   = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
@@ -155,10 +162,35 @@ module "allow_traffic_scale_cluster_storage_internals" {
 module "allow_traffic_scale_cluster_storage_egress_all" {
   source                       = "../../../resources/gcp/security/allow_protocol_ports"
   turn_on_egress               = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix         = "${var.vpc_ref}-strg"
+  firewall_name_prefix         = "${var.resource_prefix}-strg"
   vpc_ref                      = var.vpc_ref
   destination_range_egress_all = local.cluster_type == "storage" || local.cluster_type == "combined" ? ["0.0.0.0/0"] : null
   firewall_description         = local.security_rule_description_cluster_storage_egress_all
+}
+
+# Allow ingress firewall traffic from client_ip_ranges for using_direct_connection mode
+module "compute_cluster_ingress_security_rule_using_direct_connection" {
+  source               = "../../../resources/gcp/security/allow_protocol_ports"
+  turn_on_ingress_bi   = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == true) ? true : false
+  firewall_name_prefix = "${var.resource_prefix}-compute-using-direct-connection"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = var.client_ip_ranges
+  destination_ranges   = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
+  protocol             = local.traffic_protocol_cluster_ingress_using_direct_connection
+  ports                = local.traffic_port_cluster_ingress_using_direct_connection
+  firewall_description = local.security_rule_description_compute_cluster_ingress_using_direct_connection
+}
+
+module "storage_cluster_ingress_security_rule_using_direct_connection" {
+  source               = "../../../resources/gcp/security/allow_protocol_ports"
+  turn_on_ingress_bi   = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == true) ? true : false
+  firewall_name_prefix = "${var.resource_prefix}-storage-using-direct-connection"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = var.client_ip_ranges
+  destination_ranges   = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
+  protocol             = local.traffic_protocol_cluster_ingress_using_direct_connection
+  ports                = local.traffic_port_cluster_ingress_using_direct_connection
+  firewall_description = local.security_rule_description_storage_cluster_ingress_using_direct_connection
 }
 
 # Creates compute instances
@@ -339,7 +371,7 @@ module "storage_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
-  using_direct_connection      = var.using_direct_connection
+  using_jumphost_connection    = var.using_jumphost_connection
   using_rest_initialization    = true
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
