@@ -1,5 +1,5 @@
 output "bastion_security_group_id" {
-  value       = concat(module.allow_traffic_from_external_cidr_to_bastion.firewall_uri_ingress, module.allow_traffic_bastion_to_scale_cluster.firewall_uri_ingress)
+  value       = concat(module.allow_traffic_from_external_cidr_to_bastion.firewall_uri_ingress, module.allow_traffic_scale_cluster_bastion_internals.firewall_uri_ingress_bi, module.allow_traffic_scale_cluster_egress_all.firewall_uri_egress_all)
   description = "Bastion firewall id."
 }
 

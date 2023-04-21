@@ -71,7 +71,7 @@ locals {
   traffic_protocol_cluster_compute_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
   traffic_port_cluster_compute_ingress     = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
 
-  security_rule_description_cluster_storage_egress_all = ["Allow all traffic from storage instances"]
+  security_rule_description_cluster_egress_all = ["Allow all egress traffic"]
 
 
   # Using direct connection protocol and ports
@@ -105,6 +105,27 @@ data "google_compute_subnetwork" "compute_cluster" {
   count = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) : 0
   name  = var.vpc_compute_cluster_private_subnets[count.index]
 }
+
+/*
+## alternative for public cidr 
+
+data "google_compute_subnetwork" "public_bastion_cluster" {
+  count = var.vpc_auto_scaling_group_subnets != null ? 1 : 0
+  name  = var.vpc_auto_scaling_group_subnets[0]
+}
+
+# Allow traffic from bastion to scale cluster
+module "allow_traffic_bastion_to_scale_cluster" {
+  source               = "../../../resources/gcp/security/allow_protocol_ports"
+  turn_on_ingress      = true
+  firewall_name_prefix = "${var.resource_prefix}-bastion"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = length(data.google_compute_subnetwork.public_bastion_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.public_bastion_cluster[*].ip_cidr_range : null
+  protocol             = local.traffic_protocol_cluster_bastion_scale_ingress
+  ports                = local.traffic_port_cluster_bastion_scale_ingress
+  firewall_description = local.security_rule_description_bastion_scale_ingress
+}
+*/
 
 # Allow traffic within compute internals
 module "allow_traffic_scale_cluster_compute_internal" {
@@ -159,13 +180,13 @@ module "allow_traffic_scale_cluster_storage_internals" {
 }
 
 # Allow egress traffic to all instances
-module "allow_traffic_scale_cluster_storage_egress_all" {
+module "allow_traffic_scale_cluster_egress_all" {
   source                       = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_egress               = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix         = "${var.resource_prefix}-strg"
+  turn_on_egress               = local.cluster_type != "none" ? true : false
+  firewall_name_prefix         = "${var.resource_prefix}-scale-all"
   vpc_ref                      = var.vpc_ref
-  destination_range_egress_all = local.cluster_type == "storage" || local.cluster_type == "combined" ? ["0.0.0.0/0"] : null
-  firewall_description         = local.security_rule_description_cluster_storage_egress_all
+  destination_range_egress_all = local.cluster_type != "none" ? ["0.0.0.0/0"] : null
+  firewall_description         = local.security_rule_description_cluster_egress_all
 }
 
 # Allow ingress firewall traffic from client_ip_ranges for using_direct_connection mode
