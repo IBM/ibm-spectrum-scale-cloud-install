@@ -8,9 +8,6 @@ locals {
   security_rule_description_bastion_external_ingress = ["Allow ICMP traffic from external cidr to bastion instances",
   "Allow SSH traffic from external cidr to bastion instances"]
 
-  security_rule_description_bastion_scale_ingress = ["Allow ICMP traffic from bastion to scale instances",
-  "Allow SSH traffic from bastion to scale instances"]
-
   security_rule_description_bastion_internal_ingress = ["Allow ICMP traffic within bastion instances",
   "Allow SSH traffic within bastion instances"]
 

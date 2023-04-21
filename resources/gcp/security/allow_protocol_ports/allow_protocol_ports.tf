@@ -74,7 +74,7 @@ variable "turn_on_egress" {
 #tfsec:ignore:google-compute-no-public-ingress
 resource "google_compute_firewall" "allow_protocal_ingress" {
   count         = (tobool(var.turn_on_ingress) == true && var.source_ranges != null) ? length(var.protocol) : 0
-  name          = format("%s-allow-ingress-%s", var.firewall_name_prefix, var.ports[count.index])
+  name          = var.protocol[count.index] == "icmp" ? format("%s-allow-ingress-icmp", var.firewall_name_prefix) : format("%s-allow-ingress-%s", var.firewall_name_prefix, var.ports[count.index])
   network       = var.vpc_ref
   description   = "${var.firewall_description[count.index]} - ingress traffic"
   source_ranges = var.source_ranges
@@ -100,7 +100,7 @@ resource "google_compute_firewall" "allow_protocal_ingress" {
 #tfsec:ignore:google-compute-no-public-ingress
 resource "google_compute_firewall" "allow_protocal_ingress_bi" {
   count         = (tobool(var.turn_on_ingress_bi) == true && var.source_ranges != null && var.destination_ranges != null) ? length(var.protocol) : 0
-  name          = format("%s-allow-ingress-%s", var.firewall_name_prefix, var.ports[count.index])
+  name          = var.protocol[count.index] == "icmp" ? format("%s-allow-ingress-icmp", var.firewall_name_prefix) : format("%s-allow-ingress-%s", var.firewall_name_prefix, var.ports[count.index])
   network       = var.vpc_ref
   description   = "${var.firewall_description[count.index]} - ingress traffic"
   source_ranges = var.source_ranges
@@ -127,7 +127,7 @@ resource "google_compute_firewall" "allow_protocal_ingress_bi" {
 #tfsec:ignore:google-compute-no-public-egress
 resource "google_compute_firewall" "allow_protocal_egress" {
   count       = tobool(var.turn_on_egress) == true && var.destination_ranges != null ? length(var.protocol) : 0
-  name        = format("%s-allow-egress-%s", var.firewall_name_prefix, var.ports[count.index])
+  name        = var.protocol[count.index] == "icmp" ? format("%s-allow-egress-icmp", var.firewall_name_prefix) : format("%s-allow-egress-%s", var.firewall_name_prefix, var.ports[count.index])
   network     = var.vpc_ref
   description = "${var.firewall_description[count.index]} - egress traffic"
 

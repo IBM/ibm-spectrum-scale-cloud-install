@@ -8,7 +8,7 @@ output "bastion_instance_name" {
   description = "Bastion instance names."
 }
 
-output "bastion_instance_id" {
+output "bastion_instance_ref" {
   value       = data.google_compute_instance.itself[*].id
   description = "Bastion instance Ids."
 }
