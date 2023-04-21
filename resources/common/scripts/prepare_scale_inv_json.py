@@ -1092,7 +1092,7 @@ if __name__ == "__main__":
     # Create vars directory if missing
     if not os.path.exists(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH):
         os.makedirs(os.path.dirname(ARGUMENTS.install_infra_path.rstrip(
-            '/') + SCALE_CLUSTER_DEFINITION_PATH))
+            '/') + SCALE_CLUSTER_DEFINITION_PATH), exist_ok=True)
 
     with open(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH, 'w') as json_fh:
         json.dump(CLUSTER_DEFINITION_JSON, json_fh, indent=4)
