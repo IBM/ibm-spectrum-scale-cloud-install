@@ -103,22 +103,24 @@ module "generate_storage_cluster_keys" {
 }
 
 data "google_compute_subnetwork" "storage_cluster" {
-  count = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) : 0
+  count = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 0 ? length(var.vpc_storage_cluster_private_subnets) : 0 : 0
   name  = var.vpc_storage_cluster_private_subnets[count.index]
 }
 
 data "google_compute_subnetwork" "compute_cluster" {
-  count = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) : 0
+  count = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) > 0 ? length(var.vpc_compute_cluster_private_subnets) : 0 : 0
   name  = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
-data "google_compute_network" "scale-network" {
-  name = var.vpc_ref
+data "google_compute_instance" "google_compute_instance" {
+  count     = var.bastion_instance_ref != null ? 1 : 0
+  self_link = var.bastion_instance_ref
+  zone      = var.vpc_availability_zones[0]
 }
 
-data "google_compute_subnetwork" "scale-subnetwork" {
-  count  = length(toset(data.google_compute_network.scale-network.subnetworks_self_links))
-  name   = element(split("/", data.google_compute_network.scale-network.subnetworks_self_links[count.index]), length(split("/", data.google_compute_network.scale-network.subnetworks_self_links[count.index])) - 1)
+data "google_compute_subnetwork" "bastion_subnetwork" {
+  count  = var.bastion_instance_ref != null ? 1 : 0
+  name   = element(split("/", data.google_compute_instance.google_compute_instance[0].network_interface[0].subnetwork), length(split("/", data.google_compute_instance.google_compute_instance[0].network_interface[0].subnetwork)) - 1)
   region = var.vpc_region
 }
 
@@ -128,7 +130,7 @@ module "allow_traffic_bastion_to_scale_cluster" {
   turn_on_ingress_bi   = true
   firewall_name_prefix = "${var.resource_prefix}-bastion-to-scale"
   vpc_ref              = var.vpc_ref
-  source_ranges        = length([for subnet in data.google_compute_subnetwork.scale-subnetwork : subnet.ip_cidr_range if subnet.private_ip_google_access == false]) > 0 ? [for subnet in data.google_compute_subnetwork.scale-subnetwork : subnet.ip_cidr_range if subnet.private_ip_google_access == false] : null
+  source_ranges        = length(data.google_compute_subnetwork.bastion_subnetwork) > 0 ? (data.google_compute_subnetwork.bastion_subnetwork[0].ip_cidr_range != null ? [data.google_compute_subnetwork.bastion_subnetwork[0].ip_cidr_range] : null) : null
   destination_ranges   = concat(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range, data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range)
   protocol             = local.traffic_protocol_cluster_bastion_scale_ingress
   ports                = local.traffic_port_cluster_bastion_scale_ingress
@@ -233,7 +235,7 @@ module "compute_cluster_instances" {
   total_local_ssd_disks   = 0
   instance_name           = format("%s-compute", var.resource_prefix)
   machine_type            = var.compute_cluster_instance_type
-  vpc_subnets             = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
+  vpc_subnets             = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : null
   private_key_content     = module.generate_compute_cluster_keys.private_key_content
   public_key_content      = module.generate_compute_cluster_keys.public_key_content
   service_email           = var.service_email
@@ -311,7 +313,7 @@ module "write_compute_cluster_inventory" {
   scale_version                                    = jsonencode(local.scale_version)
   filesystem_block_size                            = jsonencode("None")
   compute_cluster_filesystem_mountpoint            = jsonencode(var.compute_cluster_filesystem_mountpoint)
-  bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_selflink))
@@ -341,7 +343,7 @@ module "write_storage_cluster_inventory" {
   scale_version                                    = jsonencode(local.scale_version)
   filesystem_block_size                            = jsonencode(var.filesystem_block_size)
   compute_cluster_filesystem_mountpoint            = jsonencode("None")
-  bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   compute_cluster_instance_ids                     = jsonencode([])
@@ -371,7 +373,7 @@ module "write_cluster_inventory" {
   scale_version                                    = jsonencode(local.scale_version)
   filesystem_block_size                            = jsonencode(var.filesystem_block_size)
   compute_cluster_filesystem_mountpoint            = jsonencode("None")
-  bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
+  bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_selflink))

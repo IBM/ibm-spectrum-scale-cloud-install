@@ -214,13 +214,6 @@ variable "compute_cluster_filesystem_mountpoint" {
   description = "Compute cluster (accessingCluster) Filesystem mount point."
 }
 
-variable "bastion_instance_id" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Bastion instance id."
-}
-
 variable "bastion_user" {
   type        = string
   nullable    = true
@@ -233,6 +226,13 @@ variable "bastion_instance_public_ip" {
   nullable    = true
   default     = null
   description = "Bastion instance public ip address."
+}
+
+variable "bastion_instance_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion instance reference."
 }
 
 variable "storage_cluster_filesystem_mountpoint" {
