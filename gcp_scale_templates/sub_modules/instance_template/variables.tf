@@ -97,7 +97,7 @@ variable "compute_boot_disk_type" {
   description = "GCE disk type (valid: pd-standard, pd-ssd)."
 }
 
-variable "compute_boot_image" {
+variable "compute_cluster_image_ref" {
   type        = string
   nullable    = true
   default     = null
@@ -108,7 +108,7 @@ variable "compute_instance_tags" {
   type        = list(string)
   nullable    = true
   default     = null
-  description = "List of tags to attach to the compute instance."
+  description = "Image from which to initialize Spectrum Scale compute instances."
 }
 
 variable "total_storage_cluster_instances" {
@@ -130,13 +130,6 @@ variable "scratch_devices_per_storage_instance" {
   nullable    = true
   default     = 0
   description = "Number of scratch disks to be attached to each storage instance."
-}
-
-variable "storage_instance_tags" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of tags to attach to the compute instance."
 }
 
 variable "storage_cluster_instance_type" {
@@ -193,25 +186,6 @@ variable "scopes" {
   description = "List of service scopes."
 }
 
-variable "storage_subnet_cidrs" {
-  type        = list(string)
-  default     = ["10.0.1.0/24"]
-  description = "Range of storage cidr."
-}
-
-variable "compute_subnet_cidrs" {
-  type        = list(string)
-  default     = ["10.0.1.0/24"]
-  description = "Range of storage cidr."
-}
-
-variable "bastion_instance_tags" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of tags to attach to the bastion instance."
-}
-
 variable "scale_ansible_repo_clone_path" {
   type        = string
   nullable    = true
@@ -240,13 +214,6 @@ variable "compute_cluster_filesystem_mountpoint" {
   description = "Compute cluster (accessingCluster) Filesystem mount point."
 }
 
-variable "bastion_instance_id" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Bastion instance id."
-}
-
 variable "bastion_user" {
   type        = string
   nullable    = true
@@ -259,6 +226,13 @@ variable "bastion_instance_public_ip" {
   nullable    = true
   default     = null
   description = "Bastion instance public ip address."
+}
+
+variable "bastion_instance_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion instance reference."
 }
 
 variable "storage_cluster_filesystem_mountpoint" {
@@ -299,7 +273,28 @@ variable "using_direct_connection" {
   type        = bool
   nullable    = true
   default     = null
-  description = "If true, will skip the jump/bastion host configuration."
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud virtual private cloud (VPC) via a VPN or direct connection. This mode requires variable `client_ip_ranges`, as the on-premise client ip will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "using_cloud_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "using_jumphost_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "client_ip_ranges" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of gateway/client ip/cidr ranges."
 }
 
 variable "storage_cluster_gui_username" {

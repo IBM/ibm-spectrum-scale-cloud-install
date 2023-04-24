@@ -31,7 +31,8 @@ variable "credential_json_path" {
 
 variable "vpc_auto_scaling_group_subnets" {
   type        = list(string)
-  default     = ["spectrum-scale-public-subnet-0"]
+  nullable    = true
+  default     = null
   description = "Public subnet name to attach the bastion interface."
 }
 

@@ -163,74 +163,76 @@ The following steps will provision GCP resources (compute and storage instances 
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 <!-- BEGIN_TF_DOCS -->
-## Requirements
+#### Requirements
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.0 |
-| <a name="requirement_google"></a> [google](#requirement\_google) | ~> 4.0.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
+| <a name="requirement_google"></a> [google](#requirement_google) | ~> 4.0.0 |
 
-## Providers
+#### Inputs
 
-No providers.
+| Name | Description | Type |
+|------|-------------|------|
+| <a name="input_credential_json_path"></a> [credential_json_path](#input_credential_json_path) | The path of a GCP service account key file in JSON format. | `string` |
+| <a name="input_project_id"></a> [project_id](#input_project_id) | GCP project ID to manage resources. | `string` |
+| <a name="input_bastion_instance_id"></a> [bastion_instance_id](#input_bastion_instance_id) | Bastion instance id. | `string` |
+| <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
+| <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
+| <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
+| <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Data disk size in gigabytes. | `string` |
+| <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | GCE disk type (valid: pd-standard, pd-ssd , local-ssd). | `any` |
+| <a name="input_block_devices_per_storage_instance"></a> [block_devices_per_storage_instance](#input_block_devices_per_storage_instance) | Number of data disks to be attached to each storage instance. | `number` |
+| <a name="input_compute_boot_disk_size"></a> [compute_boot_disk_size](#input_compute_boot_disk_size) | Compute instances boot disk size in gigabytes. | `number` |
+| <a name="input_compute_boot_disk_type"></a> [compute_boot_disk_type](#input_compute_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
+| <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
+| <a name="input_compute_cluster_image_ref"></a> [compute_cluster_image_ref](#input_compute_cluster_image_ref) | Image from which to initialize Spectrum Scale compute instances. | `string` |
+| <a name="input_compute_cluster_instance_type"></a> [compute_cluster_instance_type](#input_compute_cluster_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
+| <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | SSH public key local path for compute instances. | `string` |
+| <a name="input_compute_instance_tags"></a> [compute_instance_tags](#input_compute_instance_tags) | Image from which to initialize Spectrum Scale compute instances. | `list(string)` |
+| <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
+| <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
+| <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
+| <a name="input_instances_ssh_user_name"></a> [instances_ssh_user_name](#input_instances_ssh_user_name) | Name of the administrator to access the bastion instance. | `string` |
+| <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | GCP stack name, will be used for tagging resources. | `string` |
+| <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
+| <a name="input_scopes"></a> [scopes](#input_scopes) | List of service scopes. | `list(string)` |
+| <a name="input_scratch_devices_per_storage_instance"></a> [scratch_devices_per_storage_instance](#input_scratch_devices_per_storage_instance) | Number of scratch disks to be attached to each storage instance. | `number` |
+| <a name="input_service_email"></a> [service_email](#input_service_email) | GCP service account e-mail address. | `string` |
+| <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
+| <a name="input_storage_boot_disk_size"></a> [storage_boot_disk_size](#input_storage_boot_disk_size) | Storage instances boot disk size in gigabytes. | `number` |
+| <a name="input_storage_boot_disk_type"></a> [storage_boot_disk_type](#input_storage_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
+| <a name="input_storage_cluster_filesystem_mountpoint"></a> [storage_cluster_filesystem_mountpoint](#input_storage_cluster_filesystem_mountpoint) | Storage cluster (owningCluster) Filesystem mount point. | `string` |
+| <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
+| <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
+| <a name="input_storage_cluster_image_ref"></a> [storage_cluster_image_ref](#input_storage_cluster_image_ref) | Image from which to initialize Spectrum Scale storage instances. | `string` |
+| <a name="input_storage_cluster_instance_type"></a> [storage_cluster_instance_type](#input_storage_cluster_instance_type) | GCP instance machine type to create Spectrum Scale storage instances. | `string` |
+| <a name="input_storage_cluster_public_key_path"></a> [storage_cluster_public_key_path](#input_storage_cluster_public_key_path) | SSH public key local path for storage instances. | `string` |
+| <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of GCP instances to be launched for compute cluster. | `number` |
+| <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of instances to be launched for storage instances. | `number` |
+| <a name="input_using_direct_connection"></a> [using_direct_connection](#input_using_direct_connection) | If true, will skip the jump/bastion host configuration. | `bool` |
+| <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
+| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
+| <a name="input_vpc_cluster_public_subnets"></a> [vpc_cluster_public_subnets](#input_vpc_cluster_public_subnets) | List of public subnet for bastion/jumphost cluster. | `list(string)` |
+| <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
+| <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | GCP region where the resources will be created. | `string` |
+| <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
 
-## Modules
-
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_bastion_compute_instances_firewall"></a> [bastion\_compute\_instances\_firewall](#module\_bastion\_compute\_instances\_firewall) | ../../../resources/gcp/network/firewall/allow_bastion_internal | n/a |
-| <a name="module_compute_cluster_instances"></a> [compute\_cluster\_instances](#module\_compute\_cluster\_instances) | ../../../resources/gcp/compute/vm_instance_multiple | n/a |
-| <a name="module_compute_instances_firewall"></a> [compute\_instances\_firewall](#module\_compute\_instances\_firewall) | ../../../resources/gcp/network/firewall/allow_internal | n/a |
-| <a name="module_generate_compute_cluster_keys"></a> [generate\_compute\_cluster\_keys](#module\_generate\_compute\_cluster\_keys) | ../../../resources/common/generate_keys | n/a |
-| <a name="module_generate_storage_cluster_keys"></a> [generate\_storage\_cluster\_keys](#module\_generate\_storage\_cluster\_keys) | ../../../resources/common/generate_keys | n/a |
-| <a name="module_storage_cluster_instances"></a> [storage\_cluster\_instances](#module\_storage\_cluster\_instances) | ../../../resources/gcp/compute/vm_instance_multiple | n/a |
-| <a name="module_storage_cluster_tie_breaker_instance"></a> [storage\_cluster\_tie\_breaker\_instance](#module\_storage\_cluster\_tie\_breaker\_instance) | ../../../resources/gcp/compute/vm_instance_multiple | n/a |
-
-## Resources
-
-No resources.
-
-## Inputs
-
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_bastion_subnet_cidr"></a> [bastion\_subnet\_cidr](#input\_bastion\_subnet\_cidr) | Range of internal addresses. | `string` | `"35.235.240.0/20"` | no |
-| <a name="input_compute_boot_disk_size"></a> [compute\_boot\_disk\_size](#input\_compute\_boot\_disk\_size) | Compute instances boot disk size in gigabytes. | `number` | `100` | no |
-| <a name="input_compute_boot_disk_type"></a> [compute\_boot\_disk\_type](#input\_compute\_boot\_disk\_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` | `"pd-standard"` | no |
-| <a name="input_compute_boot_image"></a> [compute\_boot\_image](#input\_compute\_boot\_image) | Image from which to initialize Spectrum Scale compute instances. | `string` | `"ubuntu-os-cloud/ubuntu-1804-lts"` | no |
-| <a name="input_compute_instance_name_prefix"></a> [compute\_instance\_name\_prefix](#input\_compute\_instance\_name\_prefix) | Compute instance name prefix (Rules: 1-63 characters long, comply with RFC1035 and match regex [a-z]([-a-z0-9]*[a-z0-9])? | `string` | `"compute-scale"` | no |
-| <a name="input_compute_instance_tags"></a> [compute\_instance\_tags](#input\_compute\_instance\_tags) | List of tags to attach to the compute instance. | `list(string)` | `[]` | no |
-| <a name="input_compute_machine_type"></a> [compute\_machine\_type](#input\_compute\_machine\_type) | GCP instance machine type to create Spectrum Scale compute instances. | `string` | `"n1-standard-1"` | no |
-| <a name="input_credentials_file_path"></a> [credentials\_file\_path](#input\_credentials\_file\_path) | The path of a GCP service account key file in JSON format. | `string` | n/a | yes |
-| <a name="input_data_disk_size"></a> [data\_disk\_size](#input\_data\_disk\_size) | Data disk size in gigabytes. | `string` | `500` | no |
-| <a name="input_data_disk_type"></a> [data\_disk\_type](#input\_data\_disk\_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` | `"pd-standard"` | no |
-| <a name="input_data_disks_per_instance"></a> [data\_disks\_per\_instance](#input\_data\_disks\_per\_instance) | Number of data disks to be attached to each storage instance. | `number` | `1` | no |
-| <a name="input_gcp_project_id"></a> [gcp\_project\_id](#input\_gcp\_project\_id) | GCP project ID to manage resources. | `string` | n/a | yes |
-| <a name="input_instances_ssh_public_key_path"></a> [instances\_ssh\_public\_key\_path](#input\_instances\_ssh\_public\_key\_path) | SSH public key local path. | `string` | n/a | yes |
-| <a name="input_instances_ssh_user_name"></a> [instances\_ssh\_user\_name](#input\_instances\_ssh\_user\_name) | Name of the administrator to access the bastion instance. | `string` | `"gcpadmin"` | no |
-| <a name="input_operator_email"></a> [operator\_email](#input\_operator\_email) | GCP service account e-mail address. | `string` | n/a | yes |
-| <a name="input_private_subnet_cidr"></a> [private\_subnet\_cidr](#input\_private\_subnet\_cidr) | Range of internal addresses. | `string` | `"10.0.1.0/24"` | no |
-| <a name="input_resource_prefix"></a> [resource\_prefix](#input\_resource\_prefix) | GCP stack name, will be used for tagging resources. | `string` | `"spectrum-scale"` | no |
-| <a name="input_scopes"></a> [scopes](#input\_scopes) | List of service scopes. | `list(string)` | <pre>[<br>  "cloud-platform"<br>]</pre> | no |
-| <a name="input_storage_boot_disk_size"></a> [storage\_boot\_disk\_size](#input\_storage\_boot\_disk\_size) | Storage instances boot disk size in gigabytes. | `number` | `100` | no |
-| <a name="input_storage_boot_disk_type"></a> [storage\_boot\_disk\_type](#input\_storage\_boot\_disk\_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` | `"pd-standard"` | no |
-| <a name="input_storage_boot_image"></a> [storage\_boot\_image](#input\_storage\_boot\_image) | Image from which to initialize Spectrum Scale storage instances. | `string` | `"ubuntu-os-cloud/ubuntu-1804-lts"` | no |
-| <a name="input_storage_instance_name_prefix"></a> [storage\_instance\_name\_prefix](#input\_storage\_instance\_name\_prefix) | Storage instance name prefix (Rules: 1-63 characters long, comply with RFC1035 and match regex [a-z]([-a-z0-9]*[a-z0-9])? | `string` | `"storage-scale"` | no |
-| <a name="input_storage_instance_tags"></a> [storage\_instance\_tags](#input\_storage\_instance\_tags) | List of tags to attach to the compute instance. | `list(string)` | <pre>[<br>  "spectrum-scale-allow-bastion-internal",<br>  "spectrum-scale-allow-internal"<br>]</pre> | no |
-| <a name="input_storage_machine_type"></a> [storage\_machine\_type](#input\_storage\_machine\_type) | GCP instance machine type to create Spectrum Scale storage instances. | `string` | `"n1-standard-1"` | no |
-| <a name="input_total_compute_cluster_instances"></a> [total\_compute\_cluster\_instances](#input\_total\_compute\_cluster\_instances) | Number of instances to be launched for compute instances. | `number` | `2` | no |
-| <a name="input_total_storage_cluster_instances"></a> [total\_storage\_cluster\_instances](#input\_total\_storage\_cluster\_instances) | Number of instances to be launched for storage instances. | `number` | `2` | no |
-| <a name="input_vpc_availability_zones"></a> [vpc\_availability\_zones](#input\_vpc\_availability\_zones) | A list of availability zones names or ids in the region. | `list(string)` | `null` | no |
-| <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc\_compute\_cluster\_private\_subnets](#input\_vpc\_compute\_cluster\_private\_subnets) | List of IDs of compute cluster private subnets. | `list(string)` | `[]` | no |
-| <a name="input_vpc_name"></a> [vpc\_name](#input\_vpc\_name) | GCP VPC name. | `string` | `"spectrum-scale-vpc"` | no |
-| <a name="input_vpc_region"></a> [vpc\_region](#input\_vpc\_region) | GCP region where the resources will be created. | `string` | `null` | no |
-| <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc\_storage\_cluster\_private\_subnets](#input\_vpc\_storage\_cluster\_private\_subnets) | List of IDs of storage cluster private subnets. | `list(string)` | `null` | no |
-
-## Outputs
+#### Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_compute_cluster_instance_details"></a> [compute\_cluster\_instance\_details](#output\_compute\_cluster\_instance\_details) | GCP compute instance details. |
-| <a name="output_storage_cluster_tie_breaker_instance_details"></a> [storage\_cluster\_tie\_breaker\_instance\_details](#output\_storage\_cluster\_tie\_breaker\_instance\_details) | GCP compute desc instance details. |
-| <a name="output_stroage_cluster_instance_details"></a> [stroage\_cluster\_instance\_details](#output\_stroage\_cluster\_instance\_details) | GCP compute instance details. |
+| <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
+| <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Compute cluster private ips. |
+| <a name="output_compute_cluster_security_id"></a> [compute_cluster_security_id](#output_compute_cluster_security_id) | Compute cluster security ids. |
+| <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
+| <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
+| <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
+| <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
+| <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Storage cluster private ips. |
+| <a name="output_storage_cluster_security_id"></a> [storage_cluster_security_id](#output_storage_cluster_security_id) | Storage cluster security ids. |
+| <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Storage cluster data volume mapping. |
+| <a name="output_storage_cluster_with_dns_hostname"></a> [storage_cluster_with_dns_hostname](#output_storage_cluster_with_dns_hostname) | Storage cluster dns hostname mapping. |
 <!-- END_TF_DOCS -->
