@@ -72,8 +72,8 @@ def initialize_cluster_details(scale_version, cluster_name, username,
     :args: cluster_name (string), scale_profile_file (string), scale_replica_config (bool)
     """
     CLUSTER_DEFINITION_JSON['scale_cluster']['setuptype'] = "cloud"
-    CLUSTER_DEFINITION_JSON['scale_cluster']['enable_perf_reconfig'] = "false"
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_falpkg_install'] = "false"
+    CLUSTER_DEFINITION_JSON['scale_cluster']['enable_perf_reconfig'] = False
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_falpkg_install'] = False
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_version'] = scale_version
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_user'] = username
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_gui_admin_password'] = password
@@ -81,7 +81,7 @@ def initialize_cluster_details(scale_version, cluster_name, username,
 
     CLUSTER_DEFINITION_JSON['scale_cluster']['ephemeral_port_range'] = "60000-61000"
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_clustername'] = cluster_name
-    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = "True"
+    CLUSTER_DEFINITION_JSON['scale_cluster']['scale_service_gui_start'] = True
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_sync_replication_config'] = scale_replica_config
     CLUSTER_DEFINITION_JSON['scale_cluster']['scale_cluster_profile_name'] = str(
         pathlib.PurePath(scale_profile_path).stem)
@@ -96,7 +96,7 @@ def initialize_cluster_details(scale_version, cluster_name, username,
 
 
 def initialize_callhome_details():
-    CLUSTER_DEFINITION_JSON['scale_callhome_params']['is_enabled'] = "false"
+    CLUSTER_DEFINITION_JSON['scale_callhome_params']['is_enabled'] = False
 
 
 def initialize_scale_config_details(node_class, param_key, param_value):
@@ -132,20 +132,20 @@ def set_node_details(fqdn, ip_address, ansible_ssh_private_key_file,
         'scale_nodeclass': node_class,
         "os": "rhel8",  # TODO: FIX
         "arch": "x86_64",  # TODO: FIX
-        "is_object_store": "false",
-        "is_nfs": "false",
-        "is_smb": "false",
-        "is_hdfs": "false",
-        "is_protocol_node": "false",
-        "is_ems_node": "false",
-        "is_callhome_node": "false",
-        "is_broker_node": "false",
-        "is_node_offline": "false",
-        "is_node_reachable": "true",
-        "is_node_excluded": "false",
-        "is_mestor_node": "false",
+        "is_object_store": False,
+        "is_nfs": False,
+        "is_smb": False,
+        "is_hdfs": False,
+        "is_protocol_node": False,
+        "is_ems_node": False,
+        "is_callhome_node": False,
+        "is_broker_node": False,
+        "is_node_offline": False,
+        "is_node_reachable": True,
+        "is_node_excluded": False,
+        "is_mestor_node": False,
         "scale_daemon_nodename": fqdn,
-        "upgrade_prompt": "false"
+        "upgrade_prompt": False
     })
 
 
@@ -898,7 +898,7 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size):
                     "maxDataReplicas": "2",
                     "defaultMetadataReplicas": metadata_replicas,
                     "maxMetadataReplicas": "2",
-                    "scale_fal_enable": "False",
+                    "scale_fal_enable": False,
                     "logfileset": ".audit_log",
                     "retention": "365"})
     return storage

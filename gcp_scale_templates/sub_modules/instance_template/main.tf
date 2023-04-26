@@ -415,6 +415,5 @@ module "storage_cluster_configuration" {
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
-  wait_for_instance            = false
   depends_on                   = [module.storage_cluster_instances]
 }
