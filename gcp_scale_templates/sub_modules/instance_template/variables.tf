@@ -104,13 +104,6 @@ variable "compute_cluster_image_ref" {
   description = "Image from which to initialize Spectrum Scale compute instances."
 }
 
-variable "compute_instance_tags" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Image from which to initialize Spectrum Scale compute instances."
-}
-
 variable "total_storage_cluster_instances" {
   type        = number
   nullable    = true
