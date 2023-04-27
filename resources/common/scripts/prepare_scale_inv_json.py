@@ -1089,6 +1089,10 @@ if __name__ == "__main__":
         print("Writing cloud infrastructure details to: ",
               ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
 
+    # Remove cluster definition file if it already exists
+    if os.path.exists(os.path.dirname(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH):
+        os.remove(os.path.dirname(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
+
     # Create vars directory if missing
     if not os.path.exists(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH):
         os.makedirs(os.path.dirname(ARGUMENTS.install_infra_path.rstrip(
