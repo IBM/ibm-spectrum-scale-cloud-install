@@ -104,6 +104,29 @@ variable "compute_cluster_image_ref" {
   description = "Image from which to initialize Spectrum Scale compute instances."
 }
 
+variable "using_rest_api_remote_mount" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
+}
+
+variable "compute_cluster_gui_username" {
+  type        = string
+  nullable    = true
+  default     = null
+  sensitive   = true
+  description = "GUI user to perform system management and monitoring tasks on compute cluster."
+}
+
+variable "compute_cluster_gui_password" {
+  type        = string
+  nullable    = true
+  default     = null
+  sensitive   = true
+  description = "Password for Compute cluster GUI."
+}
+
 variable "total_storage_cluster_instances" {
   type        = number
   nullable    = true
