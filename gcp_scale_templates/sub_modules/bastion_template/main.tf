@@ -30,8 +30,8 @@ module "allow_traffic_from_external_cidr_to_bastion" {
 }
 
 data "google_compute_subnetwork" "public_bastion_cluster" {
-  count     = var.vpc_auto_scaling_group_subnets != null ? 1 : 0
-  self_link = var.vpc_auto_scaling_group_subnets[0]
+  count = var.vpc_auto_scaling_group_subnets != null ? 1 : 0
+  name  = var.vpc_auto_scaling_group_subnets[0]
 }
 
 # Allow traffic bastion internals
