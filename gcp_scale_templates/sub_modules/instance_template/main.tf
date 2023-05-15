@@ -103,13 +103,13 @@ module "generate_storage_cluster_keys" {
 }
 
 data "google_compute_subnetwork" "storage_cluster" {
-  count = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 0 ? length(var.vpc_storage_cluster_private_subnets) : 0 : 0
-  name  = var.vpc_storage_cluster_private_subnets[count.index]
+  count     = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 0 ? length(var.vpc_storage_cluster_private_subnets) : 0 : 0
+  self_link = var.vpc_storage_cluster_private_subnets[count.index]
 }
 
 data "google_compute_subnetwork" "compute_cluster" {
-  count = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) > 0 ? length(var.vpc_compute_cluster_private_subnets) : 0 : 0
-  name  = var.vpc_compute_cluster_private_subnets[count.index]
+  count     = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) > 0 ? length(var.vpc_compute_cluster_private_subnets) : 0 : 0
+  self_link = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
 data "google_compute_instance" "google_compute_instance" {
