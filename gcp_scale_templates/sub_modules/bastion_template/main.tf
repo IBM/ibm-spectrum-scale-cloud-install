@@ -31,7 +31,7 @@ module "allow_traffic_from_external_cidr_to_bastion" {
 
 data "google_compute_subnetwork" "public_bastion_cluster" {
   count     = var.vpc_auto_scaling_group_subnets != null ? 1 : 0
-  self_link = length(regexall("^https", var.vpc_auto_scaling_group_subnets[0])) > 0 ? var.vpc_auto_scaling_group_subnets[0] : "https://www.googleapis.com/compute/v1/projects/${var.project_id}/regions/us-central1/subnetworks/${var.vpc_auto_scaling_group_subnets[0]}"
+  self_link = length(regexall("^https", var.vpc_auto_scaling_group_subnets[0])) > 0 ? var.vpc_auto_scaling_group_subnets[0] : "https://www.googleapis.com/compute/v1/projects/${var.project_id}/regions/${var.vpc_region}/subnetworks/${var.vpc_auto_scaling_group_subnets[0]}"
 }
 
 # Allow traffic bastion internals

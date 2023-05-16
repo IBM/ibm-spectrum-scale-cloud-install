@@ -104,12 +104,12 @@ module "generate_storage_cluster_keys" {
 
 data "google_compute_subnetwork" "storage_cluster" {
   count     = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 0 ? length(var.vpc_storage_cluster_private_subnets) : 0 : 0
-  self_link = length(regexall("^https", var.vpc_storage_cluster_private_subnets[count.index])) > 0 ? var.vpc_storage_cluster_private_subnets[count.index] : "https://www.googleapis.com/compute/v1/projects/${var.project_id}/regions/us-central1/subnetworks/${var.vpc_storage_cluster_private_subnets[count.index]}"
+  self_link = length(regexall("^https", var.vpc_storage_cluster_private_subnets[count.index])) > 0 ? var.vpc_storage_cluster_private_subnets[count.index] : "https://www.googleapis.com/compute/v1/projects/${var.project_id}/regions/${var.vpc_region}/subnetworks/${var.vpc_storage_cluster_private_subnets[count.index]}"
 }
 
 data "google_compute_subnetwork" "compute_cluster" {
   count     = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) > 0 ? length(var.vpc_compute_cluster_private_subnets) : 0 : 0
-  self_link = length(regexall("^https", var.vpc_compute_cluster_private_subnets[count.index])) > 0 ? var.vpc_compute_cluster_private_subnets[count.index] : "https://www.googleapis.com/compute/v1/projects/${var.project_id}/regions/us-central1/subnetworks/${var.vpc_compute_cluster_private_subnets[count.index]}"
+  self_link = length(regexall("^https", var.vpc_compute_cluster_private_subnets[count.index])) > 0 ? var.vpc_compute_cluster_private_subnets[count.index] : "https://www.googleapis.com/compute/v1/projects/${var.project_id}/regions/${var.vpc_region}/subnetworks/${var.vpc_compute_cluster_private_subnets[count.index]}"
 }
 
 data "google_compute_instance" "google_compute_instance" {
