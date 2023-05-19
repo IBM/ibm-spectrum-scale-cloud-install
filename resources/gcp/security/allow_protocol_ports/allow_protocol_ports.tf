@@ -150,12 +150,12 @@ resource "google_compute_firewall" "allow_protocal_egress" {
   destination_ranges = var.destination_ranges
 }
 
-#tfsec:ignore:google-compute-no-public-ingress
+#tfsec:ignore:google-compute-no-public-egress
 resource "google_compute_firewall" "allow_internal_egress_all" {
   count       = tobool(var.turn_on_egress) == true && var.destination_range_egress_all != null ? 1 : 0
   name        = format("%s-allow-all-egress", var.firewall_name_prefix)
   network     = var.vpc_ref
-  description = "${var.firewall_description[0]} - ingress traffic"
+  description = "${var.firewall_description[0]} - egress traffic"
 
   allow {
     protocol = "all"
@@ -166,7 +166,6 @@ resource "google_compute_firewall" "allow_internal_egress_all" {
   destination_ranges = var.destination_range_egress_all
 }
 
-#Ingress
 output "firewall_id_ingress" {
   value = google_compute_firewall.allow_protocal_ingress[*].id
 }

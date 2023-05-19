@@ -102,32 +102,36 @@ module "generate_storage_cluster_keys" {
   turn_on = var.total_storage_cluster_instances != null ? true : false
 }
 
+# Obtain the storage cluster/vm cidr range
 data "google_compute_subnetwork" "storage_cluster" {
   count     = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 0 ? length(var.vpc_storage_cluster_private_subnets) : 0 : 0
   self_link = var.vpc_storage_cluster_private_subnets[count.index]
 }
 
+# Obtain the compute cluster/vm cidr range
 data "google_compute_subnetwork" "compute_cluster" {
   count     = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) > 0 ? length(var.vpc_compute_cluster_private_subnets) : 0 : 0
   self_link = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
-data "google_compute_instance" "google_compute_instance" {
+# Obtain the bastion vm subnet
+data "google_compute_instance" "bastion_instance" {
   count     = var.bastion_instance_ref != null ? 1 : 0
   self_link = var.bastion_instance_ref
   zone      = var.vpc_availability_zones[0]
 }
 
+# Obtain the bastion vm cidr range
 data "google_compute_subnetwork" "bastion_subnetwork" {
   count  = var.bastion_instance_ref != null ? 1 : 0
-  name   = element(split("/", data.google_compute_instance.google_compute_instance[0].network_interface[0].subnetwork), length(split("/", data.google_compute_instance.google_compute_instance[0].network_interface[0].subnetwork)) - 1)
+  name   = element(split("/", data.google_compute_instance.bastion_instance[0].network_interface[0].subnetwork), length(split("/", data.google_compute_instance.bastion_instance[0].network_interface[0].subnetwork)) - 1)
   region = var.vpc_region
 }
 
 # Allow traffic from bastion to scale cluster
 module "allow_traffic_bastion_to_scale_cluster" {
   source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress_bi   = true
+  turn_on_ingress_bi   = var.using_cloud_connection == true ? false : true
   firewall_name_prefix = "${var.resource_prefix}-bastion-to-scale"
   vpc_ref              = var.vpc_ref
   source_ranges        = length(data.google_compute_subnetwork.bastion_subnetwork) > 0 ? (data.google_compute_subnetwork.bastion_subnetwork[0].ip_cidr_range != null ? [data.google_compute_subnetwork.bastion_subnetwork[0].ip_cidr_range] : null) : null
@@ -236,8 +240,8 @@ module "compute_cluster_instances" {
   instance_name           = format("%s-compute", var.resource_prefix)
   machine_type            = var.compute_cluster_instance_type
   vpc_subnets             = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : null
-  private_key_content     = module.generate_compute_cluster_keys.private_key_content
-  public_key_content      = module.generate_compute_cluster_keys.public_key_content
+  private_key_content     = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
+  public_key_content      = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   service_email           = var.service_email
   scopes                  = var.scopes
   boot_disk_size          = var.compute_boot_disk_size
@@ -355,7 +359,7 @@ module "write_storage_cluster_inventory" {
   storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].disk_device_mapping)[0]) : jsonencode({})
   storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].dns_hostname)[0]) : jsonencode({})
   storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_selflink))
-  storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance[*].instance_ips)
+  storage_cluster_desc_instance_private_ips        = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ips))
   storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
 }
@@ -385,7 +389,7 @@ module "write_cluster_inventory" {
   storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].disk_device_mapping)[0]) : jsonencode({})
   storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].dns_hostname)[0]) : jsonencode({})
   storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_selflink))
-  storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance[*].instance_ips)
+  storage_cluster_desc_instance_private_ips        = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ips))
   storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
 }
@@ -440,4 +444,27 @@ module "storage_cluster_configuration" {
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
   depends_on                   = [module.storage_cluster_instances]
+}
+
+# Configure the combined cluster using ansible based on the create_scale_cluster input.
+module "combined_cluster_configuration" {
+  source                       = "../../../resources/common/scale_configuration"
+  turn_on                      = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? true : false
+  clone_complete               = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
+  create_scale_cluster         = var.create_scale_cluster
+  clone_path                   = var.scale_ansible_repo_clone_path
+  inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image           = var.using_packer_image
+  using_jumphost_connection    = var.using_jumphost_connection
+  storage_cluster_gui_username = var.storage_cluster_gui_username
+  storage_cluster_gui_password = var.storage_cluster_gui_password
+  memory_size                  = 4
+  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
+  bastion_instance_public_ip   = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  bastion_ssh_private_key      = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
+  meta_private_key             = module.generate_storage_cluster_keys.private_key_content
+  scale_version                = local.scale_version
+  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
 }
