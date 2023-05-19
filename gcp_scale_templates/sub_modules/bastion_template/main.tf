@@ -14,7 +14,7 @@ locals {
   security_rule_description_bastion_egress_all = ["Allow egress from bastion instances"]
 
   traffic_protocol_cluster_bastion_scale_ingress = ["icmp", "TCP"]
-  traffic_port_cluster_bastion_scale_ingress     = [-1, 22]
+  traffic_port_cluster_bastion_scale_ingress     = [-1, var.bastion_public_ssh_port]
 }
 
 # Allow traffic from external cidr block to bastion instances
