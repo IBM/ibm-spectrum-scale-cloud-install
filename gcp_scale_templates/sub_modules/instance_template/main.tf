@@ -359,7 +359,7 @@ module "write_storage_cluster_inventory" {
   storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].disk_device_mapping)[0]) : jsonencode({})
   storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].dns_hostname)[0]) : jsonencode({})
   storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_selflink))
-  storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance[*].instance_ips)
+  storage_cluster_desc_instance_private_ips        = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ips))
   storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
 }
