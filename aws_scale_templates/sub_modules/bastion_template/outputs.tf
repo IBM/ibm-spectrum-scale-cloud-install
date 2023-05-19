@@ -3,9 +3,9 @@ output "bastion_security_group_ref" {
   description = "Bastion security group reference (id/self-link)."
 }
 
-output "bastion_instance_id" {
+output "bastion_instance_ref" {
   value       = module.bastion_autoscaling_group.asg_instance_id
-  description = "Bastion instance id."
+  description = "Bastion instance ref."
 }
 
 output "bastion_instance_public_ip" {

@@ -378,11 +378,11 @@ variable "bastion_security_group_ref" {
   description = "Bastion security group reference (id/self-link)."
 }
 
-variable "bastion_instance_id" {
+variable "bastion_instance_ref" {
   type        = string
   nullable    = true
   default     = null
-  description = "Bastion instance id."
+  description = "Bastion instance ref."
 }
 
 variable "bastion_ssh_private_key" {
