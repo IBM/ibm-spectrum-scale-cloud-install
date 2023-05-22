@@ -144,6 +144,8 @@ locals {
 
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
+
+  local_ssd_names = [for i in range(var.total_local_ssd_disks) : "/dev/disk/by-id/google-local-nvme-ssd-${i}"]
 }
 
 output "generate_config" {
@@ -262,7 +264,7 @@ output "data_disk_zone" {
 }
 
 output "disk_device_mapping" {
-  value = (var.total_persistent_disks > 0) && (length(local.block_device_names) >= var.total_persistent_disks) ? { for instances in(google_compute_instance.itself) : (instances.network_interface[0].network_ip) => slice(local.block_device_names, 0, var.total_persistent_disks) } : {}
+  value = (var.total_persistent_disks > 0) && (length(local.block_device_names) >= var.total_persistent_disks) ? { for instances in(google_compute_instance.itself) : (instances.network_interface[0].network_ip) => slice(local.block_device_names, 0, var.total_persistent_disks) } : var.total_local_ssd_disks > 0 ? { for instances in(google_compute_instance.itself) : (instances.network_interface[0].network_ip) => local.local_ssd_names } : {}
 }
 
 output "dns_hostname" {
