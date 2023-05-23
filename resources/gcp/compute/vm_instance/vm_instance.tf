@@ -145,7 +145,7 @@ locals {
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
 
-  local_ssd_names = [for i in range(var.total_local_ssd_disks) : "/dev/disk/by-id/google-local-nvme-ssd-${i}"]
+  local_ssd_names = [for i in range(var.total_local_ssd_disks) : "/dev/nvme0n${i + 1}"]
 }
 
 output "generate_config" {
