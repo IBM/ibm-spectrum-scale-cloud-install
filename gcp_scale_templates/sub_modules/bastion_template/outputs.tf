@@ -9,7 +9,7 @@ output "bastion_instance_name" {
 }
 
 output "bastion_instance_ref" {
-  value       = data.google_compute_instance.itself[*].self_link
+  value       = [for instance in module.bastion_autoscaling_group.instances : instance]
   description = "Bastion instance Ids."
 }
 
