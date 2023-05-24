@@ -52,4 +52,3 @@ output "compute_cluster_security_id" {
   value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? concat(module.allow_traffic_scale_cluster_compute_internal.firewall_uri_ingress_bi, module.allow_traffic_scale_cluster_storage_to_compute.firewall_uri_ingress_bi) : null
   description = "Compute cluster security ids."
 }
-
