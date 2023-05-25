@@ -68,6 +68,7 @@ resource "google_compute_instance" "itself" {
       type  = var.boot_disk_type
       image = var.boot_image
     }
+    kms_key_self_link = data.google_kms_crypto_key.itself.id
   }
   network_interface {
     subnetwork = local.vm_configuration[count.index].subnet
