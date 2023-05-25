@@ -2,135 +2,30 @@
   Creates GCP VM instance with specified number of persistent disk
 */
 
-variable "service_email" {
-  type        = string
-  description = "GCP service account e-mail address."
-}
-
-variable "scopes" {
-  type        = list(string)
-  default     = ["cloud-platform"]
-  description = "List of service scopes."
-}
-
-variable "instance_name" {
-  type        = string
-  default     = "compute-0"
-  description = "Instance name prefix (Rules: 1-63 characters long, comply with RFC1035 and match regex [a-z]([-a-z0-9]*[a-z0-9])?"
-}
-
-variable "ssh_key_path" {
-  type        = string
-  description = "SSH public key local path."
-}
-
-variable "machine_type" {
-  type        = string
-  default     = "n1-standard-1"
-  description = "GCP instance machine type to create Spectrum Scale compute instances."
-}
-
-variable "boot_disk_size" {
-  type        = number
-  default     = 100
-  description = "Compute instances boot disk size in gigabytes."
-}
-variable "boot_disk_type" {
-  type        = string
-  default     = "pd-standard"
-  description = "GCE disk type (valid: pd-standard, pd-ssd)."
-}
-
-variable "boot_image" {
-  type        = string
-  default     = "ubuntu-os-cloud/ubuntu-1804-lts"
-  description = "Image from which to initialize compute instances."
-}
-
-variable "ssh_user_name" {
-  type        = string
-  default     = "gcpadmin"
-  description = "Name of the administrator to access the instance."
-}
-
-#Disk variables
-variable "total_persistent_disks" {
-  type        = number
-  default     = 0
-  description = "Number of persistent data disks that needs to be attached to compute instance."
-}
-
-variable "data_disk_name_prefix" {
-  type        = string
-  default     = "scale-disk"
-  description = "Persistent data disk name prefix."
-}
-
-variable "data_disk_description" {
-  type        = string
-  default     = "SSD scale-disk"
-  description = "Persistent data disk description."
-}
-
-variable "physical_block_size_bytes" {
-  type        = number
-  default     = 4096
-  description = "Physical block size of the persistent disk, in bytes (valid: 4096, 16384)."
-}
-
-variable "data_disk_type" {
-  type        = string
-  default     = "pd-standard"
-  description = "GCE disk type (valid: pd-standard, pd-ssd)."
-}
-
-variable "data_disk_size" {
-  type        = string
-  default     = 500
-  description = "Data disk size in gigabytes."
-}
-
-variable "total_local_ssd_disks" {
-  type        = number
-  default     = 0
-  description = "Local ssd nvme disk."
-}
-
-variable "block_device_names" {
-  type        = list(string)
-  default     = []
-  description = "List block devices names."
-}
-
-variable "private_key_content" {
-  type        = string
-  description = "SSH private key content."
-}
-
-variable "public_key_content" {
-  type        = string
-  description = "SSH public key content."
-}
-
-variable "vpc_availability_zones" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "A list of availability zones names or ids in the region."
-}
-
-variable "vpc_subnets" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Subnetwork of a Virtual Private Cloud network with one primary IP range"
-}
-
-variable "total_cluster_instances" {
-  type        = number
-  default     = 0
-  description = "Number of Instance that needs to create."
-}
+variable "service_email" {}
+variable "scopes" {}
+variable "instance_name" {}
+variable "ssh_key_path" {}
+variable "machine_type" {}
+variable "boot_disk_size" {}
+variable "boot_disk_type" {}
+variable "boot_image" {}
+variable "ssh_user_name" {}
+variable "total_persistent_disks" {}
+variable "data_disk_description" {}
+variable "physical_block_size_bytes" {}
+variable "data_disk_type" {}
+variable "data_disk_size" {}
+variable "total_local_ssd_disks" {}
+variable "block_device_names" {}
+variable "private_key_content" {}
+variable "public_key_content" {}
+variable "vpc_region" {}
+variable "vpc_availability_zones" {}
+variable "vpc_subnets" {}
+variable "total_cluster_instances" {}
+variable "block_device_kms_key_ring_ref" {}
+variable "block_device_kms_key_ref" {}
 
 locals {
   vpc_subnets             = var.vpc_subnets == null ? [] : var.vpc_subnets
@@ -140,16 +35,9 @@ locals {
   total_persistent_disks  = var.total_persistent_disks == null ? 0 : var.total_persistent_disks
 
   vm_configuration   = flatten(toset([for i in range(local.total_cluster_instances) : { subnet = element(var.vpc_subnets, i), zone = element(local.vpc_availability_zones, i), vm_name = "${var.instance_name}-${i}" }]))
-  disk_configuration = flatten(toset([for disk_no in range(local.total_persistent_disks) : flatten([for vm_meta in local.vm_configuration : { vm_name = vm_meta.vm_name, vm_name_suffix = "${disk_no}", vm_zone = vm_meta.zone }])]))
-
-  block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
-  "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
+  disk_configuration = flatten(toset([for disk_no in range(local.total_persistent_disks) : flatten([for vm_meta in local.vm_configuration : { vm_name = vm_meta.vm_name, vm_name_suffix = disk_no, vm_zone = vm_meta.zone }])]))
 
   local_ssd_names = [for i in range(var.total_local_ssd_disks) : "/dev/nvme0n${i + 1}"]
-}
-
-output "generate_config" {
-  value = local.vpc_subnets
 }
 
 data "template_file" "metadata_startup_script" {
@@ -165,30 +53,26 @@ EOF
 #tfsec:ignore:google-compute-enable-shielded-vm-im
 #tfsec:ignore:google-compute-enable-shielded-vm-vtpm
 resource "google_compute_instance" "itself" {
-  count        = length(local.vm_configuration)
-  name         = local.vm_configuration[count.index].vm_name
-  machine_type = var.machine_type
-  zone         = local.vm_configuration[count.index].zone
-
+  count                     = length(local.vm_configuration)
+  name                      = local.vm_configuration[count.index].vm_name
+  machine_type              = var.machine_type
+  zone                      = local.vm_configuration[count.index].zone
   allow_stopping_for_update = true
 
   #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
   boot_disk {
     auto_delete = true
     mode        = "READ_WRITE"
-
     initialize_params {
       size  = var.boot_disk_size
       type  = var.boot_disk_type
       image = var.boot_image
     }
   }
-
   network_interface {
     subnetwork = local.vm_configuration[count.index].subnet
     network_ip = null
   }
-
   metadata = {
     ssh-keys               = format("%s:%s\n %s:%s", var.ssh_user_name, file(var.ssh_key_path), "root", var.public_key_content)
     block-project-ssh-keys = true
@@ -213,8 +97,17 @@ resource "google_compute_instance" "itself" {
   }
 }
 
-#tfsec:ignore:google-compute-disk-encryption-customer-key
-resource "google_compute_disk" "data_disk" {
+data "google_kms_key_ring" "itself" {
+  name     = var.block_device_kms_key_ring_ref
+  location = var.vpc_region
+}
+
+data "google_kms_crypto_key" "itself" {
+  name     = var.block_device_kms_key_ref
+  key_ring = data.google_kms_key_ring.itself.id
+}
+
+resource "google_compute_disk" "itself" {
   count                     = length(local.disk_configuration)
   zone                      = local.disk_configuration[count.index].vm_zone
   name                      = format("%s-data-%s", local.disk_configuration[count.index].vm_name, local.disk_configuration[count.index].vm_name_suffix)
@@ -222,7 +115,10 @@ resource "google_compute_disk" "data_disk" {
   physical_block_size_bytes = var.physical_block_size_bytes
   type                      = var.data_disk_type
   size                      = var.data_disk_size
-  depends_on                = [google_compute_instance.itself]
+  disk_encryption_key {
+    kms_key_self_link = data.google_kms_crypto_key.itself.id
+  }
+  depends_on = [google_compute_instance.itself]
 }
 
 resource "google_compute_attached_disk" "attach_data_disk" {
@@ -230,10 +126,10 @@ resource "google_compute_attached_disk" "attach_data_disk" {
   zone       = local.disk_configuration[count.index].vm_zone
   disk       = format("%s-data-%s", local.disk_configuration[count.index].vm_name, local.disk_configuration[count.index].vm_name_suffix)
   instance   = local.disk_configuration[count.index].vm_name
-  depends_on = [google_compute_disk.data_disk]
+  depends_on = [google_compute_disk.itself]
 }
 
-#Instance details
+# Instance details
 output "instance_ids" {
   value = google_compute_instance.itself[*].instance_id
 }
@@ -246,13 +142,12 @@ output "instance_ips" {
   value = google_compute_instance.itself[*].network_interface[0].network_ip
 }
 
-#Disk details
 output "data_disk_id" {
-  value = google_compute_disk.data_disk[*].id
+  value = google_compute_disk.itself[*].id
 }
 
 output "data_disk_uri" {
-  value = google_compute_disk.data_disk[*].self_link
+  value = google_compute_disk.itself[*].self_link
 }
 
 output "data_disk_attachment_id" {
@@ -260,17 +155,13 @@ output "data_disk_attachment_id" {
 }
 
 output "data_disk_zone" {
-  value = google_compute_disk.data_disk[*].zone
+  value = google_compute_disk.itself[*].zone
 }
 
 output "disk_device_mapping" {
-  value = (var.total_persistent_disks > 0) && (length(local.block_device_names) >= var.total_persistent_disks) ? { for instances in(google_compute_instance.itself) : (instances.network_interface[0].network_ip) => slice(local.block_device_names, 0, var.total_persistent_disks) } : var.total_local_ssd_disks > 0 ? { for instances in(google_compute_instance.itself) : (instances.network_interface[0].network_ip) => local.local_ssd_names } : {}
+  value = (var.total_persistent_disks > 0) && (length(var.block_device_names) >= var.total_persistent_disks) ? { for instances in(google_compute_instance.itself) : (instances.network_interface[0].network_ip) => slice(var.block_device_names, 0, var.total_persistent_disks) } : var.total_local_ssd_disks > 0 ? { for instances in(google_compute_instance.itself) : (instances.network_interface[0].network_ip) => local.local_ssd_names } : {}
 }
 
 output "dns_hostname" {
   value = { for instances in(google_compute_instance.itself) : (instances.network_interface[0].network_ip) => "${instances.name}.${instances.zone}.c.${instances.project}.internal" }
-}
-
-output "publlickeyContent" {
-  value = var.public_key_content
 }

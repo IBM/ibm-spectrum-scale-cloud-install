@@ -88,6 +88,8 @@ locals {
 
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
+  block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
+  "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
 }
 
 # Generate compute cluster ssh keys
@@ -230,69 +232,90 @@ module "storage_cluster_ingress_security_rule_using_direct_connection" {
 
 # Creates compute instances
 module "compute_cluster_instances" {
-  source                  = "../../../resources/gcp/compute/vm_instance"
-  vpc_availability_zones  = var.vpc_availability_zones
-  ssh_key_path            = var.compute_cluster_public_key_path
-  ssh_user_name           = var.instances_ssh_user_name
-  total_cluster_instances = local.cluster_type == "compute" || local.cluster_type == "combined" ? var.total_compute_cluster_instances : 0
-  total_persistent_disks  = 0
-  total_local_ssd_disks   = 0
-  instance_name           = format("%s-compute", var.resource_prefix)
-  machine_type            = var.compute_cluster_instance_type
-  vpc_subnets             = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : null
-  private_key_content     = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
-  public_key_content      = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  service_email           = var.service_email
-  scopes                  = var.scopes
-  boot_disk_size          = var.compute_boot_disk_size
-  boot_disk_type          = var.compute_boot_disk_type
-  boot_image              = var.compute_cluster_image_ref
+  source                        = "../../../resources/gcp/compute/vm_instance"
+  vpc_region                    = var.vpc_region
+  vpc_availability_zones        = var.vpc_availability_zones
+  ssh_key_path                  = var.compute_cluster_public_key_path
+  ssh_user_name                 = var.instances_ssh_user_name
+  total_cluster_instances       = local.cluster_type == "compute" || local.cluster_type == "combined" ? var.total_compute_cluster_instances : 0
+  total_persistent_disks        = 0
+  total_local_ssd_disks         = 0
+  data_disk_size                = 0
+  data_disk_type                = var.storage_boot_disk_type
+  physical_block_size_bytes     = var.physical_block_size_bytes
+  data_disk_description         = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
+  instance_name                 = format("%s-compute", var.resource_prefix)
+  machine_type                  = var.compute_cluster_instance_type
+  vpc_subnets                   = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : null
+  private_key_content           = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
+  public_key_content            = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
+  service_email                 = var.service_email
+  scopes                        = var.scopes
+  boot_disk_size                = var.compute_boot_disk_size
+  boot_disk_type                = var.compute_boot_disk_type
+  boot_image                    = var.compute_cluster_image_ref
+  block_device_names            = local.block_device_names
+  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
+  block_device_kms_key_ref      = var.block_device_kms_key_ref
+
 }
 
 # Creates storage tie breaker instance
 module "storage_cluster_tie_breaker_instance" {
-  source                  = "../../../resources/gcp/compute/vm_instance"
-  vpc_availability_zones  = length(var.vpc_availability_zones) > 1 ? [var.vpc_availability_zones[2]] : []
-  ssh_key_path            = var.storage_cluster_public_key_path
-  ssh_user_name           = var.instances_ssh_user_name
-  total_cluster_instances = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 2 && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? 1 : 0) : 0
-  total_persistent_disks  = 1
-  total_local_ssd_disks   = 0
-  instance_name           = format("%s-storage-tie", var.resource_prefix)
-  machine_type            = var.storage_cluster_instance_type
-  vpc_subnets             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets) : null
-  private_key_content     = module.generate_storage_cluster_keys.private_key_content
-  public_key_content      = module.generate_storage_cluster_keys.public_key_content
-  service_email           = var.service_email
-  scopes                  = var.scopes
-  boot_disk_size          = var.storage_boot_disk_size
-  boot_disk_type          = var.storage_boot_disk_type
-  boot_image              = var.storage_cluster_image_ref
-  data_disk_type          = var.block_device_volume_type
-  data_disk_size          = 5
+  source                        = "../../../resources/gcp/compute/vm_instance"
+  vpc_region                    = var.vpc_region
+  vpc_availability_zones        = length(var.vpc_availability_zones) > 1 ? [var.vpc_availability_zones[2]] : []
+  ssh_key_path                  = var.storage_cluster_public_key_path
+  ssh_user_name                 = var.instances_ssh_user_name
+  total_cluster_instances       = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 2 && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? 1 : 0) : 0
+  total_persistent_disks        = 1
+  total_local_ssd_disks         = 0
+  physical_block_size_bytes     = var.physical_block_size_bytes
+  data_disk_description         = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
+  instance_name                 = format("%s-storage-tie", var.resource_prefix)
+  machine_type                  = var.storage_cluster_instance_type
+  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : var.vpc_storage_cluster_private_subnets) : null
+  private_key_content           = module.generate_storage_cluster_keys.private_key_content
+  public_key_content            = module.generate_storage_cluster_keys.public_key_content
+  service_email                 = var.service_email
+  scopes                        = var.scopes
+  boot_disk_size                = var.storage_boot_disk_size
+  boot_disk_type                = var.storage_boot_disk_type
+  boot_image                    = var.storage_cluster_image_ref
+  block_device_names            = local.block_device_names
+  data_disk_type                = var.block_device_volume_type
+  data_disk_size                = 5
+  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
+  block_device_kms_key_ref      = var.block_device_kms_key_ref
 }
 
 # Creates storage instances
 module "storage_cluster_instances" {
-  source                  = "../../../resources/gcp/compute/vm_instance"
-  vpc_availability_zones  = length(var.vpc_availability_zones) > 1 ? slice(var.vpc_availability_zones, 0, 2) : var.vpc_availability_zones
-  ssh_key_path            = var.storage_cluster_public_key_path
-  ssh_user_name           = var.instances_ssh_user_name
-  total_cluster_instances = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_storage_cluster_instances : 0
-  total_persistent_disks  = var.block_devices_per_storage_instance
-  total_local_ssd_disks   = var.scratch_devices_per_storage_instance
-  instance_name           = format("%s-storage", var.resource_prefix)
-  machine_type            = var.storage_cluster_instance_type
-  vpc_subnets             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
-  private_key_content     = module.generate_storage_cluster_keys.private_key_content
-  public_key_content      = module.generate_storage_cluster_keys.public_key_content
-  service_email           = var.service_email
-  scopes                  = var.scopes
-  boot_disk_size          = var.storage_boot_disk_size
-  boot_disk_type          = var.storage_boot_disk_type
-  boot_image              = var.storage_cluster_image_ref
-  data_disk_type          = var.block_device_volume_type
-  data_disk_size          = var.block_device_volume_size
+  source                        = "../../../resources/gcp/compute/vm_instance"
+  vpc_region                    = var.vpc_region
+  vpc_availability_zones        = length(var.vpc_availability_zones) > 1 ? slice(var.vpc_availability_zones, 0, 2) : var.vpc_availability_zones
+  ssh_key_path                  = var.storage_cluster_public_key_path
+  ssh_user_name                 = var.instances_ssh_user_name
+  total_cluster_instances       = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_storage_cluster_instances : 0
+  total_persistent_disks        = var.block_devices_per_storage_instance
+  total_local_ssd_disks         = var.scratch_devices_per_storage_instance
+  physical_block_size_bytes     = var.physical_block_size_bytes
+  data_disk_description         = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
+  instance_name                 = format("%s-storage", var.resource_prefix)
+  machine_type                  = var.storage_cluster_instance_type
+  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
+  private_key_content           = module.generate_storage_cluster_keys.private_key_content
+  public_key_content            = module.generate_storage_cluster_keys.public_key_content
+  service_email                 = var.service_email
+  scopes                        = var.scopes
+  boot_disk_size                = var.storage_boot_disk_size
+  boot_disk_type                = var.storage_boot_disk_type
+  boot_image                    = var.storage_cluster_image_ref
+  block_device_names            = local.block_device_names
+  data_disk_type                = var.block_device_volume_type
+  data_disk_size                = var.block_device_volume_size
+  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
+  block_device_kms_key_ref      = var.block_device_kms_key_ref
 }
 
 # Prepare ansible config

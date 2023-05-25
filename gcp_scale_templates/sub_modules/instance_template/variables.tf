@@ -141,6 +141,20 @@ variable "block_devices_per_storage_instance" {
   description = "Number of data disks to be attached to each storage instance."
 }
 
+variable "block_device_kms_key_ring_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "GCP KMS Key ring reference to use when encrypting the volume."
+}
+
+variable "block_device_kms_key_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "GCP KMS Key reference to use when encrypting the volume."
+}
+
 variable "scratch_devices_per_storage_instance" {
   type        = number
   nullable    = true
@@ -174,6 +188,12 @@ variable "storage_cluster_image_ref" {
   nullable    = true
   default     = null
   description = "Image from which to initialize Spectrum Scale storage instances."
+}
+
+variable "physical_block_size_bytes" {
+  type        = number
+  default     = 4096
+  description = "Physical block size of the persistent disk, in bytes (valid: 4096, 16384)."
 }
 
 variable "block_device_volume_type" {
