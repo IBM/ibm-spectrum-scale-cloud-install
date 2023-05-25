@@ -29,17 +29,17 @@ output "compute_cluster_instance_private_ips" {
 }
 
 output "storage_cluster_desc_instance_ids" {
-  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? module.storage_cluster_tie_breaker_instance[*].instance_selflink : null
+  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? flatten(module.storage_cluster_tie_breaker_instance[*].instance_selflink) : null
   description = "Storage cluster desc instance id."
 }
 
 output "storage_cluster_desc_instance_private_ips" {
-  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? module.storage_cluster_tie_breaker_instance[*].instance_ips : null
+  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? flatten(module.storage_cluster_tie_breaker_instance[*].instance_ips) : null
   description = "Private IP address of storage cluster desc instance."
 }
 
 output "storage_cluster_desc_data_volume_mapping" {
-  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? (module.storage_cluster_tie_breaker_instance[*].disk_device_mapping)[0] : null
+  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? (flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0] : null
   description = "Mapping of storage cluster desc instance ip vs. device path."
 }
 
