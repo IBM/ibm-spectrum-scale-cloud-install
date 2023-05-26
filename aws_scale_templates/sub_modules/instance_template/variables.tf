@@ -238,7 +238,7 @@ variable "block_device_throughput" {
   description = "Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3."
 }
 
-variable "block_device_kms_key_id" {
+variable "block_device_kms_key_ref" {
   type        = string
   nullable    = true
   default     = null
