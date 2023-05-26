@@ -40,6 +40,18 @@ locals {
   local_ssd_names = [for i in range(var.total_local_ssd_disks) : "/dev/nvme0n${i + 1}"]
 }
 
+data "google_kms_key_ring" "itself" {
+  count    = var.block_device_kms_key_ring_ref != null ? 1 : 0
+  name     = var.block_device_kms_key_ring_ref
+  location = var.vpc_region
+}
+
+data "google_kms_crypto_key" "itself" {
+  count    = var.block_device_kms_key_ref != null ? 1 : 0
+  name     = var.block_device_kms_key_ref
+  key_ring = data.google_kms_key_ring.itself[0].id
+}
+
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
@@ -68,7 +80,7 @@ resource "google_compute_instance" "itself" {
       type  = var.boot_disk_type
       image = var.boot_image
     }
-    kms_key_self_link = data.google_kms_crypto_key.itself.id
+    kms_key_self_link = length(data.google_kms_crypto_key.itself) > 0 ? data.google_kms_crypto_key.itself[0].id : null
   }
   network_interface {
     subnetwork = local.vm_configuration[count.index].subnet
@@ -98,16 +110,6 @@ resource "google_compute_instance" "itself" {
   }
 }
 
-data "google_kms_key_ring" "itself" {
-  name     = var.block_device_kms_key_ring_ref
-  location = var.vpc_region
-}
-
-data "google_kms_crypto_key" "itself" {
-  name     = var.block_device_kms_key_ref
-  key_ring = data.google_kms_key_ring.itself.id
-}
-
 resource "google_compute_disk" "itself" {
   count                     = length(local.disk_configuration)
   zone                      = local.disk_configuration[count.index].vm_zone
@@ -116,8 +118,11 @@ resource "google_compute_disk" "itself" {
   physical_block_size_bytes = var.physical_block_size_bytes
   type                      = var.data_disk_type
   size                      = var.data_disk_size
-  disk_encryption_key {
-    kms_key_self_link = data.google_kms_crypto_key.itself.id
+  dynamic "disk_encryption_key" {
+    for_each = length(data.google_kms_crypto_key.itself) > 0 ? [1] : []
+    content {
+      kms_key_self_link = data.google_kms_crypto_key.itself[0].id
+    }
   }
   depends_on = [google_compute_instance.itself]
 }
