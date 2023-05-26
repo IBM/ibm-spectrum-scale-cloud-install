@@ -180,6 +180,8 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_bastion_instance_ref"></a> [bastion_instance_ref](#input_bastion_instance_ref) | Bastion instance reference. | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
+| <a name="input_block_device_kms_key_ref"></a> [block_device_kms_key_ref](#input_block_device_kms_key_ref) | GCP KMS Key reference to use when encrypting the volume. | `string` |
+| <a name="input_block_device_kms_key_ring_ref"></a> [block_device_kms_key_ring_ref](#input_block_device_kms_key_ring_ref) | GCP KMS Key ring reference to use when encrypting the volume. | `string` |
 | <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Data disk size in gigabytes. | `string` |
 | <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | GCE disk type (valid: pd-standard, pd-ssd , local-ssd). | `any` |
 | <a name="input_block_devices_per_storage_instance"></a> [block_devices_per_storage_instance](#input_block_devices_per_storage_instance) | Number of data disks to be attached to each storage instance. | `number` |
@@ -197,6 +199,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
 | <a name="input_instances_ssh_user_name"></a> [instances_ssh_user_name](#input_instances_ssh_user_name) | Name of the administrator to access the bastion instance. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
+| <a name="input_physical_block_size_bytes"></a> [physical_block_size_bytes](#input_physical_block_size_bytes) | Physical block size of the persistent disk, in bytes (valid: 4096, 16384). | `number` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | GCP stack name, will be used for tagging resources. | `string` |
 | <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
 | <a name="input_scopes"></a> [scopes](#input_scopes) | List of service scopes. | `list(string)` |

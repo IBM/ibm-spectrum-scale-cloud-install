@@ -444,7 +444,7 @@ module "compute_cluster_instances" {
   subnet_ids             = var.vpc_compute_cluster_private_subnets != null ? var.vpc_compute_cluster_private_subnets : var.vpc_storage_cluster_private_subnets
   root_volume_type       = var.compute_cluster_root_volume_type
   root_volume_encrypted  = var.block_device_encrypted
-  root_volume_kms_key_id = var.block_device_kms_key_id
+  root_volume_kms_key_id = var.block_device_kms_key_ref
   user_public_key        = var.compute_cluster_key_pair
   meta_private_key       = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
@@ -477,7 +477,7 @@ module "storage_cluster_instances" {
   ebs_block_device_names                 = var.enable_instance_store_block_device == true ? local.instance_storage_device_names : local.ebs_device_names
   ebs_block_device_delete_on_termination = var.block_device_delete_on_termination
   ebs_block_device_encrypted             = var.block_device_encrypted
-  ebs_block_device_kms_key_id            = var.block_device_kms_key_id
+  ebs_block_device_kms_key_id            = var.block_device_kms_key_ref
   ebs_block_device_volume_size           = var.block_device_volume_size
   ebs_block_device_volume_type           = var.block_device_volume_type
   ebs_block_device_iops                  = var.block_device_iops
@@ -508,7 +508,7 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_names                 = local.ebs_device_names
   ebs_block_device_delete_on_termination = var.block_device_delete_on_termination
   ebs_block_device_encrypted             = var.block_device_encrypted
-  ebs_block_device_kms_key_id            = var.block_device_kms_key_id
+  ebs_block_device_kms_key_id            = var.block_device_kms_key_ref
   ebs_block_device_volume_size           = 5
   ebs_block_device_volume_type           = "gp2"
   ebs_block_device_iops                  = null

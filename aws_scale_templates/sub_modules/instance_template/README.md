@@ -242,7 +242,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_block_device_delete_on_termination"></a> [block_device_delete_on_termination](#input_block_device_delete_on_termination) | If true, all ebs volumes will be destroyed on instance termination. | `bool` |
 | <a name="input_block_device_encrypted"></a> [block_device_encrypted](#input_block_device_encrypted) | Whether to enable volume encryption. | `bool` |
 | <a name="input_block_device_iops"></a> [block_device_iops](#input_block_device_iops) | Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3. | `number` |
-| <a name="input_block_device_kms_key_id"></a> [block_device_kms_key_id](#input_block_device_kms_key_id) | Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume. | `string` |
+| <a name="input_block_device_kms_key_ref"></a> [block_device_kms_key_ref](#input_block_device_kms_key_ref) | Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume. | `string` |
 | <a name="input_block_device_throughput"></a> [block_device_throughput](#input_block_device_throughput) | Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3. | `number` |
 | <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Size of the volume in gibibytes (GiB). | `number` |
 | <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | EBS volume types: io1, io2, gp2, gp3. | `string` |
