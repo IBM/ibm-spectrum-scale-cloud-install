@@ -257,7 +257,6 @@ module "compute_cluster_instances" {
   block_device_names            = local.block_device_names
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
-
 }
 
 # Creates storage tie breaker instance
