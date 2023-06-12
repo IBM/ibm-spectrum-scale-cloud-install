@@ -519,6 +519,35 @@ module "storage_cluster_tie_breaker_instance" {
   tags                                   = var.storage_cluster_tags
 }
 
+# Below module creates an AFM autoscaling launch template
+module "gateway_autoscaling_launch_template" {
+  source                      = "../../../resources/aws/asg/launch_template"
+  launch_template_name_prefix = format("%s-%s", var.resource_prefix, "gateway-launch-tmpl")
+  image_id                    = var.storage_cluster_image_ref
+  instance_type               = var.gateway_instance_type
+  instance_iam_profile        = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  enable_userdata             = true
+  enable_public_ip_address    = false
+  meta_private_key            = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key             = module.generate_storage_cluster_keys.public_key_content
+  key_name                    = var.storage_cluster_key_pair
+  sec_groups                  = [module.storage_cluster_security_group.sec_group_id]
+}
+
+
+# Below module creates an AFM autoscaling group
+module "gateway_autoscaling_group" {
+  source                     = "../../../resources/aws/asg/asg_group"
+  asg_name_prefix            = format("%s-%s", var.resource_prefix, "gateway")
+  asg_launch_template_id     = module.gateway_autoscaling_launch_template.asg_launch_template_id
+  asg_max_size               = var.gateway_instance_asg_max_size
+  asg_min_size               = var.gateway_instance_asg_min_size
+  asg_desired_size           = var.gateway_instance_asg_desired_size
+  auto_scaling_group_subnets = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
+  asg_suspend_processes      = ["AZRebalance"]
+  asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "gateway-asg") })
+}
+
 module "prepare_ansible_configuration" {
   source     = "../../../resources/common/git_utils"
   turn_on    = (var.airgap == true) ? false : true # Disable git module in airgap mode.
