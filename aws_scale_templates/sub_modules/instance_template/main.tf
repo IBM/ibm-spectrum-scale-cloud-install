@@ -534,7 +534,6 @@ module "gateway_autoscaling_launch_template" {
   sec_groups                  = [module.storage_cluster_security_group.sec_group_id]
 }
 
-
 # Below module creates an AFM autoscaling group
 module "gateway_autoscaling_group" {
   source                     = "../../../resources/aws/asg/asg_group"
