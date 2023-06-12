@@ -126,8 +126,8 @@ module "bastion_autoscaling_launch_template" {
   instance_type               = var.bastion_instance_type
   instance_iam_profile        = module.bastion_instance_iam_profile.iam_instance_profile_name[0]
   enable_userdata             = false
-  meta_private_key            = null
-  meta_public_key             = null
+  meta_private_key            = ""
+  meta_public_key             = ""
   enable_public_ip_address    = true
   key_name                    = var.bastion_key_pair
   sec_groups                  = [module.bastion_security_group.sec_group_id]
