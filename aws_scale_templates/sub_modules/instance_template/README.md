@@ -264,8 +264,8 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_enable_nvme_block_device"></a> [enable_nvme_block_device](#input_enable_nvme_block_device) | Enable NVMe block devices (built on Nitro instances). | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, a placement group will be created and all instances will be created with strategy - cluster. | `bool` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
-| <a name="input_gateway_instance_asg_desired_size"></a> [gateway_instance_asg_desired_size](#input_gateway_instance_asg_desired_size) | Instance type to use for provisioning the gateway instances. | `string` |
-| <a name="input_gateway_instance_asg_max_size"></a> [gateway_instance_asg_max_size](#input_gateway_instance_asg_max_size) | Gateway Instance type to use for provisioning the gateway instances. | `number` |
+| <a name="input_gateway_instance_asg_desired_size"></a> [gateway_instance_asg_desired_size](#input_gateway_instance_asg_desired_size) | Gateway Instance autoscaling group desired size. | `number` |
+| <a name="input_gateway_instance_asg_max_size"></a> [gateway_instance_asg_max_size](#input_gateway_instance_asg_max_size) | Gateway Instance autoscaling group maximum size. | `number` |
 | <a name="input_gateway_instance_asg_min_size"></a> [gateway_instance_asg_min_size](#input_gateway_instance_asg_min_size) | Gateway instance autoscaling group minimum size. | `number` |
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |

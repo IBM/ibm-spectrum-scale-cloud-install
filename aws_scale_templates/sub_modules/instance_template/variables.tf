@@ -155,14 +155,14 @@ variable "gateway_instance_asg_max_size" {
   type        = number
   nullable    = true
   default     = null
-  description = "Gateway Instance type to use for provisioning the gateway instances."
+  description = "Gateway Instance autoscaling group maximum size."
 }
 
 variable "gateway_instance_asg_desired_size" {
-  type        = string
+  type        = number
   nullable    = true
   default     = null
-  description = "Instance type to use for provisioning the gateway instances."
+  description = "Gateway Instance autoscaling group desired size."
 }
 
 variable "storage_cluster_tags" {
