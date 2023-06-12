@@ -137,6 +137,34 @@ variable "storage_cluster_instance_type" {
   description = "Instance type to use for provisioning the storage cluster instances."
 }
 
+variable "gateway_instance_type" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the gateway instances."
+}
+
+variable "gateway_instance_asg_min_size" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Gateway instance autoscaling group minimum size."
+}
+
+variable "gateway_instance_asg_max_size" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Gateway Instance type to use for provisioning the gateway instances."
+}
+
+variable "gateway_instance_asg_desired_size" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the gateway instances."
+}
+
 variable "storage_cluster_tags" {
   type        = map(string)
   nullable    = true

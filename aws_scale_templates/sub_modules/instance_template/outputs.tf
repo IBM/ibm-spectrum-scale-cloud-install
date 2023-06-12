@@ -76,3 +76,8 @@ output "compute_cluster_security_group_id" {
   value       = module.compute_cluster_security_group.sec_group_id
   description = "Compute cluster security group id."
 }
+
+output "gateway_instance_autoscaling_group_id" {
+  value       = module.gateway_autoscaling_group.asg_id
+  description = "Gateway instances autoscaling group id."
+}
