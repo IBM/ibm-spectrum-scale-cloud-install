@@ -37,7 +37,8 @@ locals {
   vm_configuration   = flatten(toset([for i in range(local.total_cluster_instances) : { subnet = element(var.vpc_subnets, i), zone = element(local.vpc_availability_zones, i), vm_name = "${var.instance_name}-${i}" }]))
   disk_configuration = flatten(toset([for disk_no in range(local.total_persistent_disks) : flatten([for vm_meta in local.vm_configuration : { vm_name = vm_meta.vm_name, vm_name_suffix = disk_no, vm_zone = vm_meta.zone }])]))
 
-  local_ssd_names = [for i in range(var.total_local_ssd_disks) : "/dev/nvme0n${i + 1}"]
+  local_ssd_names    = [for i in range(var.total_local_ssd_disks) : "/dev/nvme0n${i + 1}"]
+  public_key_content = "${var.public_key_content} root"
 }
 
 data "google_kms_key_ring" "itself" {
@@ -57,6 +58,7 @@ data "template_file" "metadata_startup_script" {
 #!/usr/bin/env bash
 echo "${var.private_key_content}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
+echo "${var.public_key_content}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 EOF
 }
@@ -87,7 +89,7 @@ resource "google_compute_instance" "itself" {
     network_ip = null
   }
   metadata = {
-    ssh-keys               = format("%s:%s\n %s:%s", var.ssh_user_name, file(var.ssh_key_path), "root", var.public_key_content)
+    ssh-keys               = format("%s:%s", var.ssh_user_name, file(var.ssh_key_path))
     block-project-ssh-keys = true
   }
 
