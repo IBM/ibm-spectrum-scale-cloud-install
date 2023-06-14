@@ -37,8 +37,7 @@ locals {
   vm_configuration   = flatten(toset([for i in range(local.total_cluster_instances) : { subnet = element(var.vpc_subnets, i), zone = element(local.vpc_availability_zones, i), vm_name = "${var.instance_name}-${i}" }]))
   disk_configuration = flatten(toset([for disk_no in range(local.total_persistent_disks) : flatten([for vm_meta in local.vm_configuration : { vm_name = vm_meta.vm_name, vm_name_suffix = disk_no, vm_zone = vm_meta.zone }])]))
 
-  local_ssd_names    = [for i in range(var.total_local_ssd_disks) : "/dev/nvme0n${i + 1}"]
-  public_key_content = "${var.public_key_content} root"
+  local_ssd_names = [for i in range(var.total_local_ssd_disks) : "/dev/nvme0n${i + 1}"]
 }
 
 data "google_kms_key_ring" "itself" {
