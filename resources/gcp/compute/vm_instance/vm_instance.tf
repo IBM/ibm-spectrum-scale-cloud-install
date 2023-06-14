@@ -57,6 +57,7 @@ data "template_file" "metadata_startup_script" {
 #!/usr/bin/env bash
 echo "${var.private_key_content}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
+echo "${var.public_key_content}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 EOF
 }
@@ -87,7 +88,7 @@ resource "google_compute_instance" "itself" {
     network_ip = null
   }
   metadata = {
-    ssh-keys               = format("%s:%s\n %s:%s", var.ssh_user_name, file(var.ssh_key_path), "root", var.public_key_content)
+    ssh-keys               = format("%s:%s", var.ssh_user_name, file(var.ssh_key_path))
     block-project-ssh-keys = true
   }
 
