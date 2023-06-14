@@ -52,7 +52,7 @@ module "compute_cluster_security_group" {
 # FIXME - Fine grain port inbound is needed, but hits limitation of 5 rules
 module "compute_cluster_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_direct_connection == false) ? 3 : 0
+  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_jumphost_connection == false) ? 3 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
@@ -60,7 +60,7 @@ module "compute_cluster_ingress_security_rule" {
 
 module "compute_cluster_ingress_security_rule_wt_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_direct_connection == true && var.deploy_controller_sec_group_id != null) ? 3 : 0
+  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null) ? 3 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
@@ -68,7 +68,7 @@ module "compute_cluster_ingress_security_rule_wt_bastion" {
 
 module "compute_cluster_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_direct_connection == true && var.deploy_controller_sec_group_id == null) ? 2 : 0
+  total_rules              = (var.total_compute_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 2 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
@@ -101,7 +101,7 @@ module "storage_cluster_security_group" {
 
 module "storage_cluster_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == false) ? 3 : 0
+  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == false) ? 3 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -109,7 +109,7 @@ module "storage_cluster_ingress_security_rule" {
 
 module "storage_cluster_ingress_security_rule_wt_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == true && var.deploy_controller_sec_group_id != null) ? 3 : 0
+  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null) ? 3 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -117,7 +117,7 @@ module "storage_cluster_ingress_security_rule_wt_bastion" {
 
 module "storage_cluster_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_direct_connection == true && var.deploy_controller_sec_group_id == null) ? 2 : 0
+  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 2 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -273,6 +273,7 @@ module "prepare_ansible_configuration" {
   branch     = "scale_cloud"
   tag        = null
   clone_path = var.scale_ansible_repo_clone_path
+  turn_on    = true
 }
 
 module "write_compute_cluster_inventory" {
@@ -373,7 +374,7 @@ module "compute_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
-  using_direct_connection      = var.using_direct_connection
+  using_jumphost_connection    = var.using_jumphost_connection
   using_rest_initialization    = var.using_rest_api_remote_mount
   compute_cluster_gui_username = var.compute_cluster_gui_username
   compute_cluster_gui_password = var.compute_cluster_gui_password
@@ -397,7 +398,7 @@ module "storage_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
-  using_direct_connection      = var.using_direct_connection
+  using_jumphost_connection    = var.using_jumphost_connection
   using_rest_initialization    = true
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
@@ -422,7 +423,7 @@ module "combined_cluster_configuration" {
   clone_path                   = var.scale_ansible_repo_clone_path
   inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   using_packer_image           = var.using_packer_image
-  using_direct_connection      = var.using_direct_connection
+  using_jumphost_connection    = var.using_jumphost_connection
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
   memory_size                  = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
@@ -447,7 +448,7 @@ module "remote_mount_configuration" {
   compute_cluster_gui_password    = var.compute_cluster_gui_password
   storage_cluster_gui_username    = var.storage_cluster_gui_username
   storage_cluster_gui_password    = var.storage_cluster_gui_password
-  using_direct_connection         = var.using_direct_connection
+  using_jumphost_connection       = var.using_jumphost_connection
   using_rest_initialization       = var.using_rest_api_remote_mount
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
