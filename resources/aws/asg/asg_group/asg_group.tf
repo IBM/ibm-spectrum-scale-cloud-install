@@ -50,6 +50,9 @@ data "aws_instance" "itself" {
   instance_id = data.aws_instances.itself.ids[count.index]
 }
 
+output "asg_id" {
+  value = aws_autoscaling_group.itself.id
+}
 
 output "asg_arn" {
   value = aws_autoscaling_group.itself.arn

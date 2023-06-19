@@ -6,7 +6,7 @@ build {
       "sleep 30",
       "sudo dnf makecache",
       "sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`",
-      "sudo dnf install -y make gcc-c++ elfutils-libelf-devel",
+      "sudo dnf install -y make gcc-c++ elfutils-libelf-devel numactl",
       "sudo sh -c \"echo '[ar-plugin]' >> /etc/yum.repos.d/artifact-registry-plugin.repo\"",
       "sudo sh -c \"echo 'name=Artifact Registry Plugin' >> /etc/yum.repos.d/artifact-registry-plugin.repo\"",
       "sudo sh -c \"echo 'baseurl=https://packages.cloud.google.com/yum/repos/dnf-plugin-artifact-registry-stable' >> /etc/yum.repos.d/artifact-registry-plugin.repo\"",
