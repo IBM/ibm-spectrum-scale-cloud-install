@@ -385,6 +385,9 @@ module "compute_cluster_configuration" {
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  scale_encryption_enabled          = var.scale_encryption_enabled
+  scale_encryption_admin_password   = var.scale_encryption_admin_password
+  scale_encryption_servers          = var.scale_encryption_servers
 }
 
 module "storage_cluster_configuration" {
@@ -410,6 +413,9 @@ module "storage_cluster_configuration" {
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  scale_encryption_enabled          = var.scale_encryption_enabled
+  scale_encryption_admin_password   = var.scale_encryption_admin_password
+  scale_encryption_servers          = var.scale_encryption_servers
 }
 
 module "combined_cluster_configuration" {

@@ -296,3 +296,20 @@ variable "bastion_user" {
   default     = "ubuntu"
   description = "Provide the username for Bastion login."
 }
+
+variable "scale_encryption_enabled" {
+  type        = bool
+  default     = false
+  description = "Status of scale encryption"
+}
+
+variable "scale_encryption_admin_password" {
+  type        = string
+  sensitive   = true
+  description = "Password for SGKLM Admin User"
+}
+
+variable "scale_encryption_servers" {
+  type        = list(string)
+  description = "List of SGKLM Key servers"
+}
