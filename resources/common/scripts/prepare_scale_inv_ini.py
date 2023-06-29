@@ -234,9 +234,12 @@ def initialize_cluster_details(scale_version, cluster_name, username,
         pathlib.PurePath(scale_profile_path).parent)
     cluster_details['scale_encryption_enabled'] = scale_encryption_enabled
     # Preparing list for Encryption Servers
-    encryption_server_list_str = scale_encryption_servers.replace(" ", "").strip("[]")
-    encryption_servers = encryption_server_list_str.split(",")
-    cluster_details['scale_encryption_servers'] = [server.strip() for server in encryption_servers]
+    if scale_encryption_servers:
+        encryption_server_list_str = str(scale_encryption_servers).replace(" ", "").strip("[]")
+        encryption_servers = encryption_server_list_str.split(",")
+        cluster_details['scale_encryption_servers'] = [server.strip() for server in encryption_servers]
+    else:
+        cluster_details['scale_encryption_servers'] = []
     cluster_details['scale_encryption_admin_password'] = scale_encryption_admin_password       
     return cluster_details
 
