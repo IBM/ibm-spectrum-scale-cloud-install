@@ -26,6 +26,7 @@ variable "vpc_subnets" {}
 variable "total_cluster_instances" {}
 variable "block_device_kms_key_ring_ref" {}
 variable "block_device_kms_key_ref" {}
+variable "enableGlobalDNS" {}
 
 locals {
   vpc_subnets             = var.vpc_subnets == null ? [] : var.vpc_subnets
@@ -90,6 +91,7 @@ resource "google_compute_instance" "itself" {
   metadata = {
     ssh-keys               = format("%s:%s", var.ssh_user_name, file(var.ssh_key_path))
     block-project-ssh-keys = true
+    vmdnssetting           = var.enableGlobalDNS == 1 ? "GlobalDefault" : "ZonalOnly"
   }
 
   metadata_startup_script = data.template_file.metadata_startup_script.rendered

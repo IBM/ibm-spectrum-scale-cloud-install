@@ -90,6 +90,8 @@ locals {
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
+
+  multizone = var.vpc_storage_cluster_private_subnets != null ? ((length(var.vpc_storage_cluster_private_subnets) > 2) ? 1 : 0) : 0
 }
 
 # Generate compute cluster ssh keys
@@ -257,6 +259,7 @@ module "compute_cluster_instances" {
   block_device_names            = local.block_device_names
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
+  enableGlobalDNS               = local.multizone
 }
 
 # Creates storage tie breaker instance
@@ -286,6 +289,7 @@ module "storage_cluster_tie_breaker_instance" {
   data_disk_size                = 5
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
+  enableGlobalDNS               = local.multizone
 }
 
 # Creates storage instances
@@ -315,6 +319,7 @@ module "storage_cluster_instances" {
   data_disk_size                = var.block_device_volume_size
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
+  enableGlobalDNS               = local.multizone
 }
 
 # Prepare ansible config
