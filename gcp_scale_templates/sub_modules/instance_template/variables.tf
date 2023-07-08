@@ -355,3 +355,22 @@ variable "bastion_ssh_private_key" {
   default     = null
   description = "Bastion SSH private key path, which will be used to login to bastion host."
 }
+
+variable "vpc_reverse_dns_domain_suffix" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "GCP Cloud DNS reverse lookup zone suffix"
+}
+
+variable "vpc_compute_cluster_dns_domain" {
+  type        = string
+  default     = "compscale.com"
+  description = "GCP Cloud DNS domain name to be used for compute cluster."
+}
+
+variable "vpc_storage_cluster_dns_domain" {
+  type        = string
+  default     = "strgscale.com"
+  description = "GCP Cloud DNS domain name to be used for storage cluster."
+}

@@ -30,6 +30,10 @@ resource "google_compute_network" "itself" {
   auto_create_subnetworks = false
 }
 
+output "vpc_id" {
+  value = try(google_compute_network.itself[0].id, null)
+}
+
 output "vpc_self_link" {
   value = try(google_compute_network.itself[0].self_link, null)
 }

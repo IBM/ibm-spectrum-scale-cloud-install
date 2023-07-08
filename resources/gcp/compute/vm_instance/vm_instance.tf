@@ -26,6 +26,10 @@ variable "vpc_subnets" {}
 variable "total_cluster_instances" {}
 variable "block_device_kms_key_ring_ref" {}
 variable "block_device_kms_key_ref" {}
+variable "dns_zone" {}
+variable "dns_reverse_zone_suffix" {}
+variable "dns_domain" {}
+variable "dns_reverse_dns_domain" {}
 
 locals {
   vpc_subnets             = var.vpc_subnets == null ? [] : var.vpc_subnets
@@ -71,6 +75,7 @@ resource "google_compute_instance" "itself" {
   machine_type              = var.machine_type
   zone                      = local.vm_configuration[count.index].zone
   allow_stopping_for_update = true
+  hostname                  = format("%s.%s", local.vm_configuration[count.index].vm_name, var.dns_domain)
 
   #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
   boot_disk {
@@ -109,6 +114,30 @@ resource "google_compute_instance" "itself" {
   lifecycle {
     ignore_changes = [attached_disk, metadata_startup_script]
   }
+}
+
+# Add the VM instance ip as 'A' record to DNS
+resource "google_dns_record_set" "a_itself" {
+  count = length(local.vm_configuration)
+  # Trailing dot is required
+  name         = format("%s.%s.", local.vm_configuration[count.index].vm_name, var.dns_domain)
+  type         = "A"
+  managed_zone = var.dns_zone
+  ttl          = 300
+  rrdatas      = [google_compute_instance.itself[count.index].network_interface[0].network_ip]
+}
+
+
+# Add the VM instance reverse lookup as 'PTR' record to DNS
+resource "google_dns_record_set" "ptr_itself" {
+  count = length(local.vm_configuration)
+  # Trailing dot is required
+  name         = format("%s.%s.%s.%s.", split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[3], split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[2], split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[1], var.dns_reverse_zone_suffix)
+  type         = "PTR"
+  managed_zone = var.dns_reverse_dns_domain
+  ttl          = 300
+  # Trailing dot is required
+  rrdatas = [format("%s.%s.", local.vm_configuration[count.index].vm_name, var.dns_domain)]
 }
 
 resource "google_compute_disk" "itself" {

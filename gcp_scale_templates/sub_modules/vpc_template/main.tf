@@ -1,5 +1,5 @@
 /*
-    IBM Spectrum scale cloud deployment requires one VPC with below resources.
+    IBM Storage Scale cloud deployment requires one VPC with below resources.
 
     1.  VPC
     2.  PublicSubnet
@@ -75,4 +75,34 @@ module "storage_cloud_nat" {
   nat_name          = format("%s-strg-pvt-%s", var.resource_prefix, "nat")
   router_name       = module.router.router_name
   private_subnet_id = module.storage_private_subnet.subnet_id
+}
+
+module "storage_dns_zone" {
+  source      = "../../../resources/gcp/network/cloud_dns"
+  turn_on     = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  zone_name   = var.resource_prefix
+  dns_name    = format("%s.", var.vpc_storage_cluster_dns_domain) # Trailing dot is required.
+  vpc_network = module.vpc.vpc_id
+  description = "Private DNS Zone for IBM Storage Scale storage instances DNS communication."
+}
+
+module "compute_dns_zone" {
+  source      = "../../../resources/gcp/network/cloud_dns"
+  turn_on     = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  zone_name   = var.resource_prefix
+  dns_name    = format("%s.", var.vpc_compute_cluster_dns_domain) # Trailing dot is required.
+  vpc_network = module.vpc.vpc_id
+  description = "Private DNS Zone for IBM Storage Scale compute instances DNS communication."
+}
+
+module "reverse_dns_zone" {
+  source    = "../../../resources/gcp/network/cloud_dns"
+  turn_on   = true
+  zone_name = format("%s-reverse", var.resource_prefix)
+  # Prepare the reverse DNS zone name using first oclet of vpc.
+  # Ex: vpc cidr = 10.0.0.0/24, then dns_name = 10.in-addr.arpa.
+  # Trailing dot is required
+  dns_name    = format("%s.%s.", split(".", cidrsubnet(var.vpc_cidr_block, 8, 0))[0], var.vpc_reverse_dns_domain_suffix)
+  vpc_network = module.vpc.vpc_id
+  description = "Reverse Private DNS Zone for IBM Storage Scale instances DNS communication."
 }
