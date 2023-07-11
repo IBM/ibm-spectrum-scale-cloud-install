@@ -261,7 +261,6 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
 | <a name="input_enable_instance_store_block_device"></a> [enable_instance_store_block_device](#input_enable_instance_store_block_device) | Enable instance storage block devices. | `bool` |
-| <a name="input_enable_nvme_block_device"></a> [enable_nvme_block_device](#input_enable_nvme_block_device) | Enable NVMe block devices (built on Nitro instances). | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, a placement group will be created and all instances will be created with strategy - cluster. | `bool` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
