@@ -33,6 +33,12 @@ resource "aws_autoscaling_group" "itself" {
   }
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [
+      # Ignore changes to desired_capacity, min_size, max_size attributes (as they can be altered be modified externally)
+      desired_capacity,
+      min_size,
+      max_size
+    ]
   }
 }
 
@@ -48,6 +54,14 @@ data "aws_instance" "itself" {
   count       = var.asg_desired_size
   depends_on  = [data.aws_instances.itself]
   instance_id = data.aws_instances.itself.ids[count.index]
+}
+
+output "asg_id" {
+  value = aws_autoscaling_group.itself.id
+}
+
+output "asg_id" {
+  value = aws_autoscaling_group.itself.id
 }
 
 output "asg_id" {

@@ -77,6 +77,11 @@ output "compute_cluster_security_group_id" {
   description = "Compute cluster security group id."
 }
 
+output "gateway_instance_autoscaling_group_id" {
+  value       = module.gateway_autoscaling_group.asg_id
+  description = "Gateway instances autoscaling group id."
+}
+
 output "storage_cluster_instance_cidrs" {
   value = [for subnet in data.aws_subnet.vpc_storage_cluster_private_subnet_cidrs : subnet.cidr_block]
 }

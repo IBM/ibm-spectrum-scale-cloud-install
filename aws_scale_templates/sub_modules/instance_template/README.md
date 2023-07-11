@@ -263,6 +263,10 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_enable_instance_store_block_device"></a> [enable_instance_store_block_device](#input_enable_instance_store_block_device) | Enable instance storage block devices. | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, a placement group will be created and all instances will be created with strategy - cluster. | `bool` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
+| <a name="input_gateway_instance_asg_desired_size"></a> [gateway_instance_asg_desired_size](#input_gateway_instance_asg_desired_size) | Gateway Instance autoscaling group desired size. | `number` |
+| <a name="input_gateway_instance_asg_max_size"></a> [gateway_instance_asg_max_size](#input_gateway_instance_asg_max_size) | Gateway Instance autoscaling group maximum size. | `number` |
+| <a name="input_gateway_instance_asg_min_size"></a> [gateway_instance_asg_min_size](#input_gateway_instance_asg_min_size) | Gateway instance autoscaling group minimum size. | `number` |
+| <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_operator_email"></a> [operator_email](#input_operator_email) | SNS notifications will be sent to provided email id. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
@@ -301,6 +305,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
 | <a name="output_compute_instance_memory_size"></a> [compute_instance_memory_size](#output_compute_instance_memory_size) | Compute instance profile memory size. |
+| <a name="output_gateway_instance_autoscaling_group_id"></a> [gateway_instance_autoscaling_group_id](#output_gateway_instance_autoscaling_group_id) | Gateway instances autoscaling group id. |
 | <a name="output_instance_iam_profile"></a> [instance_iam_profile](#output_instance_iam_profile) | n/a |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | Placement group id. |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
