@@ -30,6 +30,16 @@ module "generate_storage_cluster_keys" {
   turn_on = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
 }
 
+data "aws_subnet" "vpc_storage_cluster_private_subnet_cidrs" {
+  count = (local.cluster_type == "storage" || local.cluster_type == "combined") ? length(var.vpc_storage_cluster_private_subnets) : 0
+  id    = var.vpc_storage_cluster_private_subnets[count.index]
+}
+
+data "aws_subnet" "vpc_compute_cluster_private_subnet_cidrs" {
+  count = (local.cluster_type == "compute" || local.cluster_type == "combined") ? length(var.vpc_compute_cluster_private_subnets) : 0
+  id    = var.vpc_compute_cluster_private_subnets[count.index]
+}
+
 module "cluster_host_iam_role" {
   source           = "../../../resources/aws/security/iam/iam_role"
   turn_on          = (var.airgap == true) ? false : true # Disable IAM role creation in airgap mode.

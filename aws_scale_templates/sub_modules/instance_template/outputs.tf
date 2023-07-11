@@ -76,3 +76,11 @@ output "compute_cluster_security_group_id" {
   value       = module.compute_cluster_security_group.sec_group_id
   description = "Compute cluster security group id."
 }
+
+output "storage_cluster_instance_cidrs" {
+  value = [for subnet in data.aws_subnet.vpc_storage_cluster_private_subnet_cidrs : subnet.cidr_block]
+}
+
+output "compute_cluster_instance_cidrs" {
+  value = [for subnet in data.aws_subnet.vpc_compute_cluster_private_subnet_cidrs : subnet.cidr_block]
+}
