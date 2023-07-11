@@ -30,6 +30,16 @@ module "generate_storage_cluster_keys" {
   turn_on = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
 }
 
+data "aws_subnet" "vpc_storage_cluster_private_subnet_cidrs" {
+  count = (local.cluster_type == "storage" || local.cluster_type == "combined") ? length(var.vpc_storage_cluster_private_subnets) : 0
+  id    = var.vpc_storage_cluster_private_subnets[count.index]
+}
+
+data "aws_subnet" "vpc_compute_cluster_private_subnet_cidrs" {
+  count = (local.cluster_type == "compute" || local.cluster_type == "combined") ? length(var.vpc_compute_cluster_private_subnets) : 0
+  id    = var.vpc_compute_cluster_private_subnets[count.index]
+}
+
 module "cluster_host_iam_role" {
   source           = "../../../resources/aws/security/iam/iam_role"
   turn_on          = (var.airgap == true) ? false : true # Disable IAM role creation in airgap mode.
@@ -483,8 +493,8 @@ module "storage_cluster_instances" {
   ebs_block_device_iops                  = var.block_device_iops
   ebs_block_device_throughput            = var.block_device_throughput
   enable_instance_store_block_device     = var.enable_instance_store_block_device
-  enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = (var.enable_nvme_block_device == true || var.enable_instance_store_block_device == true) ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  is_nitro_instance                      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
+  nvme_block_device_count                = var.enable_instance_store_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
@@ -513,9 +523,9 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_volume_type           = "gp2"
   ebs_block_device_iops                  = null
   ebs_block_device_throughput            = null
-  enable_nvme_block_device               = var.enable_nvme_block_device
+  is_nitro_instance                      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
   enable_instance_store_block_device     = false
-  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  nvme_block_device_count                = var.enable_instance_store_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 

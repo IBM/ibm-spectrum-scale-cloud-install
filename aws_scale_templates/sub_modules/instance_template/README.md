@@ -261,7 +261,6 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
 | <a name="input_enable_instance_store_block_device"></a> [enable_instance_store_block_device](#input_enable_instance_store_block_device) | Enable instance storage block devices. | `bool` |
-| <a name="input_enable_nvme_block_device"></a> [enable_nvme_block_device](#input_enable_nvme_block_device) | Enable NVMe block devices (built on Nitro instances). | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, a placement group will be created and all instances will be created with strategy - cluster. | `bool` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
 | <a name="input_gateway_instance_asg_desired_size"></a> [gateway_instance_asg_desired_size](#input_gateway_instance_asg_desired_size) | Gateway Instance autoscaling group desired size. | `number` |
@@ -301,6 +300,7 @@ The following steps will provision AWS resources (compute and storage instances 
 |------|-------------|
 | <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
 | <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
+| <a name="output_compute_cluster_instance_cidrs"></a> [compute_cluster_instance_cidrs](#output_compute_cluster_instance_cidrs) | n/a |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
@@ -311,6 +311,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
+| <a name="output_storage_cluster_instance_cidrs"></a> [storage_cluster_instance_cidrs](#output_storage_cluster_instance_cidrs) | n/a |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
 | <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group id. |
