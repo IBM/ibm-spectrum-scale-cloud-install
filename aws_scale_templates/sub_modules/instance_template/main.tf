@@ -483,8 +483,8 @@ module "storage_cluster_instances" {
   ebs_block_device_iops                  = var.block_device_iops
   ebs_block_device_throughput            = var.block_device_throughput
   enable_instance_store_block_device     = var.enable_instance_store_block_device
-  enable_nvme_block_device               = var.enable_nvme_block_device
-  nvme_block_device_count                = (var.enable_nvme_block_device == true || var.enable_instance_store_block_device == true) ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  is_nitro_instance                      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
+  nvme_block_device_count                = var.enable_instance_store_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 
@@ -513,9 +513,9 @@ module "storage_cluster_tie_breaker_instance" {
   ebs_block_device_volume_type           = "gp2"
   ebs_block_device_iops                  = null
   ebs_block_device_throughput            = null
-  enable_nvme_block_device               = var.enable_nvme_block_device
+  is_nitro_instance                      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
   enable_instance_store_block_device     = false
-  nvme_block_device_count                = var.enable_nvme_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  nvme_block_device_count                = var.enable_instance_store_block_device == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   tags                                   = var.storage_cluster_tags
 }
 

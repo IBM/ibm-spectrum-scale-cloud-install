@@ -26,7 +26,7 @@ variable "ebs_block_device_volume_type" {}
 variable "ebs_block_device_iops" {}
 variable "ebs_block_device_throughput" {}
 variable "enable_instance_store_block_device" {}
-variable "enable_nvme_block_device" {}
+variable "is_nitro_instance" {}
 variable "nvme_block_device_count" {}
 variable "tags" {}
 
@@ -50,12 +50,12 @@ data "template_cloudinit_config" "user_data64" {
 }
 
 data "template_file" "nvme_alias" {
-  count    = tobool(var.enable_nvme_block_device) == true ? 1 : 0
+  count    = tobool(var.is_nitro_instance) == true ? 1 : 0
   template = file("${path.module}/scripts/nvme_alias.sh.tpl")
 }
 
 data "template_cloudinit_config" "nvme_user_data64" {
-  count         = tobool(var.enable_nvme_block_device) == true ? 1 : 0
+  count         = tobool(var.is_nitro_instance) == true ? 1 : 0
   gzip          = true
   base64_encode = true
   part {
@@ -140,7 +140,7 @@ resource "aws_instance" "itself" {
     var.volume_tags,
   )
 
-  user_data_base64 = tobool(var.enable_nvme_block_device) == true ? data.template_cloudinit_config.nvme_user_data64[0].rendered : data.template_cloudinit_config.user_data64.rendered
+  user_data_base64 = tobool(var.is_nitro_instance) == true ? data.template_cloudinit_config.nvme_user_data64[0].rendered : data.template_cloudinit_config.user_data64.rendered
   tags             = merge({ "Name" = format("%s-%s", var.name_prefix, each.value.sequence_string) }, var.tags)
 
   metadata_options {
@@ -162,7 +162,7 @@ output "instance_ids" {
 }
 
 output "instance_ips_with_ebs_mapping" {
-  value = tobool(var.enable_nvme_block_device) == true || tobool(var.enable_instance_store_block_device) == true ? try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.nvme_block_device_count) }, {}) : try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
+  value = tobool(var.enable_instance_store_block_device) == true ? try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.nvme_block_device_count) }, {}) : try({ for instance_details in aws_instance.itself : instance_details.private_ip => slice(var.ebs_block_device_names, 0, var.ebs_block_devices) }, {})
 }
 
 output "instance_private_dns_ip_map" {
