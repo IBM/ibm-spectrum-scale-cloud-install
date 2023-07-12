@@ -553,7 +553,7 @@ module "gateway_autoscaling_group" {
   asg_launch_template_id     = module.gateway_autoscaling_launch_template.asg_launch_template_id
   asg_max_size               = var.gateway_instance_asg_max_size
   asg_min_size               = var.gateway_instance_asg_min_size
-  asg_desired_size           = var.gateway_instance_asg_desired_size
+  asg_desired_size           = (local.cluster_type == "storage" || local.cluster_type == "combined") ? var.gateway_instance_asg_desired_size : 0
   auto_scaling_group_subnets = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
   asg_suspend_processes      = ["AZRebalance"]
   asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "gateway-asg") })
