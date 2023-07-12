@@ -2,6 +2,7 @@
     Creates AWS autoscaling group.
 */
 
+variable "turn_on" {}
 variable "asg_name_prefix" {}
 variable "asg_max_size" {}
 variable "asg_min_size" {}
@@ -12,9 +13,10 @@ variable "asg_launch_template_id" {}
 variable "asg_tags" {}
 
 resource "aws_autoscaling_group" "itself" {
+  count       = var.turn_on == true ? 1 : 0
   name_prefix = var.asg_name_prefix
   launch_template {
-    id      = var.asg_launch_template_id
+    id      = var.asg_launch_template_id[count.index]
     version = "$Latest"
   }
   default_cooldown          = 180
@@ -57,19 +59,11 @@ data "aws_instance" "itself" {
 }
 
 output "asg_id" {
-  value = aws_autoscaling_group.itself.id
-}
-
-output "asg_id" {
-  value = aws_autoscaling_group.itself.id
-}
-
-output "asg_id" {
-  value = aws_autoscaling_group.itself.id
+  value = aws_autoscaling_group.itself[*].id
 }
 
 output "asg_arn" {
-  value = aws_autoscaling_group.itself.arn
+  value = aws_autoscaling_group.itself[*].arn
 }
 
 output "asg_instance_id" {

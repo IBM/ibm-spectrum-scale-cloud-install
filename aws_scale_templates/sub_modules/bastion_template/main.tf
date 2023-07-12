@@ -121,6 +121,7 @@ module "bastion_egress_security_rule" {
 
 module "bastion_autoscaling_launch_template" {
   source                      = "../../../resources/aws/asg/launch_template"
+  turn_on                     = true
   launch_template_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-tmpl")
   image_id                    = var.bastion_image_ref
   instance_type               = var.bastion_instance_type
@@ -135,6 +136,7 @@ module "bastion_autoscaling_launch_template" {
 
 module "bastion_autoscaling_group" {
   source                     = "../../../resources/aws/asg/asg_group"
+  turn_on                    = true
   asg_name_prefix            = format("%s-%s", var.resource_prefix, "bastion-asg")
   asg_launch_template_id     = module.bastion_autoscaling_launch_template.asg_launch_template_id
   asg_max_size               = 1
