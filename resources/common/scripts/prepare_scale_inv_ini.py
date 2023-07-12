@@ -198,14 +198,27 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
 """.format(hosts_config=hosts_config, cluster_config=cluster_config)
     return content
 
+def prepare_ansible_playbook_encryption(hosts_config, cluster_type, cluster_config, cluster_key_file):
+    # Write to playbook
+    content = """---
+# Enabling encryption on Spectrum Scale for storage nodes
+- hosts: {hosts_config}
+  any_errors_fatal: true
+
+  roles:
+    - {{ role: scale_encryption_{cluster_type}, when: scale_encryption_enabled }}
+"""
+    return content.format(hosts_config=hosts_config, cluster_type=cluster_type, cluster_config=cluster_config, cluster_key_file=cluster_key_file)
+
 
 def initialize_cluster_details(scale_version, cluster_name, username,
                                password, scale_profile_path,
-                               scale_replica_config):
+                               scale_replica_config, scale_encryption_enabled, scale_encryption_servers, scale_encryption_admin_password):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
-           scale_replica_config (bool)
+           scale_replica_config (bool) scale_encryption_enabled (bool) ,scale_encryption_servers (list),
+           scale_encryption_admin_password(string)
     """
     cluster_details = {}
     cluster_details['scale_version'] = scale_version
@@ -219,6 +232,15 @@ def initialize_cluster_details(scale_version, cluster_name, username,
         pathlib.PurePath(scale_profile_path).stem)
     cluster_details['scale_cluster_profile_dir_path'] = str(
         pathlib.PurePath(scale_profile_path).parent)
+    cluster_details['scale_encryption_enabled'] = scale_encryption_enabled
+    # Preparing list for Encryption Servers
+    if scale_encryption_servers:
+        encryption_server_list_str = str(scale_encryption_servers).replace(" ", "").strip("[]")
+        encryption_servers = encryption_server_list_str.split(",")
+        cluster_details['scale_encryption_servers'] = [server.strip() for server in encryption_servers]
+    else:
+        cluster_details['scale_encryption_servers'] = []
+    cluster_details['scale_encryption_admin_password'] = scale_encryption_admin_password       
     return cluster_details
 
 
@@ -560,7 +582,12 @@ if __name__ == "__main__":
                         help='Spectrum Scale GUI password')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
-
+    PARSER.add_argument('--scale_encryption_enabled', help='Enabling encryption feature with SKLM',
+                        default=False)
+    PARSER.add_argument('--scale_encryption_servers', help='List of key servers for encryption',
+                        default=[])
+    PARSER.add_argument('--scale_encryption_admin_password', help='Admin Password for the Key server',
+                        default="empty")
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
@@ -721,10 +748,22 @@ if __name__ == "__main__":
             "scale_nodes", "%s_cluster_config.yaml" % cluster_type)
         write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                          "ibm-spectrum-scale-install-infra",
-                                                         cluster_type), playbook_content)
+                                                         cluster_type), playbook_content)       
 
     if ARGUMENTS.verbose:
         print("Content of ansible playbook:\n", playbook_content)
+
+    # Step-4.1: Create Encryption playbook
+    if ARGUMENTS.scale_encryption_enabled == "true":
+        encryption_playbook_content = prepare_ansible_playbook_encryption(
+            "scale_encryption_node", cluster_type, "%s_cluster_config.yaml" % cluster_type,
+            ARGUMENTS.instance_private_key)
+        write_to_file("%s/%s/%s_cloud_encryption_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                                "ibm-spectrum-scale-install-infra",
+                                                                cluster_type), encryption_playbook_content)
+    if ARGUMENTS.verbose:
+        print("Content of ansible playbook for encryption:\n", encryption_playbook_content)
+    
 
     # Step-5: Create hosts
     config = configparser.ConfigParser(allow_no_value=True)
@@ -744,6 +783,12 @@ if __name__ == "__main__":
                 "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'"
             node_template = node_template + each_entry + "\n"
 
+    # Find the line where is_admin_node=True
+    node_for_encryption = ""
+    for line in node_template.split('\n'):
+        if "is_admin_node=True" in line:
+            node_for_encryption = line.strip()   
+
     if TF['resource_prefix']:
         cluster_name = TF['resource_prefix']
     else:
@@ -754,12 +799,17 @@ if __name__ == "__main__":
                                                     gui_username,
                                                     gui_password,
                                                     profile_path,
-                                                    replica_config)
+                                                    replica_config,
+                                                    ARGUMENTS.scale_encryption_enabled,
+                                                    ARGUMENTS.scale_encryption_servers,
+                                                    ARGUMENTS.scale_encryption_admin_password)
     with open("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                           "ibm-spectrum-scale-install-infra",
                                           cluster_type), 'w') as configfile:
         configfile.write('[scale_nodes]' + "\n")
-        configfile.write(node_template)
+        configfile.write(node_template + "\n")
+        configfile.write('[scale_encryption_node]' + "\n")
+        configfile.write(node_for_encryption + "\n\n")
         config.write(configfile)
 
     if ARGUMENTS.verbose:
