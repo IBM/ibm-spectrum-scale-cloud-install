@@ -532,6 +532,7 @@ module "storage_cluster_tie_breaker_instance" {
 # Below module creates an AFM autoscaling launch template
 module "gateway_autoscaling_launch_template" {
   source                      = "../../../resources/aws/asg/launch_template"
+  turn_on                     = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   launch_template_name_prefix = format("%s-%s", var.resource_prefix, "gateway-launch-tmpl")
   image_id                    = var.storage_cluster_image_ref
   instance_type               = var.gateway_instance_type
@@ -547,6 +548,7 @@ module "gateway_autoscaling_launch_template" {
 # Below module creates an AFM autoscaling group
 module "gateway_autoscaling_group" {
   source                     = "../../../resources/aws/asg/asg_group"
+  turn_on                    = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
   asg_name_prefix            = format("%s-%s", var.resource_prefix, "gateway")
   asg_launch_template_id     = module.gateway_autoscaling_launch_template.asg_launch_template_id
   asg_max_size               = var.gateway_instance_asg_max_size

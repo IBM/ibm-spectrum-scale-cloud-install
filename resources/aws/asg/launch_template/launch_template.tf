@@ -2,6 +2,7 @@
     Creates AWS launch template.
 */
 
+variable "turn_on" {}
 variable "launch_template_name_prefix" {}
 variable "image_id" {}
 variable "instance_type" {}
@@ -34,6 +35,7 @@ data "template_cloudinit_config" "user_data64" {
 
 #tfsec:ignore:aws-ec2-no-public-ip
 resource "aws_launch_template" "itself" {
+  count                                = var.turn_on == true ? 1 : 0
   name_prefix                          = var.launch_template_name_prefix
   image_id                             = var.image_id
   instance_type                        = var.instance_type
@@ -59,5 +61,5 @@ resource "aws_launch_template" "itself" {
 }
 
 output "asg_launch_template_id" {
-  value = aws_launch_template.itself.id
+  value = aws_launch_template.itself[*].id
 }
