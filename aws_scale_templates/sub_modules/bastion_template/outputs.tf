@@ -1,5 +1,5 @@
 output "bastion_instance_autoscaling_group_ref" {
-  value       = module.bastion_autoscaling_group.asg_id
+  value       = try(module.bastion_autoscaling_group.asg_id[0], null)
   description = "Bastion instances autoscaling group (id/self-link)."
 }
 

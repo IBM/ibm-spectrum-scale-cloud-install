@@ -78,7 +78,7 @@ output "compute_cluster_security_group_id" {
 }
 
 output "gateway_instance_autoscaling_group_id" {
-  value       = module.gateway_autoscaling_group.asg_id
+  value       = try(module.gateway_autoscaling_group.asg_id[0], null)
   description = "Gateway instances autoscaling group id."
 }
 
