@@ -16,7 +16,7 @@ resource "aws_autoscaling_group" "itself" {
   count       = var.turn_on == true ? 1 : 0
   name_prefix = var.asg_name_prefix
   launch_template {
-    id      = var.asg_launch_template_id
+    id      = var.asg_launch_template_id[count.index]
     version = "$Latest"
   }
   default_cooldown          = 180
