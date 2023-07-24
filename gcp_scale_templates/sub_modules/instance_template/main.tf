@@ -257,10 +257,10 @@ module "compute_cluster_instances" {
   block_device_names            = local.block_device_names
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
-  dns_zone                      = var.resource_prefix
-  dns_domain                    = var.vpc_compute_cluster_dns_domain
-  dns_reverse_dns_domain        = format("%s-reverse", var.resource_prefix)
-  dns_reverse_zone_suffix       = var.vpc_reverse_dns_domain_suffix
+  dns_forward_dns_zone          = var.vpc_forward_dns_zone
+  dns_forward_dns_name          = var.vpc_compute_cluster_dns_name
+  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  dns_reverse_dns_name          = var.vpc_reverse_dns_name
 }
 
 # Creates storage tie breaker instance
@@ -290,10 +290,10 @@ module "storage_cluster_tie_breaker_instance" {
   data_disk_size                = 5
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
-  dns_zone                      = var.resource_prefix
-  dns_domain                    = var.vpc_storage_cluster_dns_domain
-  dns_reverse_dns_domain        = format("%s-reverse", var.resource_prefix)
-  dns_reverse_zone_suffix       = var.vpc_reverse_dns_domain_suffix
+  dns_forward_dns_zone          = var.vpc_forward_dns_zone
+  dns_forward_dns_name          = var.vpc_storage_cluster_dns_name
+  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  dns_reverse_dns_name          = var.vpc_reverse_dns_name
 }
 
 # Creates storage instances
@@ -323,10 +323,10 @@ module "storage_cluster_instances" {
   data_disk_size                = var.block_device_volume_size
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
-  dns_zone                      = var.resource_prefix
-  dns_domain                    = var.vpc_storage_cluster_dns_domain
-  dns_reverse_dns_domain        = format("%s-reverse", var.resource_prefix)
-  dns_reverse_zone_suffix       = var.vpc_reverse_dns_domain_suffix
+  dns_forward_dns_zone          = var.vpc_forward_dns_zone
+  dns_forward_dns_name          = var.vpc_storage_cluster_dns_name
+  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  dns_reverse_dns_name          = var.vpc_reverse_dns_name
 }
 
 # Prepare ansible config

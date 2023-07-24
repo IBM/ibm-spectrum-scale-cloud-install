@@ -356,21 +356,35 @@ variable "bastion_ssh_private_key" {
   description = "Bastion SSH private key path, which will be used to login to bastion host."
 }
 
-variable "vpc_reverse_dns_domain_suffix" {
+variable "vpc_reverse_dns_zone" {
   type        = string
   nullable    = true
   default     = null
-  description = "GCP Cloud DNS reverse lookup zone suffix"
+  description = "GCP Cloud DNS reverse zone lookup to be used for scale cluster (Ex: example-zone-reverse)."
 }
 
-variable "vpc_compute_cluster_dns_domain" {
+variable "vpc_reverse_dns_name" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "GCP Cloud DNS reverse name (Ex: 10.in-addr.arpa.)."
+}
+
+variable "vpc_forward_dns_zone" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "GCP Cloud DNS zone name to be used for scale cluster (Ex: example-zone)."
+}
+
+variable "vpc_compute_cluster_dns_name" {
   type        = string
   default     = "compscale.com"
-  description = "GCP Cloud DNS domain name to be used for compute cluster."
+  description = "GCP Cloud DNS name to be used for compute cluster."
 }
 
-variable "vpc_storage_cluster_dns_domain" {
+variable "vpc_storage_cluster_dns_name" {
   type        = string
   default     = "strgscale.com"
-  description = "GCP Cloud DNS domain name to be used for storage cluster."
+  description = "GCP Cloud DNS name to be used for storage cluster."
 }

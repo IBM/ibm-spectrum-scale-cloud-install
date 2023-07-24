@@ -26,10 +26,10 @@ variable "vpc_subnets" {}
 variable "total_cluster_instances" {}
 variable "block_device_kms_key_ring_ref" {}
 variable "block_device_kms_key_ref" {}
-variable "dns_zone" {}
-variable "dns_reverse_zone_suffix" {}
-variable "dns_domain" {}
-variable "dns_reverse_dns_domain" {}
+variable "dns_forward_dns_zone" {}
+variable "dns_forward_dns_name" {}
+variable "dns_reverse_dns_zone" {}
+variable "dns_reverse_dns_name" {}
 
 locals {
   vpc_subnets             = var.vpc_subnets == null ? [] : var.vpc_subnets
@@ -75,7 +75,7 @@ resource "google_compute_instance" "itself" {
   machine_type              = var.machine_type
   zone                      = local.vm_configuration[count.index].zone
   allow_stopping_for_update = true
-  hostname                  = format("%s.%s", local.vm_configuration[count.index].vm_name, var.dns_domain)
+  hostname                  = format("%s.%s", local.vm_configuration[count.index].vm_name, var.dns_forward_dns_name)
 
   #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
   boot_disk {
@@ -120,9 +120,9 @@ resource "google_compute_instance" "itself" {
 resource "google_dns_record_set" "a_itself" {
   count = length(local.vm_configuration)
   # Trailing dot is required
-  name         = format("%s.%s.", local.vm_configuration[count.index].vm_name, var.dns_domain)
+  name         = format("%s.%s.", local.vm_configuration[count.index].vm_name, var.dns_forward_dns_name)
   type         = "A"
-  managed_zone = var.dns_zone
+  managed_zone = var.dns_forward_dns_zone
   ttl          = 300
   rrdatas      = [google_compute_instance.itself[count.index].network_interface[0].network_ip]
 }
@@ -132,12 +132,12 @@ resource "google_dns_record_set" "a_itself" {
 resource "google_dns_record_set" "ptr_itself" {
   count = length(local.vm_configuration)
   # Trailing dot is required
-  name         = format("%s.%s.%s.%s.", split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[3], split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[2], split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[1], var.dns_reverse_zone_suffix)
+  name         = format("%s.%s.%s.%s.", split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[3], split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[2], split(".", google_compute_instance.itself[count.index].network_interface[0].network_ip)[1], var.dns_reverse_dns_name)
   type         = "PTR"
-  managed_zone = var.dns_reverse_dns_domain
+  managed_zone = var.dns_reverse_dns_zone
   ttl          = 300
   # Trailing dot is required
-  rrdatas = [format("%s.%s.", local.vm_configuration[count.index].vm_name, var.dns_domain)]
+  rrdatas = [format("%s.%s.", local.vm_configuration[count.index].vm_name, var.dns_forward_dns_name)]
 }
 
 resource "google_compute_disk" "itself" {
