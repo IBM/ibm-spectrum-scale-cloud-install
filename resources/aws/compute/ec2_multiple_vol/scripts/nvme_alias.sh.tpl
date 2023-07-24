@@ -14,7 +14,7 @@ function log() {
 if rpm -q nvme-cli &> /dev/null; then
   log "nvme-cli is already installed. Proceeding further."
 else
-  if timeout 60s yum install -y nvme-cli; then
+  if timeout 90s yum install -y nvme-cli; then
     log "nvme-cli installed successfully. Proceeding further."
   else
     log "Installation of nvme-cli timed out. Exiting."
