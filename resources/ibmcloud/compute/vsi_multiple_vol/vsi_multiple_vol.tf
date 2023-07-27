@@ -26,7 +26,6 @@ variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
-variable "enable_sec_interface_storage" {}
 
 data "ibm_is_instance_profile" "itself" {
   name = var.vsi_profile
@@ -123,11 +122,6 @@ firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
 systemctl start firewalld
-
-if grep -q "8.6" /etc/os-release && [ "${var.enable_sec_interface_storage}" == true ]; then
-    sudo nmcli connection modify "Wired connection 1" mtu 9000          # Name should be fetched dynamically
-    sudo nmcli connection up "Wired connection 1"
-fi
 EOF
 }
 
@@ -215,20 +209,4 @@ output "instance_ips_with_vol_mapping" {
 
 output "instance_private_dns_ip_map" {
   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
-}
-
-output "storage_host_name" {
-  value = try(tolist([for instance_name in ibm_is_instance.itself : instance_name.name]), [])
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "storage_cluster_instance_ip_name_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.name }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-
-output "storage_cluster_instance_name_id_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.id }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
