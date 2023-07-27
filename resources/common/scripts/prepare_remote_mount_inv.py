@@ -77,7 +77,7 @@ def prepare_remote_mount_playbook(hosts_config, mount_details):
         - {{ scale_remotemount_client_filesystem_name: {compute_fs_name}, scale_remotemount_client_remotemount_path: {compute_fs_mount_path}, scale_remotemount_storage_filesystem_name: {storage_fs_name} }}
   pre_tasks:
   roles:
-    - remote_mount
+    - remotemount_configure
 """.format(
         hosts_config=hosts_config,
         compute_gui_username=mount_details["compute_gui_username"],

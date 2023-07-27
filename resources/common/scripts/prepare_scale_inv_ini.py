@@ -135,17 +135,17 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
   roles:
-     - core/precheck
-     - {{ role: core/node, when: "scale_packages_installed is false" }}
-     - core/cluster
-     - gui/precheck
-     - {{ role: gui/node, when: "scale_packages_installed is false" }}
-     - gui/cluster
-     - gui/postcheck
-     - zimon/precheck
-     - {{ role: zimon/node, when: "scale_packages_installed is false" }}
-     - zimon/cluster
-     - zimon/postcheck
+     - core_prepare
+     - {{ role: core_install, when: "scale_packages_installed is false" }}
+     - core_configure
+     - gui_prepare
+     - {{ role: gui_install, when: "scale_packages_installed is false" }}
+     - gui_configure
+     - gui_verify
+     - perfmon_prepare
+     - {{ role: perfmon_install, when: "scale_packages_installed is false" }}
+     - perfmon_configure
+     - perfmon_verify
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content
@@ -160,11 +160,11 @@ def prepare_packer_ansible_playbook(hosts_config, cluster_config):
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
   roles:
-     - core/cluster
-     - gui/cluster
-     - gui/postcheck
-     - zimon/cluster
-     - zimon/postcheck
+     - core_configure
+     - gui_configure
+     - gui_verify
+     - perfmon_configure
+     - perfmon_verify
 """.format(hosts_config=hosts_config, cluster_config=cluster_config)
     return content
 
@@ -178,9 +178,9 @@ def prepare_nogui_ansible_playbook(hosts_config, cluster_config):
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
   roles:
-     - core/precheck
-     - core/node
-     - core/cluster
+     - core_prepare
+     - core_install
+     - core_configure
 """.format(hosts_config=hosts_config, cluster_config=cluster_config)
     return content
 
@@ -194,9 +194,10 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
   roles:
-     - core/cluster
+     - core_configure
 """.format(hosts_config=hosts_config, cluster_config=cluster_config)
     return content
+
 
 def prepare_mrot_config_ansible_playbook(hosts_config):
     """ Write to playbook """
@@ -208,6 +209,7 @@ def prepare_mrot_config_ansible_playbook(hosts_config):
      - mrot_config
 """.format(hosts_config=hosts_config)
     return content
+
 
 def initialize_cluster_details(scale_version, cluster_name, username,
                                password, scale_profile_path,
@@ -744,8 +746,8 @@ if __name__ == "__main__":
         playbook_content = prepare_mrot_config_ansible_playbook(
             "scale_nodes")
         write_to_file("/%s/%s/%s_config_playbook.yaml" % (ARGUMENTS.install_infra_path,
-                                                         "ibm-spectrum-scale-install-infra",
-                                                         "mrot"), playbook_content)
+                                                          "ibm-spectrum-scale-install-infra",
+                                                          "mrot"), playbook_content)
     if ARGUMENTS.verbose:
         print("Content of ansible playbook:\n", playbook_content)
 
