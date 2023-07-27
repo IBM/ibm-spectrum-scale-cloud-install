@@ -26,8 +26,6 @@ variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
-variable "storage_domain_name" {}
-variable "enable_sec_interface_compute" {}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -108,32 +106,6 @@ firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
 systemctl start firewalld
-
-if [ "${var.enable_sec_interface_compute}" == true ]; then
-    if grep -q "8.6" /etc/os-release
-    then
-        sudo nmcli connection modify "Wired connection 1" mtu 9000          # Name should be fetched dynamically
-        sudo nmcli connection up "Wired connection 1"
-        cat /etc/resolv.conf
-        echo "${var.storage_domain_name}"
-        nmcli connection show
-        nmcli con show 'System eth0' | grep dns
-        sudo nmcli connection modify 'System eth0' ipv4.dns-search "${var.dns_domain} ${var.storage_domain_name}"
-        nmcli con show 'System eth0' | grep dns
-        sudo systemctl restart NetworkManager
-        cat /etc/resolv.conf
-    else
-        echo "Configuring ifcfg-eth1 file for secondary interface"
-        cp /etc/sysconfig/network-scripts/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i 's/eth0/eth1/g' /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i '/HWADD/d' /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i '/DOMAIN/d' /etc/sysconfig/network-scripts/ifcfg-eth1
-        mac=$(ifconfig | grep ether | awk -F " " '{print$2}' | awk 'NR==2 {print}')
-        echo "HWADDR=$mac" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        echo "DOMAIN=${var.storage_domain_name}" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        sudo systemctl restart NetworkManager
-    fi
-fi
 EOF
 }
 
@@ -215,24 +187,4 @@ output "instance_private_ips" {
 
 output "instance_private_dns_ip_map" {
   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
-}
-
-output "compute_host_name" {
-  value = try(tolist([for instance_name in ibm_is_instance.itself : instance_name.name]), [])
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "compute_cluster_instance_name_id_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.id }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "compute_cluster_instance_ip_name_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.name}, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "compute_cluster_instance_id_name_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.id => instance_details.name}, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
