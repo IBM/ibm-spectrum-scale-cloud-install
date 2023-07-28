@@ -116,7 +116,7 @@ variable "using_packer_image" {
   description = "If true, gpfs rpm copy step will be skipped during the configuration."
 }
 
-variable "using_direct_connection" {
+variable "using_jumphost_connection" {
   type        = bool
   default     = false
   description = "If true, will skip the jump/bastion host configuration."
