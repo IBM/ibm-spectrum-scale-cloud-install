@@ -131,6 +131,8 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
 
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
@@ -138,7 +140,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - core_prepare
      - {{ role: core_install, when: "scale_packages_installed is false" }}
      - core_configure
-     - gui_prepare
+#    - gui_prepare
      - {{ role: gui_install, when: "scale_packages_installed is false" }}
      - gui_configure
      - gui_verify
@@ -156,6 +158,8 @@ def prepare_packer_ansible_playbook(hosts_config, cluster_config):
     content = """---
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
@@ -174,6 +178,8 @@ def prepare_nogui_ansible_playbook(hosts_config, cluster_config):
     content = """---
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
@@ -190,6 +196,8 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
     content = """---
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
@@ -199,7 +207,7 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
     return content
 
 
-  def initialize_cluster_details(scale_version, cluster_name, username,
+def initialize_cluster_details(scale_version, cluster_name, username,
                                password, scale_profile_path,
                                scale_replica_config):
     """ Initialize cluster details.

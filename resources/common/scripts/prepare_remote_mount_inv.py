@@ -65,6 +65,8 @@ def prepare_remote_mount_playbook(hosts_config, mount_details):
     content = """---
 # Config remote mount
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   vars:
     - scale_remotemount_client_gui_username: {compute_gui_username}
     - scale_remotemount_client_gui_password: {compute_gui_password}
