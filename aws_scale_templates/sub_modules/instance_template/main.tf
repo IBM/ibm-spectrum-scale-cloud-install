@@ -196,7 +196,7 @@ module "compute_cluster_ingress_security_rule_using_cloud_connection" {
 # Create security rules to enable scale communication within compute instances in a jumphost connection method.
 module "compute_cluster_ingress_security_rule_using_jumphost_connection" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_jumphost_connection == true) ? 15 : 0
+  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_jumphost_connection == true) ? 16 : 0
   security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to compute instances",
     "Allow SSH traffic from bastion to compute instances",
@@ -331,7 +331,7 @@ module "storage_cluster_ingress_security_rule_using_cloud_connection" {
 # Create security rules to enable scale communication within storage instances in a jumphost connection method.
 module "storage_cluster_ingress_security_rule_using_jumphost_connection" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_jumphost_connection == true) ? 15 : 0
+  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_jumphost_connection == true) ? 16 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to storage instances",
     "Allow SSH traffic from bastion to storage instances",

@@ -308,6 +308,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="output_gateway_instance_autoscaling_group_id"></a> [gateway_instance_autoscaling_group_id](#output_gateway_instance_autoscaling_group_id) | Gateway instances autoscaling group id. |
 | <a name="output_instance_iam_profile"></a> [instance_iam_profile](#output_instance_iam_profile) | n/a |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | Placement group id. |
+| <a name="output_sns_topic_arn"></a> [sns_topic_arn](#output_sns_topic_arn) | n/a |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
