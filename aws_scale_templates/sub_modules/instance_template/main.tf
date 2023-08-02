@@ -212,11 +212,12 @@ module "compute_cluster_ingress_security_rule_using_jumphost_connection" {
     "Allow performance monitoring collector traffic within compute instances",
     "Allow performance monitoring collector traffic within compute instances",
     "Allow http traffic within compute instances",
-  "Allow https traffic within compute instances"]
+    "Allow https traffic within compute instances",
+  "Allow GUI traffic from bastion/jumphost security group"]
   security_rule_type = ["ingress"]
-  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 443]
+  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 443]
   source_security_group_id = [var.bastion_security_group_ref, var.bastion_security_group_ref,
     module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
     module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
@@ -224,7 +225,7 @@ module "compute_cluster_ingress_security_rule_using_jumphost_connection" {
     module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
     module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
     module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id,
-  module.compute_cluster_security_group.sec_group_id]
+  module.compute_cluster_security_group.sec_group_id, var.bastion_security_group_ref]
 }
 
 module "cluster_egress_security_rule" {
@@ -346,11 +347,12 @@ module "storage_cluster_ingress_security_rule_using_jumphost_connection" {
     "Allow performance monitoring collector traffic within storage instances",
     "Allow performance monitoring collector traffic within storage instances",
     "Allow http traffic within storage instances",
-  "Allow https traffic within storage instances"]
+    "Allow https traffic within storage instances",
+  "Allow GUI traffic from bastion/jumphost security group"]
   security_rule_type = ["ingress"]
-  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_protocol   = ["icmp", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_from_port  = [-1, 22, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 443]
+  traffic_to_port    = [-1, 22, -1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 443]
   source_security_group_id = [var.bastion_security_group_ref, var.bastion_security_group_ref,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
@@ -358,7 +360,7 @@ module "storage_cluster_ingress_security_rule_using_jumphost_connection" {
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
-  module.storage_cluster_security_group.sec_group_id]
+  module.storage_cluster_security_group.sec_group_id, var.bastion_security_group_ref]
 }
 
 module "bicluster_ingress_security_rule" {
