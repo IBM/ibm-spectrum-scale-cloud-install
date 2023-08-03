@@ -42,7 +42,7 @@ then
         package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync"
     fi
 
     RETRY_LIMIT=5
