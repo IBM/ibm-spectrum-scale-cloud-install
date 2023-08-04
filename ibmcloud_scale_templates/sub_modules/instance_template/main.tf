@@ -8,7 +8,8 @@
 
 locals {
   gpfs_base_rpm_path = fileset(var.spectrumscale_rpms_path, "gpfs.base-*")
-  scale_version      = regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0]
+  scale_org_version  = regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0]
+  scale_version      = replace(local.scale_org_version, "-", ".")
 }
 
 locals {
