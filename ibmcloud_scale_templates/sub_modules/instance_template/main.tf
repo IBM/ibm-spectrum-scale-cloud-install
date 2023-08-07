@@ -553,7 +553,7 @@ module "remote_mount_configuration" {
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
 }
 
-module "encryption_configuration" {
+/*module "encryption_configuration" {
   source                           = "../../../resources/common/encryption_configuration"
   turn_on                          = var.scale_encryption_enabled == true ? 1 : 0
   clone_path                       = var.scale_ansible_repo_clone_path
@@ -562,4 +562,4 @@ module "encryption_configuration" {
   storage_cluster_create_complete  = module.storage_cluster_configuration.storage_cluster_create_complete
   combined_cluster_create_complete = module.combined_cluster_configuration.combined_cluster_create_complete
   remote_mount_create_complete     = module.remote_mount_configuration.remote_mount_create_complete
-}
+}*/
