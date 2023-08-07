@@ -350,6 +350,18 @@ variable "sgklm_instance_dns_zone_id" {
   description = "IBM SGKLM Instance DNS zone id."
 }
 
+variable "scale_encryption_admin_default_password" {
+  type        = string
+  default     = "SKLM@dmin123"
+  description = "The default administrator password used for resetting the admin password based on the user input. The password has to be updated which was configured during the SGKLM installation."
+}
+
+variable "scale_encryption_admin_username" {
+  type        = string
+  default     = "SKLMAdmin"
+  description = "The default Admin username for Security Key Lifecycle Manager(SGKLM)."
+}
+
 variable "scale_encryption_admin_password" {
   type        = string
   default     = ""
