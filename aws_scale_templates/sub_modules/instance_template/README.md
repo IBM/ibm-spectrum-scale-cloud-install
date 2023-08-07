@@ -300,6 +300,7 @@ The following steps will provision AWS resources (compute and storage instances 
 |------|-------------|
 | <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
 | <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
+| <a name="output_cluster_sns_arn"></a> [cluster_sns_arn](#output_cluster_sns_arn) | n/a |
 | <a name="output_compute_cluster_instance_cidrs"></a> [compute_cluster_instance_cidrs](#output_compute_cluster_instance_cidrs) | n/a |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |

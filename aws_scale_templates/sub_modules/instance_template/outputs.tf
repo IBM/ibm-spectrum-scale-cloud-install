@@ -89,3 +89,7 @@ output "storage_cluster_instance_cidrs" {
 output "compute_cluster_instance_cidrs" {
   value = [for subnet in data.aws_subnet.vpc_compute_cluster_private_subnet_cidrs : subnet.cidr_block]
 }
+
+output "cluster_sns_arn" {
+  value = try(module.email_notification.topic_arn[0], null)
+}
