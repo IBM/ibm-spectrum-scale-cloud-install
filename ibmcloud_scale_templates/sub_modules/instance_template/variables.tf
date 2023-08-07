@@ -296,3 +296,67 @@ variable "bastion_user" {
   default     = "ubuntu"
   description = "Provide the username for Bastion login."
 }
+
+#SGKLM Variables
+
+variable "scale_encryption_enabled" {
+  type        = bool
+  default     = false
+  description = "To enable the encryption for the filesystem. Select true or false"
+}
+
+variable "sgklm_vsi_osimage_id" {
+  type        = string
+  default     = ""
+  description = "Image id to use for provisioning the SGKLM instances."
+}
+
+variable "total_sgklm_instances" {
+  type        = number
+  default     = 2
+  description = "Number of instances to be launched for SGKLM."
+}
+
+variable "sgklm_instance_key_pair" {
+  type        = string
+  description = "The key pair to use to launch the SGKLM host."
+}
+
+variable "sgklm_vsi_osimage_name" {
+  type        = string
+  default     = ""
+  description = "Image name to use for provisioning the SGKLM instances."
+}
+
+variable "sgklm_vsi_profile" {
+  type        = string
+  default     = "bx2-2x8"
+  description = "Profile to be used for SGKLM virtual server instance."
+}
+
+variable "sgklm_instance_dns_domain" {
+  type        = string
+  default     = "sgklmscale.com"
+  description = "IBM Cloud DNS domain name to be used for SGKLM instances."
+}
+
+variable "sgklm_instance_dns_service_id" {
+  type        = string
+  description = "IBM Cloud SGKLM Instance DNS service resource id."
+}
+
+variable "sgklm_instance_dns_zone_id" {
+  type        = string
+  description = "IBM SGKLM Instance DNS zone id."
+}
+
+variable "scale_encryption_admin_password" {
+  type        = string
+  default     = ""
+  description = "Password that is used for performing administrative operations for the SGKLM.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. Visit this [page](https://www.ibm.com/docs/en/sgklm/3.0.1?topic=roles-password-policy) to know more about password policy of SGKLM. "
+}
+
+variable "scale_encryption_folders" {
+  type        = list(string)
+  description = "List of folders for encryption when entire fielsystem don't require encryption."
+}
