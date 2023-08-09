@@ -551,7 +551,7 @@ module "remote_mount_configuration" {
 
 module "encryption_configuration" {
   source                                  = "../../../resources/common/encryption_configuration"
-  turn_on                                 = var.scale_encryption_enabled == true ? 1 : 0
+  turn_on                                 = var.scale_encryption_enabled
   clone_path                              = var.scale_ansible_repo_clone_path
   clone_complete                          = module.prepare_ansible_configuration.clone_complete
   scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
