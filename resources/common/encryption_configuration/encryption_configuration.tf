@@ -35,7 +35,7 @@ resource "local_sensitive_file" "write_meta_private_key" {
 resource "null_resource" "perform_encryption_prepare" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/local/bin/ansible-playbook -f 32 ${local.encryption_sgklm_playbook}  -e ansible_ssh_private_key_file=${local.sgklm_private_key} -e scale_encryption_admin_default_password=${var.scale_encryption_admin_default_password} -e scale_encryption_admin_password=${var.scale_encryption_admin_password} -e scale_encryption_admin_username=${var.scale_encryption_admin_username} -e scale_encryption_servers_list=${local.scale_encryption_servers}"
+    command     = "/usr/local/bin/ansible-playbook -f 32 ${local.encryption_sgklm_playbook}  -e ansible_ssh_private_key_file=${local.sgklm_private_key} -e scale_encryption_admin_default_password=${var.scale_encryption_admin_default_password} -e scale_encryption_admin_password=${var.scale_encryption_admin_password} -e scale_encryption_admin_user=${var.scale_encryption_admin_username} -e scale_encryption_servers_list=${local.scale_encryption_servers}"
   }
 }
 
