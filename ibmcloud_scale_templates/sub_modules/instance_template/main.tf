@@ -316,29 +316,25 @@ data "ibm_is_image" "sgklm_instance_image" {
 }
 
 module "sgklm_instance" {
-  count                                   = var.scale_encryption_enabled == true ? 1 : 0
-  source                                  = "../../../resources/ibmcloud/compute/sgklm_vsi"
-  total_vsis                              = var.total_sgklm_instances
-  vsi_name_prefix                         = format("%s-sgklm", var.resource_prefix)
-  resource_prefix                         = var.resource_prefix
-  scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
-  scale_encryption_admin_username         = var.scale_encryption_admin_username
-  scale_encryption_admin_password         = var.scale_encryption_admin_password
-  vpc_id                                  = var.vpc_id
-  resource_group_id                       = var.resource_group_id
-  zones                                   = [var.vpc_availability_zones[0]]
-  vsi_image_id                            = local.sgklm_instance_image_id
-  vsi_profile                             = var.sgklm_vsi_profile
-  dns_domain                              = var.sgklm_instance_dns_domain
-  dns_service_id                          = var.sgklm_instance_dns_service_id
-  dns_zone_id                             = var.sgklm_instance_dns_zone_id
-  vsi_subnet_id                           = var.vpc_compute_cluster_private_subnets
-  vsi_security_group                      = [module.sgklm_instance_security_group.sec_group_id]
-  vsi_user_public_key                     = var.scale_encryption_enabled ? [data.ibm_is_ssh_key.sgklm_ssh_key[0].id] : []
-  vsi_meta_private_key                    = var.create_separate_namespaces == true ? module.generate_sgklm_instance_keys.private_key_content : 0
-  vsi_meta_public_key                     = var.create_separate_namespaces == true ? module.generate_sgklm_instance_keys.public_key_content : 0
-  depends_on                              = [module.sgklm_instance_ingress_security_rule, module.sgklm_instance_ingress_security_rule_wt_bastion, module.sgklm_instance_ingress_security_rule_wo_bastion, module.sgklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
-  resource_tags                           = var.scale_cluster_resource_tags
+  count                = var.scale_encryption_enabled == true ? 1 : 0
+  source               = "../../../resources/ibmcloud/compute/sgklm_vsi"
+  total_vsis           = var.total_sgklm_instances
+  vsi_name_prefix      = format("%s-sgklm", var.resource_prefix)
+  vpc_id               = var.vpc_id
+  resource_group_id    = var.resource_group_id
+  zones                = [var.vpc_availability_zones[0]]
+  vsi_image_id         = local.sgklm_instance_image_id
+  vsi_profile          = var.sgklm_vsi_profile
+  dns_domain           = var.sgklm_instance_dns_domain
+  dns_service_id       = var.sgklm_instance_dns_service_id
+  dns_zone_id          = var.sgklm_instance_dns_zone_id
+  vsi_subnet_id        = var.vpc_compute_cluster_private_subnets
+  vsi_security_group   = [module.sgklm_instance_security_group.sec_group_id]
+  vsi_user_public_key  = var.scale_encryption_enabled ? [data.ibm_is_ssh_key.sgklm_ssh_key[0].id] : []
+  vsi_meta_private_key = var.create_separate_namespaces == true ? module.generate_sgklm_instance_keys.private_key_content : 0
+  vsi_meta_public_key  = var.create_separate_namespaces == true ? module.generate_sgklm_instance_keys.public_key_content : 0
+  depends_on           = [module.sgklm_instance_ingress_security_rule, module.sgklm_instance_ingress_security_rule_wt_bastion, module.sgklm_instance_ingress_security_rule_wo_bastion, module.sgklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
+  resource_tags        = var.scale_cluster_resource_tags
 }
 
 module "activity_tracker" {
@@ -553,13 +549,18 @@ module "remote_mount_configuration" {
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
 }
 
-/*module "encryption_configuration" {
-  source                           = "../../../resources/common/encryption_configuration"
-  turn_on                          = var.scale_encryption_enabled == true ? 1 : 0
-  clone_path                       = var.scale_ansible_repo_clone_path
-  encryption_private_key           = var.sgklm_instance_key_pair
-  compute_cluster_create_complete  = module.compute_cluster_configuration.compute_cluster_create_complete
-  storage_cluster_create_complete  = module.storage_cluster_configuration.storage_cluster_create_complete
-  combined_cluster_create_complete = module.combined_cluster_configuration.combined_cluster_create_complete
-  remote_mount_create_complete     = module.remote_mount_configuration.remote_mount_create_complete
-}*/
+module "encryption_configuration" {
+  source                                  = "../../../resources/common/encryption_configuration"
+  turn_on                                 = var.scale_encryption_enabled == true ? 1 : 0
+  clone_path                              = var.scale_ansible_repo_clone_path
+  clone_complete                          = module.prepare_ansible_configuration.clone_complete
+  scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
+  scale_encryption_admin_password         = var.scale_encryption_admin_password
+  scale_encryption_admin_username         = var.scale_encryption_admin_username
+  scale_encryption_servers                = jsonencode(one(module.sgklm_instance[*].instance_private_ips))
+  meta_private_key                        = module.generate_sgklm_instance_keys.private_key_content
+  compute_cluster_create_complete         = module.compute_cluster_configuration.compute_cluster_create_complete
+  storage_cluster_create_complete         = module.storage_cluster_configuration.storage_cluster_create_complete
+  combined_cluster_create_complete        = module.combined_cluster_configuration.combined_cluster_create_complete
+  remote_mount_create_complete            = module.remote_mount_configuration.remote_mount_create_complete
+}

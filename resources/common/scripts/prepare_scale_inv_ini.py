@@ -258,7 +258,15 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
         cluster_details['scale_encryption_servers'] = []
     cluster_details['scale_encryption_admin_password'] = scale_encryption_admin_password
     cluster_details['scale_encryption_ssh_key_file'] = scale_encryption_ssh_key_file
-    cluster_details['scale_encryption_folders'] = scale_encryption_folders
+    # Preparing list for Encryption folders
+    if scale_encryption_folders:
+        encryption_folders_list_str = str(
+            scale_encryption_folders).replace(" ", "").strip("[]")
+        encryption_folders = encryption_folders_list_str.split(",")
+        cluster_details['scale_encryption_folders'] = [
+            server.strip() for server in encryption_folders]
+    else:
+        cluster_details['scale_encryption_folders'] = []
     return cluster_details
 
 

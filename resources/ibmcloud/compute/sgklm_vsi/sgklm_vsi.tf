@@ -24,7 +24,25 @@ variable "vsi_image_id" {}
 variable "vsi_user_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
-variable "resource_prefix" {}
+variable "vsi_meta_private_key" {}
+variable "vsi_meta_public_key" {}
+
+data "template_file" "metadata_startup_script" {
+  template = <<EOF
+#!/bin/bash
+echo "0 $(hostname) 0" > /home/klmdb411/sqllib/db2nodes.cfg
+systemctl start db2c_klmdb411.service
+sleep 10
+systemctl status db2c_klmdb411.service
+sleep 10
+#Copying SSH for passwordless authentication
+echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa
+echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
+reboot
+EOF
+}
 
 resource "ibm_is_instance" "itself" {
   for_each = {
