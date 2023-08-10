@@ -261,21 +261,22 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
         pathlib.PurePath(scale_profile_path).parent)
     # Preparing list for Encryption Servers
     if scale_encryption_servers:
-        encryption_server_list_str = str(
-            scale_encryption_servers).replace(" ", "").strip("[]")
-        encryption_servers = encryption_server_list_str.split(",")
-        cluster_details['scale_encryption_servers'] = [
-            server.strip("'") for server in encryption_servers]
+        cleaned_ip_string = scale_encryption_servers.strip(
+            '[]').replace('\\"', '').split(',')
+        # Remove extra double quotes around each IP address and create the final list
+        formatted_ip_list = [ip.strip('"') for ip in cleaned_ip_string]
+        cluster_details['scale_encryption_servers'] = formatted_ip_list
     else:
         cluster_details['scale_encryption_servers'] = []
     cluster_details['scale_encryption_admin_password'] = scale_encryption_admin_password
     # Preparing list for Encryption folders
     if scale_encryption_folders:
-        encryption_folders_list_str = str(
-            scale_encryption_folders).replace(" ", "").strip("[]")
-        encryption_folders = encryption_folders_list_str.split(",")
-        cluster_details['scale_encryption_folders'] = [
-            folder.strip("'") for folder in encryption_folders]
+        cleaned_folder_string = scale_encryption_folders.strip(
+            '[]').replace('\\"', '').split(',')
+        # Remove extra double quotes around each folder and create the final list
+        formatted_folder_list = [folder.strip(
+            '"') for folder in cleaned_folder_string]
+        cluster_details['scale_encryption_folders'] = formatted_folder_list
     else:
         cluster_details['scale_encryption_folders'] = []
     return cluster_details
