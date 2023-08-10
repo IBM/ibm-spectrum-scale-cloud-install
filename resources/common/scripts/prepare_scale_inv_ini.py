@@ -131,6 +131,8 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
 
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
@@ -138,7 +140,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - core_prepare
      - {{ role: core_install, when: "scale_packages_installed is false" }}
      - core_configure
-     - gui_prepare
+#    - gui_prepare
      - {{ role: gui_install, when: "scale_packages_installed is false" }}
      - gui_configure
      - gui_verify
@@ -156,6 +158,8 @@ def prepare_packer_ansible_playbook(hosts_config, cluster_config):
     content = """---
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
@@ -174,6 +178,8 @@ def prepare_nogui_ansible_playbook(hosts_config, cluster_config):
     content = """---
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
@@ -190,6 +196,8 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
     content = """---
 # Install and config Spectrum Scale on nodes
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
@@ -204,6 +212,8 @@ def prepare_ansible_playbook_encryption_sgklm():
     content = """---
 # Encryption setup for the key servers
 - hosts: localhost
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
 
   roles:
@@ -212,22 +222,24 @@ def prepare_ansible_playbook_encryption_sgklm():
     return content.format()
 
 
-def prepare_ansible_playbook_encryption_cluster(hosts_config, cluster_type, cluster_config, cluster_key_file):
+def prepare_ansible_playbook_encryption_cluster(hosts_config):
     # Write to playbook
     content = """---
 # Enabling encryption on Storage Scale
 - hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
   any_errors_fatal: true
 
   roles:
      - encryption_configure
 """
-    return content.format(hosts_config=hosts_config, cluster_type=cluster_type, cluster_config=cluster_config, cluster_key_file=cluster_key_file)
+    return content.format(hosts_config=hosts_config)
 
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username,
                                password, scale_profile_path,
-                               scale_replica_config, scale_encryption_servers, scale_encryption_admin_password, scale_encryption_ssh_key_file, scale_encryption_folders):
+                               scale_replica_config, scale_encryption_servers, scale_encryption_admin_password, scale_encryption_folders):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
@@ -249,16 +261,24 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
         pathlib.PurePath(scale_profile_path).parent)
     # Preparing list for Encryption Servers
     if scale_encryption_servers:
-        encryption_server_list_str = str(
-            scale_encryption_servers).replace(" ", "").strip("[]")
-        encryption_servers = encryption_server_list_str.split(",")
-        cluster_details['scale_encryption_servers'] = [
-            server.strip() for server in encryption_servers]
+        cleaned_ip_string = scale_encryption_servers.strip(
+            '[]').replace('\\"', '').split(',')
+        # Remove extra double quotes around each IP address and create the final list
+        formatted_ip_list = [ip.strip('"') for ip in cleaned_ip_string]
+        cluster_details['scale_encryption_servers'] = formatted_ip_list
     else:
         cluster_details['scale_encryption_servers'] = []
     cluster_details['scale_encryption_admin_password'] = scale_encryption_admin_password
-    cluster_details['scale_encryption_ssh_key_file'] = scale_encryption_ssh_key_file
-    cluster_details['scale_encryption_folders'] = scale_encryption_folders
+    # Preparing list for Encryption folders
+    if scale_encryption_folders:
+        cleaned_folder_string = scale_encryption_folders.strip(
+            '[]').replace('\\"', '').split(',')
+        # Remove extra double quotes around each folder and create the final list
+        formatted_folder_list = [folder.strip(
+            '"') for folder in cleaned_folder_string]
+        cluster_details['scale_encryption_folders'] = formatted_folder_list
+    else:
+        cluster_details['scale_encryption_folders'] = []
     return cluster_details
 
 
@@ -608,8 +628,6 @@ if __name__ == "__main__":
                         default=[])
     PARSER.add_argument('--scale_encryption_admin_password', help='Admin Password for the Key server',
                         default="null")
-    PARSER.add_argument('--scale_encryption_ssh_key_file', help='SSH Key for the Key server',
-                        default="null")
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
@@ -776,11 +794,11 @@ if __name__ == "__main__":
 
     # Step-4.1: Create Encryption playbook
     if ARGUMENTS.scale_encryption_enabled == "true":
-        encryption_playbook_content = prepare_ansible_playbook_encryption_cluster()
+        encryption_playbook_content = prepare_ansible_playbook_encryption_sgklm()
         write_to_file("%s/%s/encryption_sgklm_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                                 "ibm-spectrum-scale-install-infra"), encryption_playbook_content)
         encryption_playbook_content = prepare_ansible_playbook_encryption_cluster(
-            "scale_nodes", ARGUMENTS.instance_private_key)
+            "scale_nodes")
         write_to_file("%s/%s/encryption_cluster_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                                   "ibm-spectrum-scale-install-infra"), encryption_playbook_content)
     if ARGUMENTS.verbose:
@@ -812,10 +830,14 @@ if __name__ == "__main__":
 
     config['all:vars'] = initialize_cluster_details(TF['scale_version'],
                                                     cluster_name,
+                                                    cluster_type,
                                                     gui_username,
                                                     gui_password,
                                                     profile_path,
-                                                    replica_config)
+                                                    replica_config,
+                                                    ARGUMENTS.scale_encryption_servers,
+                                                    ARGUMENTS.scale_encryption_admin_password,
+                                                    ARGUMENTS.scale_encryption_folders)
     with open("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                           "ibm-spectrum-scale-install-infra",
                                           cluster_type), 'w') as configfile:
