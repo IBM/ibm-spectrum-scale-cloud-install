@@ -22,6 +22,10 @@ variable "bastion_ssh_private_key" {}
 variable "meta_private_key" {}
 variable "scale_version" {}
 variable "spectrumscale_rpms_path" {}
+variable "scale_encryption_enabled" {}
+variable "scale_encryption_admin_password" {}
+variable "scale_encryption_servers" {}
+variable "scale_encryption_folders" {}
 
 locals {
   scripts_path             = replace(path.module, "compute_configuration", "scripts")
@@ -31,6 +35,8 @@ locals {
   compute_private_key      = format("%s/compute_key/id_rsa", var.clone_path) #tfsec:ignore:GEN002
   compute_inventory_path   = format("%s/%s/compute_inventory.ini", var.clone_path, "ibm-spectrum-scale-install-infra")
   compute_playbook_path    = format("%s/%s/compute_cloud_playbook.yaml", var.clone_path, "ibm-spectrum-scale-install-infra")
+  scale_encryption_servers = jsonencode(var.scale_encryption_servers)
+  scale_encryption_folders = jsonencode(var.scale_encryption_folders)
 }
 
 resource "local_file" "create_compute_tuning_parameters" {
@@ -61,7 +67,7 @@ resource "local_sensitive_file" "write_meta_private_key" {
 }
 
 resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.compute_cluster_gui_username} --gui_password ${var.compute_cluster_gui_password}"
@@ -72,11 +78,35 @@ resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection" {
   }
 }
 
+resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection_encryption" {
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == true) ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.compute_cluster_gui_username} --gui_password ${var.compute_cluster_gui_password} --scale_encryption_enabled ${var.scale_encryption_enabled} --scale_encryption_servers ${local.scale_encryption_servers} --scale_encryption_admin_password ${var.scale_encryption_admin_password} --scale_encryption_folders ${local.scale_encryption_folders}"
+  }
+  depends_on = [local_file.create_compute_tuning_parameters, local_sensitive_file.write_meta_private_key]
+  triggers = {
+    build = timestamp()
+  }
+}
+
 resource "null_resource" "prepare_ansible_inventory" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.compute_cluster_gui_username} --gui_password ${var.compute_cluster_gui_password}"
+  }
+  depends_on = [local_file.create_compute_tuning_parameters, local_sensitive_file.write_meta_private_key]
+  triggers = {
+    build = timestamp()
+  }
+}
+
+resource "null_resource" "prepare_ansible_inventory_encryption" {
+  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == true) ? 1 : 0
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.compute_cluster_gui_username} --gui_password ${var.compute_cluster_gui_password} --scale_encryption_enabled ${var.scale_encryption_enabled} --scale_encryption_servers ${local.scale_encryption_servers} --scale_encryption_admin_password ${var.scale_encryption_admin_password} --scale_encryption_folders ${local.scale_encryption_folders}"
   }
   depends_on = [local_file.create_compute_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {
@@ -90,7 +120,7 @@ resource "null_resource" "wait_for_ssh_availability" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.wait_for_ssh_script_path} --tf_inv_path ${var.inventory_path} --cluster_type compute"
   }
-  depends_on = [null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection]
+  depends_on = [null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection, null_resource.prepare_ansible_inventory_encryption, null_resource.prepare_ansible_inventory_using_jumphost_connection_encryption]
   triggers = {
     build = timestamp()
   }
@@ -108,7 +138,7 @@ resource "null_resource" "perform_scale_deployment" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -f 32 -i ${local.compute_inventory_path} ${local.compute_playbook_path} --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""
   }
-  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection]
+  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection, null_resource.prepare_ansible_inventory_encryption, null_resource.prepare_ansible_inventory_using_jumphost_connection_encryption]
   triggers = {
     build = timestamp()
   }
@@ -116,5 +146,5 @@ resource "null_resource" "perform_scale_deployment" {
 
 output "compute_cluster_create_complete" {
   value      = true
-  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection, null_resource.perform_scale_deployment]
+  depends_on = [time_sleep.wait_60_seconds, null_resource.wait_for_ssh_availability, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection, null_resource.prepare_ansible_inventory_encryption, null_resource.prepare_ansible_inventory_using_jumphost_connection_encryption, null_resource.perform_scale_deployment]
 }

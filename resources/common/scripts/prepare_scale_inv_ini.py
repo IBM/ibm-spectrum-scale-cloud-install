@@ -207,17 +207,49 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
     return content
 
 
-def initialize_cluster_details(scale_version, cluster_name, username,
+def prepare_ansible_playbook_encryption_sgklm():
+    # Write to playbook
+    content = """---
+# Encryption setup for the key servers
+- hosts: localhost
+  collections:
+     - ibm.spectrum_scale
+  any_errors_fatal: true
+
+  roles:
+     - encryption_prepare
+"""
+    return content.format()
+
+
+def prepare_ansible_playbook_encryption_cluster(hosts_config):
+    # Write to playbook
+    content = """---
+# Enabling encryption on Storage Scale
+- hosts: {hosts_config}
+  collections:
+     - ibm.spectrum_scale
+  any_errors_fatal: true
+
+  roles:
+     - encryption_configure
+"""
+    return content.format(hosts_config=hosts_config)
+
+
+def initialize_cluster_details(scale_version, cluster_name, cluster_type, username,
                                password, scale_profile_path,
-                               scale_replica_config):
+                               scale_replica_config, scale_encryption_servers, scale_encryption_admin_password, scale_encryption_folders):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
-           scale_replica_config (bool)
+           scale_replica_config (bool) ,scale_encryption_servers (list),  scale_encryption_ssh_key_file (string),
+           scale_encryption_admin_password(string), scale_encryption_folders (list),
     """
     cluster_details = {}
     cluster_details['scale_version'] = scale_version
     cluster_details['scale_cluster_clustername'] = cluster_name
+    cluster_details['scale_cluster_type'] = cluster_type
     cluster_details['scale_service_gui_start'] = "True"
     cluster_details['scale_gui_admin_user'] = username
     cluster_details['scale_gui_admin_password'] = password
@@ -227,6 +259,26 @@ def initialize_cluster_details(scale_version, cluster_name, username,
         pathlib.PurePath(scale_profile_path).stem)
     cluster_details['scale_cluster_profile_dir_path'] = str(
         pathlib.PurePath(scale_profile_path).parent)
+    # Preparing list for Encryption Servers
+    if scale_encryption_servers:
+        cleaned_ip_string = scale_encryption_servers.strip(
+            '[]').replace('\\"', '').split(',')
+        # Remove extra double quotes around each IP address and create the final list
+        formatted_ip_list = [ip.strip('"') for ip in cleaned_ip_string]
+        cluster_details['scale_encryption_servers'] = formatted_ip_list
+    else:
+        cluster_details['scale_encryption_servers'] = []
+    cluster_details['scale_encryption_admin_password'] = scale_encryption_admin_password
+    # Preparing list for Encryption folders
+    if scale_encryption_folders:
+        cleaned_folder_string = scale_encryption_folders.strip(
+            '[]').replace('\\"', '').split(',')
+        # Remove extra double quotes around each folder and create the final list
+        formatted_folder_list = [folder.strip(
+            '"') for folder in cleaned_folder_string]
+        cluster_details['scale_encryption_folders'] = formatted_folder_list
+    else:
+        cluster_details['scale_encryption_folders'] = []
     return cluster_details
 
 
@@ -568,7 +620,14 @@ if __name__ == "__main__":
                         help='Spectrum Scale GUI password')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
-
+    PARSER.add_argument('--scale_encryption_enabled', help='Enabling encryption feature with SGKLM',
+                        default=False)
+    PARSER.add_argument('--scale_encryption_servers', help='List of key servers for encryption',
+                        default=[])
+    PARSER.add_argument('--scale_encryption_folders', help='List of folders for encryption on fileset',
+                        default=[])
+    PARSER.add_argument('--scale_encryption_admin_password', help='Admin Password for the Key server',
+                        default="null")
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
@@ -733,6 +792,19 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Content of ansible playbook:\n", playbook_content)
 
+    # Step-4.1: Create Encryption playbook
+    if ARGUMENTS.scale_encryption_enabled == "true":
+        encryption_playbook_content = prepare_ansible_playbook_encryption_sgklm()
+        write_to_file("%s/%s/encryption_sgklm_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                                "ibm-spectrum-scale-install-infra"), encryption_playbook_content)
+        encryption_playbook_content = prepare_ansible_playbook_encryption_cluster(
+            "scale_nodes")
+        write_to_file("%s/%s/encryption_cluster_playbook.yaml" % (ARGUMENTS.install_infra_path,
+                                                                  "ibm-spectrum-scale-install-infra"), encryption_playbook_content)
+    if ARGUMENTS.verbose:
+        print("Content of ansible playbook for encryption:\n",
+              encryption_playbook_content)
+
     # Step-5: Create hosts
     config = configparser.ConfigParser(allow_no_value=True)
     node_details = initialize_node_details(len(TF['vpc_availability_zones']), cluster_type,
@@ -758,10 +830,14 @@ if __name__ == "__main__":
 
     config['all:vars'] = initialize_cluster_details(TF['scale_version'],
                                                     cluster_name,
+                                                    cluster_type,
                                                     gui_username,
                                                     gui_password,
                                                     profile_path,
-                                                    replica_config)
+                                                    replica_config,
+                                                    ARGUMENTS.scale_encryption_servers,
+                                                    ARGUMENTS.scale_encryption_admin_password,
+                                                    ARGUMENTS.scale_encryption_folders)
     with open("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                           "ibm-spectrum-scale-install-infra",
                                           cluster_type), 'w') as configfile:
