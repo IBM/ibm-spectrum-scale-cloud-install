@@ -551,7 +551,7 @@ module "remote_mount_configuration" {
 
 module "encryption_configuration" {
   source                                  = "../../../resources/common/encryption_configuration"
-  turn_on                                 = var.scale_encryption_enabled
+  turn_on                                 = var.scale_encryption_enabled == true ? true : false
   clone_path                              = var.scale_ansible_repo_clone_path
   clone_complete                          = module.prepare_ansible_configuration.clone_complete
   scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
@@ -559,8 +559,12 @@ module "encryption_configuration" {
   scale_encryption_admin_username         = var.scale_encryption_admin_username
   scale_encryption_servers                = jsonencode(one(module.sgklm_instance[*].instance_private_ips))
   meta_private_key                        = module.generate_sgklm_instance_keys.private_key_content
+  storage_cluster_encryption              = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+  compute_cluster_encryption              = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+  combined_cluster_encryption             = var.create_separate_namespaces == false ? true : false
   compute_cluster_create_complete         = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete         = module.storage_cluster_configuration.storage_cluster_create_complete
   combined_cluster_create_complete        = module.combined_cluster_configuration.combined_cluster_create_complete
   remote_mount_create_complete            = module.remote_mount_configuration.remote_mount_create_complete
+  depends_on                              = [module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
 }
