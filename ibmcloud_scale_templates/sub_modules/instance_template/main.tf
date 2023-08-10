@@ -164,6 +164,19 @@ module "compute_cluster_instances" {
   vsi_meta_public_key  = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.compute_cluster_ingress_security_rule, module.compute_cluster_ingress_security_rule_wt_bastion, module.compute_cluster_ingress_security_rule_wo_bastion, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags        = var.scale_cluster_resource_tags
+  storage_domain_name  = var.vpc_storage_cluster_dns_domain
+  storage_dns_service_id = var.vpc_storage_cluster_dns_service_id
+  storage_dns_zone_id  = var.vpc_storage_cluster_dns_zone_id
+  storage_subnet_id    = var.vpc_storage_cluster_private_subnets
+  storage_sec_group    = [module.storage_cluster_security_group.sec_group_id]
+  enable_sec_interface_compute = local.enable_sec_interface_compute
+}
+
+locals {
+  # Getting bandwidth of compute and storage vsi and based on that checking mrot will be enabled or not.
+  enable_sec_interface_compute = var.storage_type != "persistent" && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
+  enable_sec_interface_storage = var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
+  enable_mrot_conf = local.enable_sec_interface_compute && local.enable_sec_interface_storage == true ? true : false
 }
 
 data "ibm_is_instance_profile" "storage_profile" {
@@ -214,6 +227,7 @@ module "storage_cluster_instances" {
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags        = var.scale_cluster_resource_tags
+  enable_sec_interface_storage = local.enable_sec_interface_storage
 }
 
 module "storage_cluster_bare_metal_server" {
@@ -256,6 +270,7 @@ module "storage_cluster_tie_breaker_instance" {
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags        = var.scale_cluster_resource_tags
+  enable_sec_interface_storage = local.enable_sec_interface_storage
 }
 
 module "activity_tracker" {
@@ -284,7 +299,7 @@ module "write_compute_cluster_inventory" {
   bastion_user                                     = jsonencode(var.bastion_user)
   inventory_path                                   = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("IBMCloud")
-  resource_prefix                                  = jsonencode(var.resource_prefix)
+  resource_prefix                                  = jsonencode(format("%s.%s", var.resource_prefix, var.vpc_compute_cluster_dns_domain)) #jsonencode(var.resource_prefix)
   vpc_region                                       = jsonencode(var.vpc_region)
   vpc_availability_zones                           = jsonencode(var.vpc_availability_zones)
   scale_version                                    = jsonencode(local.scale_version)
@@ -293,7 +308,7 @@ module "write_compute_cluster_inventory" {
   bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   compute_cluster_instance_ids                     = jsonencode(module.compute_cluster_instances.instance_ids)
-  compute_cluster_instance_private_ips             = jsonencode(module.compute_cluster_instances.instance_private_ips)
+  compute_cluster_instance_private_ips             = local.enable_sec_interface_compute ? jsonencode(module.compute_cluster_instances.secondary_interface_ips) : jsonencode(module.compute_cluster_instances.instance_private_ips)
   compute_cluster_instance_private_dns_ip_map      = jsonencode(module.compute_cluster_instances.instance_private_dns_ip_map)
   storage_cluster_filesystem_mountpoint            = jsonencode("None")
   storage_cluster_instance_ids                     = jsonencode([])
@@ -304,6 +319,8 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode([])
   storage_cluster_desc_data_volume_mapping         = jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
+  compute_cluster_instance_names                   = local.enable_sec_interface_compute ? jsonencode(module.compute_cluster_instances.secondary_interface_names) : jsonencode(module.compute_cluster_instances.instance_names)
+  storage_cluster_instance_names                   = jsonencode([])
 }
 
 module "write_storage_cluster_inventory" {
@@ -313,7 +330,7 @@ module "write_storage_cluster_inventory" {
   bastion_user                                     = jsonencode(var.bastion_user)
   inventory_path                                   = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("IBMCloud")
-  resource_prefix                                  = jsonencode(var.resource_prefix)
+  resource_prefix                                  = jsonencode(format("%s.%s", var.resource_prefix, var.vpc_storage_cluster_dns_domain)) #jsonencode(var.resource_prefix)
   vpc_region                                       = jsonencode(var.vpc_region)
   vpc_availability_zones                           = jsonencode(var.vpc_availability_zones)
   scale_version                                    = jsonencode(local.scale_version)
@@ -333,6 +350,8 @@ module "write_storage_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
+  storage_cluster_instance_names                   = local.enable_sec_interface_storage ? jsonencode(one(module.storage_cluster_instances[*].secondary_interface_names)) : jsonencode(one(module.storage_cluster_instances[*].instance_names))
+  compute_cluster_instance_names                   = jsonencode([])
 }
 
 module "write_cluster_inventory" {
@@ -362,6 +381,8 @@ module "write_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
   storage_cluster_desc_data_volume_mapping         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map) : jsonencode({})
+  storage_cluster_instance_names                   = jsonencode([])
+  compute_cluster_instance_names                   = jsonencode([])
 }
 
 module "compute_cluster_configuration" {
