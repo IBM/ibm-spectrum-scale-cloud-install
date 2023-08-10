@@ -466,9 +466,9 @@ module "compute_cluster_configuration" {
   scale_version                   = local.scale_version
   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
   scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled == "true" ? var.scale_encryption_admin_password : null
-  scale_encryption_servers        = var.scale_encryption_enabled == "true" ? jsonencode(one(module.sgklm_instance[*].instance_private_ips)) : null
-  scale_encryption_folders        = var.scale_encryption_enabled == "true" ? var.scale_encryption_folders : null
+  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+  scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.sgklm_instance[*].instance_private_ips)) : null
+  scale_encryption_folders        = var.scale_encryption_enabled ? var.scale_encryption_folders : null
 }
 
 module "storage_cluster_configuration" {
@@ -495,9 +495,9 @@ module "storage_cluster_configuration" {
   scale_version                   = local.scale_version
   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
   scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled == "true" ? var.scale_encryption_admin_password : null
-  scale_encryption_servers        = var.scale_encryption_enabled == "true" ? jsonencode(one(module.sgklm_instance[*].instance_private_ips)) : null
-  scale_encryption_folders        = var.scale_encryption_enabled == "true" ? var.scale_encryption_folders : null
+  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+  scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.sgklm_instance[*].instance_private_ips)) : null
+  scale_encryption_folders        = var.scale_encryption_enabled ? var.scale_encryption_folders : null
 }
 
 module "combined_cluster_configuration" {
@@ -521,9 +521,9 @@ module "combined_cluster_configuration" {
   scale_version                   = local.scale_version
   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
   scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled == "true" ? var.scale_encryption_admin_password : null
-  scale_encryption_servers        = var.scale_encryption_enabled == "true" ? jsonencode(one(module.sgklm_instance[*].instance_private_ips)) : null
-  scale_encryption_folders        = var.scale_encryption_enabled == "true" ? var.scale_encryption_folders : null
+  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+  scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.sgklm_instance[*].instance_private_ips)) : null
+  scale_encryption_folders        = var.scale_encryption_enabled ? var.scale_encryption_folders : null
 }
 
 module "remote_mount_configuration" {
