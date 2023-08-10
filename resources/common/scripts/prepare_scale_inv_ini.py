@@ -275,7 +275,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
             scale_encryption_folders).replace(" ", "").strip("[]")
         encryption_folders = encryption_folders_list_str.split(",")
         cluster_details['scale_encryption_folders'] = [
-            server.strip("'") for server in encryption_folders]
+            folder.strip("'") for folder in encryption_folders]
     else:
         cluster_details['scale_encryption_folders'] = []
     return cluster_details
