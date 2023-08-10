@@ -554,6 +554,7 @@ module "encryption_configuration" {
   turn_on                                 = var.scale_encryption_enabled == true ? true : false
   clone_path                              = var.scale_ansible_repo_clone_path
   clone_complete                          = module.prepare_ansible_configuration.clone_complete
+  scale_cluster_clustername               = var.resource_prefix
   scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
   scale_encryption_admin_password         = var.scale_encryption_admin_password
   scale_encryption_admin_username         = var.scale_encryption_admin_username
