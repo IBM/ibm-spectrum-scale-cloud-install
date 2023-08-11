@@ -307,8 +307,8 @@ module "write_compute_cluster_inventory" {
   compute_cluster_filesystem_mountpoint            = jsonencode(var.compute_cluster_filesystem_mountpoint)
   bastion_instance_id                              = var.bastion_instance_id == null ? jsonencode("None") : jsonencode(var.bastion_instance_id)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(module.compute_cluster_instances.instance_ids)
-  compute_cluster_instance_private_ips             = local.enable_sec_interface_compute ? jsonencode(module.compute_cluster_instances.secondary_interface_ips) : jsonencode(module.compute_cluster_instances.instance_private_ips)
+  compute_cluster_instance_ids                     = local.enable_sec_interface_compute ? jsonencode(values(module.compute_cluster_instances.secondary_interface_names_id_map)) : jsonencode(values(module.compute_cluster_instances.instance_name_id_map))
+  compute_cluster_instance_private_ips             = local.enable_sec_interface_compute ? jsonencode(values(module.compute_cluster_instances.secondary_interface_names_ip_map)) : jsonencode(values(module.compute_cluster_instances.instance_name_ip_map))
   compute_cluster_instance_private_dns_ip_map      = jsonencode(module.compute_cluster_instances.instance_private_dns_ip_map)
   storage_cluster_filesystem_mountpoint            = jsonencode("None")
   storage_cluster_instance_ids                     = jsonencode([])
@@ -319,7 +319,7 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode([])
   storage_cluster_desc_data_volume_mapping         = jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
-  compute_cluster_instance_names                   = local.enable_sec_interface_compute ? jsonencode(module.compute_cluster_instances.secondary_interface_names) : jsonencode(module.compute_cluster_instances.instance_names)
+  compute_cluster_instance_names                   = local.enable_sec_interface_compute ? jsonencode(keys(module.compute_cluster_instances.secondary_interface_names_id_map)) : jsonencode(keys(module.compute_cluster_instances.instance_name_id_map))
   storage_cluster_instance_names                   = jsonencode([])
 }
 
@@ -342,15 +342,15 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_private_ips             = jsonencode([])
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = var.storage_type == "persistent" ? jsonencode(values(one(module.storage_cluster_bare_metal_server[*].instance_names_id_map))) : jsonencode(values(one(module.storage_cluster_instances[*].instance_names_id_map)))
-  storage_cluster_instance_private_ips             = var.storage_type == "persistent" ? jsonencode(values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))) : jsonencode(values(one(module.storage_cluster_instances[*].instance_private_name_ip_map)))
+  storage_cluster_instance_ids                     = var.storage_type == "persistent" ? jsonencode(values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map))) : jsonencode(values(one(module.storage_cluster_instances[*].instance_name_id_map)))
+  storage_cluster_instance_private_ips             = var.storage_type == "persistent" ? jsonencode(values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))) : jsonencode(values(one(module.storage_cluster_instances[*].instance_name_ip_map)))
   storage_cluster_with_data_volume_mapping         = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
   storage_cluster_instance_private_dns_ip_map      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_dns_ip_map)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_dns_ip_map))
   storage_cluster_desc_instance_ids                = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
-  storage_cluster_instance_names                   = var.storage_type == "persistent" ?  jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))) : jsonencode(keys(one(module.storage_cluster_instances[*].instance_names_id_map)))
+  storage_cluster_instance_names                   = var.storage_type == "persistent" ?  jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))) : jsonencode(keys(one(module.storage_cluster_instances[*].instance_name_id_map)))
   compute_cluster_instance_names                   = jsonencode([])
 }
 

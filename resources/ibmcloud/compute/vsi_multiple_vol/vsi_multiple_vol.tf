@@ -257,8 +257,12 @@ output "instance_ips_with_vol_mapping" {
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
+# output "instance_private_dns_ip_map" {
+#   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
+# }
+
 output "instance_private_dns_ip_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
+  value = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.private_dns }, {})
 }
 
 output "secondary_interface_names" {
@@ -271,12 +275,12 @@ output "secondary_interface_ips" {
   depends_on = [ibm_dns_resource_record.sec_interface_a_record, ibm_dns_resource_record.sec_interface_ptr_record]
 }
 
-output "instance_names_id_map" {
+output "instance_name_id_map" {
   value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
-output "instance_private_name_ip_map" {
+output "instance_name_ip_map" {
   value      = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
