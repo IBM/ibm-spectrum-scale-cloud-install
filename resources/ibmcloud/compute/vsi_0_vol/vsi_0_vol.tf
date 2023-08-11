@@ -284,6 +284,6 @@ output "details" {
 }
 
 output "secondary_interface_names_id_map" {
-  value = try({ for instance_details in ibm_is_instance.itself: instance_details[*].network_interfaces[*].name => instance_details.id} , {})
+  value = try({ for instance_details in ibm_is_instance.itself: instance_details.id => instance_details[*].network_interfaces[*].name } , {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
