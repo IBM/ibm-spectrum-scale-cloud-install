@@ -289,6 +289,6 @@ output "secondary_interface_name_id_map" {
 }
 
 output "secondary_interface_name_ip_map" {
-  value = try({for instance_details in ibm_is_instance.itself : one(instance_details.network_interfaces[*].name) => one(one(instance_details.network_interfaces[*].primary_ip[*].address)) }, {})
+  value = try({for instance_details in ibm_is_instance.itself : "${one(instance_details.network_interfaces[*].name)}.${var.dns_domain}" => one(one(instance_details.network_interfaces[*].primary_ip[*].address)) }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
