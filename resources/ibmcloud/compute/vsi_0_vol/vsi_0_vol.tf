@@ -282,12 +282,8 @@ output "details" {
   value = try([for instance_details in ibm_is_instance.itself: instance_details], [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
-# output "secondary_interface_names_id_map" {
-#   value = try({for instance_details in ibm_is_instance.itself : [ for network_interface in instance_details[*].network_interfaces[*] : network_interface.name ] => network_interface.id }, {})
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
 
-# output "secondary_interface_names_ip_map" {
-#   value = try({for instance_details in ibm_is_instance.itself : [ for network_interface in instance_details[*].network_interfaces[*] : network_interface.name ] => [ for network_interface in instance_details[*].network_interfaces[*] : network_interface.address] }, {})
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
+output "secondary_interface_names_id_map" {
+  value = try({ for instance_details in ibm_is_instance.itself: instance_details[*].network_interfaces[*].name => instance_details.id} , {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+}
