@@ -319,7 +319,7 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode([])
   storage_cluster_desc_data_volume_mapping         = jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
-  compute_cluster_instance_names                   = local.enable_sec_interface_compute ? jsonencode(keys(module.compute_cluster_instances.secondary_interface_names_id_map)) : jsonencode(keys(module.compute_cluster_instances.instance_name_id_map))
+  compute_cluster_instance_names                   = local.enable_sec_interface_compute ? jsonencode(keys(module.compute_cluster_instances.secondary_interface_name_id_map)) : jsonencode(keys(module.compute_cluster_instances.instance_name_id_map))
   storage_cluster_instance_names                   = jsonencode([])
 }
 
