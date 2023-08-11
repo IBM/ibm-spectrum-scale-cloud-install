@@ -176,7 +176,7 @@ locals {
   # Getting bandwidth of compute and storage vsi and based on that checking mrot will be enabled or not.
   enable_sec_interface_compute = var.storage_type != "persistent" && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
   enable_sec_interface_storage = var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
-  enable_mrot_conf = local.enable_sec_interface_compute && local.enable_sec_interface_storage == true ? true : false
+  enable_mrot_conf = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
 }
 
 data "ibm_is_instance_profile" "storage_profile" {
@@ -321,6 +321,9 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
   compute_cluster_instance_names                   = local.enable_sec_interface_compute ? jsonencode(keys(module.compute_cluster_instances.secondary_interface_name_id_map)) : jsonencode(keys(module.compute_cluster_instances.instance_name_id_map))
   storage_cluster_instance_names                   = jsonencode([])
+  storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.storage_subnet_cidr) : jsonencode("") 
+  compute_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.compute_subnet_cidr) : jsonencode("") 
+  opposit_cluster_clustername                      = local.enable_mrot_conf ? jsonencode(format("%s.%s", var.resource_prefix, var.vpc_storage_cluster_dns_domain)) : jsonencode("")
 }
 
 module "write_storage_cluster_inventory" {
@@ -352,6 +355,9 @@ module "write_storage_cluster_inventory" {
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
   storage_cluster_instance_names                   = var.storage_type == "persistent" ?  jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))) : jsonencode(keys(one(module.storage_cluster_instances[*].instance_name_id_map)))
   compute_cluster_instance_names                   = jsonencode([])
+  storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.storage_subnet_cidr) : jsonencode("") 
+  compute_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.compute_subnet_cidr) : jsonencode("")
+  opposit_cluster_clustername                      = local.enable_mrot_conf ? jsonencode(format("%s.%s", var.resource_prefix, var.vpc_compute_cluster_dns_domain)) : jsonencode("")
 }
 
 module "write_cluster_inventory" {
@@ -383,6 +389,9 @@ module "write_cluster_inventory" {
   storage_cluster_desc_instance_private_dns_ip_map = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map) : jsonencode({})
   storage_cluster_instance_names                   = jsonencode([])
   compute_cluster_instance_names                   = jsonencode([])
+  storage_subnet_cidr                              = jsonencode("") 
+  compute_subnet_cidr                              = jsonencode("")
+  opposit_cluster_clustername                      = jsonencode("")
 }
 
 module "compute_cluster_configuration" {
@@ -407,6 +416,7 @@ module "compute_cluster_configuration" {
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  enable_mrot_conf             = local.enable_mrot_conf
 }
 
 module "storage_cluster_configuration" {
@@ -432,6 +442,7 @@ module "storage_cluster_configuration" {
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  enable_mrot_conf             = local.enable_mrot_conf
 }
 
 module "combined_cluster_configuration" {
@@ -478,3 +489,15 @@ module "remote_mount_configuration" {
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
 }
+
+# It is commented because it is getting ran by schematices repo but it should be ran by cloud deployer and it should be ran after remote mount config.
+/*
+module "mrot_configuration" {
+  source                          = "../../../resources/common/mrot_configuration"
+  turn_on                         = local.enable_sec_interface_compute && local.enable_sec_interface_storage == true ? true : false
+  clone_path                      = var.scale_ansible_repo_clone_path
+  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
+  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+  remote_mount_create_complete    = module.remote_mount_configuration.remote_mount_create_complete
+}
+*/

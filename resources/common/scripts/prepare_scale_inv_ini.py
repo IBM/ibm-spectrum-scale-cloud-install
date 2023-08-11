@@ -209,7 +209,7 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
 
 def initialize_cluster_details(scale_version, cluster_name, username,
                                password, scale_profile_path,
-                               scale_replica_config):
+                               scale_replica_config, storage_subnet_cidr, compute_subnet_cidr, opposit_cluster_clustername):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
@@ -227,6 +227,9 @@ def initialize_cluster_details(scale_version, cluster_name, username,
         pathlib.PurePath(scale_profile_path).stem)
     cluster_details['scale_cluster_profile_dir_path'] = str(
         pathlib.PurePath(scale_profile_path).parent)
+    cluster_details['storage_subnet_cidr'] = storage_subnet_cidr
+    cluster_details['compute_subnet_cidr'] = compute_subnet_cidr
+    cluster_details['opposit_cluster_clustername'] = opposit_cluster_clustername
     return cluster_details
 
 
@@ -248,7 +251,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
     if cls_type == 'compute':
         start_quorum_assign = quorum_count - 1
         for each_ip in compute_cluster_instance_names:
-            each_name = each_ip.split('.', 1)[0]        #Is this permanent ??
+            each_name = each_ip.rsplit('.', 2)[0]        #Any other possiblitiy for name??
             if compute_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     compute_cluster_instance_names.index(each_ip) <= (manager_count - 1):
                 if compute_cluster_instance_names.index(each_ip) == 0:
@@ -284,7 +287,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
     elif cls_type == 'storage' and az_count == 1:
         start_quorum_assign = quorum_count - 1
         for each_ip in storage_cluster_instance_names:
-            each_name = each_ip.split('.', 1)[0]
+            each_name = each_ip.rsplit('.', 2)[0]
             if storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     storage_cluster_instance_names.index(each_ip) <= (manager_count - 1):
                 if storage_cluster_instance_names.index(each_ip) == 0:
@@ -568,6 +571,7 @@ if __name__ == "__main__":
                         help='Spectrum Scale GUI username')
     PARSER.add_argument('--gui_password', required=True,
                         help='Spectrum Scale GUI password')
+    PARSER.add_argument('--enable_mrot_conf', required=True)
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
 
@@ -764,7 +768,10 @@ if __name__ == "__main__":
                                                     gui_username,
                                                     gui_password,
                                                     profile_path,
-                                                    replica_config)
+                                                    replica_config,
+                                                    TF['storage_subnet_cidr'],
+                                                    TF['compute_subnet_cidr'],
+                                                    TF['opposit_cluster_clustername'])
     with open("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                           "ibm-spectrum-scale-install-infra",
                                           cluster_type), 'w') as configfile:

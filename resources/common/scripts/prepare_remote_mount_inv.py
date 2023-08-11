@@ -118,7 +118,7 @@ def initialize_node_details(storage_gui_ip, user, key_file):
         "user": user,
         "key_file": key_file,
         "class": "storagenodegrp",
-        "host_name_eth1": storage_gui_ip.split('.', 1)[0]
+        "host_name_eth1": storage_gui_ip.rsplit('.', 2)[0]
     }
     node_details.append(get_host_format(node))
     return node_details

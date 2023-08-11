@@ -107,7 +107,6 @@ echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
-
 if grep -q "8.6" /etc/os-release && [ "${var.enable_sec_interface_storage}" == true ]; then
     cp /etc/sysconfig/network-scripts/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth1
     sed -i 's/eth0/eth1/g' /etc/sysconfig/network-scripts/ifcfg-eth1

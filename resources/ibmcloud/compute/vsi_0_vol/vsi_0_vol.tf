@@ -96,7 +96,6 @@ echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
-
 if [ "${var.enable_sec_interface_compute}" == true ]; then
     if grep -q "8.6" /etc/os-release
     then
@@ -265,21 +264,6 @@ output "instance_name_id_map" {
 
 output "instance_name_ip_map" {
   value      = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "secondary_interface_names" {
-  value = try(toset(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), [])
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "secondary_interface_ips" {
-  value = try(toset(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), [])
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "details" {
-  value = try([for instance_details in ibm_is_instance.itself : instance_details], [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
