@@ -780,7 +780,7 @@ if __name__ == "__main__":
                                                     gui_password,
                                                     profile_path,
                                                     replica_config,
-                                                    TF['enable_mrot_conf'],
+                                                    ARGUMENTS.enable_mrot_conf,
                                                     TF['storage_subnet_cidr'],
                                                     TF['compute_subnet_cidr'],
                                                     TF['opposit_cluster_clustername'])
