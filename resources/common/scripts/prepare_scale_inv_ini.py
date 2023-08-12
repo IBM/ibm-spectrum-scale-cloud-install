@@ -148,6 +148,16 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: perfmon_install, when: "scale_packages_installed is false" }}
      - perfmon_configure
      - perfmon_verify
+
+# Configure MROT if it is enable
+- hosts: {hosts_config}
+  any_errors_fatal: true
+  when: enable_mrot | default(false)
+  roles:
+     - mrot_config
+  post_tasks:
+    - name: Startup the compute gpfs cluster
+      include: samples/startup_compute_cluster.yaml
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content
@@ -208,8 +218,8 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
 
 
 def initialize_cluster_details(scale_version, cluster_name, username,
-                               password, scale_profile_path,
-                               scale_replica_config, storage_subnet_cidr, compute_subnet_cidr, opposit_cluster_clustername):
+                               password, scale_profile_path, scale_replica_config, enable_mrot,
+                            storage_subnet_cidr, compute_subnet_cidr, opposit_cluster_clustername):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
@@ -227,6 +237,7 @@ def initialize_cluster_details(scale_version, cluster_name, username,
         pathlib.PurePath(scale_profile_path).stem)
     cluster_details['scale_cluster_profile_dir_path'] = str(
         pathlib.PurePath(scale_profile_path).parent)
+    cluster_details['enable_mrot'] = enable_mrot
     cluster_details['storage_subnet_cidr'] = storage_subnet_cidr
     cluster_details['compute_subnet_cidr'] = compute_subnet_cidr
     cluster_details['opposit_cluster_clustername'] = opposit_cluster_clustername
@@ -769,6 +780,7 @@ if __name__ == "__main__":
                                                     gui_password,
                                                     profile_path,
                                                     replica_config,
+                                                    TF['enable_mrot_conf'],
                                                     TF['storage_subnet_cidr'],
                                                     TF['compute_subnet_cidr'],
                                                     TF['opposit_cluster_clustername'])
