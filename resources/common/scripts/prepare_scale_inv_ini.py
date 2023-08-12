@@ -148,16 +148,10 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: perfmon_install, when: "scale_packages_installed is false" }}
      - perfmon_configure
      - perfmon_verify
-
-# Configure MROT if it is enable
-- hosts: {hosts_config}
-  any_errors_fatal: true
-  when: enable_mrot | default(false)
-  roles:
-     - mrot_config
-  post_tasks:
-    - name: Startup the compute gpfs cluster
-      include: samples/startup_compute_cluster.yaml
+     - {{ role: mrot_config, when: "{{{{ enable_mrot }}}} is true" }}
+#   post_tasks:
+#      - name: Startup the compute gpfs cluster
+#        include: collections/ansible_collections/ibm/spectrum_scale/samples/startup_cluster.yaml
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content
