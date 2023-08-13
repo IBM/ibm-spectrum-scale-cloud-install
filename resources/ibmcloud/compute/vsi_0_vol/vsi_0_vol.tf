@@ -118,6 +118,7 @@ if [ "${var.enable_sec_interface_compute}" == true ]; then
         sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
         hwaddr=$(ifconfig | grep ether | awk -F " " '{print$2}' | awk 'NR==2 {print}')
         echo "HWADDR=$hwaddr" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+        echo "NAME=\"$sec_interface\"" >> /etc/sysconfig/network-scripts/ifcfg-eth1
         echo "DOMAIN=${var.storage_domain_name}" >> /etc/sysconfig/network-scripts/ifcfg-eth1
         sudo systemctl restart NetworkManager
         sudo nmcli connection up "$sec_interface"
