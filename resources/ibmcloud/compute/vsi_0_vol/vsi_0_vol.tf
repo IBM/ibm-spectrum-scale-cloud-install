@@ -103,23 +103,24 @@ if [ "${var.enable_sec_interface_compute}" == true ]; then
         sed -i 's/eth0/eth1/g' /etc/sysconfig/network-scripts/ifcfg-eth1
         sed -i '/HWADD/d' /etc/sysconfig/network-scripts/ifcfg-eth1
         sed -i '/DOMAIN/d' /etc/sysconfig/network-scripts/ifcfg-eth1
-        mac=$(ifconfig | grep ether | awk -F " " '{print$2}' | awk 'NR==2 {print}')
+        hwaddr=$(ifconfig | grep ether | awk -F " " '{print$2}' | awk 'NR==2 {print}')
         sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
-        echo "HWADDR=$mac" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+        echo "HWADDR=$hwaddr" >> /etc/sysconfig/network-scripts/ifcfg-eth1
         echo "NAME=\"$sec_interface\"" >> /etc/sysconfig/network-scripts/ifcfg-eth1
         echo "DOMAIN=${var.storage_domain_name}" >> /etc/sysconfig/network-scripts/ifcfg-eth1
         systemctl restart NetworkManager
         sudo nmcli connection up "$sec_interface"
     else
-        echo "Configuring ifcfg-eth1 file for secondary interface"
         cp /etc/sysconfig/network-scripts/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth1
         sed -i 's/eth0/eth1/g' /etc/sysconfig/network-scripts/ifcfg-eth1
         sed -i '/HWADD/d' /etc/sysconfig/network-scripts/ifcfg-eth1
         sed -i '/DOMAIN/d' /etc/sysconfig/network-scripts/ifcfg-eth1
-        mac=$(ifconfig | grep ether | awk -F " " '{print$2}' | awk 'NR==2 {print}')
-        echo "HWADDR=$mac" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+        sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
+        hwaddr=$(ifconfig | grep ether | awk -F " " '{print$2}' | awk 'NR==2 {print}')
+        echo "HWADDR=$hwaddr" >> /etc/sysconfig/network-scripts/ifcfg-eth1
         echo "DOMAIN=${var.storage_domain_name}" >> /etc/sysconfig/network-scripts/ifcfg-eth1
         sudo systemctl restart NetworkManager
+        sudo nmcli connection up "$sec_interface"
     fi
 fi
 EOF
