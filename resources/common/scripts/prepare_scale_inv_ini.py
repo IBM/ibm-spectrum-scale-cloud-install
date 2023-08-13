@@ -98,6 +98,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
     until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
     retries: 60
     delay: 10
+
 # Validate Scale packages existence to skip node role
 - name: Check if Scale packages already installed on node
   hosts: scale_nodes
@@ -148,10 +149,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: perfmon_install, when: "scale_packages_installed is false" }}
      - perfmon_configure
      - perfmon_verify
-     - {{ role: mrot_config, when: "{{{{ enable_mrot }}}} is true" }}
-#   post_tasks:
-#      - name: Startup the compute gpfs cluster
-#        include: collections/ansible_collections/ibm/spectrum_scale/samples/startup_cluster.yaml
+     - {{ role: mrot_config, when: enable_mrot }}
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content

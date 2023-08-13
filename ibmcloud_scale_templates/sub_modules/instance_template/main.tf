@@ -416,7 +416,7 @@ module "compute_cluster_configuration" {
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
-  enable_mrot_conf             = local.enable_mrot_conf
+  enable_mrot_conf             = local.enable_mrot_conf ? "True" : "False"
 }
 
 module "storage_cluster_configuration" {
@@ -442,7 +442,7 @@ module "storage_cluster_configuration" {
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
-  enable_mrot_conf             = local.enable_mrot_conf
+  enable_mrot_conf             = local.enable_mrot_conf ? "True" : "False"
 }
 
 module "combined_cluster_configuration" {
