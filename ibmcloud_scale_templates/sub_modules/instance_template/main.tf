@@ -353,7 +353,7 @@ module "write_storage_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
-  storage_cluster_instance_names                   = var.storage_type == "persistent" ?  jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))) : jsonencode(keys(one(module.storage_cluster_instances[*].instance_name_id_map)))
+  storage_cluster_instance_names                   = var.storage_type == "persistent" ?  jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map))) : jsonencode(keys(one(module.storage_cluster_instances[*].instance_name_id_map)))
   compute_cluster_instance_names                   = jsonencode([])
   storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.storage_subnet_cidr) : jsonencode("") 
   compute_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.compute_subnet_cidr) : jsonencode("")
