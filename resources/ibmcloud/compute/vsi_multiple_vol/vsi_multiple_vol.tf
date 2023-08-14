@@ -45,11 +45,11 @@ then
     then
         PACKAGE_MGR=dnf
         package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
-        sudo dnf install firewalld
+        sudo dnf install firewalld -y 
     else
         PACKAGE_MGR=yum
         package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
-        sudo yum install firewalld
+        sudo yum install firewalld -y
     fi
 
     RETRY_LIMIT=5
