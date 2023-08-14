@@ -18,6 +18,13 @@ locals {
   storage_bare_metal_image_id = var.storage_bare_metal_osimage_id != "" ? var.storage_bare_metal_osimage_id : data.ibm_is_image.storage_bare_metal_image[0].id
 }
 
+# Getting bandwidth of compute and storage vsi and based on that checking mrot will be enabled or not.
+locals {
+  enable_sec_interface_compute = var.storage_type != "persistent" && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
+  enable_sec_interface_storage = var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
+  enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
+}
+
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
   turn_on = var.total_compute_cluster_instances > 0 ? true : false
@@ -166,17 +173,10 @@ module "compute_cluster_instances" {
   resource_tags        = var.scale_cluster_resource_tags
   storage_domain_name  = var.vpc_storage_cluster_dns_domain
   storage_dns_service_id = var.vpc_storage_cluster_dns_service_id
-  storage_dns_zone_id  = var.vpc_storage_cluster_dns_zone_id
-  storage_subnet_id    = var.vpc_storage_cluster_private_subnets
-  storage_sec_group    = [module.storage_cluster_security_group.sec_group_id]
+  storage_dns_zone_id    = var.vpc_storage_cluster_dns_zone_id
+  storage_subnet_id      = var.vpc_storage_cluster_private_subnets
+  storage_sec_group      = [module.storage_cluster_security_group.sec_group_id]
   enable_sec_interface_compute = local.enable_sec_interface_compute
-}
-
-locals {
-  # Getting bandwidth of compute and storage vsi and based on that checking mrot will be enabled or not.
-  enable_sec_interface_compute = var.storage_type != "persistent" && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
-  enable_sec_interface_storage = var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
-  enable_mrot_conf = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
 }
 
 data "ibm_is_instance_profile" "storage_profile" {
@@ -489,15 +489,3 @@ module "remote_mount_configuration" {
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
 }
-
-# It is commented because it is getting ran by schematices repo but it should be ran by cloud deployer and it should be ran after remote mount config.
-/*
-module "mrot_configuration" {
-  source                          = "../../../resources/common/mrot_configuration"
-  turn_on                         = local.enable_sec_interface_compute && local.enable_sec_interface_storage == true ? true : false
-  clone_path                      = var.scale_ansible_repo_clone_path
-  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
-  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-  remote_mount_create_complete    = module.remote_mount_configuration.remote_mount_create_complete
-}
-*/

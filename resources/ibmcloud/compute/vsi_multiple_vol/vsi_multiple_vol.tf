@@ -140,6 +140,7 @@ resource "ibm_is_instance" "itself" {
   tags    = var.resource_tags
 
   primary_network_interface {
+    name            = format("%s-%s-vnic-0", var.vsi_name_prefix, each.value.sequence_string)
     subnet          = each.value.subnet_id
     security_groups = var.vsi_security_group
   }
@@ -147,7 +148,7 @@ resource "ibm_is_instance" "itself" {
   dynamic "network_interfaces" {
     for_each = var.enable_sec_interface_storage ? [1] : []
     content {
-      name            = format("%s-%s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+      name            = format("%s-%s-vnic-1", var.vsi_name_prefix, each.value.sequence_string)
       subnet          = each.value.subnet_id
       security_groups = var.vsi_security_group
     }
