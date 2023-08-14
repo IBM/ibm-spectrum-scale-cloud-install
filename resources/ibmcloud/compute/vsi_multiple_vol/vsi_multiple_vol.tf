@@ -185,6 +185,11 @@ resource "ibm_is_instance" "itself" {
   }
 }
 
+resource "time_sleep" "wait_60_seconds" {
+  create_duration = "60s"
+  depends_on      = [ibm_is_instance.itself]
+}
+
 # A Record for primary network Interface
 
 resource "ibm_dns_resource_record" "a_itself" {
