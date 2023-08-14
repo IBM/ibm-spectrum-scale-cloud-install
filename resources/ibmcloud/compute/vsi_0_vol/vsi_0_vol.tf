@@ -111,23 +111,6 @@ if [ "${var.enable_sec_interface_compute}" == true ]; then
         systemctl restart NetworkManager
         sudo nmcli connection up "$sec_interface"
     else
-        systemctl stop firewalld
-        firewall-offline-cmd --zone=public --add-port=1191/tcp
-        firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
-        firewall-offline-cmd --zone=public --add-port=47080/tcp
-        firewall-offline-cmd --zone=public --add-port=47080/udp
-        firewall-offline-cmd --zone=public --add-port=47443/tcp
-        firewall-offline-cmd --zone=public --add-port=47443/udp
-        firewall-offline-cmd --zone=public --add-port=4444/tcp
-        firewall-offline-cmd --zone=public --add-port=4444/udp
-        firewall-offline-cmd --zone=public --add-port=4739/udp
-        firewall-offline-cmd --zone=public --add-port=4739/tcp
-        firewall-offline-cmd --zone=public --add-port=9084/tcp
-        firewall-offline-cmd --zone=public --add-port=9085/tcp
-        firewall-offline-cmd --zone=public --add-service=http
-        firewall-offline-cmd --zone=public --add-service=https
-        systemctl start firewalld
-        
         cp /etc/sysconfig/network-scripts/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth1
         sed -i 's/eth0/eth1/g' /etc/sysconfig/network-scripts/ifcfg-eth1
         sed -i '/HWADD/d' /etc/sysconfig/network-scripts/ifcfg-eth1
