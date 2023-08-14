@@ -45,9 +45,11 @@ then
     then
         PACKAGE_MGR=dnf
         package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
+        sudo dnf install firewalld
     else
         PACKAGE_MGR=yum
         package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
+        sudo yum install firewalld
     fi
 
     RETRY_LIMIT=5
@@ -107,6 +109,24 @@ echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
+systemctl stop firewalld
+firewall-offline-cmd --zone=public --add-port=1191/tcp
+firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
+firewall-offline-cmd --zone=public --add-port=47080/tcp
+firewall-offline-cmd --zone=public --add-port=47080/udp
+firewall-offline-cmd --zone=public --add-port=47443/tcp
+firewall-offline-cmd --zone=public --add-port=47443/udp
+firewall-offline-cmd --zone=public --add-port=4444/tcp
+firewall-offline-cmd --zone=public --add-port=4444/udp
+firewall-offline-cmd --zone=public --add-port=4739/udp
+firewall-offline-cmd --zone=public --add-port=4739/tcp
+firewall-offline-cmd --zone=public --add-port=9084/tcp
+firewall-offline-cmd --zone=public --add-port=9085/tcp
+firewall-offline-cmd --zone=public --add-service=http
+firewall-offline-cmd --zone=public --add-service=https
+systemctl start firewalld
+systemctl enable firewalld
+
 if grep -q "8.6" /etc/os-release && [ "${var.enable_sec_interface_storage}" == true ]; then
     cp /etc/sysconfig/network-scripts/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth1
     sed -i 's/eth0/eth1/g' /etc/sysconfig/network-scripts/ifcfg-eth1
