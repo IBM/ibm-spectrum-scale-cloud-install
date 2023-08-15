@@ -46,9 +46,11 @@ then
     then
         PACKAGE_MGR=dnf
         package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
+        sudo dnf install firewalld -y 
     else
         PACKAGE_MGR=yum
         package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync"
+        sudo yum install firewalld -y
     fi
 
     RETRY_LIMIT=5
@@ -112,6 +114,8 @@ firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
 systemctl start firewalld
+systemctl enable firewalld
+
 if [ "${var.enable_sec_interface_compute}" == true ]; then
     if grep -q "8.6" /etc/os-release
     then
