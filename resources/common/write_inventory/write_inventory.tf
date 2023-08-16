@@ -27,6 +27,11 @@ variable "storage_cluster_desc_instance_ids" {}
 variable "storage_cluster_desc_instance_private_ips" {}
 variable "storage_cluster_desc_data_volume_mapping" {}
 variable "storage_cluster_desc_instance_private_dns_ip_map" {}
+variable "compute_cluster_instance_names" {}
+variable "storage_cluster_instance_names" {}
+variable "storage_subnet_cidr" {}
+variable "compute_subnet_cidr" {}
+variable "opposit_cluster_clustername" {}
 
 resource "local_sensitive_file" "itself" {
   count    = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
@@ -53,7 +58,12 @@ resource "local_sensitive_file" "itself" {
     "storage_cluster_desc_instance_ids": ${var.storage_cluster_desc_instance_ids},
     "storage_cluster_desc_instance_private_ips": ${var.storage_cluster_desc_instance_private_ips},
     "storage_cluster_desc_data_volume_mapping": ${var.storage_cluster_desc_data_volume_mapping},
-    "storage_cluster_desc_instance_private_dns_ip_map": ${var.storage_cluster_desc_instance_private_dns_ip_map}
+    "storage_cluster_desc_instance_private_dns_ip_map": ${var.storage_cluster_desc_instance_private_dns_ip_map},
+    "compute_cluster_instance_names": ${var.compute_cluster_instance_names},
+    "storage_cluster_instance_names": ${var.storage_cluster_instance_names},
+    "storage_subnet_cidr": ${var.storage_subnet_cidr},
+    "compute_subnet_cidr": ${var.compute_subnet_cidr},
+    "opposit_cluster_clustername": ${var.opposit_cluster_clustername}
 }
 EOT
   filename = var.inventory_path
