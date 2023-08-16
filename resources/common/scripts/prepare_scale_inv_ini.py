@@ -209,7 +209,7 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
     return content
 
 
-def initialize_cluster_details(scale_version, cluster_name, username,
+def initialize_cluster_details(scale_version, cluster_name, cluster_type, username,
                                password, scale_profile_path, scale_replica_config, enable_mrot,
                             storage_subnet_cidr, compute_subnet_cidr, opposit_cluster_clustername):
     """ Initialize cluster details.
@@ -220,6 +220,7 @@ def initialize_cluster_details(scale_version, cluster_name, username,
     cluster_details = {}
     cluster_details['scale_version'] = scale_version
     cluster_details['scale_cluster_clustername'] = cluster_name
+    cluster_details['scale_cluster_type'] = cluster_type
     cluster_details['scale_service_gui_start'] = "True"
     cluster_details['scale_gui_admin_user'] = username
     cluster_details['scale_gui_admin_password'] = password
@@ -768,6 +769,7 @@ if __name__ == "__main__":
 
     config['all:vars'] = initialize_cluster_details(TF['scale_version'],
                                                     cluster_name,
+                                                    cluster_type,
                                                     gui_username,
                                                     gui_password,
                                                     profile_path,
