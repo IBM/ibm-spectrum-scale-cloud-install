@@ -171,7 +171,8 @@ data "ibm_is_instance_profile" "storage_profile" {
 }
 
 data "ibm_is_bare_metal_server_profile" "storage_bare_metal_server_profile" {
-  name = var.storage_bare_metal_server_profile
+  count = var.storage_type == "persistent" ? 1 : 0
+  name  = var.storage_bare_metal_server_profile
 }
 
 data "ibm_is_ssh_key" "storage_ssh_key" {
@@ -403,9 +404,9 @@ module "storage_cluster_configuration" {
   using_rest_initialization    = true
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
+  memory_size                  = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
   max_pagepool_gb              = var.storage_type == "persistent" ? 32 : 16
-  vcpu_count                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  vcpu_count                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
@@ -427,7 +428,7 @@ module "combined_cluster_configuration" {
   using_jumphost_connection    = var.using_jumphost_connection
   storage_cluster_gui_username = var.storage_cluster_gui_username
   storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile.memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
+  memory_size                  = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   bastion_instance_public_ip   = var.bastion_instance_public_ip
   bastion_ssh_private_key      = var.bastion_ssh_private_key
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
