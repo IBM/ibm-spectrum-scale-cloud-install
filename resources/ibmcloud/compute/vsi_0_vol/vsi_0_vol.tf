@@ -45,12 +45,10 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
-        sudo dnf install firewalld -y
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync"
-        sudo yum install firewalld -y
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync firewalld"
     fi
 
     RETRY_LIMIT=5
@@ -117,32 +115,12 @@ systemctl start firewalld
 systemctl enable firewalld
 
 if [ "${var.enable_sec_interface_compute}" == true ]; then
-    if grep -q "8.6" /etc/os-release
-    then
-        cp /etc/sysconfig/network-scripts/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i 's/eth0/eth1/g' /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i '/HWADD/d' /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i '/DOMAIN/d' /etc/sysconfig/network-scripts/ifcfg-eth1
-        hwaddr=$(ifconfig | grep ether | awk -F " " '{print$2}' | awk 'NR==2 {print}')
-        sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
-        echo "HWADDR=$hwaddr" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        echo "NAME=\"$sec_interface\"" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        echo "DOMAIN=${var.storage_domain_name}" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        systemctl restart NetworkManager
-        sudo nmcli connection up "$sec_interface"
-    else
-        cp /etc/sysconfig/network-scripts/ifcfg-eth0 /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i 's/eth0/eth1/g' /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i '/HWADD/d' /etc/sysconfig/network-scripts/ifcfg-eth1
-        sed -i '/DOMAIN/d' /etc/sysconfig/network-scripts/ifcfg-eth1
-        sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
-        hwaddr=$(ifconfig | grep ether | awk -F " " '{print$2}' | awk 'NR==2 {print}')
-        echo "HWADDR=$hwaddr" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        echo "NAME=\"$sec_interface\"" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        echo "DOMAIN=${var.storage_domain_name}" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        sudo systemctl restart NetworkManager
-        sudo nmcli connection up "$sec_interface"
-    fi
+    sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
+    nmcli conn del "$sec_interface"
+    nmcli con add type ethernet con-name eth1 ifname eth1
+    echo "DOMAIN=\"${var.storage_domain_name}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
+    echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
+    systemctl restart NetworkManager
 fi
 EOF
 }
@@ -165,7 +143,7 @@ resource "ibm_is_instance" "itself" {
   tags    = var.resource_tags
 
   primary_network_interface {
-    name            = format("%s-%s-vnic-0", var.vsi_name_prefix, each.value.sequence_string)
+    name            = format("%s-%s-pri", var.vsi_name_prefix, each.value.sequence_string)
     subnet          = each.value.subnet_id
     security_groups = var.vsi_security_group
   }
@@ -173,7 +151,7 @@ resource "ibm_is_instance" "itself" {
   dynamic "network_interfaces" {
     for_each = var.enable_sec_interface_compute ? [1] : []
     content {
-      name            = format("%s-%s-vnic-1", var.vsi_name_prefix, each.value.sequence_string)
+      name            = format("%s-%s-sec", var.vsi_name_prefix, each.value.sequence_string)
       subnet          = each.value.storage_subnet_id
       security_groups = var.storage_sec_group
     }
@@ -188,6 +166,11 @@ resource "ibm_is_instance" "itself" {
   boot_volume {
     name = format("%s-boot-%s", var.vsi_name_prefix, each.value.sequence_string)
   }
+}
+
+resource "time_sleep" "wait_60_seconds" {
+  create_duration = "60s"
+  depends_on      = [ibm_is_instance.itself]
 }
 
 # A Record for primary network Interface
@@ -291,11 +274,11 @@ output "instance_name_ip_map" {
 }
 
 output "secondary_interface_name_id_map" {
-  value      = try({ for instance_details in ibm_is_instance.itself : "${one(instance_details.network_interfaces[*].name)}.${var.storage_domain_name}" => instance_details.id }, {})
+  value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.network_interfaces[0]["name"]}.${var.storage_domain_name}" => instance_details.id }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
 output "secondary_interface_name_ip_map" {
-  value      = try({ for instance_details in ibm_is_instance.itself : one(instance_details.network_interfaces[*].name) => one(one(instance_details.network_interfaces[*].primary_ip[*].address)) }, {})
+  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }

@@ -152,6 +152,10 @@ data "ibm_is_image" "compute_instance_image" {
   count = var.compute_vsi_osimage_id != "" ? 0 : 1
 }
 
+data "ibm_is_subnet" "compute_cluster_private_subnets_cidr" {
+  identifier = var.vpc_compute_cluster_private_subnets[0]
+}
+
 module "compute_cluster_instances" {
   source                       = "../../../resources/ibmcloud/compute/vsi_0_vol"
   total_vsis                   = var.total_compute_cluster_instances
@@ -206,6 +210,9 @@ resource "time_sleep" "wait_300_seconds" {
   destroy_duration = "300s"
 }
 
+data "ibm_is_subnet" "storage_cluster_private_subnets_cidr" {
+  identifier = var.vpc_storage_cluster_private_subnets[0]
+}
 
 module "storage_cluster_instances" {
   count                        = var.storage_type != "persistent" ? 1 : 0
@@ -321,8 +328,8 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
   compute_cluster_instance_names                   = local.enable_sec_interface_compute ? jsonencode(keys(module.compute_cluster_instances.secondary_interface_name_id_map)) : jsonencode(keys(module.compute_cluster_instances.instance_name_id_map))
   storage_cluster_instance_names                   = jsonencode([])
-  storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.storage_subnet_cidr) : jsonencode("")
-  compute_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.compute_subnet_cidr) : jsonencode("")
+  storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
+  compute_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   opposit_cluster_clustername                      = local.enable_mrot_conf ? jsonencode(format("%s.%s", var.resource_prefix, var.vpc_storage_cluster_dns_domain)) : jsonencode("")
 }
 
@@ -355,8 +362,8 @@ module "write_storage_cluster_inventory" {
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
   storage_cluster_instance_names                   = var.storage_type == "persistent" ? jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map))) : jsonencode(keys(one(module.storage_cluster_instances[*].instance_name_id_map)))
   compute_cluster_instance_names                   = jsonencode([])
-  storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.storage_subnet_cidr) : jsonencode("")
-  compute_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(var.compute_subnet_cidr) : jsonencode("")
+  storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
+  compute_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   opposit_cluster_clustername                      = local.enable_mrot_conf ? jsonencode(format("%s.%s", var.resource_prefix, var.vpc_compute_cluster_dns_domain)) : jsonencode("")
 }
 

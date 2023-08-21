@@ -296,15 +296,3 @@ variable "bastion_user" {
   default     = "ubuntu"
   description = "Provide the username for Bastion login."
 }
-
-variable "storage_subnet_cidr" {
-  type        = string
-  default     = ""
-  description = "subnet cidr for storage cluster"
-}
-
-variable "compute_subnet_cidr" {
-  type        = string
-  default     = ""
-  description = "subnet cidr for compute cluster"
-}

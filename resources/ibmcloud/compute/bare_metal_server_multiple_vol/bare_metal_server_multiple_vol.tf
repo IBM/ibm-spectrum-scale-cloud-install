@@ -44,6 +44,7 @@ then
     yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
     yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
     yum versionlock list
+    echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
 elif grep -q "Ubuntu" /etc/os-release
 then
     USER=ubuntu

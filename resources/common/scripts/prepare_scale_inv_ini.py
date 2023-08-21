@@ -98,7 +98,6 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
     until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
     retries: 60
     delay: 10
-
 # Validate Scale packages existence to skip node role
 - name: Check if Scale packages already installed on node
   hosts: scale_nodes
@@ -239,7 +238,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
 
 def get_host_format(node):
     """ Return host entries """
-    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['host_name_eth1']}"
+    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']}"
     return host_format
 
 
@@ -255,15 +254,14 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
     if cls_type == 'compute':
         start_quorum_assign = quorum_count - 1
         for each_ip in compute_cluster_instance_names:
-            # Any other possiblitiy for name??
-            each_name = each_ip.rsplit('.', 2)[0]
+            each_name = each_ip.split('.')[0]
             if compute_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     compute_cluster_instance_names.index(each_ip) <= (manager_count - 1):
                 if compute_cluster_instance_names.index(each_ip) == 0:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': True, 'is_collector': True, 'is_nsd': False,
                             'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'host_name_eth1': each_name}
+                            'class': "computenodegrp", 'daemon_nodename': each_name}
                     write_json_file({'compute_cluster_gui_ip_address': each_ip},
                                     "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                                "compute_cluster_gui_details.json"))
@@ -271,35 +269,35 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': False, 'is_collector': True, 'is_nsd': False,
                             'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'host_name_eth1': each_name}
+                            'class': "computenodegrp", 'daemon_nodename': each_name}
                 else:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': False, 'is_collector': False, 'is_nsd': False,
                             'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'host_name_eth1': each_name}
+                            'class': "computenodegrp", 'daemon_nodename': each_name}
             elif compute_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     compute_cluster_instance_names.index(each_ip) > (manager_count - 1):
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "computenodegrp", 'host_name_eth1': each_name}
+                        'class': "computenodegrp", 'daemon_nodename': each_name}
             else:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "computenodegrp", 'host_name_eth1': each_name}
+                        'class': "computenodegrp", 'daemon_nodename': each_name}
             node_details.append(get_host_format(node))
     elif cls_type == 'storage' and az_count == 1:
         start_quorum_assign = quorum_count - 1
         for each_ip in storage_cluster_instance_names:
-            each_name = each_ip.rsplit('.', 2)[0]
+            each_name = each_ip.split('.')[0]
             if storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     storage_cluster_instance_names.index(each_ip) <= (manager_count - 1):
                 if storage_cluster_instance_names.index(each_ip) == 0:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': True, 'is_collector': True, 'is_nsd': True,
                             'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'host_name_eth1': each_name}
+                            'class': "storagenodegrp", 'daemon_nodename': each_name}
                     write_json_file({'storage_cluster_gui_ip_address': each_ip},
                                     "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                                "storage_cluster_gui_details.json"))
@@ -307,23 +305,23 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': False, 'is_collector': True, 'is_nsd': True,
                             'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'host_name_eth1': each_name}
+                            'class': "storagenodegrp", 'daemon_nodename': each_name}
                 else:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                             'is_gui': False, 'is_collector': True, 'is_nsd': True,
                             'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'host_name_eth1': each_name}
+                            'class': "storagenodegrp", 'daemon_nodename': each_name}
             elif storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     storage_cluster_instance_names.index(each_ip) > (manager_count - 1):
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp", 'host_name_eth1': each_name}
+                        'class': "storagenodegrp", 'daemon_nodename': each_name}
             else:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp", 'host_name_eth1': each_name}
+                        'class': "storagenodegrp", 'daemon_nodename': each_name}
             node_details.append(get_host_format(node))
     elif cls_type == 'storage' and az_count > 1:
         for each_ip in desc_private_ips:
