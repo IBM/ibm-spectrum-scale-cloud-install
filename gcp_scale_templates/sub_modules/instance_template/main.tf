@@ -9,6 +9,9 @@ locals {
     (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets != null) ? "combined" : "none"
   )
 
+  enable_mrot_conf = false
+
+
   security_rule_description_cluster_storage_internal_ingress = ["Allow ICMP traffic within storage instances",
     "Allow SSH traffic within storage instances",
     "Allow GPFS intra cluster traffic within storage instances",
@@ -81,10 +84,10 @@ locals {
   security_rule_description_storage_cluster_ingress_using_direct_connection = ["Allow ICMP traffic from client cidr/ip range to storage instances", "Allow SSH traffic from client cidr/ip range to storage instances"]
 
   security_rule_description_bastion_scale_ingress = ["Allow ICMP traffic from bastion to scale instances",
-  "Allow SSH traffic from bastion to scale instances"]
+  "Allow SSH traffic from bastion to scale instances", "Allow GUI traffic from bastion to scale instances"]
 
-  traffic_protocol_cluster_bastion_scale_ingress = ["icmp", "TCP"]
-  traffic_port_cluster_bastion_scale_ingress     = [-1, 22]
+  traffic_protocol_cluster_bastion_scale_ingress = ["icmp", "TCP", "TCP"]
+  traffic_port_cluster_bastion_scale_ingress     = [-1, 22, 443]
 
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
@@ -354,6 +357,11 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode([])
   storage_cluster_desc_data_volume_mapping         = jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
+  compute_subnet_cidr                              = ""
+  storage_subnet_cidr                              = ""
+  opposit_cluster_clustername                      = ""
+  compute_cluster_instance_names                   = ""
+  storage_cluster_instance_names                   = ""
 }
 
 # Write the storage cluster related inventory.
@@ -384,6 +392,11 @@ module "write_storage_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ips))
   storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
+  compute_subnet_cidr                              = ""
+  storage_subnet_cidr                              = ""
+  opposit_cluster_clustername                      = ""
+  compute_cluster_instance_names                   = ""
+  storage_cluster_instance_names                   = ""
 }
 
 # Write combined cluster related inventory.
@@ -414,6 +427,11 @@ module "write_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ips))
   storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
+  compute_subnet_cidr                              = ""
+  storage_subnet_cidr                              = ""
+  opposit_cluster_clustername                      = ""
+  compute_cluster_instance_names                   = ""
+  storage_cluster_instance_names                   = ""
 }
 
 # Configure the compute cluster using ansible based on the create_scale_cluster input.
@@ -439,6 +457,7 @@ module "compute_cluster_configuration" {
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  enable_mrot_conf             = local.enable_mrot_conf ? "True" : "False"
 }
 
 # Configure the storage cluster using ansible based on the create_scale_cluster input.
@@ -466,6 +485,7 @@ module "storage_cluster_configuration" {
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
   depends_on                   = [module.storage_cluster_instances]
+  enable_mrot_conf             = local.enable_mrot_conf ? "True" : "False"
 }
 
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
