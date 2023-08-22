@@ -12,6 +12,8 @@ locals {
     (var.vpc_storage_cluster_private_subnets == null && var.vpc_compute_cluster_private_subnets != null) ? "compute" :
     (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets != null) ? "combined" : "none"
   )
+  enable_mrot_conf = false
+
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
   "/dev/xvdk", "/dev/xvdl", "/dev/xvdm", "/dev/xvdn", "/dev/xvdo", "/dev/xvdp", "/dev/xvdq", "/dev/xvdr", "/dev/xvds", "/dev/xvdt"]
@@ -597,6 +599,11 @@ module "write_compute_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode([])
   storage_cluster_desc_data_volume_mapping         = jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
+  compute_subnet_cidr                              = ""
+  storage_subnet_cidr                              = ""
+  opposit_cluster_clustername                      = ""
+  compute_cluster_instance_names                   = ""
+  storage_cluster_instance_names                   = ""
 }
 
 # Write the storage cluster related inventory.
@@ -627,6 +634,11 @@ module "write_storage_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping)
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
+  compute_subnet_cidr                              = ""
+  storage_subnet_cidr                              = ""
+  opposit_cluster_clustername                      = ""
+  compute_cluster_instance_names                   = ""
+  storage_cluster_instance_names                   = ""
 }
 
 # Write combined cluster related inventory.
@@ -657,6 +669,11 @@ module "write_cluster_inventory" {
   storage_cluster_desc_instance_private_ips        = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips) : jsonencode([])
   storage_cluster_desc_data_volume_mapping         = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(var.vpc_availability_zones) > 1 ? jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map) : jsonencode({})
+  compute_subnet_cidr                              = ""
+  storage_subnet_cidr                              = ""
+  opposit_cluster_clustername                      = ""
+  compute_cluster_instance_names                   = ""
+  storage_cluster_instance_names                   = ""
 
 }
 
@@ -683,6 +700,7 @@ module "compute_cluster_configuration" {
   meta_private_key             = module.generate_compute_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  enable_mrot_conf             = local.enable_mrot_conf ? "True" : "False"
 }
 
 # Configure the storage cluster using ansible based on the create_scale_cluster input.
@@ -709,6 +727,7 @@ module "storage_cluster_configuration" {
   meta_private_key             = module.generate_storage_cluster_keys.private_key_content
   scale_version                = local.scale_version
   spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  enable_mrot_conf             = local.enable_mrot_conf ? "True" : "False"
 }
 
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
