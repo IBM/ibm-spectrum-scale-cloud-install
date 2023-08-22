@@ -44,6 +44,7 @@ then
     yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
     yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
     yum versionlock list
+    echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
 elif grep -q "Ubuntu" /etc/os-release
 then
     USER=ubuntu
@@ -155,11 +156,21 @@ output "instance_private_ips" {
 }
 
 output "instance_ips_with_vol_mapping" {
-  value = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.primary_network_interface[0]["primary_ip"][0]["address"] =>
+  value = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.name =>
   data.ibm_is_bare_metal_server_profile.itself.disks[1].quantity[0].value == 8 ? ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"] : ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
 output "instance_private_dns_ip_map" {
   value = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.primary_network_interface[0]["primary_ip"][0]["address"] => instance_details.private_dns }, {})
+}
+
+output "storage_cluster_instance_name_id_map" {
+  value      = try({ for instance_details in ibm_is_bare_metal_server.itself : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+}
+
+output "storage_cluster_instance_name_ip_map" {
+  value      = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ip"][0]["address"] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }

@@ -98,7 +98,7 @@ def prepare_remote_mount_playbook(hosts_config, mount_details):
 
 def get_host_format(node):
     """Return host entries"""
-    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']}"
+    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']}"
     return host_format
 
 
@@ -118,6 +118,7 @@ def initialize_node_details(storage_gui_ip, user, key_file):
         "user": user,
         "key_file": key_file,
         "class": "storagenodegrp",
+        "daemon_nodename": storage_gui_ip.split('.')[0]
     }
     node_details.append(get_host_format(node))
     return node_details

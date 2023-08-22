@@ -26,6 +26,7 @@ variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
+variable "enable_sec_interface_storage" {}
 
 data "ibm_is_instance_profile" "itself" {
   name = var.vsi_profile
@@ -43,10 +44,10 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
     fi
 
     RETRY_LIMIT=5
@@ -122,6 +123,16 @@ firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
 systemctl start firewalld
+systemctl enable firewalld
+
+if [ "${var.enable_sec_interface_storage}" == true ]; then
+    sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
+    nmcli conn del "$sec_interface"
+    nmcli con add type ethernet con-name eth1 ifname eth1
+    echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
+    echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
+    systemctl restart NetworkManager
+fi
 EOF
 }
 
@@ -142,8 +153,18 @@ resource "ibm_is_instance" "itself" {
   tags    = var.resource_tags
 
   primary_network_interface {
+    name            = format("%s-%s-pri", var.vsi_name_prefix, each.value.sequence_string)
     subnet          = each.value.subnet_id
     security_groups = var.vsi_security_group
+  }
+
+  dynamic "network_interfaces" {
+    for_each = var.enable_sec_interface_storage ? [1] : []
+    content {
+      name            = format("%s-%s-sec", var.vsi_name_prefix, each.value.sequence_string)
+      subnet          = each.value.subnet_id
+      security_groups = var.vsi_security_group
+    }
   }
 
   vpc            = var.vpc_id
@@ -156,6 +177,13 @@ resource "ibm_is_instance" "itself" {
     name = format("%s-boot-%s", var.vsi_name_prefix, each.value.sequence_string)
   }
 }
+
+resource "time_sleep" "wait_60_seconds" {
+  create_duration = "60s"
+  depends_on      = [ibm_is_instance.itself]
+}
+
+# A Record for primary network Interface
 
 resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
@@ -174,6 +202,8 @@ resource "ibm_dns_resource_record" "a_itself" {
   depends_on  = [ibm_is_instance.itself]
 }
 
+# PTR Record for primary network Interface
+
 resource "ibm_dns_resource_record" "ptr_itself" {
   for_each = {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
@@ -191,6 +221,44 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
+# A Record for Secondary network Interface
+
+resource "ibm_dns_resource_record" "sec_interface_a_record" {
+  for_each = var.enable_sec_interface_storage == false ? {} : {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
+      network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
+    }
+  }
+
+  instance_id = var.dns_service_id
+  zone_id     = var.dns_zone_id
+  type        = "A"
+  name        = each.value.name
+  rdata       = each.value.network_ip
+  ttl         = 300
+  depends_on  = [ibm_is_instance.itself]
+}
+
+# PTR Record for Secondary network Interface
+
+resource "ibm_dns_resource_record" "sec_interface_ptr_record" {
+  for_each = var.enable_sec_interface_storage == false ? {} : {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
+      network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
+    }
+  }
+
+  instance_id = var.dns_service_id
+  zone_id     = var.dns_zone_id
+  type        = "PTR"
+  name        = each.value.network_ip
+  rdata       = format("%s.%s", each.value.name, var.dns_domain)
+  ttl         = 300
+  depends_on  = [ibm_dns_resource_record.sec_interface_a_record]
+}
+
 output "instance_ids" {
   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
@@ -202,11 +270,25 @@ output "instance_private_ips" {
 }
 
 output "instance_ips_with_vol_mapping" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] =>
+  value = try({ for instance_details in ibm_is_instance.itself : instance_details.name =>
   data.ibm_is_instance_profile.itself.disks[0].quantity[0].value == 1 ? ["/dev/vdb"] : ["/dev/vdb", "/dev/vdc"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
+# output "instance_private_dns_ip_map" {
+#   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
+# }
+
 output "instance_private_dns_ip_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
+  value = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.private_dns }, {})
+}
+
+output "instance_name_id_map" {
+  value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+}
+
+output "instance_name_ip_map" {
+  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
