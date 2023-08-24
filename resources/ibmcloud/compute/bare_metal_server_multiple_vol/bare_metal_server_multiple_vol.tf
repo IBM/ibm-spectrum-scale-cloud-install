@@ -37,7 +37,7 @@ data "template_file" "metadata_startup_script" {
 if grep -q "Red Hat" /etc/os-release
 then
     USER=vpcuser
-    yum install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r)
+    yum install -y jq python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld
     yum install -y make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
     yum install 'dnf-command(versionlock)' -y
     yum update --security -y
@@ -76,6 +76,7 @@ firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
 systemctl start firewalld
+systemctl enable firewalld
 EOF
 }
 
