@@ -193,6 +193,29 @@ resource "time_sleep" "wait_300_seconds" {
   destroy_duration = "300s"
 }
 
+module "oldap_instance" {
+  count                     = var.enable_oldap_integration ? 1 : 0
+  source                    = "../../../resources/ibmcloud/compute/oldap_vsi"
+  vsi_name_prefix           = format("%s-oldap", var.resource_prefix)
+  vpc_id                    = var.vpc_id
+  resource_group_id         = var.resource_group_id
+  zones                     = var.vpc_availability_zones[0]
+  vsi_profile               = var.storage_vsi_profile
+  vsi_subnet_id             = var.vpc_storage_cluster_private_subnets[0]
+  vsi_security_group        = [module.storage_cluster_security_group.sec_group_id]
+  vsi_user_public_key       = [data.ibm_is_ssh_key.storage_ssh_key.id]
+  vsi_meta_private_key      = module.generate_storage_cluster_keys.private_key_content
+  vsi_meta_public_key       = module.generate_storage_cluster_keys.public_key_content
+  managerpassword           = "Admin123"
+  defaultuser               = "Scaleusr01"
+  defaultuserpassword       = "Admin123"
+  oldap_domain_controller   = "ibmscale"
+  admingroup                = "ScaleAdmin"
+  usergroup                 = "Scaleconsumer"
+  oldap_image_name          = "ibm-redhat-7-9-minimal-amd64-10"
+  depends_on                = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
+  resource_tags             = var.scale_cluster_resource_tags
+}
 
 module "storage_cluster_instances" {
   count                = var.storage_type != "persistent" ? 1 : 0

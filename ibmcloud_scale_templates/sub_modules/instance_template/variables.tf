@@ -57,6 +57,12 @@ variable "compute_vsi_profile" {
   description = "Profile to be used for compute cluster virtual server instance."
 }
 
+variable "enable_oldap_integration" {
+  type        = string
+  default     = false
+  description = "Set true to Integrate OLDAP authentication for scale NFS share, Note: ODLAP hosted in seperate vsi"
+}
+
 variable "using_rest_api_remote_mount" {
   type        = string
   default     = true
