@@ -275,12 +275,8 @@ output "instance_ips_with_vol_mapping" {
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
-# output "instance_private_dns_ip_map" {
-#   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
-# }
-
 output "instance_private_dns_ip_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.private_dns }, {})
+  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
 }
 
 output "instance_name_id_map" {
