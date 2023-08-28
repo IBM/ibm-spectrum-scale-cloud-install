@@ -307,7 +307,7 @@ variable "scale_encryption_enabled" {
 
 variable "gklm_vsi_osimage_id" {
   type        = string
-  default     = ""
+  default     = null
   description = "Image id to use for provisioning the GKLM instances."
 }
 
@@ -319,12 +319,13 @@ variable "total_gklm_instances" {
 
 variable "gklm_instance_key_pair" {
   type        = string
+  default     = null
   description = "The key pair to use to launch the GKLM host."
 }
 
 variable "gklm_vsi_osimage_name" {
   type        = string
-  default     = ""
+  default     = null
   description = "Image name to use for provisioning the GKLM instances."
 }
 
@@ -342,11 +343,13 @@ variable "gklm_instance_dns_domain" {
 
 variable "gklm_instance_dns_service_id" {
   type        = string
+  default     = null
   description = "IBM Cloud GKLM Instance DNS service resource id."
 }
 
 variable "gklm_instance_dns_zone_id" {
   type        = string
+  default     = null
   description = "IBM GKLM Instance DNS zone id."
 }
 
@@ -364,6 +367,6 @@ variable "scale_encryption_admin_username" {
 
 variable "scale_encryption_admin_password" {
   type        = string
-  default     = ""
+  default     = null
   description = "Password that is used for performing administrative operations for the GKLM.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. Visit this [page](https://www.ibm.com/docs/en/gklm/3.0.1?topic=roles-password-policy) to know more about password policy of GKLM. "
 }
