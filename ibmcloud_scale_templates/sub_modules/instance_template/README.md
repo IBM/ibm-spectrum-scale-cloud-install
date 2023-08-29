@@ -90,10 +90,21 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_create_separate_namespaces"></a> [create_separate_namespaces](#input_create_separate_namespaces) | Flag to select if separate namespace needs to be created for compute instances. | `bool` |
 | <a name="input_deploy_controller_sec_group_id"></a> [deploy_controller_sec_group_id](#input_deploy_controller_sec_group_id) | Deployment controller security group id. Default: null | `string` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
+| <a name="input_gklm_instance_dns_domain"></a> [gklm_instance_dns_domain](#input_gklm_instance_dns_domain) | IBM Cloud DNS domain name to be used for GKLM instances. | `string` |
+| <a name="input_gklm_instance_dns_service_id"></a> [gklm_instance_dns_service_id](#input_gklm_instance_dns_service_id) | IBM Cloud GKLM Instance DNS service resource id. | `string` |
+| <a name="input_gklm_instance_dns_zone_id"></a> [gklm_instance_dns_zone_id](#input_gklm_instance_dns_zone_id) | IBM GKLM Instance DNS zone id. | `string` |
+| <a name="input_gklm_instance_key_pair"></a> [gklm_instance_key_pair](#input_gklm_instance_key_pair) | The key pair to use to launch the GKLM host. | `string` |
+| <a name="input_gklm_vsi_osimage_id"></a> [gklm_vsi_osimage_id](#input_gklm_vsi_osimage_id) | Image id to use for provisioning the GKLM instances. | `string` |
+| <a name="input_gklm_vsi_osimage_name"></a> [gklm_vsi_osimage_name](#input_gklm_vsi_osimage_name) | Image name to use for provisioning the GKLM instances. | `string` |
+| <a name="input_gklm_vsi_profile"></a> [gklm_vsi_profile](#input_gklm_vsi_profile) | Profile to be used for GKLM virtual server instance. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
 | <a name="input_scale_cluster_resource_tags"></a> [scale_cluster_resource_tags](#input_scale_cluster_resource_tags) | A list of tags for resources created for scale cluster. | `list(string)` |
+| <a name="input_scale_encryption_admin_default_password"></a> [scale_encryption_admin_default_password](#input_scale_encryption_admin_default_password) | The default administrator password used for resetting the admin password based on the user input. The password has to be updated which was configured during the GKLM installation. | `string` |
+| <a name="input_scale_encryption_admin_password"></a> [scale_encryption_admin_password](#input_scale_encryption_admin_password) | Password that is used for performing administrative operations for the GKLM.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. Visit this [page](https://www.ibm.com/docs/en/gklm/3.0.1?topic=roles-password-policy) to know more about password policy of GKLM. | `string` |
+| <a name="input_scale_encryption_admin_username"></a> [scale_encryption_admin_username](#input_scale_encryption_admin_username) | The default Admin username for Security Key Lifecycle Manager(GKLM). | `string` |
+| <a name="input_scale_encryption_enabled"></a> [scale_encryption_enabled](#input_scale_encryption_enabled) | To enable the encryption for the filesystem. Select true or false | `bool` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
 | <a name="input_storage_bare_metal_osimage_id"></a> [storage_bare_metal_osimage_id](#input_storage_bare_metal_osimage_id) | Image Id to use for provisioning the storage Baremetal cluster instances. | `string` |
 | <a name="input_storage_bare_metal_osimage_name"></a> [storage_bare_metal_osimage_name](#input_storage_bare_metal_osimage_name) | Image name to use for provisioning the storage Baremetal cluster. | `string` |
@@ -104,6 +115,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_storage_vsi_osimage_name"></a> [storage_vsi_osimage_name](#input_storage_vsi_osimage_name) | Image name to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_profile"></a> [storage_vsi_profile](#input_storage_vsi_profile) | Profile to be used for storage cluster virtual server instance. | `string` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of instances to be launched for compute cluster. | `number` |
+| <a name="input_total_gklm_instances"></a> [total_gklm_instances](#input_total_gklm_instances) | Number of instances to be launched for GKLM. | `number` |
 | <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of instances to be launched for storage cluster. | `number` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | If true, will skip the jump/bastion host configuration. | `bool` |
 | <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
