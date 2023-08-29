@@ -678,78 +678,87 @@ module "write_cluster_inventory" {
 
 # Configure the compute cluster using ansible based on the create_scale_cluster input.
 module "compute_cluster_configuration" {
-  source                       = "../../../resources/common/compute_configuration"
-  turn_on                      = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
-  clone_complete               = module.prepare_ansible_configuration.clone_complete
-  write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
-  inventory_format             = var.inventory_format
-  create_scale_cluster         = var.create_scale_cluster
-  clone_path                   = var.scale_ansible_repo_clone_path
-  inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image           = var.using_packer_image
-  using_jumphost_connection    = var.using_jumphost_connection
-  using_rest_initialization    = var.using_rest_api_remote_mount
-  compute_cluster_gui_username = var.compute_cluster_gui_username
-  compute_cluster_gui_password = var.compute_cluster_gui_password
-  memory_size                  = try(data.aws_ec2_instance_type.compute_profile[0].memory_size, null)
-  max_pagepool_gb              = 4
-  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip   = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  bastion_ssh_private_key      = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
-  meta_private_key             = module.generate_compute_cluster_keys.private_key_content
-  scale_version                = local.scale_version
-  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
-  enable_mrot_conf             = false
+  source                          = "../../../resources/common/compute_configuration"
+  turn_on                         = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
+  clone_complete                  = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete        = module.write_compute_cluster_inventory.write_inventory_complete
+  inventory_format                = var.inventory_format
+  create_scale_cluster            = var.create_scale_cluster
+  clone_path                      = var.scale_ansible_repo_clone_path
+  inventory_path                  = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image              = var.using_packer_image
+  using_jumphost_connection       = var.using_jumphost_connection
+  using_rest_initialization       = var.using_rest_api_remote_mount
+  compute_cluster_gui_username    = var.compute_cluster_gui_username
+  compute_cluster_gui_password    = var.compute_cluster_gui_password
+  memory_size                     = try(data.aws_ec2_instance_type.compute_profile[0].memory_size, null)
+  max_pagepool_gb                 = 4
+  bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
+  bastion_instance_public_ip      = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  bastion_ssh_private_key         = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
+  meta_private_key                = module.generate_compute_cluster_keys.private_key_content
+  scale_version                   = local.scale_version
+  spectrumscale_rpms_path         = var.spectrumscale_rpms_path
+  enable_mrot_conf                = false
+  scale_encryption_enabled        = false
+  scale_encryption_admin_password = null
+  scale_encryption_servers        = null
 }
 
 # Configure the storage cluster using ansible based on the create_scale_cluster input.
 module "storage_cluster_configuration" {
-  source                       = "../../../resources/common/storage_configuration"
-  turn_on                      = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
-  clone_complete               = module.prepare_ansible_configuration.clone_complete
-  write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
-  inventory_format             = var.inventory_format
-  create_scale_cluster         = var.create_scale_cluster
-  clone_path                   = var.scale_ansible_repo_clone_path
-  inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image           = var.using_packer_image
-  using_jumphost_connection    = var.using_jumphost_connection
-  using_rest_initialization    = true
-  storage_cluster_gui_username = var.storage_cluster_gui_username
-  storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
-  max_pagepool_gb              = 16
-  vcpu_count                   = try(data.aws_ec2_instance_type.storage_profile[0].default_vcpus, null)
-  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip   = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  bastion_ssh_private_key      = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
-  meta_private_key             = module.generate_storage_cluster_keys.private_key_content
-  scale_version                = local.scale_version
-  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
-  enable_mrot_conf             = false
+  source                          = "../../../resources/common/storage_configuration"
+  turn_on                         = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true) ? true : false
+  clone_complete                  = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete        = module.write_storage_cluster_inventory.write_inventory_complete
+  inventory_format                = var.inventory_format
+  create_scale_cluster            = var.create_scale_cluster
+  clone_path                      = var.scale_ansible_repo_clone_path
+  inventory_path                  = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image              = var.using_packer_image
+  using_jumphost_connection       = var.using_jumphost_connection
+  using_rest_initialization       = true
+  storage_cluster_gui_username    = var.storage_cluster_gui_username
+  storage_cluster_gui_password    = var.storage_cluster_gui_password
+  memory_size                     = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
+  max_pagepool_gb                 = 16
+  vcpu_count                      = try(data.aws_ec2_instance_type.storage_profile[0].default_vcpus, null)
+  bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
+  bastion_instance_public_ip      = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  bastion_ssh_private_key         = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
+  meta_private_key                = module.generate_storage_cluster_keys.private_key_content
+  scale_version                   = local.scale_version
+  spectrumscale_rpms_path         = var.spectrumscale_rpms_path
+  enable_mrot_conf                = false
+  scale_encryption_enabled        = false
+  scale_encryption_admin_password = null
+  scale_encryption_servers        = null
 }
 
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
 module "combined_cluster_configuration" {
-  source                       = "../../../resources/common/scale_configuration"
-  turn_on                      = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? true : false
-  clone_complete               = module.prepare_ansible_configuration.clone_complete
-  write_inventory_complete     = module.write_cluster_inventory.write_inventory_complete
-  inventory_format             = var.inventory_format
-  create_scale_cluster         = var.create_scale_cluster
-  clone_path                   = var.scale_ansible_repo_clone_path
-  inventory_path               = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image           = var.using_packer_image
-  using_jumphost_connection    = var.using_jumphost_connection
-  storage_cluster_gui_username = var.storage_cluster_gui_username
-  storage_cluster_gui_password = var.storage_cluster_gui_password
-  memory_size                  = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
-  bastion_user                 = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip   = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  bastion_ssh_private_key      = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
-  meta_private_key             = module.generate_storage_cluster_keys.private_key_content
-  scale_version                = local.scale_version
-  spectrumscale_rpms_path      = var.spectrumscale_rpms_path
+  source                          = "../../../resources/common/scale_configuration"
+  turn_on                         = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? true : false
+  clone_complete                  = module.prepare_ansible_configuration.clone_complete
+  write_inventory_complete        = module.write_cluster_inventory.write_inventory_complete
+  inventory_format                = var.inventory_format
+  create_scale_cluster            = var.create_scale_cluster
+  clone_path                      = var.scale_ansible_repo_clone_path
+  inventory_path                  = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image              = var.using_packer_image
+  using_jumphost_connection       = var.using_jumphost_connection
+  storage_cluster_gui_username    = var.storage_cluster_gui_username
+  storage_cluster_gui_password    = var.storage_cluster_gui_password
+  memory_size                     = try(data.aws_ec2_instance_type.storage_profile[0].memory_size, null)
+  bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
+  bastion_instance_public_ip      = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  bastion_ssh_private_key         = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)
+  meta_private_key                = module.generate_storage_cluster_keys.private_key_content
+  scale_version                   = local.scale_version
+  spectrumscale_rpms_path         = var.spectrumscale_rpms_path
+  scale_encryption_enabled        = false
+  scale_encryption_admin_password = null
+  scale_encryption_servers        = null
 }
 
 # Configure the remote mount relationship between the created compute & storage cluster.
