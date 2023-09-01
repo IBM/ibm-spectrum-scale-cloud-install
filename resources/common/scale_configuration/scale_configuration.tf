@@ -20,6 +20,7 @@ variable "bastion_ssh_private_key" {}
 variable "meta_private_key" {}
 variable "scale_version" {}
 variable "spectrumscale_rpms_path" {}
+variable "enable_mrot_conf" {}
 variable "scale_encryption_enabled" {}
 variable "scale_encryption_admin_password" {}
 variable "scale_encryption_servers" {}
@@ -66,7 +67,7 @@ resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.combined_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.combined_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}"
   }
   depends_on = [local_file.create_storage_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {
@@ -91,7 +92,7 @@ resource "null_resource" "prepare_ansible_inventory" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.combined_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.combined_private_key} --memory_size ${var.memory_size} --using_packer_image ${var.using_packer_image} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}"
   }
   depends_on = [local_file.create_storage_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {

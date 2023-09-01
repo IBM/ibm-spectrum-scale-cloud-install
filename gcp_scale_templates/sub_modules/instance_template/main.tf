@@ -512,6 +512,7 @@ module "combined_cluster_configuration" {
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
   scale_version                   = local.scale_version
   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
+  enable_mrot_conf                = false
   scale_encryption_enabled        = false
   scale_encryption_admin_password = null
   scale_encryption_servers        = null
