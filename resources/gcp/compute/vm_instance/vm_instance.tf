@@ -34,7 +34,11 @@ locals {
   total_cluster_instances = var.total_cluster_instances == null ? 0 : var.total_cluster_instances
   total_persistent_disks  = var.total_persistent_disks == null ? 0 : var.total_persistent_disks
 
-  vm_configuration   = flatten(toset([for i in range(local.total_cluster_instances) : { subnet = element(var.vpc_subnets, i), zone = element(local.vpc_availability_zones, i), vm_name = "${var.instance_name}-${i}" }]))
+  vm_config = flatten(toset([for i in range(local.total_cluster_instances) : { subnet = element(var.vpc_subnets, i), zone = element(local.vpc_availability_zones, i), vm_name = "${var.instance_name}-${i}" }]))
+
+  sorted_instances = [for i in range(local.total_cluster_instances) : "${var.instance_name}-${i}"]
+  vm_configuration = flatten([for value in local.sorted_instances : [for config in local.vm_config : config if value == config.vm_name]])
+
   disk_configuration = flatten(toset([for disk_no in range(local.total_persistent_disks) : flatten([for vm_meta in local.vm_configuration : { vm_name = vm_meta.vm_name, vm_name_suffix = disk_no, vm_zone = vm_meta.zone }])]))
 
   local_ssd_names = [for i in range(var.total_local_ssd_disks) : "/dev/nvme0n${i + 1}"]
