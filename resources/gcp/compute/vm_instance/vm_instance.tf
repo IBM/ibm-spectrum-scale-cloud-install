@@ -70,10 +70,10 @@ EOF
 #tfsec:ignore:google-compute-enable-shielded-vm-im
 #tfsec:ignore:google-compute-enable-shielded-vm-vtpm
 resource "google_compute_instance" "itself" {
-  count                     = length(local.vm_configuration)
-  name                      = local.vm_configuration[count.index].vm_name
+  for_each                  = { for vmconfig in local.vm_configuration : vmconfig.vm_name => vmconfig }
+  name                      = each.value.vm_name
   machine_type              = var.machine_type
-  zone                      = local.vm_configuration[count.index].zone
+  zone                      = each.value.zone
   allow_stopping_for_update = true
 
   #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
@@ -88,7 +88,7 @@ resource "google_compute_instance" "itself" {
     kms_key_self_link = length(data.google_kms_crypto_key.itself) > 0 ? data.google_kms_crypto_key.itself[0].id : null
   }
   network_interface {
-    subnetwork = local.vm_configuration[count.index].subnet
+    subnetwork = each.value.subnet
     network_ip = null
   }
   metadata = {
@@ -116,9 +116,9 @@ resource "google_compute_instance" "itself" {
 }
 
 resource "google_compute_disk" "itself" {
-  count                     = length(local.disk_configuration)
-  zone                      = local.disk_configuration[count.index].vm_zone
-  name                      = format("%s-data-%s", local.disk_configuration[count.index].vm_name, local.disk_configuration[count.index].vm_name_suffix)
+  for_each                  = { for vmdisk_config in local.disk_configuration : vmdisk_config.vm_name => vmdisk_config }
+  zone                      = each.value.vm_zone
+  name                      = format("%s-data-%s", each.value.vm_name, each.value.vm_name_suffix)
   description               = var.data_disk_description
   physical_block_size_bytes = var.physical_block_size_bytes
   type                      = var.data_disk_type
@@ -133,40 +133,40 @@ resource "google_compute_disk" "itself" {
 }
 
 resource "google_compute_attached_disk" "attach_data_disk" {
-  count      = length(local.disk_configuration)
-  zone       = local.disk_configuration[count.index].vm_zone
-  disk       = format("%s-data-%s", local.disk_configuration[count.index].vm_name, local.disk_configuration[count.index].vm_name_suffix)
-  instance   = local.disk_configuration[count.index].vm_name
+  for_each   = { for vmdisk_config in local.disk_configuration : vmdisk_config.vm_name => vmdisk_config }
+  zone       = each.value.vm_zone
+  disk       = format("%s-data-%s", each.value.vm_name, each.value.vm_name_suffix)
+  instance   = each.value.vm_name
   depends_on = [google_compute_disk.itself]
 }
 
 # Instance details
 output "instance_ids" {
-  value = google_compute_instance.itself[*].instance_id
+  value = [ for instance in google_compute_instance.itself : instance.instance_id ]
 }
 
 output "instance_selflink" {
-  value = google_compute_instance.itself[*].self_link
+  value = [ for instance in google_compute_instance.itself : instance.self_link ]
 }
 
 output "instance_ips" {
-  value = google_compute_instance.itself[*].network_interface[0].network_ip
+  value = [ for instance in google_compute_instance.itself : instance.network_interface[0].network_ip ]
 }
 
 output "data_disk_id" {
-  value = google_compute_disk.itself[*].id
+  value = [ for instance in google_compute_disk.itself : instance.id ]
 }
 
 output "data_disk_uri" {
-  value = google_compute_disk.itself[*].self_link
+  value = [ for instance in google_compute_disk.itself : instance.self_link ]
 }
 
 output "data_disk_attachment_id" {
-  value = google_compute_attached_disk.attach_data_disk[*].id
+ value = [ for instance in google_compute_attached_disk.attach_data_disk : instance.id ]
 }
 
 output "data_disk_zone" {
-  value = google_compute_disk.itself[*].zone
+  value = [ for instance in google_compute_disk.itself : instance.zone ]
 }
 
 output "disk_device_mapping" {
