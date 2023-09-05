@@ -585,6 +585,7 @@ module "remote_mount_configuration" {
   clone_complete                  = module.prepare_ansible_configuration.clone_complete
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+  depends_on                      = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration]
 }
 
 module "encryption_configuration" {
