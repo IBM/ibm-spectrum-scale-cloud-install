@@ -116,7 +116,7 @@ resource "google_compute_instance" "itself" {
 }
 
 resource "google_compute_disk" "itself" {
-  for_each                  = { for vmdisk_config in local.disk_configuration : vmdisk_config.vm_name => vmdisk_config }
+  for_each                  = { for vmdisk_config in local.disk_configuration : "${vmdisk_config.vm_name}-${vmdisk_config.vm_name_suffix}" => vmdisk_config }
   zone                      = each.value.vm_zone
   name                      = format("%s-data-%s", each.value.vm_name, each.value.vm_name_suffix)
   description               = var.data_disk_description
@@ -133,7 +133,7 @@ resource "google_compute_disk" "itself" {
 }
 
 resource "google_compute_attached_disk" "attach_data_disk" {
-  for_each   = { for vmdisk_config in local.disk_configuration : vmdisk_config.vm_name => vmdisk_config }
+  for_each   = { for vmdisk_config in local.disk_configuration : "${vmdisk_config.vm_name}-${vmdisk_config.vm_name_suffix}" => vmdisk_config }
   zone       = each.value.vm_zone
   disk       = format("%s-data-%s", each.value.vm_name, each.value.vm_name_suffix)
   instance   = each.value.vm_name
@@ -154,19 +154,19 @@ output "instance_ips" {
 }
 
 output "data_disk_id" {
-  value = [ for instance in google_compute_disk.itself : instance.id ]
+  value = [ for disk in google_compute_disk.itself : disk.id ]
 }
 
 output "data_disk_uri" {
-  value = [ for instance in google_compute_disk.itself : instance.self_link ]
+  value = [ for disk in google_compute_disk.itself : disk.self_link ]
 }
 
 output "data_disk_attachment_id" {
- value = [ for instance in google_compute_attached_disk.attach_data_disk : instance.id ]
+ value = [ for disk_attach in google_compute_attached_disk.attach_data_disk : disk_attach.id ]
 }
 
 output "data_disk_zone" {
-  value = [ for instance in google_compute_disk.itself : instance.zone ]
+  value = [ for disk in google_compute_disk.itself : disk.zone ]
 }
 
 output "disk_device_mapping" {
