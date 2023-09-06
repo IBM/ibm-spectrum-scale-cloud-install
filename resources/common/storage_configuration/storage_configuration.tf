@@ -29,10 +29,18 @@ variable "scale_encryption_admin_password" {}
 variable "scale_encryption_servers" {}
 variable "max_mbps" {}
 variable "disk_type" {}
-variable "default_metadata_replicas" {}
-variable "max_metadata_replicas" {}
-variable "default_data_replicas" {}
-variable "max_data_replicas" {}
+variable "default_metadata_replicas" {
+  type = number
+}
+variable "max_metadata_replicas" {
+  type = number
+}
+variable "default_data_replicas" {
+  type = number
+}
+variable "max_data_replicas" {
+  type = number
+}
 
 locals {
   scripts_path              = replace(path.module, "storage_configuration", "scripts")

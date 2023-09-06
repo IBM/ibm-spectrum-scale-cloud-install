@@ -253,11 +253,6 @@ data "ibm_is_image" "storage_bare_metal_image" {
   count = var.storage_bare_metal_osimage_id != "" ? 0 : 1
 }
 
-resource "time_sleep" "wait_300_seconds" {
-  depends_on       = [module.storage_cluster_security_group]
-  destroy_duration = "300s"
-}
-
 data "ibm_is_subnet" "storage_cluster_private_subnets_cidr" {
   identifier = var.vpc_storage_cluster_private_subnets[0]
 }
@@ -304,7 +299,7 @@ module "storage_cluster_bare_metal_server" {
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   resource_tags        = var.scale_cluster_resource_tags
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule, time_sleep.wait_300_seconds]
+  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
 }
 module "storage_cluster_tie_breaker_instance" {
   source                       = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
@@ -531,8 +526,8 @@ module "storage_cluster_configuration" {
   disk_type                       = var.storage_type == "persistent" ? "locally-attached" : "network-attached"
   max_data_replicas               = 3
   max_metadata_replicas           = 3
-  default_metadata_replicas       = var.storage_type != "persistent" ? 3 : 2
-  default_data_replicas           = var.storage_type != "persistent" ? 2 : 1
+  default_metadata_replicas       = var.storage_type == "persistent" ? 3 : 2
+  default_data_replicas           = var.storage_type == "persistent" ? 2 : 1
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
@@ -592,6 +587,24 @@ module "remote_mount_configuration" {
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
   depends_on                      = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration]
+}
+
+module "invoke_compute_network_playbook" {
+  source                          = "../../../resources/common/network_playbook"
+  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
+  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+  remote_mount_create_complete    = module.remote_mount_configuration.remote_mount_create_complete
+  clone_path                      = var.scale_ansible_repo_clone_path
+  depends_on                      = [module.remote_mount_configuration]
+}
+
+module "invoke_storage_network_playbook" {
+  source                          = "../../../resources/common/network_playbook"
+  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
+  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+  remote_mount_create_complete    = module.remote_mount_configuration.remote_mount_create_complete
+  clone_path                      = var.scale_ansible_repo_clone_path
+  depends_on                      = [module.remote_mount_configuration]
 }
 
 module "encryption_configuration" {

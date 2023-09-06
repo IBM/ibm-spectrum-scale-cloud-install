@@ -621,15 +621,15 @@ if __name__ == "__main__":
     PARSER.add_argument('--memory_size', help='Instance memory size')
     PARSER.add_argument('--max_pagepool_gb', help='maximum pagepool size in GB',
                         default=1)
-    PARSER.add_argument('--disk_type', help='maximum pagepool size in GB')
+    PARSER.add_argument('--disk_type', help='Disk type')
     PARSER.add_argument('--default_data_replicas',
-                        help='maximum pagepool size in GB')
+                        help='Value for default data replica')
     PARSER.add_argument('--max_data_replicas',
-                        help='maximum pagepool size in GB')
+                        help='Value for max data replica')
     PARSER.add_argument('--default_metadata_replicas',
-                        help='maximum pagepool size in GB')
+                        help='Value for default metadata replica')
     PARSER.add_argument('--max_metadata_replicas',
-                        help='maximum pagepool size in GB')
+                        help='Value for max metadata replica')
     PARSER.add_argument('--using_packer_image', help='skips gpfs rpm copy')
     PARSER.add_argument('--using_rest_initialization',
                         help='skips gui configuration')
