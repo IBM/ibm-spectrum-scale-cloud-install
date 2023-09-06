@@ -531,8 +531,8 @@ module "storage_cluster_configuration" {
   disk_type                       = var.storage_type == "persistent" ? "locally-attached" : "network-attached"
   max_data_replicas               = 3
   max_metadata_replicas           = 3
-  default_metadata_replicas       = var.storage_type == "persistent" ? 3 : 2
-  default_data_replicas           = var.storage_type == "persistent" ? 2 : 1
+  default_metadata_replicas       = var.storage_type != "persistent" ? 3 : 2
+  default_data_replicas           = var.storage_type != "persistent" ? 2 : 1
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
