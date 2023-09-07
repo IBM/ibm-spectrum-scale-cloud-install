@@ -2,22 +2,9 @@
   Creates new GCP cloud router NAT.
 */
 
-variable "nat_name" {
-  type        = string
-  default     = "spectrum-scale-nat"
-  description = "GCP Cloud router NAT name"
-}
-
-variable "router_name" {
-  type        = string
-  default     = "spectrum-scale-router"
-  description = "GCP Cloud router name"
-}
-
-variable "private_subnet_id" {
-  description = "Reference to the network to which this router belongs"
-}
-
+variable "nat_name" {}
+variable "router_name" {}
+variable "private_subnet_id" {}
 variable "turn_on" {}
 
 resource "google_compute_router_nat" "itself" {

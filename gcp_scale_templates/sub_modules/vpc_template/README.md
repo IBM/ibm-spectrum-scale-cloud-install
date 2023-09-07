@@ -120,11 +120,14 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 | <a name="input_project_id"></a> [project_id](#input_project_id) | GCP project ID to manage resources. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the VPC. | `string` |
+| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | GCP Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of compute private subnets. | `list(string)` |
 | <a name="input_vpc_description"></a> [vpc_description](#input_vpc_description) | Description of VPC. | `string` |
 | <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | Range of internal addresses. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | GCP region where the resources will be created. | `string` |
+| <a name="input_vpc_reverse_dns_domain_suffix"></a> [vpc_reverse_dns_domain_suffix](#input_vpc_reverse_dns_domain_suffix) | GCP Cloud DNS reverse lookup zone suffix | `string` |
 | <a name="input_vpc_routing_mode"></a> [vpc_routing_mode](#input_vpc_routing_mode) | Network-wide routing mode to use (valid: REGIONAL, GLOBAL). | `string` |
+| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | GCP Cloud DNS domain name to be used for storage cluster. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of storage cluster private subnets. | `list(string)` |
 
 #### Outputs
@@ -132,10 +135,12 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 | Name | Description |
 |------|-------------|
 | <a name="output_cluster_type"></a> [cluster_type](#output_cluster_type) | Cluster type (Ex: storage, compute, combined) |
+| <a name="output_vpc_compute_cloud_dns"></a> [vpc_compute_cloud_dns](#output_vpc_compute_cloud_dns) | List of IDs of compute cluster cloud DNS. |
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vpc_compute_nat_gateways"></a> [vpc_compute_nat_gateways](#output_vpc_compute_nat_gateways) | List of IDs of compute cluster nat gateway. |
 | <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
 | <a name="output_vpc_ref"></a> [vpc_ref](#output_vpc_ref) | VPC name. |
+| <a name="output_vpc_storage_cloud_dns"></a> [vpc_storage_cloud_dns](#output_vpc_storage_cloud_dns) | List of IDs of storage cluster cloud DNS. |
 | <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |
 | <a name="output_vpc_storage_nat_gateways"></a> [vpc_storage_nat_gateways](#output_vpc_storage_nat_gateways) | List of IDs of storage cluster nat gateway. |
 <!-- END_TF_DOCS -->

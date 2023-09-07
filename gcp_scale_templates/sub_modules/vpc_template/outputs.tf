@@ -32,3 +32,13 @@ output "vpc_storage_nat_gateways" {
   value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? module.storage_cloud_nat.cloud_nat_id : null
   description = "List of IDs of storage cluster nat gateway."
 }
+
+output "vpc_compute_cloud_dns" {
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? module.compute_dns_zone.dns_managed_zone_id : null
+  description = "List of IDs of compute cluster cloud DNS."
+}
+
+output "vpc_storage_cloud_dns" {
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? module.storage_dns_zone.dns_managed_zone_id : null
+  description = "List of IDs of storage cluster cloud DNS."
+}
