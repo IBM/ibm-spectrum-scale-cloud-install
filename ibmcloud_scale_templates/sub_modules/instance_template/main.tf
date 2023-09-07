@@ -335,7 +335,7 @@ data "ibm_is_ssh_key" "gklm_ssh_key" {
 
 data "ibm_is_image" "gklm_instance_image" {
   name  = var.gklm_vsi_osimage_name
-  count = var.scale_encryption_enabled == true && var.gklm_vsi_osimage_id != "null" ? 1 : 0
+  count = var.scale_encryption_enabled == true && var.gklm_vsi_osimage_id == null ? 1 : 0
 }
 
 module "gklm_instance" {
