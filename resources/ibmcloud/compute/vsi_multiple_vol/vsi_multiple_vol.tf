@@ -147,13 +147,13 @@ resource "ibm_is_instance" "itself" {
     }
   }
 
-  name    = format("%s-%s", var.vsi_name_prefix, each.value.sequence_string)
+  name    = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
   image   = var.vsi_image_id
   profile = var.vsi_profile
   tags    = var.resource_tags
 
   primary_network_interface {
-    name            = format("%s-%s-pri", var.vsi_name_prefix, each.value.sequence_string)
+    name            = format("%s-%03s-pri", var.vsi_name_prefix, each.value.sequence_string)
     subnet          = each.value.subnet_id
     security_groups = var.vsi_security_group
   }
@@ -161,7 +161,7 @@ resource "ibm_is_instance" "itself" {
   dynamic "network_interfaces" {
     for_each = var.enable_sec_interface_storage ? [1] : []
     content {
-      name            = format("%s-%s-sec", var.vsi_name_prefix, each.value.sequence_string)
+      name            = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
       subnet          = each.value.subnet_id
       security_groups = var.vsi_security_group
     }
@@ -174,7 +174,7 @@ resource "ibm_is_instance" "itself" {
   user_data      = data.template_file.metadata_startup_script.rendered
 
   boot_volume {
-    name = format("%s-boot-%s", var.vsi_name_prefix, each.value.sequence_string)
+    name = format("%s-boot-%03s", var.vsi_name_prefix, each.value.sequence_string)
   }
 }
 

@@ -93,7 +93,7 @@ resource "ibm_is_bare_metal_server" "itself" {
     }
   }
   profile = var.vsi_profile
-  name    = format("%s-%s", var.vsi_name_prefix, each.value.sequence_string)
+  name    = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
   image   = var.vsi_image_id
   zone    = each.value.zone
   keys    = var.vsi_user_public_key
