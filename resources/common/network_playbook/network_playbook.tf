@@ -9,7 +9,7 @@ variable "remote_mount_create_complete" {}
 
 locals {
   inventory_path        = format("%s/%s/compute_inventory.ini", var.clone_path, "ibm-spectrum-scale-install-infra")
-  network_playbook_path = format("%s/%s/samples/playbook_cloud_network_config.yaml", var.clone_path, "ibm-spectrum-scale-install-infra")
+  network_playbook_path = format("%s/%s/collections/ansible_collections/ibm/spectrum_scale/samples/playbook_cloud_network_config.yaml", var.clone_path, "ibm-spectrum-scale-install-infra")
 }
 
 resource "null_resource" "perform_scale_deployment" {
