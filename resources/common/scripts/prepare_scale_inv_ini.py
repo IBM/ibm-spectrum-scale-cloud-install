@@ -902,8 +902,9 @@ if __name__ == "__main__":
         scale_storage = initialize_scale_storage_details(len(TF['vpc_availability_zones']),
                                                          TF['storage_cluster_filesystem_mountpoint'],
                                                          TF['filesystem_block_size'],
-                                                         disks_list, ARGUMENTS.default_metadata_replicas, ARGUMENTS.max_metadata_replicas,
-                                                         ARGUMENTS.default_data_replicas, ARGUMENTS.max_data_replicas)
+                                                         disks_list, int(ARGUMENTS.default_metadata_replicas), int(
+                                                             ARGUMENTS.max_metadata_replicas),
+                                                         int(ARGUMENTS.default_data_replicas), int(ARGUMENTS.max_data_replicas))
         with open("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
                                    "ibm-spectrum-scale-install-infra",
                                    "group_vars",
