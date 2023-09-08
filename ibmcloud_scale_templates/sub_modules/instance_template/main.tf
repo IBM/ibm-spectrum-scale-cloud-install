@@ -206,7 +206,7 @@ data "ibm_is_subnet" "compute_cluster_private_subnets_cidr" {
 module "compute_cluster_instances" {
   source                       = "../../../resources/ibmcloud/compute/vsi_0_vol"
   total_vsis                   = var.total_compute_cluster_instances
-  vsi_name_prefix              = format("%s-compute", var.resource_prefix)
+  vsi_name_prefix              = format("%s-comp", var.resource_prefix)
   vpc_id                       = var.vpc_id
   resource_group_id            = var.resource_group_id
   zones                        = [var.vpc_availability_zones[0]]
@@ -253,11 +253,6 @@ data "ibm_is_image" "storage_bare_metal_image" {
   count = var.storage_bare_metal_osimage_id != "" ? 0 : 1
 }
 
-resource "time_sleep" "wait_300_seconds" {
-  depends_on       = [module.storage_cluster_security_group]
-  destroy_duration = "300s"
-}
-
 data "ibm_is_subnet" "storage_cluster_private_subnets_cidr" {
   identifier = var.vpc_storage_cluster_private_subnets[0]
 }
@@ -266,7 +261,7 @@ module "storage_cluster_instances" {
   count                        = var.storage_type != "persistent" ? 1 : 0
   source                       = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   total_vsis                   = var.total_storage_cluster_instances
-  vsi_name_prefix              = format("%s-storage", var.resource_prefix)
+  vsi_name_prefix              = format("%s-strg", var.resource_prefix)
   vpc_id                       = var.vpc_id
   resource_group_id            = var.resource_group_id
   zones                        = [var.vpc_availability_zones[0]]
@@ -289,7 +284,7 @@ module "storage_cluster_bare_metal_server" {
   count                = var.storage_type == "persistent" ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/bare_metal_server_multiple_vol"
   total_vsis           = var.total_storage_cluster_instances
-  vsi_name_prefix      = format("%s-storage-baremetal", var.resource_prefix)
+  vsi_name_prefix      = format("%s-strg", var.resource_prefix)
   vpc_id               = var.vpc_id
   resource_group_id    = var.resource_group_id
   zones                = [var.vpc_availability_zones[0]]
@@ -304,8 +299,9 @@ module "storage_cluster_bare_metal_server" {
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   resource_tags        = var.scale_cluster_resource_tags
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule, time_sleep.wait_300_seconds]
+  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
 }
+
 module "storage_cluster_tie_breaker_instance" {
   source                       = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   total_vsis                   = (length(var.vpc_storage_cluster_private_subnets) > 1 && var.total_storage_cluster_instances > 0) ? 1 : 0
@@ -527,6 +523,12 @@ module "storage_cluster_configuration" {
   memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
   max_pagepool_gb                 = var.storage_type == "persistent" ? 32 : 16
   vcpu_count                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  max_mbps                        = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value * 0.25 : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value * 0.25
+  disk_type                       = var.storage_type == "persistent" ? "locally-attached" : "network-attached"
+  max_data_replicas               = 3
+  max_metadata_replicas           = 3
+  default_metadata_replicas       = var.storage_type == "persistent" ? 3 : 2
+  default_data_replicas           = var.storage_type == "persistent" ? 2 : 1
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
@@ -586,6 +588,28 @@ module "remote_mount_configuration" {
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
   depends_on                      = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration]
+}
+
+module "invoke_compute_network_playbook" {
+  source                          = "../../../resources/common/network_playbook"
+  turn_on                         = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+  clone_complete                  = module.prepare_ansible_configuration.clone_complete
+  create_scale_cluster            = var.create_scale_cluster
+  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
+  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+  inventory_path                  = format("%s/%s/compute_inventory.ini", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
+  network_playbook_path           = format("%s/%s/collections/ansible_collections/ibm/spectrum_scale/samples/playbook_cloud_network_config.yaml", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
+}
+
+module "invoke_storage_network_playbook" {
+  source                          = "../../../resources/common/network_playbook"
+  turn_on                         = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+  clone_complete                  = module.prepare_ansible_configuration.clone_complete
+  create_scale_cluster            = var.create_scale_cluster
+  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
+  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+  inventory_path                  = format("%s/%s/storage_inventory.ini", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
+  network_playbook_path           = format("%s/%s/collections/ansible_collections/ibm/spectrum_scale/samples/playbook_cloud_network_config.yaml", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
 }
 
 module "encryption_configuration" {
