@@ -95,6 +95,7 @@ resource "google_compute_instance" "itself" {
   metadata = {
     ssh-keys               = format("%s:%s", var.ssh_user_name, file(var.ssh_key_path))
     block-project-ssh-keys = true
+    vmdnssetting           = length(var.vpc_availability_zones) > 1 ? "GlobalDefault" : "ZonalOnly"
   }
 
   metadata_startup_script = data.template_file.metadata_startup_script.rendered

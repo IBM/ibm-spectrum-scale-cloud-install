@@ -501,6 +501,12 @@ module "storage_cluster_configuration" {
   scale_encryption_enabled        = false
   scale_encryption_admin_password = null
   scale_encryption_servers        = null
+  max_mbps                        = 50000 * 0.25 # TODO: maximum egress bandwidth limit ranges from 50-200 Gbps
+  disk_type                       = jsonencode("None")
+  max_data_replicas               = jsonencode("None")
+  max_metadata_replicas           = jsonencode("None")
+  default_metadata_replicas       = 3
+  default_data_replicas           = 3
 }
 
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
