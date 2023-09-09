@@ -933,6 +933,15 @@ if __name__ == "__main__":
     PARSER.add_argument('--enable_mrot_conf', required=True)
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
+    PARSER.add_argument('--disk_type', help='Disk type')
+    PARSER.add_argument('--default_data_replicas',
+                         help='Value for default data replica')
+    PARSER.add_argument('--max_data_replicas',
+                         help='Value for max data replica')
+    PARSER.add_argument('--default_metadata_replicas',
+                         help='Value for default metadata replica')
+    PARSER.add_argument('--max_metadata_replicas',
+                         help='Value for max metadata replica')
 
     ARGUMENTS = PARSER.parse_args()
 

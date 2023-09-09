@@ -501,6 +501,12 @@ module "storage_cluster_configuration" {
   scale_encryption_enabled        = false
   scale_encryption_admin_password = null
   scale_encryption_servers        = null
+  max_metadata_replicas           = 0
+  default_data_replicas           = 0
+  max_mbps                        = 0
+  max_data_replicas               = 0
+  disk_type                       = var.storage_boot_disk_type
+  default_metadata_replicas       = 0
 }
 
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
