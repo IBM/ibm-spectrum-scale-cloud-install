@@ -733,6 +733,12 @@ module "storage_cluster_configuration" {
   scale_encryption_enabled        = false
   scale_encryption_admin_password = null
   scale_encryption_servers        = null
+  max_mbps                        = data.aws_ec2_instance_type.storage_profile[0].ebs_performance_baseline_bandwidth * 0.25
+  disk_type                       = jsonencode("None")
+  max_data_replicas               = jsonencode("None")
+  max_metadata_replicas           = jsonencode("None")
+  default_metadata_replicas       = 3
+  default_data_replicas           = 3
 }
 
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
