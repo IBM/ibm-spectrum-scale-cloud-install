@@ -230,7 +230,7 @@ module "storage_cluster_ingress_security_rule_using_direct_connection" {
   firewall_description = local.security_rule_description_storage_cluster_ingress_using_direct_connection
 }
 
-#Creates compute instances
+# Creates compute instances
 module "compute_cluster_instances" {
   count                         = local.cluster_type == "compute" || local.cluster_type == "combined" ? 1 : 0
   source                        = "../../../resources/gcp/compute/vm_instance_multiple"
@@ -264,6 +264,7 @@ module "compute_cluster_instances" {
   dns_reverse_dns_name          = var.vpc_reverse_dns_name
 }
 
+# Creates storage tie breaker instance
 module "storage_cluster_tie_breaker_instance" {
   count                         = local.cluster_type == "storage" || local.cluster_type == "combined" ? 1 : 0
   source                        = "../../../resources/gcp/compute/vm_instance_multiple"
@@ -297,7 +298,7 @@ module "storage_cluster_tie_breaker_instance" {
   dns_reverse_dns_name          = var.vpc_reverse_dns_name
 }
 
-#Creates storage instances
+# Creates storage instances
 module "storage_cluster_instances" {
   count                         = local.cluster_type == "storage" || local.cluster_type == "combined" ? 1 : 0
   source                        = "../../../resources/gcp/compute/vm_instance_multiple"

@@ -104,6 +104,7 @@ resource "google_compute_instance" "itself" {
   }
 }
 
+# Creates compute persistent disk
 resource "google_compute_disk" "itself" {
   count                     = var.total_persistent_disks
   zone                      = var.zone
@@ -123,6 +124,7 @@ resource "google_compute_disk" "itself" {
   depends_on = [google_compute_instance.itself]
 }
 
+# Attaches persistent disk to compute instance
 resource "google_compute_attached_disk" "attach_data_disk" {
   count      = length(google_compute_disk.itself)
   disk       = google_compute_disk.itself[count.index].id

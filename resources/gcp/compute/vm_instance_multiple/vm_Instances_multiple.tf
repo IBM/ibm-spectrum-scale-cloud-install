@@ -40,6 +40,7 @@ locals {
   vm_configuration        = flatten([for i in range(local.total_cluster_instances) : { subnet = element(var.vpc_subnets, i), zone = element(local.vpc_availability_zones, i), vm_name = "${var.instance_name_prefix}-${i}" }])
 }
 
+# Creating multiple instances
 module "instances_multiple" {
   count                         = length(local.vm_configuration)
   source                        = "../Instance_vm"
