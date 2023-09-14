@@ -19,7 +19,6 @@ variable "physical_block_size_bytes" {}
 variable "data_disk_type" {}
 variable "data_disk_size" {}
 variable "total_local_ssd_disks" {}
-variable "block_device_names" {}
 variable "private_key_content" {}
 variable "public_key_content" {}
 variable "vpc_region" {}

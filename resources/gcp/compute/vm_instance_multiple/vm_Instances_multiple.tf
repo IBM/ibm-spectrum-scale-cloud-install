@@ -43,7 +43,7 @@ locals {
 # Creating multiple instances
 module "instances_multiple" {
   count                         = length(local.vm_configuration)
-  source                        = "../Instance_vm"
+  source                        = "../instance_vm"
   vpc_region                    = var.vpc_region
   zone                          = local.vm_configuration[count.index].zone
   machine_type                  = var.machine_type
@@ -55,7 +55,6 @@ module "instances_multiple" {
   data_disk_size                = var.data_disk_size
   total_persistent_disks        = var.total_persistent_disks
   total_local_ssd_disks         = var.total_local_ssd_disks
-  block_device_names            = var.block_device_names
   subnet_name                   = local.vm_configuration[count.index].subnet
   ssh_user_name                 = var.instances_ssh_user_name
   ssh_key_path                  = var.instances_ssh_public_key_path
