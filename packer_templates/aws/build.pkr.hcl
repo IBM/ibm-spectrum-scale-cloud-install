@@ -4,7 +4,7 @@ build {
   provisioner "shell" {
     inline = [
       "sleep 30",
-      "sudo dnf install -y unzip python3 jq numactl",
+      "sudo dnf install -y unzip python3 python3-pip jq numactl",
       "sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`",
       "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils nftables iptables nvme-cli",
       "sudo pip3 install awscli",
