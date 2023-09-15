@@ -37,7 +37,7 @@ locals {
   availability_zones      = var.vpc_availability_zones == null ? [] : var.vpc_availability_zones
   vpc_availability_zones  = length(local.availability_zones) > length(local.vpc_subnets) ? slice(local.availability_zones, 0, length(local.vpc_subnets)) : local.availability_zones
   total_cluster_instances = var.total_cluster_instances == null ? 0 : var.total_cluster_instances
-  vm_configuration        = flatten([for i in range(local.total_cluster_instances) : { subnet = element(var.vpc_subnets, i), zone = element(local.vpc_availability_zones, i), vm_name = "${var.instance_name_prefix}-${i}" }])
+  vm_configuration        = flatten([for i in range(local.total_cluster_instances) : { subnet = element(local.vpc_subnets, i), zone = element(local.vpc_availability_zones, i), vm_name = "${var.instance_name_prefix}-${i}" }])
 }
 
 # Creating multiple instances

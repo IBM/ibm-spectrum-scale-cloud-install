@@ -236,7 +236,7 @@ module "compute_cluster_instances" {
   source                        = "../../../resources/gcp/compute/vm_instance_multiple"
   vpc_region                    = var.vpc_region
   vpc_availability_zones        = var.vpc_availability_zones
-  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
+  vpc_subnets                   = var.vpc_compute_cluster_private_subnets
   instances_ssh_public_key_path = var.compute_cluster_public_key_path
   instances_ssh_user_name       = var.instances_ssh_user_name
   total_cluster_instances       = local.cluster_type == "compute" || local.cluster_type == "combined" ? var.total_compute_cluster_instances : 0
@@ -266,10 +266,10 @@ module "compute_cluster_instances" {
 
 # Creates storage tie breaker instance
 module "storage_cluster_tie_breaker_instance" {
-  count                         = local.cluster_type == "storage" || local.cluster_type == "combined" ? 1 : 0
+  count                         = local.cluster_type == "storage" || local.cluster_type == "combined" ? (length(var.vpc_availability_zones) > 1 ? 1 : 0) : 0
   source                        = "../../../resources/gcp/compute/vm_instance_multiple"
   vpc_region                    = var.vpc_region
-  vpc_availability_zones        = [var.vpc_availability_zones[2]]
+  vpc_availability_zones        = var.vpc_availability_zones != null ? length(var.vpc_availability_zones) > 1 ? [var.vpc_availability_zones[2]] : [] : []
   vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : [] : []
   instances_ssh_public_key_path = var.storage_cluster_public_key_path
   instances_ssh_user_name       = var.instances_ssh_user_name
@@ -304,7 +304,7 @@ module "storage_cluster_instances" {
   source                        = "../../../resources/gcp/compute/vm_instance_multiple"
   vpc_region                    = var.vpc_region
   vpc_availability_zones        = var.vpc_availability_zones
-  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
+  vpc_subnets                   = var.vpc_storage_cluster_private_subnets
   instances_ssh_public_key_path = var.storage_cluster_public_key_path
   instances_ssh_user_name       = var.instances_ssh_user_name
   total_cluster_instances       = var.total_storage_cluster_instances
