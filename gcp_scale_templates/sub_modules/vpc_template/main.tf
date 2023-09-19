@@ -88,7 +88,7 @@ module "storage_dns_zone" {
 
 module "compute_dns_zone" {
   source      = "../../../resources/gcp/network/cloud_dns"
-  turn_on     = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on     = (local.cluster_type == "compute") ? true : false
   zone_name   = var.resource_prefix
   dns_name    = format("%s.", var.vpc_compute_cluster_dns_domain) # Trailing dot is required.
   vpc_network = module.vpc.vpc_id
