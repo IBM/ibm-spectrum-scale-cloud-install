@@ -18,6 +18,11 @@ output "storage_cluster_with_dns_hostname" {
   description = "Storage cluster dns hostname mapping."
 }
 
+output "compute_cluster_with_dns_hostname" {
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? { for dns_entry in module.compute_cluster_instances[*].dns_hostname : keys(dns_entry)[0] => values(dns_entry)[0] } : null
+  description = "Compute cluster dns hostname mapping."
+}
+
 output "compute_cluster_instance_ids" {
   value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? flatten(module.compute_cluster_instances[*].instance_selflink) : null
   description = "Compute cluster instance ids."
