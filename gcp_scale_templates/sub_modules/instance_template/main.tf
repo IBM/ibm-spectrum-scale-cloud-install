@@ -98,7 +98,7 @@ locals {
   comp_vpc_availability_zones  = length(local.availability_zones) > length(local.comp_vpc_subnets) ? slice(local.availability_zones, 0, length(local.comp_vpc_subnets)) : local.availability_zones
   comp_total_cluster_instances = var.total_compute_cluster_instances == null ? 0 : var.total_compute_cluster_instances
   comp_instance_name_prefix    = format("%s-compute", var.resource_prefix)
-  comp_vm_configuration        = flatten([for i in range(local.comp_total_cluster_instances) : { subnet = element(local.comp_vpc_subnets, i), zone = element(local.comp_vpc_availability_zones, i), vm_name = "${local.comp_instance_name_prefix}-${i}" }])
+  comp_vm_configuration        = flatten([for i in range(local.comp_total_cluster_instances) : { subnet = element(local.comp_vpc_subnets, i), zone = element(local.comp_vpc_availability_zones, i), vm_name = "${local.comp_instance_name_prefix}-${i + 1}" }])
 }
 
 # Generate compute cluster ssh keys
@@ -241,15 +241,16 @@ module "storage_cluster_ingress_security_rule_using_direct_connection" {
 
 # Creates compute instances
 module "compute_cluster_instances" {
-  count                = length(local.comp_vm_configuration)
+  for_each = { for vmconfig in local.comp_vm_configuration : vmconfig.vm_name => vmconfig }
+  #count               = length(local.comp_vm_configuration)
   source               = "../../../resources/gcp/compute/instance_vm_vol_0"
-  zone                 = local.comp_vm_configuration[count.index].zone
+  zone                 = each.value.zone
   machine_type         = var.compute_cluster_instance_type
-  instance_name        = local.comp_vm_configuration[count.index].vm_name
+  instance_name        = each.value.vm_name
   boot_disk_size       = var.compute_boot_disk_size
   boot_disk_type       = var.compute_boot_disk_type
   boot_image           = var.compute_cluster_image_ref
-  subnet_name          = local.comp_vm_configuration[count.index].subnet
+  subnet_name          = each.value.subnet
   ssh_user_name        = var.instances_ssh_user_name
   ssh_key_path         = var.compute_cluster_public_key_path
   private_key_content  = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
@@ -355,9 +356,9 @@ module "write_compute_cluster_inventory" {
   bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_selflink))
-  compute_cluster_instance_private_ips             = jsonencode(flatten(module.compute_cluster_instances[*].instance_ips))
-  compute_cluster_instance_private_dns_ip_map      = length(module.compute_cluster_instances) > 0 ? jsonencode({ for dns_entry in module.compute_cluster_instances[*].dns_hostname : keys(dns_entry)[0] => values(dns_entry)[0] }) : jsonencode({})
+  compute_cluster_instance_ids                     = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_selflink]))
+  compute_cluster_instance_private_ips             = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_ips]))
+  compute_cluster_instance_private_dns_ip_map      = length(module.compute_cluster_instances) > 0 ? jsonencode({ for instance in module.compute_cluster_instances : keys(instance.dns_hostname)[0] => values(instance.dns_hostname)[0] }) : jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode("None")
   storage_cluster_instance_ids                     = jsonencode([])
   storage_cluster_instance_private_ips             = jsonencode([])
@@ -425,8 +426,8 @@ module "write_cluster_inventory" {
   bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_selflink))
-  compute_cluster_instance_private_ips             = jsonencode(flatten(module.compute_cluster_instances[*].instance_ips))
+  compute_cluster_instance_ids                     = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_selflink]))
+  compute_cluster_instance_private_ips             = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_ips]))
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
   storage_cluster_instance_ids                     = jsonencode(flatten(module.storage_cluster_instances[*].instance_selflink))
