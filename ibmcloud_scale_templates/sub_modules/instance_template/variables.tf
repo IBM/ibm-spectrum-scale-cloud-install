@@ -63,6 +63,44 @@ variable "enable_oldap_integration" {
   description = "Set true to Integrate OLDAP authentication for scale NFS share, Note: ODLAP hosted in seperate vsi"
 }
 
+variable "oldap_manager_password" {
+  type        = string
+  sensitive   = true
+  default     = ""
+  description = "Password for OLDAP Manager"
+}
+
+variable "oldap_user" {
+  type        = string
+  default     = "Scaleusr01"
+  description = "OLDAP User Name"
+}
+
+variable "oldap_user_password" {
+  type        = string
+  sensitive   = true
+  default     = ""
+  description = "OLDAP User Password"
+}
+
+variable "oldap_domain_controller" {
+  type        = string
+  default     = "ibmscale"
+  description = "OLDAP Domain Controller"
+}
+
+variable "oldap_admin_group" {
+  type        = string
+  default     = "ScaleAdmin"
+  description = "OLDAP Administrator Group Name"
+}
+
+variable "oldap_user_group" {
+  type        = string
+  default     = "Scaleconsumer"
+  description = "OLDAP User Group Name"
+}
+
 variable "using_rest_api_remote_mount" {
   type        = string
   default     = true
