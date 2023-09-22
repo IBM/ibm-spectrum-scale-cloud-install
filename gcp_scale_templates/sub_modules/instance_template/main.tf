@@ -90,6 +90,15 @@ locals {
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
+
+  availability_zones = var.vpc_availability_zones == null ? [] : var.vpc_availability_zones
+
+  #Compute configuration
+  comp_vpc_subnets             = var.vpc_compute_cluster_private_subnets == null ? [] : var.vpc_compute_cluster_private_subnets
+  comp_vpc_availability_zones  = length(local.availability_zones) > length(local.comp_vpc_subnets) ? slice(local.availability_zones, 0, length(local.comp_vpc_subnets)) : local.availability_zones
+  comp_total_cluster_instances = var.total_compute_cluster_instances == null ? 0 : var.total_compute_cluster_instances
+  comp_instance_name_prefix    = format("%s-compute", var.resource_prefix)
+  comp_vm_configuration        = flatten([for i in range(local.comp_total_cluster_instances) : { subnet = element(local.comp_vpc_subnets, i), zone = element(local.comp_vpc_availability_zones, i), vm_name = "${local.comp_instance_name_prefix}-${i + 1}" }])
 }
 
 # Generate compute cluster ssh keys
@@ -232,36 +241,26 @@ module "storage_cluster_ingress_security_rule_using_direct_connection" {
 
 # Creates compute instances
 module "compute_cluster_instances" {
-  count                         = local.cluster_type == "compute" || local.cluster_type == "combined" ? 1 : 0
-  source                        = "../../../resources/gcp/compute/vm_instance_multiple"
-  vpc_region                    = var.vpc_region
-  vpc_availability_zones        = var.vpc_availability_zones
-  vpc_subnets                   = var.vpc_compute_cluster_private_subnets
-  instances_ssh_public_key_path = var.compute_cluster_public_key_path
-  instances_ssh_user_name       = var.instances_ssh_user_name
-  total_cluster_instances       = local.cluster_type == "compute" || local.cluster_type == "combined" ? var.total_compute_cluster_instances : 0
-  total_persistent_disks        = 0
-  total_local_ssd_disks         = 0
-  physical_block_size_bytes     = var.physical_block_size_bytes
-  data_disk_description         = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
-  instance_name_prefix          = format("%s-compute", var.resource_prefix)
-  machine_type                  = var.compute_cluster_instance_type
-  private_key_content           = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
-  public_key_content            = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  service_email                 = var.service_email
-  scopes                        = var.scopes
-  boot_disk_size                = var.compute_boot_disk_size
-  boot_disk_type                = var.compute_boot_disk_type
-  boot_image                    = var.compute_cluster_image_ref
-  block_device_names            = local.block_device_names
-  data_disk_type                = ""
-  data_disk_size                = 0
-  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
-  block_device_kms_key_ref      = var.block_device_kms_key_ref
-  dns_forward_dns_zone          = var.vpc_forward_dns_zone
-  dns_forward_dns_name          = var.vpc_compute_cluster_dns_name
-  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  dns_reverse_dns_name          = var.vpc_reverse_dns_name
+  for_each = { for vmconfig in local.comp_vm_configuration : vmconfig.vm_name => vmconfig }
+  #count               = length(local.comp_vm_configuration)
+  source               = "../../../resources/gcp/compute/instance_vm_vol_0"
+  zone                 = each.value.zone
+  machine_type         = var.compute_cluster_instance_type
+  instance_name        = each.value.vm_name
+  boot_disk_size       = var.compute_boot_disk_size
+  boot_disk_type       = var.compute_boot_disk_type
+  boot_image           = var.compute_cluster_image_ref
+  subnet_name          = each.value.subnet
+  ssh_user_name        = var.instances_ssh_user_name
+  ssh_key_path         = var.compute_cluster_public_key_path
+  private_key_content  = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
+  public_key_content   = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
+  service_email        = var.service_email
+  scopes               = var.scopes
+  dns_forward_dns_zone = var.vpc_forward_dns_zone
+  dns_forward_dns_name = var.vpc_compute_cluster_dns_name
+  dns_reverse_dns_zone = var.vpc_reverse_dns_zone
+  dns_reverse_dns_name = var.vpc_reverse_dns_name
 }
 
 # Creates storage tie breaker instance
@@ -357,9 +356,9 @@ module "write_compute_cluster_inventory" {
   bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_selflink))
-  compute_cluster_instance_private_ips             = jsonencode(flatten(module.compute_cluster_instances[*].instance_ips))
-  compute_cluster_instance_private_dns_ip_map      = length(module.compute_cluster_instances) > 0 ? jsonencode(module.compute_cluster_instances[*].dns_hostname) : jsonencode({})
+  compute_cluster_instance_ids                     = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_selflink]))
+  compute_cluster_instance_private_ips             = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_ips]))
+  compute_cluster_instance_private_dns_ip_map      = length(module.compute_cluster_instances) > 0 ? jsonencode({ for instance in module.compute_cluster_instances : keys(instance.dns_hostname)[0] => values(instance.dns_hostname)[0] }) : jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode("None")
   storage_cluster_instance_ids                     = jsonencode([])
   storage_cluster_instance_private_ips             = jsonencode([])
@@ -427,8 +426,8 @@ module "write_cluster_inventory" {
   bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(flatten(module.compute_cluster_instances[*].instance_selflink))
-  compute_cluster_instance_private_ips             = jsonencode(flatten(module.compute_cluster_instances[*].instance_ips))
+  compute_cluster_instance_ids                     = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_selflink]))
+  compute_cluster_instance_private_ips             = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_ips]))
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
   storage_cluster_instance_ids                     = jsonencode(flatten(module.storage_cluster_instances[*].instance_selflink))
