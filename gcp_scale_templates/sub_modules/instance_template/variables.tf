@@ -356,6 +356,13 @@ variable "bastion_ssh_private_key" {
   description = "Bastion SSH private key path, which will be used to login to bastion host."
 }
 
+variable "use_clouddns" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Indicates whether to use cloud DNS or internal DNS."
+}
+
 variable "vpc_reverse_dns_zone" {
   type        = string
   nullable    = true
