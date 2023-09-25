@@ -231,6 +231,27 @@ module "storage_cluster_ingress_security_rule_using_direct_connection" {
   firewall_description = local.security_rule_description_storage_cluster_ingress_using_direct_connection
 }
 
+module "compute_dns_zone" {
+  source      = "../../../resources/gcp/network/cloud_dns"
+  turn_on     = (local.cluster_type == "compute" && var.use_clouddns) ? true : false
+  zone_name   = var.resource_prefix
+  dns_name    = format("%s.", var.vpc_compute_cluster_dns_domain) # Trailing dot is required.
+  vpc_network = var.vpc_ref
+  description = "Private DNS Zone for IBM Storage Scale compute instances DNS communication."
+}
+
+module "reverse_dns_zone" {
+  source    = "../../../resources/gcp/network/cloud_dns"
+  turn_on   = var.use_clouddns ? true : false
+  zone_name = format("%s-reverse", var.resource_prefix)
+  # Prepare the reverse DNS zone name using first oclet of vpc.
+  # Ex: vpc cidr = 10.0.0.0/24, then dns_name = 10.in-addr.arpa.
+  # Trailing dot is required
+  dns_name    = format("%s.%s", try(split(".", cidrsubnet(local.cluster_type == "compute" ? data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range : data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_network = var.vpc_ref
+  description = "Reverse Private DNS Zone for IBM Storage Scale instances DNS communication."
+}
+
 /*
     Generate a list of compute vm name(s).
     Ex: vm_list = ["vm-1", "vm-2", "vm-3",]
@@ -286,12 +307,23 @@ module "compute_cluster_instances" {
   private_key_content           = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   public_key_content            = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   use_clouddns                  = var.use_clouddns
-  dns_forward_dns_zone          = var.vpc_forward_dns_zone
-  dns_forward_dns_name          = var.vpc_compute_cluster_dns_name
-  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  dns_reverse_dns_name          = var.vpc_reverse_dns_name
+  vpc_forward_dns_zone          = var.vpc_forward_dns_zone
+  vpc_dns_domain                = var.vpc_compute_cluster_dns_domain
+  vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
+
+  depends_on = [module.compute_dns_zone, module.reverse_dns_zone]
+}
+
+module "storage_dns_zone" {
+  source      = "../../../resources/gcp/network/cloud_dns"
+  turn_on     = (var.use_clouddns && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
+  zone_name   = var.resource_prefix
+  dns_name    = format("%s.", var.vpc_storage_cluster_dns_domain) # Trailing dot is required.
+  vpc_network = var.vpc_ref
+  description = "Private DNS Zone for IBM Storage Scale storage instances DNS communication."
 }
 
 /*
@@ -299,7 +331,7 @@ module "compute_cluster_instances" {
     Ex: vm_list = ["vm-1", "vm-2", "vm-3",]
 */
 resource "null_resource" "generate_storage_vm_name" {
-  count = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_storage_cluster_instances : 0
+  count = (local.cluster_type == "storage" || local.cluster_type == "combined") ? (var.total_storage_cluster_instances != null) ? var.total_storage_cluster_instances : 0 : 0
   triggers = {
     vm_name = format("%s-storage-%s", var.resource_prefix, count.index + 1)
   }
@@ -315,7 +347,7 @@ resource "null_resource" "generate_storage_vm_name" {
                 "zone" = "us-central1-b"
             }
             "vm-2" = {
-                "devices" = ["/dev/sdc", "/dev/sdd",]
+                "disks" = ["vm-1-disk-1", "vm-1-disk-2",]
                 "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-private-subnet-0"
                 "zone" = "us-central1-a"
             }
@@ -359,12 +391,14 @@ module "storage_cluster_instances" {
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
   use_clouddns                  = var.use_clouddns
-  dns_forward_dns_zone          = var.vpc_forward_dns_zone
-  dns_forward_dns_name          = var.vpc_storage_cluster_dns_name
-  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  dns_reverse_dns_name          = var.vpc_reverse_dns_name
+  vpc_forward_dns_zone          = var.vpc_forward_dns_zone
+  vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
+  vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
+
+  depends_on = [module.storage_dns_zone, module.reverse_dns_zone]
 }
 
 /*
@@ -427,12 +461,14 @@ module "storage_cluster_tie_breaker_instance" {
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
   use_clouddns                  = var.use_clouddns
-  dns_forward_dns_zone          = var.vpc_forward_dns_zone
-  dns_forward_dns_name          = var.vpc_storage_cluster_dns_name
-  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  dns_reverse_dns_name          = var.vpc_reverse_dns_name
+  vpc_forward_dns_zone          = var.vpc_forward_dns_zone
+  vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
+  vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
+
+  depends_on = [module.storage_dns_zone, module.reverse_dns_zone]
 }
 
 # Prepare ansible config

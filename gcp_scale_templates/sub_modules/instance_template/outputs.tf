@@ -62,3 +62,13 @@ output "compute_cluster_security_id" {
   value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? concat(module.allow_traffic_scale_cluster_compute_internal.firewall_uri_ingress_bi, module.allow_traffic_scale_cluster_storage_to_compute.firewall_uri_ingress_bi) : null
   description = "Compute cluster security ids."
 }
+
+output "vpc_compute_cloud_dns" {
+  value       = (var.use_clouddns && local.cluster_type == "compute") ? module.compute_dns_zone.dns_managed_zone_id : null
+  description = "List of IDs of compute cluster cloud DNS."
+}
+
+output "vpc_storage_cloud_dns" {
+  value       = (var.use_clouddns && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? module.storage_dns_zone.dns_managed_zone_id : null
+  description = "List of IDs of storage cluster cloud DNS."
+}

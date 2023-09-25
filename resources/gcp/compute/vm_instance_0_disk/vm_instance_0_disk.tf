@@ -6,7 +6,6 @@ variable "vpc_region" {}
 variable "zone" {}
 variable "subnet_name" {}
 variable "is_multizone" {}
-variable "use_clouddns" {}
 variable "service_email" {}
 variable "scopes" {}
 variable "instance_name" {}
@@ -18,10 +17,11 @@ variable "boot_image" {}
 variable "ssh_user_name" {}
 variable "private_key_content" {}
 variable "public_key_content" {}
-variable "dns_forward_dns_zone" {}
-variable "dns_forward_dns_name" {}
-variable "dns_reverse_dns_zone" {}
-variable "dns_reverse_dns_name" {}
+variable "use_clouddns" {}
+variable "vpc_forward_dns_zone" {}
+variable "vpc_dns_domain" {}
+variable "vpc_reverse_dns_zone" {}
+variable "vpc_reverse_dns_domain" {}
 variable "block_device_kms_key_ring_ref" {}
 variable "block_device_kms_key_ref" {}
 
@@ -53,7 +53,7 @@ resource "google_compute_instance" "itself" {
   name         = var.instance_name
   machine_type = var.machine_type
   zone         = var.zone
-  hostname     = var.use_clouddns ? format("%s.%s", var.instance_name, var.dns_forward_dns_name) : null
+  hostname     = var.use_clouddns ? format("%s.%s", var.instance_name, var.vpc_dns_domain) : null
 
   allow_stopping_for_update = true
 
@@ -92,9 +92,9 @@ resource "google_compute_instance" "itself" {
 # Add the VM instance ip as 'A' record to DNS
 resource "google_dns_record_set" "a_itself" {
   count        = var.use_clouddns ? 1 : 0
-  name         = format("%s.%s.", google_compute_instance.itself.name, var.dns_forward_dns_name) # Trailing dot is required
+  name         = format("%s.%s.", google_compute_instance.itself.name, var.vpc_dns_domain) # Trailing dot is required
   type         = "A"
-  managed_zone = var.dns_forward_dns_zone
+  managed_zone = var.vpc_forward_dns_zone
   ttl          = 300
   rrdatas      = [google_compute_instance.itself.network_interface[0].network_ip]
 }
@@ -102,11 +102,11 @@ resource "google_dns_record_set" "a_itself" {
 # Add the VM instance reverse lookup as 'PTR' record to DNS
 resource "google_dns_record_set" "ptr_itself" {
   count        = var.use_clouddns ? 1 : 0
-  name         = format("%s.%s.%s.%s.", split(".", google_compute_instance.itself.network_interface[0].network_ip)[3], split(".", google_compute_instance.itself.network_interface[0].network_ip)[2], split(".", google_compute_instance.itself.network_interface[0].network_ip)[1], var.dns_reverse_dns_name) # Trailing dot is required
+  name         = format("%s.%s.%s.%s", split(".", google_compute_instance.itself.network_interface[0].network_ip)[3], split(".", google_compute_instance.itself.network_interface[0].network_ip)[2], split(".", google_compute_instance.itself.network_interface[0].network_ip)[1], var.vpc_reverse_dns_domain)
   type         = "PTR"
-  managed_zone = var.dns_reverse_dns_zone
+  managed_zone = var.vpc_reverse_dns_zone
   ttl          = 300
-  rrdatas      = [format("%s.%s.", google_compute_instance.itself.name, var.dns_forward_dns_name)] # Trailing dot is required
+  rrdatas      = [format("%s.%s.", google_compute_instance.itself.name, var.vpc_dns_domain)] # Trailing dot is required
 }
 
 output "instance_id" {
@@ -124,5 +124,5 @@ output "instance_ip" {
 output "instance_dns_name" {
   # Ex: id: projects/spectrum-scale-xyz/zones/us-central1-b/instances/test-compute-2,  regex o/p: test-compute-2
   # Internal DNS format: {instance_name}.{zone}.c.{project_id}.internal
-  value = var.use_clouddns ? format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.dns_forward_dns_name) : format("%s.%s.c.%s.internal", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.zone, regex("projects/(.*)/zones/.*", google_compute_instance.itself.id)[0])
+  value = var.use_clouddns ? format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.vpc_dns_domain) : format("%s.%s.c.%s.internal", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.zone, regex("projects/(.*)/zones/.*", google_compute_instance.itself.id)[0])
 }
