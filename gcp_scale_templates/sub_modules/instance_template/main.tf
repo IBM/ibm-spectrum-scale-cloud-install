@@ -90,15 +90,7 @@ locals {
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
-
-  availability_zones = var.vpc_availability_zones == null ? [] : var.vpc_availability_zones
-
-  #Compute configuration
-  comp_vpc_subnets             = var.vpc_compute_cluster_private_subnets == null ? [] : var.vpc_compute_cluster_private_subnets
-  comp_vpc_availability_zones  = length(local.availability_zones) > length(local.comp_vpc_subnets) ? slice(local.availability_zones, 0, length(local.comp_vpc_subnets)) : local.availability_zones
-  comp_total_cluster_instances = var.total_compute_cluster_instances == null ? 0 : var.total_compute_cluster_instances
-  comp_instance_name_prefix    = format("%s-compute", var.resource_prefix)
-  comp_vm_configuration        = flatten([for i in range(local.comp_total_cluster_instances) : { subnet = element(local.comp_vpc_subnets, i), zone = element(local.comp_vpc_availability_zones, i), vm_name = "${local.comp_instance_name_prefix}-${i + 1}" }])
+  ssd_device_names = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
 }
 
 # Generate compute cluster ssh keys
@@ -239,96 +231,244 @@ module "storage_cluster_ingress_security_rule_using_direct_connection" {
   firewall_description = local.security_rule_description_storage_cluster_ingress_using_direct_connection
 }
 
-# Creates compute instances
-module "compute_cluster_instances" {
-  for_each = { for vmconfig in local.comp_vm_configuration : vmconfig.vm_name => vmconfig }
-  #count               = length(local.comp_vm_configuration)
-  source               = "../../../resources/gcp/compute/instance_vm_vol_0"
-  zone                 = each.value.zone
-  machine_type         = var.compute_cluster_instance_type
-  instance_name        = each.value.vm_name
-  boot_disk_size       = var.compute_boot_disk_size
-  boot_disk_type       = var.compute_boot_disk_type
-  boot_image           = var.compute_cluster_image_ref
-  subnet_name          = each.value.subnet
-  ssh_user_name        = var.instances_ssh_user_name
-  ssh_key_path         = var.compute_cluster_public_key_path
-  private_key_content  = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
-  public_key_content   = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  service_email        = var.service_email
-  scopes               = var.scopes
-  dns_forward_dns_zone = var.vpc_forward_dns_zone
-  dns_forward_dns_name = var.vpc_compute_cluster_dns_name
-  dns_reverse_dns_zone = var.vpc_reverse_dns_zone
-  dns_reverse_dns_name = var.vpc_reverse_dns_name
+module "compute_dns_zone" {
+  source      = "../../../resources/gcp/network/cloud_dns"
+  turn_on     = (local.cluster_type == "compute" && var.use_clouddns) ? true : false
+  zone_name   = var.resource_prefix
+  dns_name    = format("%s.", var.vpc_compute_cluster_dns_domain) # Trailing dot is required.
+  vpc_network = var.vpc_ref
+  description = "Private DNS Zone for IBM Storage Scale compute instances DNS communication."
 }
 
-# Creates storage tie breaker instance
-module "storage_cluster_tie_breaker_instance" {
-  count                         = local.cluster_type == "storage" || local.cluster_type == "combined" ? (length(var.vpc_availability_zones) > 1 ? 1 : 0) : 0
-  source                        = "../../../resources/gcp/compute/vm_instance_multiple"
+module "reverse_dns_zone" {
+  source    = "../../../resources/gcp/network/cloud_dns"
+  turn_on   = var.use_clouddns ? true : false
+  zone_name = format("%s-reverse", var.resource_prefix)
+  # Prepare the reverse DNS zone name using first oclet of vpc.
+  # Ex: vpc cidr = 10.0.0.0/24, then dns_name = 10.in-addr.arpa.
+  # Trailing dot is required
+  dns_name    = format("%s.%s", try(split(".", cidrsubnet(local.cluster_type == "compute" ? data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range : data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_network = var.vpc_ref
+  description = "Reverse Private DNS Zone for IBM Storage Scale instances DNS communication."
+}
+
+/*
+    Generate a list of compute vm name(s).
+    Ex: vm_list = ["vm-1", "vm-2", "vm-3",]
+*/
+resource "null_resource" "generate_compute_vm_name" {
+  count = (local.cluster_type == "compute" || local.cluster_type == "combined") ? (var.total_compute_cluster_instances != null) ? var.total_compute_cluster_instances : 0 : 0
+  triggers = {
+    vm_name = format("%s-compute-%s", var.resource_prefix, count.index + 1)
+  }
+}
+
+/*
+    Generate a map using compute vm name key and values of subnet and zone.
+    Ex:
+        compute_vm_zone_map = {
+            "vm-1" = {
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-public-subnet-1"
+                "zone" = "us-central1-b"
+            }
+            "vm-2" = {
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-public-subnet-0"
+                "zone" = "us-central1-a"
+            }
+        }
+*/
+locals {
+  compute_vm_zone_map = {
+    for idx, vm_name in resource.null_resource.generate_compute_vm_name[*].triggers.vm_name :
+    vm_name => {
+      zone   = element(var.vpc_availability_zones, idx)
+      subnet = element(var.vpc_compute_cluster_private_subnets, idx)
+    }
+  }
+}
+
+# Creates compute instances
+module "compute_cluster_instances" {
+  for_each                      = local.compute_vm_zone_map
+  source                        = "../../../resources/gcp/compute/vm_instance_0_disk"
+  instance_name                 = each.key
+  zone                          = each.value["zone"]
+  subnet_name                   = each.value["subnet"]
   vpc_region                    = var.vpc_region
-  vpc_availability_zones        = var.vpc_availability_zones != null ? length(var.vpc_availability_zones) > 1 ? [var.vpc_availability_zones[2]] : [] : []
-  vpc_subnets                   = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 1 ? [var.vpc_storage_cluster_private_subnets[2]] : [] : []
-  instances_ssh_public_key_path = var.storage_cluster_public_key_path
-  instances_ssh_user_name       = var.instances_ssh_user_name
-  total_cluster_instances       = 1
-  total_persistent_disks        = 1
-  total_local_ssd_disks         = 0
-  physical_block_size_bytes     = var.physical_block_size_bytes
-  data_disk_description         = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
-  instance_name_prefix          = format("%s-storage-tie", var.resource_prefix)
-  machine_type                  = var.storage_cluster_instance_type
-  private_key_content           = module.generate_storage_cluster_keys.private_key_content
-  public_key_content            = module.generate_storage_cluster_keys.public_key_content
+  is_multizone                  = length(var.vpc_availability_zones) > 1 ? true : false
+  machine_type                  = var.compute_cluster_instance_type
+  boot_disk_size                = var.compute_boot_disk_size
+  boot_disk_type                = var.compute_boot_disk_type
+  boot_image                    = var.compute_cluster_image_ref
+  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref # Root volume custom encryption
+  block_device_kms_key_ref      = var.block_device_kms_key_ref      # Root volume custom encryption
+  ssh_user_name                 = var.instances_ssh_user_name
+  ssh_public_key_path           = var.compute_cluster_public_key_path
+  private_key_content           = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
+  public_key_content            = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
+  use_clouddns                  = var.use_clouddns
+  vpc_forward_dns_zone          = var.vpc_forward_dns_zone
+  vpc_dns_domain                = var.vpc_compute_cluster_dns_domain
+  vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
-  boot_disk_size                = var.storage_boot_disk_size
-  boot_disk_type                = var.storage_boot_disk_type
-  boot_image                    = var.storage_cluster_image_ref
-  block_device_names            = local.block_device_names
-  data_disk_type                = var.block_device_volume_type
-  data_disk_size                = var.block_device_volume_size
-  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
-  block_device_kms_key_ref      = var.block_device_kms_key_ref
-  dns_forward_dns_zone          = var.vpc_forward_dns_zone
-  dns_forward_dns_name          = var.vpc_storage_cluster_dns_name
-  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  dns_reverse_dns_name          = var.vpc_reverse_dns_name
+
+  depends_on = [module.compute_dns_zone, module.reverse_dns_zone]
+}
+
+module "storage_dns_zone" {
+  source      = "../../../resources/gcp/network/cloud_dns"
+  turn_on     = (var.use_clouddns && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
+  zone_name   = var.resource_prefix
+  dns_name    = format("%s.", var.vpc_storage_cluster_dns_domain) # Trailing dot is required.
+  vpc_network = var.vpc_ref
+  description = "Private DNS Zone for IBM Storage Scale storage instances DNS communication."
+}
+
+/*
+    Generate a list of storage vm name(s).
+    Ex: vm_list = ["vm-1", "vm-2", "vm-3",]
+*/
+resource "null_resource" "generate_storage_vm_name" {
+  count = (local.cluster_type == "storage" || local.cluster_type == "combined") ? (var.total_storage_cluster_instances != null) ? var.total_storage_cluster_instances : 0 : 0
+  triggers = {
+    vm_name = format("%s-storage-%s", var.resource_prefix, count.index + 1)
+  }
+}
+
+/*
+    Generate a map using storage vm name key and values of disks list, subnet and zone.
+    Ex:
+        storage_vm_zone_map = {
+            "vm-1" = {
+                "disks" = ["vm-1-disk-1", "vm-1-disk-2",]
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-private-subnet-1"
+                "zone" = "us-central1-b"
+            }
+            "vm-2" = {
+                "disks" = ["vm-1-disk-1", "vm-1-disk-2",]
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-private-subnet-0"
+                "zone" = "us-central1-a"
+            }
+        }
+*/
+locals {
+  storage_vm_zone_map = {
+    for idx, vm_name in resource.null_resource.generate_storage_vm_name[*].triggers.vm_name :
+    vm_name => {
+      zone   = element(slice(var.vpc_availability_zones, 0, 2), idx)                                           # Consider only first 2 elements
+      subnet = element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx)                              # Consider only first 2 elements
+      disks  = toset([for i in range(1, var.block_devices_per_storage_instance + 1) : "${vm_name}-data-${i}"]) # Persistent disk names
+    }
+  }
 }
 
 # Creates storage instances
 module "storage_cluster_instances" {
-  count                         = local.cluster_type == "storage" || local.cluster_type == "combined" ? 1 : 0
-  source                        = "../../../resources/gcp/compute/vm_instance_multiple"
-  vpc_region                    = var.vpc_region
-  vpc_availability_zones        = var.vpc_availability_zones
-  vpc_subnets                   = var.vpc_storage_cluster_private_subnets
-  instances_ssh_public_key_path = var.storage_cluster_public_key_path
-  instances_ssh_user_name       = var.instances_ssh_user_name
-  total_cluster_instances       = var.total_storage_cluster_instances
-  total_persistent_disks        = var.block_devices_per_storage_instance
+  for_each                      = local.storage_vm_zone_map
+  source                        = "../../../resources/gcp/compute/vm_instance_multiple_disk"
+  instance_name                 = each.key
+  zone                          = each.value["zone"]
+  subnet_name                   = each.value["subnet"]
+  disk                          = each.value["disks"]
+  block_device_names            = length(each.value["disks"]) > 0 ? local.block_device_names : local.ssd_device_names
   total_local_ssd_disks         = var.scratch_devices_per_storage_instance
+  vpc_region                    = var.vpc_region
+  is_multizone                  = length(var.vpc_availability_zones) > 1 ? true : false
+  machine_type                  = var.storage_cluster_instance_type
+  ssh_public_key_path           = var.storage_cluster_public_key_path
+  ssh_user_name                 = var.instances_ssh_user_name
   physical_block_size_bytes     = var.physical_block_size_bytes
   data_disk_description         = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
-  instance_name_prefix          = format("%s-storage", var.resource_prefix)
-  machine_type                  = var.storage_cluster_instance_type
   private_key_content           = module.generate_storage_cluster_keys.private_key_content
   public_key_content            = module.generate_storage_cluster_keys.public_key_content
-  service_email                 = var.service_email
-  scopes                        = var.scopes
   boot_disk_size                = var.storage_boot_disk_size
   boot_disk_type                = var.storage_boot_disk_type
   boot_image                    = var.storage_cluster_image_ref
-  block_device_names            = local.block_device_names
   data_disk_type                = var.block_device_volume_type
   data_disk_size                = var.block_device_volume_size
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
-  dns_forward_dns_zone          = var.vpc_forward_dns_zone
-  dns_forward_dns_name          = var.vpc_storage_cluster_dns_name
-  dns_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  dns_reverse_dns_name          = var.vpc_reverse_dns_name
+  use_clouddns                  = var.use_clouddns
+  vpc_forward_dns_zone          = var.vpc_forward_dns_zone
+  vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
+  vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  service_email                 = var.service_email
+  scopes                        = var.scopes
+
+  depends_on = [module.storage_dns_zone, module.reverse_dns_zone]
+}
+
+/*
+     Generate a list of storage tie-breaker vm name(s).
+     Ex: vm_list = ["vm-1",]
+*/
+resource "null_resource" "generate_storage_tie_vm_name" {
+  count = local.cluster_type == "storage" || local.cluster_type == "combined" ? (length(var.vpc_availability_zones) > 1 ? 1 : 0) : 0
+  triggers = {
+    vm_name = format("%s-storage-tie", var.resource_prefix)
+  }
+}
+
+/*
+    Generate a map using storage vm name key and values of disks list, subnet and zone.
+    Ex:
+        storage_vm_zone_map = {
+            "vm-1" = {
+                "disks" = ["vm-1-disk-1",]
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-private-subnet-1"
+                "zone" = "us-central1-b"
+            }
+        }
+*/
+locals {
+  storage_tie_vm_zone_map = {
+    for idx, vm_name in resource.null_resource.generate_storage_tie_vm_name[*].triggers.vm_name :
+    vm_name => {
+      zone   = var.vpc_availability_zones[2]                      # Consider only last element
+      subnet = var.vpc_storage_cluster_private_subnets[2]         # Consider only last 2 elements
+      disks  = toset([for i in range(1) : "${vm_name}-tie-disk"]) # Persistent disk name
+    }
+  }
+}
+
+# Creates storage tie breaker instance
+module "storage_cluster_tie_breaker_instance" {
+  for_each                      = local.storage_tie_vm_zone_map
+  source                        = "../../../resources/gcp/compute/vm_instance_multiple_disk"
+  instance_name                 = each.key
+  zone                          = each.value["zone"]
+  subnet_name                   = each.value["subnet"]
+  disk                          = each.value["disks"]
+  block_device_names            = local.block_device_names
+  total_local_ssd_disks         = 0
+  vpc_region                    = var.vpc_region
+  is_multizone                  = length(var.vpc_availability_zones) > 1 ? true : false
+  machine_type                  = var.storage_cluster_instance_type
+  ssh_public_key_path           = var.storage_cluster_public_key_path
+  ssh_user_name                 = var.instances_ssh_user_name
+  physical_block_size_bytes     = var.physical_block_size_bytes
+  data_disk_description         = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
+  private_key_content           = module.generate_storage_cluster_keys.private_key_content
+  public_key_content            = module.generate_storage_cluster_keys.public_key_content
+  boot_disk_size                = var.storage_boot_disk_size
+  boot_disk_type                = var.storage_boot_disk_type
+  boot_image                    = var.storage_cluster_image_ref
+  data_disk_type                = var.block_device_volume_type
+  data_disk_size                = var.block_device_volume_size
+  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
+  block_device_kms_key_ref      = var.block_device_kms_key_ref
+  use_clouddns                  = var.use_clouddns
+  vpc_forward_dns_zone          = var.vpc_forward_dns_zone
+  vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
+  vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  service_email                 = var.service_email
+  scopes                        = var.scopes
+
+  depends_on = [module.storage_dns_zone, module.reverse_dns_zone]
 }
 
 # Prepare ansible config

@@ -216,20 +216,20 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_storage_cluster_public_key_path"></a> [storage_cluster_public_key_path](#input_storage_cluster_public_key_path) | SSH public key local path for storage instances. | `string` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of GCP instances to be launched for compute cluster. | `number` |
 | <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of instances to be launched for storage instances. | `number` |
+| <a name="input_use_clouddns"></a> [use_clouddns](#input_use_clouddns) | Indicates whether to use cloud DNS or internal DNS. | `bool` |
 | <a name="input_using_cloud_connection"></a> [using_cloud_connection](#input_using_cloud_connection) | This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_using_direct_connection"></a> [using_direct_connection](#input_using_direct_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud virtual private cloud (VPC) via a VPN or direct connection. This mode requires variable `client_ip_ranges`, as the on-premise client ip will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
 | <a name="input_using_rest_api_remote_mount"></a> [using_rest_api_remote_mount](#input_using_rest_api_remote_mount) | If false, skips GUI initialization on compute cluster for remote mount configuration. | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
-| <a name="input_vpc_compute_cluster_dns_name"></a> [vpc_compute_cluster_dns_name](#input_vpc_compute_cluster_dns_name) | GCP Cloud DNS name to be used for compute cluster. | `string` |
+| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | GCP Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
 | <a name="input_vpc_forward_dns_zone"></a> [vpc_forward_dns_zone](#input_vpc_forward_dns_zone) | GCP Cloud DNS zone name to be used for scale cluster (Ex: example-zone). | `string` |
 | <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | GCP region where the resources will be created. | `string` |
-| <a name="input_vpc_reverse_dns_name"></a> [vpc_reverse_dns_name](#input_vpc_reverse_dns_name) | GCP Cloud DNS reverse name (Ex: 10.in-addr.arpa.). | `string` |
 | <a name="input_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#input_vpc_reverse_dns_zone) | GCP Cloud DNS reverse zone lookup to be used for scale cluster (Ex: example-zone-reverse). | `string` |
-| <a name="input_vpc_storage_cluster_dns_name"></a> [vpc_storage_cluster_dns_name](#input_vpc_storage_cluster_dns_name) | GCP Cloud DNS name to be used for storage cluster. | `string` |
+| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | GCP Cloud DNS domain name to be used for storage cluster. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
 
 #### Outputs
@@ -243,9 +243,12 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
+| <a name="output_storage_cluster_desc_with_dns_hostname"></a> [storage_cluster_desc_with_dns_hostname](#output_storage_cluster_desc_with_dns_hostname) | Storage cluster desc dns hostname mapping. |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Storage cluster private ips. |
 | <a name="output_storage_cluster_security_id"></a> [storage_cluster_security_id](#output_storage_cluster_security_id) | Storage cluster security ids. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Storage cluster data volume mapping. |
 | <a name="output_storage_cluster_with_dns_hostname"></a> [storage_cluster_with_dns_hostname](#output_storage_cluster_with_dns_hostname) | Storage cluster dns hostname mapping. |
+| <a name="output_vpc_compute_cloud_dns"></a> [vpc_compute_cloud_dns](#output_vpc_compute_cloud_dns) | List of IDs of compute cluster cloud DNS. |
+| <a name="output_vpc_storage_cloud_dns"></a> [vpc_storage_cloud_dns](#output_vpc_storage_cloud_dns) | List of IDs of storage cluster cloud DNS. |
 <!-- END_TF_DOCS -->
