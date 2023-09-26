@@ -357,9 +357,9 @@ locals {
   storage_vm_zone_map = {
     for idx, vm_name in resource.null_resource.generate_storage_vm_name[*].triggers.vm_name :
     vm_name => {
-      zone   = element(slice(var.vpc_availability_zones, 0, 2), idx)                                           # Consider only first 2 elements
-      subnet = element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx)                              # Consider only first 2 elements
-      disks  = toset([for i in range(1, var.block_devices_per_storage_instance + 1) : "${vm_name}-data-${i}"]) # Persistent disk names
+      zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)                                        # Consider only first 2 elements in multi-az
+      subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
+      disks  = toset([for i in range(1, var.block_devices_per_storage_instance + 1) : "${vm_name}-data-${i}"])                                                                                  # Persistent disk names
     }
   }
 }
@@ -372,7 +372,6 @@ module "storage_cluster_instances" {
   zone                          = each.value["zone"]
   subnet_name                   = each.value["subnet"]
   disk                          = each.value["disks"]
-  block_device_names            = length(each.value["disks"]) > 0 ? local.block_device_names : local.ssd_device_names
   total_local_ssd_disks         = var.scratch_devices_per_storage_instance
   vpc_region                    = var.vpc_region
   is_multizone                  = length(var.vpc_availability_zones) > 1 ? true : false
@@ -442,7 +441,6 @@ module "storage_cluster_tie_breaker_instance" {
   zone                          = each.value["zone"]
   subnet_name                   = each.value["subnet"]
   disk                          = each.value["disks"]
-  block_device_names            = local.block_device_names
   total_local_ssd_disks         = 0
   vpc_region                    = var.vpc_region
   is_multizone                  = length(var.vpc_availability_zones) > 1 ? true : false
@@ -497,8 +495,8 @@ module "write_compute_cluster_inventory" {
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   compute_cluster_instance_ids                     = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_selflink]))
-  compute_cluster_instance_private_ips             = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_ips]))
-  compute_cluster_instance_private_dns_ip_map      = length(module.compute_cluster_instances) > 0 ? jsonencode({ for instance in module.compute_cluster_instances : keys(instance.dns_hostname)[0] => values(instance.dns_hostname)[0] }) : jsonencode({})
+  compute_cluster_instance_private_ips             = jsonencode([for instance in module.compute_cluster_instances : instance.instance_ip])
+  compute_cluster_instance_private_dns_ip_map      = length(module.compute_cluster_instances) > 0 ? jsonencode([for instance in module.compute_cluster_instances : instance.instance_dns_name]) : jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode("None")
   storage_cluster_instance_ids                     = jsonencode([])
   storage_cluster_instance_private_ips             = jsonencode([])
@@ -513,6 +511,13 @@ module "write_compute_cluster_inventory" {
   opposit_cluster_clustername                      = jsonencode("None")
   compute_cluster_instance_names                   = jsonencode("None")
   storage_cluster_instance_names                   = jsonencode("None")
+}
+
+locals {
+  storage_cluster_private_ips                = (local.cluster_type == "storage" || local.cluster_type == "combined") && (var.total_storage_cluster_instances != null) ? [for instance in module.storage_cluster_instances : instance.instance_ip] : []
+  storage_instance_ips_with_disk_mapping     = (local.cluster_type == "storage" || local.cluster_type == "combined") && var.total_storage_cluster_instances != null && var.block_devices_per_storage_instance > 0 ? { for ip in local.storage_cluster_private_ips : ip => slice(local.block_device_names, 0, var.block_devices_per_storage_instance) } : { for ip in local.storage_cluster_private_ips : ip => slice(local.ssd_device_names, 0, var.scratch_devices_per_storage_instance) }
+  storage_cluster_desc_private_ips           = (local.cluster_type == "storage" || local.cluster_type == "combined") && (var.total_storage_cluster_instances != null) && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip] : []
+  storage_instance_desc_ip_with_disk_mapping = (local.cluster_type == "storage" || local.cluster_type == "combined") && var.total_storage_cluster_instances != null && var.block_devices_per_storage_instance > 0 && length(var.vpc_availability_zones) > 1 ? { for ip in local.storage_cluster_desc_private_ips : ip => slice(local.block_device_names, 0, 1) } : {}
 }
 
 # Write the storage cluster related inventory.
@@ -535,14 +540,14 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_private_ips             = jsonencode([])
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = jsonencode(flatten(module.storage_cluster_instances[*].instance_selflink))
-  storage_cluster_instance_private_ips             = jsonencode(flatten(module.storage_cluster_instances[*].instance_ips))
-  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].disk_device_mapping)[0]) : jsonencode({})
-  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].dns_hostname)[0]) : jsonencode({})
-  storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_selflink))
-  storage_cluster_desc_instance_private_ips        = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ips))
-  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
-  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
+  storage_cluster_instance_ids                     = jsonencode([for instance in module.storage_cluster_instances : instance.instance_selflink])
+  storage_cluster_instance_private_ips             = jsonencode([for instance in module.storage_cluster_instances : instance.instance_ip])
+  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode(local.storage_instance_ips_with_disk_mapping) : jsonencode({})
+  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode([for instance in module.storage_cluster_instances : instance.instance_dns_name]) : jsonencode({})
+  storage_cluster_desc_instance_ids                = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_selflink])
+  storage_cluster_desc_instance_private_ips        = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip])
+  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(local.storage_instance_desc_ip_with_disk_mapping) : jsonencode({})
+  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_dns_name]) : jsonencode({})
   compute_subnet_cidr                              = jsonencode("None")
   storage_subnet_cidr                              = jsonencode("None")
   opposit_cluster_clustername                      = jsonencode("None")
@@ -566,17 +571,17 @@ module "write_cluster_inventory" {
   bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_selflink]))
-  compute_cluster_instance_private_ips             = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_ips]))
+  compute_cluster_instance_ids                     = jsonencode([for instance in module.compute_cluster_instances : instance.instance_selflink])
+  compute_cluster_instance_private_ips             = jsonencode([for instance in module.compute_cluster_instances : instance.instance_ip])
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = jsonencode(flatten(module.storage_cluster_instances[*].instance_selflink))
-  storage_cluster_instance_private_ips             = jsonencode(flatten(module.storage_cluster_instances[*].instance_ips))
-  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].disk_device_mapping)[0]) : jsonencode({})
-  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode((module.storage_cluster_instances[*].dns_hostname)[0]) : jsonencode({})
-  storage_cluster_desc_instance_ids                = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_selflink))
-  storage_cluster_desc_instance_private_ips        = jsonencode(flatten(module.storage_cluster_tie_breaker_instance[*].instance_ips))
-  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].disk_device_mapping))[0]) : jsonencode({})
+  storage_cluster_instance_ids                     = jsonencode([for instance in module.storage_cluster_instances : instance.instance_selflink])
+  storage_cluster_instance_private_ips             = jsonencode([for instance in module.storage_cluster_instances : instance.instance_ip])
+  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode(local.storage_instance_ips_with_disk_mapping) : jsonencode({})
+  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode([for instance in module.storage_cluster_instances : instance.instance_dns_name]) : jsonencode({})
+  storage_cluster_desc_instance_ids                = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_selflink])
+  storage_cluster_desc_instance_private_ips        = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip])
+  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(local.storage_instance_desc_ip_with_disk_mapping) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
   compute_subnet_cidr                              = jsonencode("None")
   storage_subnet_cidr                              = jsonencode("None")

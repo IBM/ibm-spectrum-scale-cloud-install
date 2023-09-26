@@ -19,7 +19,6 @@ variable "data_disk_description" {}
 variable "physical_block_size_bytes" {}
 variable "data_disk_type" {}
 variable "data_disk_size" {}
-variable "block_device_names" {}
 variable "private_key_content" {}
 variable "public_key_content" {}
 variable "use_clouddns" {}
@@ -167,8 +166,4 @@ output "instance_dns_name" {
   # Ex: id: projects/spectrum-scale-xyz/zones/us-central1-b/instances/test-compute-2,  regex o/p: test-compute-2
   # Internal DNS format: {instance_name}.{zone}.c.{project_id}.internal
   value = var.use_clouddns ? format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.vpc_dns_domain) : format("%s.%s.c.%s.internal", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.zone, regex("projects/(.*)/zones/.*", google_compute_instance.itself.id)[0])
-}
-
-output "instance_ips_with_disk_mapping" {
-  value = length(var.disk) > 0 ? { (google_compute_instance.itself.network_interface[0].network_ip) = slice(var.block_device_names, 0, length(var.disk)) } : { (google_compute_instance.itself.network_interface[0].network_ip) = slice(var.block_device_names, 0, var.total_local_ssd_disks) }
 }
