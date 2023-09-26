@@ -193,10 +193,10 @@ resource "time_sleep" "wait_300_seconds" {
   destroy_duration = "300s"
 }
 
-module "oldap_instance" {
-  count                     = var.enable_oldap_integration ? 1 : 0
-  source                    = "../../../resources/ibmcloud/compute/oldap_vsi"
-  vsi_name_prefix           = format("%s-oldap", var.resource_prefix)
+module "ldap_instance" {
+  count                     = var.enable_ldap_integration ? 1 : 0
+  source                    = "../../../resources/ibmcloud/compute/ldap_vsi"
+  vsi_name_prefix           = format("%s-ldap", var.resource_prefix)
   vpc_id                    = var.vpc_id
   resource_group_id         = var.resource_group_id
   zones                     = var.vpc_availability_zones[0]
@@ -206,13 +206,12 @@ module "oldap_instance" {
   vsi_user_public_key       = [data.ibm_is_ssh_key.storage_ssh_key.id]
   vsi_meta_private_key      = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key       = module.generate_storage_cluster_keys.public_key_content
-  managerpassword           = var.oldap_manager_password
-  defaultuser               = var.oldap_user
-  defaultuserpassword       = var.oldap_user_password
-  oldap_domain_controller   = var.oldap_domain_controller
-  admingroup                = var.oldap_admin_group
-  usergroup                 = var.oldap_user_group
-  oldap_image_name          = "ibm-redhat-7-9-minimal-amd64-10"
+  managerpassword           = var.ldap_manager_password
+  defaultuser               = var.ldap_user
+  defaultuserpassword       = var.ldap_user_password
+  ldap_domain_controller    = var.ldap_domain_controller
+  usergroup                 = var.ldap_user_group
+  ldap_image_name           = "ibm-ubuntu-22-04-3-minimal-amd64-1"
   depends_on                = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags             = var.scale_cluster_resource_tags
 }

@@ -57,48 +57,42 @@ variable "compute_vsi_profile" {
   description = "Profile to be used for compute cluster virtual server instance."
 }
 
-variable "enable_oldap_integration" {
+variable "enable_ldap_integration" {
   type        = string
   default     = false
-  description = "Set true to Integrate OLDAP authentication for scale NFS share, Note: ODLAP hosted in seperate vsi"
+  description = "Set true to Integrate LDAP authentication for scale NFS share, Note: ODLAP hosted in seperate vsi"
 }
 
-variable "oldap_manager_password" {
+variable "ldap_manager_password" {
   type        = string
   sensitive   = true
   default     = ""
-  description = "Password for OLDAP Manager"
+  description = "Password for LDAP Manager"
 }
 
-variable "oldap_user" {
+variable "ldap_user" {
   type        = string
   default     = "Scaleusr01"
-  description = "OLDAP User Name"
+  description = "LDAP User Name"
 }
 
-variable "oldap_user_password" {
+variable "ldap_user_password" {
   type        = string
   sensitive   = true
   default     = ""
-  description = "OLDAP User Password"
+  description = "LDAP User Password"
 }
 
-variable "oldap_domain_controller" {
+variable "ldap_domain_controller" {
   type        = string
   default     = "ibmscale"
-  description = "OLDAP Domain Controller"
+  description = "LDAP Domain Controller"
 }
 
-variable "oldap_admin_group" {
-  type        = string
-  default     = "ScaleAdmin"
-  description = "OLDAP Administrator Group Name"
-}
-
-variable "oldap_user_group" {
+variable "ldap_user_group" {
   type        = string
   default     = "Scaleconsumer"
-  description = "OLDAP User Group Name"
+  description = "LDAP User Group Name"
 }
 
 variable "using_rest_api_remote_mount" {

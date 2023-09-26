@@ -53,7 +53,7 @@ output "baremetal_cluster_with_data_volume_mapping" {
   description = "Mapping of storage cluster bare meteal server ip vs device path."
 }
 
-output "oldap_instance_private_ips" {
-  value       = var.enable_oldap_integration ? module.oldap_instance[*].vsi_private_ip : null 
-  description = "Private IP address of oldap instances."
+output "ldap_instance_private_ips" {
+  value       = var.enable_ldap_integration ? module.ldap_instance[*].vsi_private_ip : null 
+  description = "Private IP address of ldap instances."
 }
