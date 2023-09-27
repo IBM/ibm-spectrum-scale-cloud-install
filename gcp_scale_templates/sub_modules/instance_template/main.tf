@@ -233,7 +233,7 @@ module "storage_cluster_ingress_security_rule_using_direct_connection" {
 
 module "compute_dns_zone" {
   source      = "../../../resources/gcp/network/cloud_dns"
-  turn_on     = (local.cluster_type == "compute" && var.use_clouddns) ? true : false
+  turn_on     = (local.cluster_type == "compute" && var.use_clouddns && var.create_clouddns) ? true : false
   zone_name   = var.resource_prefix
   dns_name    = format("%s.", var.vpc_compute_cluster_dns_domain) # Trailing dot is required.
   vpc_network = var.vpc_ref
@@ -242,7 +242,7 @@ module "compute_dns_zone" {
 
 module "reverse_dns_zone" {
   source    = "../../../resources/gcp/network/cloud_dns"
-  turn_on   = var.use_clouddns ? true : false
+  turn_on   = (var.use_clouddns && var.create_clouddns) ? true : false
   zone_name = format("%s-reverse", var.resource_prefix)
   # Prepare the reverse DNS zone name using first oclet of vpc.
   # Ex: vpc cidr = 10.0.0.0/24, then dns_name = 10.in-addr.arpa.
@@ -319,7 +319,7 @@ module "compute_cluster_instances" {
 
 module "storage_dns_zone" {
   source      = "../../../resources/gcp/network/cloud_dns"
-  turn_on     = (var.use_clouddns && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
+  turn_on     = (var.use_clouddns && var.create_clouddns && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
   zone_name   = var.resource_prefix
   dns_name    = format("%s.", var.vpc_storage_cluster_dns_domain) # Trailing dot is required.
   vpc_network = var.vpc_ref
@@ -468,7 +468,7 @@ module "storage_cluster_tie_breaker_instance" {
 
   depends_on = [module.storage_dns_zone, module.reverse_dns_zone]
 }
-
+/*
 # Prepare ansible config
 module "prepare_ansible_configuration" {
   turn_on    = true
@@ -681,4 +681,4 @@ module "combined_cluster_configuration" {
   scale_encryption_enabled        = false
   scale_encryption_admin_password = null
   scale_encryption_servers        = null
-}
+}*/

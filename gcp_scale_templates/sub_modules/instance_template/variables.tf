@@ -363,6 +363,13 @@ variable "use_clouddns" {
   description = "Indicates whether to use cloud DNS or internal DNS."
 }
 
+variable "create_clouddns" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Indicates whether to create new cloud DNS zones or reuse existing DNS zones."
+}
+
 variable "vpc_forward_dns_zone" {
   type        = string
   nullable    = true
