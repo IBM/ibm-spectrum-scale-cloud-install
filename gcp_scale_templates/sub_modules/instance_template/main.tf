@@ -468,7 +468,7 @@ module "storage_cluster_tie_breaker_instance" {
 
   depends_on = [module.storage_dns_zone, module.reverse_dns_zone]
 }
-/*
+
 # Prepare ansible config
 module "prepare_ansible_configuration" {
   turn_on    = true
@@ -681,4 +681,4 @@ module "combined_cluster_configuration" {
   scale_encryption_enabled        = false
   scale_encryption_admin_password = null
   scale_encryption_servers        = null
-}*/
+}

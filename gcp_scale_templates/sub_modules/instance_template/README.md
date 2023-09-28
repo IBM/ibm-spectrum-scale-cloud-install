@@ -194,6 +194,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_compute_cluster_image_ref"></a> [compute_cluster_image_ref](#input_compute_cluster_image_ref) | Image from which to initialize Spectrum Scale compute instances. | `string` |
 | <a name="input_compute_cluster_instance_type"></a> [compute_cluster_instance_type](#input_compute_cluster_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | SSH public key local path for compute instances. | `string` |
+| <a name="input_create_clouddns"></a> [create_clouddns](#input_create_clouddns) | Indicates whether to create new cloud DNS zones or reuse existing DNS zones. | `bool` |
 | <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
