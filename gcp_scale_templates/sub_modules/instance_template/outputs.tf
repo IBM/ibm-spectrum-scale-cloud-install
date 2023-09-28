@@ -7,12 +7,11 @@ output "storage_cluster_instance_private_ips" {
   value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.storage_cluster_instances : instance.instance_ip] : null
   description = "Storage cluster private ips."
 }
-/*
+
 output "storage_cluster_with_data_volume_mapping" {
   value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? local.storage_instance_ips_with_disk_mapping : null
   description = "Storage cluster data volume mapping."
 }
-*/
 
 output "storage_cluster_with_dns_hostname" {
   value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.storage_cluster_instances : instance.instance_dns_name] : null
@@ -43,12 +42,11 @@ output "storage_cluster_desc_instance_private_ips" {
   value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip] : null
   description = "Private IP address of storage cluster desc instance."
 }
-/*
+
 output "storage_cluster_desc_data_volume_mapping" {
   value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? local.storage_instance_desc_ip_with_disk_mapping : null
   description = "Mapping of storage cluster desc instance ip vs. device path."
 }
-*/
 
 output "storage_cluster_desc_with_dns_hostname" {
   value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_dns_name] : null
