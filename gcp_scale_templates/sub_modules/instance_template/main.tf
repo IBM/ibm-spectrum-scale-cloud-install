@@ -582,7 +582,7 @@ module "write_cluster_inventory" {
   storage_cluster_desc_instance_ids                = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_selflink])
   storage_cluster_desc_instance_private_ips        = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip])
   storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(local.storage_instance_desc_ip_with_disk_mapping) : jsonencode({})
-  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode((flatten(module.storage_cluster_tie_breaker_instance[*].dns_hostname))[0]) : jsonencode({})
+  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_dns_name]) : jsonencode({})
   compute_subnet_cidr                              = jsonencode("None")
   storage_subnet_cidr                              = jsonencode("None")
   opposit_cluster_clustername                      = jsonencode("None")
