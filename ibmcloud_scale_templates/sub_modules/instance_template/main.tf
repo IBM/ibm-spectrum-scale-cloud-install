@@ -69,7 +69,7 @@ module "compute_cluster_ingress_security_rule" {
   total_rules              = (var.total_compute_cluster_instances > 0 && var.using_jumphost_connection == false) ? 3 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
-  source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id, module.schematics_private_security_group.sec_group_id]
+  source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id, module.ibmprivate_repo_security_group.sec_group_id]
 }
 
 module "compute_cluster_ingress_security_rule_wt_bastion" {
@@ -85,7 +85,7 @@ module "compute_cluster_ingress_security_rule_wo_bastion" {
   total_rules              = (var.total_compute_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 2 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
-  source_security_group_id = [local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id, module.schematics_private_security_group.sec_group_id]
+  source_security_group_id = [local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id, module.ibmprivate_repo_security_group.sec_group_id]
 }
 
 module "compute_egress_security_rule" {
@@ -126,7 +126,7 @@ module "storage_cluster_ingress_security_rule" {
   total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == false) ? 3 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
-  source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id, module.schematics_private_security_group.sec_group_id]
+  source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id, module.ibmprivate_repo_security_group.sec_group_id]
 }
 
 module "storage_cluster_ingress_security_rule_wt_bastion" {
@@ -142,7 +142,7 @@ module "storage_cluster_ingress_security_rule_wo_bastion" {
   total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 2 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
-  source_security_group_id = [local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id, module.schematics_private_security_group.sec_group_id]
+  source_security_group_id = [local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id, module.ibmprivate_repo_security_group.sec_group_id]
 }
 
 module "bicluster_ingress_security_rule" {
@@ -153,7 +153,7 @@ module "bicluster_ingress_security_rule" {
   source_security_group_id = [module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
 }
 
-module "schematics_private_security_group" {
+module "ibmprivate_repo_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
   turn_on           = true
   sec_group_name    = [format("%s-schematcis-pvt-sg", var.resource_prefix)]
@@ -162,10 +162,10 @@ module "schematics_private_security_group" {
   resource_tags     = var.scale_cluster_resource_tags
 }
 
-module "schematics_private_security_rule" {
-  source            = "../../../resources/ibmcloud/security/security_schematics_private"
+module "ibmprivate_repo_security_rule" {
+  source            = "../../../resources/ibmcloud/security/security_ibmprivate_repo"
   turn_on           = true
-  security_group_id = module.schematics_private_security_group.sec_group_id
+  security_group_id = module.ibmprivate_repo_security_group.sec_group_id
   sg_direction      = ["inbound", "outbound"]
   remote_ip_addr    = ["161.26.0.0/16", "166.8.0.0/14"]
 }
