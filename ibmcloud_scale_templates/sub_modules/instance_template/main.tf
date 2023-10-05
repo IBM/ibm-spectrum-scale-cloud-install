@@ -17,6 +17,7 @@ locals {
   storage_instance_image_id   = var.storage_vsi_osimage_id != "" ? var.storage_vsi_osimage_id : data.ibm_is_image.storage_instance_image[0].id
   storage_bare_metal_image_id = var.storage_bare_metal_osimage_id != "" ? var.storage_bare_metal_osimage_id : data.ibm_is_image.storage_bare_metal_image[0].id
   gklm_instance_image_id      = var.gklm_vsi_osimage_id != "" ? var.gklm_vsi_osimage_id : data.ibm_is_image.gklm_instance_image[0].id
+  ldap_instance_image_id      = var.ldap_basedns != null ? data.ibm_is_image.ldap_instance_image[0].id : null
 }
 
 # Getting bandwidth of compute and storage vsi and based on that checking mrot will be enabled or not.
@@ -39,6 +40,11 @@ module "generate_storage_cluster_keys" {
 module "generate_gklm_instance_keys" {
   source  = "../../../resources/common/generate_keys"
   turn_on = var.scale_encryption_enabled
+}
+
+module "generate_ldap_instance_keys" {
+  source  = "../../../resources/common/generate_keys"
+  turn_on = var.ldap_basedns != null
 }
 
 module "deploy_security_group" {
@@ -184,6 +190,69 @@ module "gklm_instance_ingress_security_rule_wo_bastion" {
   security_group_id        = [module.gklm_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.gklm_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
+}
+
+module "ldap_instance_security_group" {
+  source            = "../../../resources/ibmcloud/security/security_group"
+  turn_on           = var.ldap_basedns != null
+  sec_group_name    = [format("%s-gklm-sg", var.resource_prefix)]
+  vpc_id            = var.vpc_id
+  resource_group_id = var.resource_group_id
+  resource_tags     = var.scale_cluster_resource_tags
+}
+
+module "ldap_instance_ingress_security_rule" {
+  source                   = "../../../resources/ibmcloud/security/security_rule_source"
+  total_rules              = (var.ldap_basedns != null && var.using_jumphost_connection == false) ? 5 : 0
+  security_group_id        = [module.ldap_instance_security_group.sec_group_id]
+  sg_direction             = ["inbound"]
+  source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
+}
+
+module "ldap_instance_ingress_security_rule_wt_bastion" {
+  source                   = "../../../resources/ibmcloud/security/security_rule_source"
+  total_rules              = (var.ldap_basedns != null && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null) ? 5 : 0
+  security_group_id        = [module.ldap_instance_security_group.sec_group_id]
+  sg_direction             = ["inbound"]
+  source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
+}
+
+module "ldap_instance_ingress_security_rule_wo_bastion" {
+  source                   = "../../../resources/ibmcloud/security/security_rule_source"
+  total_rules              = (var.ldap_basedns != null && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 4 : 0
+  security_group_id        = [module.ldap_instance_security_group.sec_group_id]
+  sg_direction             = ["inbound"]
+  source_security_group_id = [local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
+}
+
+module "ldap_instance" {
+  count                = var.ldap_basedns != null && var.ldap_server == null ? 1 : 0
+  source               = "../../../resources/ibmcloud/compute/ldap_vsi"
+  vsi_name_prefix      = format("%s-ldapserver", var.resource_prefix)
+  vpc_id               = var.vpc_id
+  resource_group_id    = var.resource_group_id
+  zones                = [var.vpc_availability_zones[0]]
+  vsi_image_id         = local.ldap_instance_image_id
+  vsi_profile          = var.ldap_vsi_profile
+  vsi_subnet_id        = var.vpc_storage_cluster_private_subnets
+  vsi_security_group   = [module.ldap_instance_security_group.sec_group_id]
+  vsi_user_public_key  = var.ldap_basedns != null ? [data.ibm_is_ssh_key.ldap_ssh_key[0].id] : []
+  vsi_meta_private_key = var.ldap_basedns != null ? module.generate_ldap_instance_keys.private_key_content : 0
+  vsi_meta_public_key  = var.ldap_basedns != null ? module.generate_ldap_instance_keys.public_key_content : 0
+  depends_on           = [module.generate_ldap_instance_keys, module.ldap_instance_security_group]
+  resource_tags        = var.scale_cluster_resource_tags
+  ldap_admin_password  = var.ldap_admin_password
+  ldap_basedns         = var.ldap_basedns
+}
+
+data "ibm_is_ssh_key" "ldap_ssh_key" {
+  count = var.ldap_basedns != null ? 1 : 0
+  name  = var.storage_cluster_key_pair
+}
+
+data "ibm_is_image" "ldap_instance_image" {
+  name  = var.ldap_vsi_osimage_name
+  count = var.ldap_basedns != null && var.ldap_server == null ? 1 : 0
 }
 
 data "ibm_is_ssh_key" "compute_ssh_key" {
@@ -633,4 +702,26 @@ module "encryption_configuration" {
   combined_cluster_create_complete        = module.combined_cluster_configuration.combined_cluster_create_complete
   remote_mount_create_complete            = module.remote_mount_configuration.remote_mount_create_complete
   depends_on                              = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
+}
+
+module "ldap_configuration" {
+  source                    = "../../../resources/common/ldap_configuration"
+  turn_on                   = false
+  clone_path                = var.scale_ansible_repo_clone_path
+  clone_complete            = module.prepare_ansible_configuration.clone_complete
+  create_scale_cluster      = var.create_scale_cluster
+  scale_cluster_clustername = var.resource_prefix
+  ldap_admin_password       = var.ldap_admin_password
+  ldap_user_name            = var.ldap_user_name
+  ldap_user_password        = var.ldap_user_password
+  ldap_server               = jsonencode(one(module.ldap_instance[*].vsi_private_ip))
+  meta_private_key          = module.generate_ldap_instance_keys.private_key_content
+  #  storage_cluster_encryption       = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+  #  compute_cluster_encryption       = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+  #  combined_cluster_encryption      = var.create_separate_namespaces == false ? true : false
+  #  compute_cluster_create_complete  = module.compute_cluster_configuration.compute_cluster_create_complete
+  #  storage_cluster_create_complete  = module.storage_cluster_configuration.storage_cluster_create_complete
+  #  combined_cluster_create_complete = module.combined_cluster_configuration.combined_cluster_create_complete
+  #  remote_mount_create_complete     = module.remote_mount_configuration.remote_mount_create_complete
+  depends_on = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
 }
