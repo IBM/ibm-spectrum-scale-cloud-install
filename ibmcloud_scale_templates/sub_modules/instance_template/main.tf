@@ -118,6 +118,14 @@ module "gklm_instance_egress_security_rule" {
   remote_ip_addr     = "0.0.0.0/0"
 }
 
+module "ldap_instance_egress_security_rule" {
+  source             = "../../../resources/ibmcloud/security/security_allow_all"
+  turn_on            = var.ldap_basedns != null
+  security_group_ids = module.ldap_instance_security_group.sec_group_id
+  sg_direction       = "outbound"
+  remote_ip_addr     = "0.0.0.0/0"
+}
+
 module "storage_cluster_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
   turn_on           = var.total_storage_cluster_instances > 0 ? true : false
@@ -195,7 +203,7 @@ module "gklm_instance_ingress_security_rule_wo_bastion" {
 module "ldap_instance_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
   turn_on           = var.ldap_basedns != null
-  sec_group_name    = [format("%s-gklm-sg", var.resource_prefix)]
+  sec_group_name    = [format("%s-ldap-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
   resource_tags     = var.scale_cluster_resource_tags

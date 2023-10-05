@@ -30,7 +30,7 @@ data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
 USER=ubuntu
-basedns="${var.ldap_basedns}"  # Replace with your variable containing "testing.com"
+basedns="${var.ldap_basedns}"
 
 basedomain=$(echo "$basedns" | awk -F'.' '{print $1}')
 rootdomain=$(echo "$basedns" | awk -F'.' '{print $2}')
