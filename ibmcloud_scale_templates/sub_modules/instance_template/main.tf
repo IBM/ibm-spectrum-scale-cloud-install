@@ -226,15 +226,15 @@ module "ldap_instance_ingress_security_rule_wo_bastion" {
 }
 
 module "ldap_instance" {
-  count                = var.ldap_basedns != null && var.ldap_server == null ? 1 : 0
+  count                = var.ldap_basedns != null && var.ldap_server == "null" ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/ldap_vsi"
   vsi_name_prefix      = format("%s-ldapserver", var.resource_prefix)
   vpc_id               = var.vpc_id
   resource_group_id    = var.resource_group_id
-  zones                = [var.vpc_availability_zones[0]]
+  zones                = var.vpc_availability_zones[0]
   vsi_image_id         = local.ldap_instance_image_id
   vsi_profile          = var.ldap_vsi_profile
-  vsi_subnet_id        = var.vpc_storage_cluster_private_subnets
+  vsi_subnet_id        = var.vpc_storage_cluster_private_subnets[0]
   vsi_security_group   = [module.ldap_instance_security_group.sec_group_id]
   vsi_user_public_key  = var.ldap_basedns != null ? [data.ibm_is_ssh_key.ldap_ssh_key[0].id] : []
   vsi_meta_private_key = var.ldap_basedns != null ? module.generate_ldap_instance_keys.private_key_content : 0
@@ -252,7 +252,7 @@ data "ibm_is_ssh_key" "ldap_ssh_key" {
 
 data "ibm_is_image" "ldap_instance_image" {
   name  = var.ldap_vsi_osimage_name
-  count = var.ldap_basedns != null && var.ldap_server == null ? 1 : 0
+  count = var.ldap_basedns == null && var.ldap_server != null ? 0 : 1
 }
 
 data "ibm_is_ssh_key" "compute_ssh_key" {
