@@ -256,7 +256,7 @@ def prepare_ansible_playbook_ldap_server():
 def prepare_ansible_playbook_ldap_cluster(hosts_config):
     # Write to playbook
     content = """---
-# Enabling ldap on Storage Scale
+# Enabling ldap on Storage Scale Clusters
 - hosts: {hosts_config}
   collections:
      - ibm.spectrum_scale
