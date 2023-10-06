@@ -134,6 +134,9 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   collections:
      - ibm.spectrum_scale
   any_errors_fatal: true
+  vars:
+    - scale_version: "{{{{ scale_version }}}}"
+    - scale_install_localpkg_path: /opt/IBM/gpfs_cloud_rpms
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
   roles:
@@ -149,6 +152,12 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - perfmon_configure
      - perfmon_verify
      - {{ role: mrot_config, when: enable_mrot }}
+     - {{ role: nfs_prepare, when: config_ces }}
+     - {{ role: nfs_install, when: "config_ces and scale_packages_installed is false" }}
+     - {{ role: nfs_configure, when: config_ces }}
+     - {{ role: nfs_verify, when: config_ces }}
+     - {{ role: nfs_failover, when: config_ces }}
+     - {{ role: nfs_fileset, when: config_ces }}
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content
@@ -239,8 +248,8 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username,
-                               password, scale_profile_path, scale_replica_config, enable_mrot,
-                               storage_subnet_cidr, compute_subnet_cidr, opposit_cluster_clustername, scale_encryption_servers, scale_encryption_admin_password):
+                               password, scale_profile_path, scale_replica_config, enable_mrot, config_ces, storage_subnet_cidr, compute_subnet_cidr,
+                               protocol_gateway_ip, opposit_cluster_clustername, scale_encryption_servers, scale_encryption_admin_password):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
@@ -261,8 +270,10 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['scale_cluster_profile_dir_path'] = str(
         pathlib.PurePath(scale_profile_path).parent)
     cluster_details['enable_mrot'] = enable_mrot
+    cluster_details['config_ces'] = config_ces
     cluster_details['storage_subnet_cidr'] = storage_subnet_cidr
     cluster_details['compute_subnet_cidr'] = compute_subnet_cidr
+    cluster_details['protocol_gateway_ip'] = protocol_gateway_ip
     cluster_details['opposit_cluster_clustername'] = opposit_cluster_clustername
     # Preparing list for Encryption Servers
     if scale_encryption_servers:
@@ -279,12 +290,12 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
 
 def get_host_format(node):
     """ Return host entries """
-    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']}"
+    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']}  scale_protocol_node={node['scale_protocol_node']}"
     return host_format
 
 
 def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, storage_private_ips,
-                            storage_cluster_instance_names, desc_private_ips, quorum_count,
+                            storage_cluster_instance_names, protocol_cluster_instance_names, desc_private_ips, quorum_count,
                             user, key_file):
     """ Initialize node details for cluster definition.
     :args: az_count (int), cls_type (string), compute_private_ips (list),
@@ -302,7 +313,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': True, 'is_collector': True, 'is_nsd': False,
                             'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'daemon_nodename': each_name}
+                            'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
                     write_json_file({'compute_cluster_gui_ip_address': each_ip},
                                     "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                                "compute_cluster_gui_details.json"))
@@ -310,59 +321,61 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': False, 'is_collector': True, 'is_nsd': False,
                             'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'daemon_nodename': each_name}
+                            'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
                 else:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                             'is_gui': False, 'is_collector': False, 'is_nsd': False,
                             'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'daemon_nodename': each_name}
+                            'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
             elif compute_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     compute_cluster_instance_names.index(each_ip) > (manager_count - 1):
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "computenodegrp", 'daemon_nodename': each_name}
+                        'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
             else:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "computenodegrp", 'daemon_nodename': each_name}
+                        'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
             node_details.append(get_host_format(node))
     elif cls_type == 'storage' and az_count == 1:
         start_quorum_assign = quorum_count - 1
         for each_ip in storage_cluster_instance_names:
             each_name = each_ip.split('.')[0]
+            scale_protocol_node = each_ip in protocol_cluster_instance_names
+            is_nsd = each_ip not in protocol_cluster_instance_names
             if storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     storage_cluster_instance_names.index(each_ip) <= (manager_count - 1):
                 if storage_cluster_instance_names.index(each_ip) == 0:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': True, 'is_collector': True, 'is_nsd': True,
+                            'is_gui': True, 'is_collector': True, 'is_nsd': is_nsd,
                             'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'daemon_nodename': each_name}
+                            'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
                     write_json_file({'storage_cluster_gui_ip_address': each_ip},
                                     "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                                "storage_cluster_gui_details.json"))
                 elif storage_cluster_instance_names.index(each_ip) == 1:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': False, 'is_collector': True, 'is_nsd': True,
+                            'is_gui': False, 'is_collector': True, 'is_nsd': is_nsd,
                             'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'daemon_nodename': each_name}
+                            'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
                 else:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                            'is_gui': False, 'is_collector': True, 'is_nsd': True,
+                            'is_gui': False, 'is_collector': True, 'is_nsd': is_nsd,
                             'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'daemon_nodename': each_name}
+                            'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
             elif storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     storage_cluster_instance_names.index(each_ip) > (manager_count - 1):
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                        'is_gui': False, 'is_collector': False, 'is_nsd': True,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp", 'daemon_nodename': each_name}
+                        'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
             else:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
-                        'is_gui': False, 'is_collector': False, 'is_nsd': True,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp", 'daemon_nodename': each_name}
+                        'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
             node_details.append(get_host_format(node))
     elif cls_type == 'storage' and az_count > 1:
         for each_ip in desc_private_ips:
@@ -602,6 +615,25 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size, disk_detail
     return storage
 
 
+def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, mountpoint, list_of_fileset):
+    """ Initialize ces details.
+    :args: smb (bool), nfs (bool), object (bool),
+           export_ip_pool (list), filesystem (string), mountpoint (string)
+    """
+    ces = {
+        "scale_protocols": {
+            "nfs": nfs,
+            "object": object,
+            "smb": smb,
+            "export_ip_pool": export_ip_pool,
+            "filesystem": filesystem,
+            "mountpoint": mountpoint,
+            "list_of_fileset": list_of_fileset
+        }
+    }
+    return ces
+
+
 if __name__ == "__main__":
     PARSER = argparse.ArgumentParser(description='Convert terraform inventory '
                                                  'to ansible inventory format '
@@ -637,7 +669,10 @@ if __name__ == "__main__":
                         help='Spectrum Scale GUI username')
     PARSER.add_argument('--gui_password', required=True,
                         help='Spectrum Scale GUI password')
-    PARSER.add_argument('--enable_mrot_conf', required=True)
+    PARSER.add_argument('--enable_mrot_conf', required=True,
+                        help='Configure MROT and Logical Subnet')
+    PARSER.add_argument('--config_ces', required=True,
+                        help='Configure CES on protocol nodes')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     PARSER.add_argument('--scale_encryption_enabled', help='Enabling encryption feature with GKLM',
@@ -829,6 +864,7 @@ if __name__ == "__main__":
                                            TF['compute_cluster_instance_names'],
                                            TF['storage_cluster_instance_private_ips'],
                                            TF['storage_cluster_instance_names'],
+                                           TF['protocol_cluster_instance_names'],
                                            TF['storage_cluster_desc_instance_private_ips'],
                                            quorum_count, "root", ARGUMENTS.instance_private_key)
     node_template = ""
@@ -855,8 +891,10 @@ if __name__ == "__main__":
                                                     profile_path,
                                                     replica_config,
                                                     ARGUMENTS.enable_mrot_conf,
+                                                    ARGUMENTS.config_ces,
                                                     TF['storage_subnet_cidr'],
                                                     TF['compute_subnet_cidr'],
+                                                    TF['protocol_gateway_ip'],
                                                     TF['opposit_cluster_clustername'],
                                                     ARGUMENTS.scale_encryption_servers,
                                                     ARGUMENTS.scale_encryption_admin_password)
@@ -905,11 +943,22 @@ if __name__ == "__main__":
                                                          disks_list, int(ARGUMENTS.default_metadata_replicas), int(
                                                              ARGUMENTS.max_metadata_replicas),
                                                          int(ARGUMENTS.default_data_replicas), int(ARGUMENTS.max_data_replicas))
+        scale_protocols = initialize_scale_ces_details(TF['smb'],
+                                                       TF['nfs'],
+                                                       TF['object'],
+                                                       TF['export_ip_pool'],
+                                                       TF['filesystem'],
+                                                       TF['mountpoint'],
+                                                       TF['list_of_fileset'])
+        output_data = {
+            'scale_protocols': scale_protocols['scale_protocols'],
+            'scale_storage': scale_storage['scale_storage']
+        }
         with open("%s/%s/%s/%s" % (ARGUMENTS.install_infra_path,
                                    "ibm-spectrum-scale-install-infra",
                                    "group_vars",
                                    "%s_cluster_config.yaml" % cluster_type), 'a') as groupvar:
-            yaml.dump(scale_storage, groupvar, default_flow_style=False)
+            yaml.dump(output_data, groupvar, default_flow_style=False)
         if ARGUMENTS.verbose:
             print("group_vars content:\n%s" % yaml.dump(
-                scale_storage, default_flow_style=False))
+                output_data, default_flow_style=False))

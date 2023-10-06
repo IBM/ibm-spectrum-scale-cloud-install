@@ -122,6 +122,18 @@ firewall-offline-cmd --zone=public --add-port=9084/tcp
 firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
+firewall-cmd --permanent --zone=public --add-port=2049/tcp
+firewall-cmd --permanent --zone=public --add-port=2049/udp
+firewall-cmd --permanent --zone=public --add-port=111/tcp
+firewall-cmd --permanent --zone=public --add-port=111/udp
+firewall-cmd --permanent --zone=public --add-port=32765/tcp
+firewall-cmd --permanent --zone=public --add-port=32765/udp
+firewall-cmd --permanent --zone=public --add-port=32767/tcp
+firewall-cmd --permanent --zone=public --add-port=32767/udp
+firewall-cmd --permanent --zone=public --add-port=32768/tcp
+firewall-cmd --permanent --zone=public --add-port=32768/udp
+firewall-cmd --permanent --zone=public --add-port=32769/tcp
+firewall-cmd --permanent --zone=public --add-port=32769/udp
 systemctl start firewalld
 systemctl enable firewalld
 

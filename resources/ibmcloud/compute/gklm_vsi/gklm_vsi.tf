@@ -55,7 +55,7 @@ resource "ibm_is_instance" "itself" {
     }
   }
 
-  name    = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
+  name    = format("%s-%s", var.vsi_name_prefix, each.value.sequence_string)
   image   = var.vsi_image_id
   profile = var.vsi_profile
   tags    = var.resource_tags
@@ -72,7 +72,7 @@ resource "ibm_is_instance" "itself" {
   user_data      = data.template_file.metadata_startup_script.rendered
 
   boot_volume {
-    name = format("%s-boot-%03s", var.vsi_name_prefix, each.value.sequence_string)
+    name = format("%s-boot-%s", var.vsi_name_prefix, each.value.sequence_string)
   }
 }
 
