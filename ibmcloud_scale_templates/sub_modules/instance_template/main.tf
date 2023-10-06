@@ -580,6 +580,7 @@ module "compute_cluster_configuration" {
   scale_encryption_enabled        = var.scale_encryption_enabled
   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+  ldap_basedns                    = var.ldap_basedns
 }
 
 module "storage_cluster_configuration" {
@@ -615,6 +616,7 @@ module "storage_cluster_configuration" {
   scale_encryption_enabled        = var.scale_encryption_enabled
   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+  ldap_basedns                    = var.ldap_basedns
 }
 
 module "combined_cluster_configuration" {
@@ -641,6 +643,7 @@ module "combined_cluster_configuration" {
   scale_encryption_enabled        = var.scale_encryption_enabled
   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+  ldap_basedns                    = var.ldap_basedns
 }
 
 module "remote_mount_configuration" {
@@ -713,23 +716,24 @@ module "encryption_configuration" {
 }
 
 module "ldap_configuration" {
-  source                    = "../../../resources/common/ldap_configuration"
-  turn_on                   = false
-  clone_path                = var.scale_ansible_repo_clone_path
-  clone_complete            = module.prepare_ansible_configuration.clone_complete
-  create_scale_cluster      = var.create_scale_cluster
-  scale_cluster_clustername = var.resource_prefix
-  ldap_admin_password       = var.ldap_admin_password
-  ldap_user_name            = var.ldap_user_name
-  ldap_user_password        = var.ldap_user_password
-  ldap_server               = jsonencode(one(module.ldap_instance[*].vsi_private_ip))
-  meta_private_key          = module.generate_ldap_instance_keys.private_key_content
-  #  storage_cluster_encryption       = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
-  #  compute_cluster_encryption       = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
-  #  combined_cluster_encryption      = var.create_separate_namespaces == false ? true : false
-  #  compute_cluster_create_complete  = module.compute_cluster_configuration.compute_cluster_create_complete
-  #  storage_cluster_create_complete  = module.storage_cluster_configuration.storage_cluster_create_complete
-  #  combined_cluster_create_complete = module.combined_cluster_configuration.combined_cluster_create_complete
-  #  remote_mount_create_complete     = module.remote_mount_configuration.remote_mount_create_complete
-  depends_on = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
+  source                           = "../../../resources/common/ldap_configuration"
+  turn_on                          = var.ldap_basedns != null ? true : false
+  clone_path                       = var.scale_ansible_repo_clone_path
+  clone_complete                   = module.prepare_ansible_configuration.clone_complete
+  create_scale_cluster             = var.create_scale_cluster
+  scale_cluster_clustername        = var.resource_prefix
+  ldap_basedns                     = var.ldap_basedns
+  ldap_admin_password              = var.ldap_admin_password
+  ldap_user_name                   = var.ldap_user_name
+  ldap_user_password               = var.ldap_user_password
+  ldap_server                      = jsonencode(one(module.ldap_instance[*].vsi_private_ip))
+  meta_private_key                 = module.generate_ldap_instance_keys.private_key_content
+  storage_enable_ldap              = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+  compute_enable_ldap              = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+  combined_enable_ldap             = var.create_separate_namespaces == false ? true : false
+  compute_cluster_create_complete  = module.compute_cluster_configuration.compute_cluster_create_complete
+  storage_cluster_create_complete  = module.storage_cluster_configuration.storage_cluster_create_complete
+  combined_cluster_create_complete = module.combined_cluster_configuration.combined_cluster_create_complete
+  remote_mount_create_complete     = module.remote_mount_configuration.remote_mount_create_complete
+  depends_on                       = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
 }
