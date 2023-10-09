@@ -30,6 +30,7 @@ variable "block_device_kms_key_ring_ref" {}
 variable "block_device_kms_key_ref" {}
 variable "service_email" {}
 variable "scopes" {}
+variable "network_tags" {}
 
 data "google_kms_key_ring" "itself" {
   count    = var.block_device_kms_key_ring_ref != null ? 1 : 0
@@ -98,6 +99,7 @@ resource "google_compute_instance" "itself" {
     subnetwork = var.subnet_name
     network_ip = null
   }
+  tags = var.network_tags
 
   # Block for persistent disk attachment
   dynamic "attached_disk" {
