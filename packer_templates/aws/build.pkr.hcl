@@ -34,7 +34,7 @@ build {
       "sudo sh -c \"echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo\"",
       "sudo sh -c \"echo 'gpgkey=http://\"${var.package_repository}\".s3-website.\"${var.vpc_region}\".amazonaws.com/\"${var.scale_version}\"/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo\"",
       "fi",
-      "sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression",
+      "sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license*",
       "if sudo dnf search gpfs.adv | grep -q \"gpfs.adv\"",
       "then",
       "sudo dnf install -y gpfs.adv",
