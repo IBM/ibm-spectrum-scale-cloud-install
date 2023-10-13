@@ -384,15 +384,14 @@ variable "ldap_server" {
 }
 
 variable "ldap_admin_password" {
-  type        = string
-  sensitive   = true
+  type = string
+  #  sensitive   = true
   default     = ""
   description = "Password that is used for performing administrative operations for LDAP.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. "
 }
 
 variable "ldap_user_name" {
   type        = string
-  sensitive   = true
   description = "Custom LDAP User for performing cluster operations. Note: Username should be at least 4 characters, (any combination of lowercase and uppercase letters)."
   validation {
     condition     = var.ldap_user_name == "" || (length(var.ldap_user_name) >= 4 && length(var.ldap_user_name) <= 32)
@@ -401,8 +400,8 @@ variable "ldap_user_name" {
 }
 
 variable "ldap_user_password" {
-  type        = string
-  sensitive   = true
+  type = string
+  #  sensitive   = true
   default     = ""
   description = "LDAP User Password that is used for performing operations on the cluster.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username."
 }
