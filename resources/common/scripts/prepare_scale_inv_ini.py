@@ -242,7 +242,7 @@ def prepare_ansible_playbook_ldap_server():
     # Write to playbook
     content = """---
 # Encryption setup for the ldap server
-- hosts: localhost
+- hosts: "{{ ldap_node }}"
   collections:
      - ibm.spectrum_scale
   any_errors_fatal: true
