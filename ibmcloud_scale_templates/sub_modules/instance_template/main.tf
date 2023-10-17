@@ -189,11 +189,13 @@ module "gklm_instance_ingress_security_rule_wo_bastion" {
 }
 
 data "ibm_is_ssh_key" "compute_ssh_key" {
-  name = var.compute_cluster_key_pair
+  count = length(var.compute_cluster_key_pair)
+  name  = var.compute_cluster_key_pair[count.index]
 }
 
 data "ibm_is_ssh_key" "client_ssh_key" {
-  name = var.client_cluster_key_pair
+  count = length(var.client_cluster_key_pair)
+  name  = var.client_cluster_key_pair[count.index]
 }
 
 data "ibm_is_instance_profile" "compute_profile" {
@@ -229,7 +231,7 @@ module "compute_cluster_instances" {
   dns_zone_id                  = var.vpc_compute_cluster_dns_zone_id
   vsi_subnet_id                = length(var.vpc_compute_cluster_private_subnets) == 0 ? var.vpc_storage_cluster_private_subnets : var.vpc_compute_cluster_private_subnets
   vsi_security_group           = [module.compute_cluster_security_group.sec_group_id]
-  vsi_user_public_key          = [data.ibm_is_ssh_key.compute_ssh_key.id]
+  vsi_user_public_key          = data.ibm_is_ssh_key.compute_ssh_key[*].id
   vsi_meta_private_key         = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key          = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   depends_on                   = [module.compute_cluster_ingress_security_rule, module.compute_cluster_ingress_security_rule_wt_bastion, module.compute_cluster_ingress_security_rule_wo_bastion, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
@@ -263,7 +265,7 @@ module "client_cluster_instances" {
   dns_zone_id                  = var.vpc_client_cluster_dns_zone_id
   vsi_subnet_id                = length(var.vpc_compute_cluster_private_subnets) == 0 ? var.vpc_storage_cluster_private_subnets : var.vpc_compute_cluster_private_subnets
   vsi_security_group           = [module.compute_cluster_security_group.sec_group_id]
-  vsi_user_public_key          = [data.ibm_is_ssh_key.client_ssh_key.id]
+  vsi_user_public_key          = data.ibm_is_ssh_key.client_ssh_key[*].id
   vsi_meta_private_key         = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key          = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   depends_on                   = [module.compute_cluster_ingress_security_rule, module.compute_cluster_ingress_security_rule_wt_bastion, module.compute_cluster_ingress_security_rule_wo_bastion, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
@@ -303,7 +305,8 @@ data "ibm_is_bare_metal_server_profile" "storage_bare_metal_server_profile" {
 }
 
 data "ibm_is_ssh_key" "storage_ssh_key" {
-  name = var.storage_cluster_key_pair
+  count = length(var.storage_cluster_key_pair)
+  name  = var.storage_cluster_key_pair[count.index]
 }
 
 data "ibm_is_image" "storage_instance_image" {
@@ -339,7 +342,7 @@ module "protocol_cluster_instances" {
   dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
   vsi_subnet_id        = var.vpc_storage_cluster_private_subnets
   vsi_security_group   = [module.storage_cluster_security_group.sec_group_id]
-  vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
+  vsi_user_public_key  = data.ibm_is_ssh_key.storage_ssh_key[*].id
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
@@ -379,7 +382,7 @@ module "storage_cluster_instances" {
   dns_zone_id                  = var.vpc_storage_cluster_dns_zone_id
   vsi_subnet_id                = var.vpc_storage_cluster_private_subnets
   vsi_security_group           = [module.storage_cluster_security_group.sec_group_id]
-  vsi_user_public_key          = [data.ibm_is_ssh_key.storage_ssh_key.id]
+  vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
   vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
@@ -402,7 +405,7 @@ module "storage_cluster_bare_metal_server" {
   dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
   vsi_subnet_id        = var.vpc_storage_cluster_private_subnets
   vsi_security_group   = [module.storage_cluster_security_group.sec_group_id]
-  vsi_user_public_key  = [data.ibm_is_ssh_key.storage_ssh_key.id]
+  vsi_user_public_key  = data.ibm_is_ssh_key.storage_ssh_key[*].id
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   resource_tags        = var.scale_cluster_resource_tags
@@ -423,7 +426,7 @@ module "storage_cluster_tie_breaker_instance" {
   dns_zone_id                  = var.vpc_storage_cluster_dns_zone_id
   vsi_subnet_id                = var.vpc_storage_cluster_private_subnets
   vsi_security_group           = [module.storage_cluster_security_group.sec_group_id]
-  vsi_user_public_key          = [data.ibm_is_ssh_key.storage_ssh_key.id]
+  vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
   vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
@@ -432,8 +435,8 @@ module "storage_cluster_tie_breaker_instance" {
 }
 
 data "ibm_is_ssh_key" "gklm_ssh_key" {
-  count = var.scale_encryption_enabled == true ? 1 : 0
-  name  = var.gklm_instance_key_pair
+  count = var.scale_encryption_enabled == true ? length(var.gklm_instance_key_pair) : 0
+  name  = var.gklm_instance_key_pair[count.index]
 }
 
 data "ibm_is_image" "gklm_instance_image" {
@@ -456,7 +459,7 @@ module "gklm_instance" {
   dns_zone_id          = var.gklm_instance_dns_zone_id
   vsi_subnet_id        = var.vpc_compute_cluster_private_subnets
   vsi_security_group   = [module.gklm_instance_security_group.sec_group_id]
-  vsi_user_public_key  = var.scale_encryption_enabled ? [data.ibm_is_ssh_key.gklm_ssh_key[0].id] : []
+  vsi_user_public_key  = var.scale_encryption_enabled ? data.ibm_is_ssh_key.gklm_ssh_key[*].id : []
   vsi_meta_private_key = var.create_separate_namespaces == true ? module.generate_gklm_instance_keys.private_key_content : 0
   vsi_meta_public_key  = var.create_separate_namespaces == true ? module.generate_gklm_instance_keys.public_key_content : 0
   depends_on           = [module.gklm_instance_ingress_security_rule, module.gklm_instance_ingress_security_rule_wt_bastion, module.gklm_instance_ingress_security_rule_wo_bastion, module.gklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
