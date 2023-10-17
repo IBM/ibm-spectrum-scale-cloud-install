@@ -26,12 +26,8 @@ variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
-variable "enable_sec_interface_storage" {}
 variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
-variable "ibmcloud_api_key" {}
-variable "vpc_region" {}
-variable "vpc_rt_id" {}
 
 data "ibm_is_instance_profile" "itself" {
   name = var.vsi_profile
@@ -116,36 +112,27 @@ firewall-offline-cmd --zone=public --add-port=9084/tcp
 firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
-firewall-cmd --permanent --zone=public --add-port=2049/tcp
-firewall-cmd --permanent --zone=public --add-port=2049/udp
-firewall-cmd --permanent --zone=public --add-port=111/tcp
-firewall-cmd --permanent --zone=public --add-port=111/udp
-firewall-cmd --permanent --zone=public --add-port=32765/tcp
-firewall-cmd --permanent --zone=public --add-port=32765/udp
-firewall-cmd --permanent --zone=public --add-port=32767/tcp
-firewall-cmd --permanent --zone=public --add-port=32767/udp
-firewall-cmd --permanent --zone=public --add-port=32768/tcp
-firewall-cmd --permanent --zone=public --add-port=32768/udp
-firewall-cmd --permanent --zone=public --add-port=32769/tcp
-firewall-cmd --permanent --zone=public --add-port=32769/udp
-systemctl start firewalld
-systemctl enable firewalld
+firewall-offline-cmd --zone=public --add-port=2049/tcp
+firewall-offline-cmd --zone=public --add-port=2049/udp
+firewall-offline-cmd --zone=public --add-port=111/tcp
+firewall-offline-cmd --zone=public --add-port=111/udp
+firewall-offline-cmd --zone=public --add-port=32765/tcp
+firewall-offline-cmd --zone=public --add-port=32765/udp
+firewall-offline-cmd --zone=public --add-port=32767/tcp
+firewall-offline-cmd --zone=public --add-port=32767/udp
+firewall-offline-cmd --zone=public --add-port=32768/tcp
+firewall-offline-cmd --zone=public --add-port=32768/udp
+firewall-offline-cmd --zone=public --add-port=32769/tcp
+firewall-offline-cmd --zone=public --add-port=32769/udp
+# systemctl start firewalld
+# systemctl enable firewalld
 
-#if [ "${var.enable_sec_interface_storage}" == true ]; then
 sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
 nmcli conn del "$sec_interface"
 nmcli con add type ethernet con-name eth1 ifname eth1
 echo "DOMAIN=\"${var.protocol_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
 systemctl restart NetworkManager
-#fi
-
-echo 'export IC_API_KEY=${var.ibmcloud_api_key}' >> /root/.bashrc
-echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
-echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
-echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
-echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
-echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 EOF
 }
 

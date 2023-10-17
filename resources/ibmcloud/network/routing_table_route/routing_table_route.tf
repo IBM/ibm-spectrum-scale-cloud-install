@@ -22,13 +22,13 @@ variable "clone_complete" {}
 variable "storage_cluster_create_complete" {}
 variable "create_scale_cluster" {}
 variable "inventory_path" {}
-variable "network_playbook_path" {}
+variable "playbook_path" {}
 
 resource "null_resource" "get_ces_ips" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "ansible-playbook -i ${var.inventory_path} ${var.network_playbook_path}"
+    command     = "ansible-playbook -i ${var.inventory_path} ${var.playbook_path}"
   }
   triggers = {
     build = timestamp()
@@ -64,7 +64,7 @@ resource "ibm_is_vpc_routing_table_route" "itself" {
   action        = var.action
   next_hop      = each.value.next_hop
   priority      = var.priority
-  depends_on    = [resource.null_resource.get_ces_ips]
+  depends_on    = [resource.null_resource.get_ces_ips, data.local_file.read_ces_ips]
 }
 
 output "details" {

@@ -32,7 +32,3 @@
       path: "/tmp/ces_ips.txt"
       state: absent
     when: is_admin_node | default(false) == true
-
-  # - name: Execute ibmcloud command to create route
-  #   command: ibmcloud is vpc-routing-table-route-create r006-59301a2f-56c8-436d-b21e-6282aebc7d03 r006-ef2b3076-ab41-4f73-857c-8e49077d1ad6 --zone us-south-2 --destination 10.241.2.6 --next-hop 10.241.2.8 --action deliver --name test -q
-  #   when: is_admin_node | default(false) == true

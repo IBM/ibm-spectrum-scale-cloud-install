@@ -1,0 +1,49 @@
+---
+- name: mount filesets
+  hosts: scale_nodes
+  tasks:
+  - name: Run shell command to extract last character
+    shell: "echo {{ ansible_hostname }} | awk '{print substr($0, length, 1)}'"
+    register: last_char_result
+
+  - name: Display the result
+    debug:
+      var: last_char_result.stdout
+
+  - name: Index of client node
+    set_fact:
+      client_node_index: "{{ last_char_result.stdout | int - 1 }}"
+
+  - name: Display the client node index
+    debug:
+      msg: "Client Node Index is {{ client_node_index }}"
+
+  - name: Calculate protocol node index modulo
+    set_fact:
+      proto_node_index: "{{ client_node_index | int % proto_nodes | length }}"
+
+  - name: Display the protocol node index
+    debug:
+      msg: "Protocol Node Index is: {{ proto_node_index }}"
+
+  - name: Set Protocol Node
+    set_fact:
+      protocol_node: "{{ proto_nodes[proto_node_index|int] }}"
+
+  - name: Print Client and Protocol Node
+    debug:
+      msg: "Protocol Node: {{ protocol_node }}"
+
+  - name: Delete the directory
+    command: rm -rf "{{ custom_file_share[item] }}"
+    loop: "{{ range(0, custom_file_share | length) | list }}"
+    when: custom_file_share[item] is defined
+
+  - name: Create the directory
+    command: mkdir -p "{{ custom_file_share[item] }}"
+    loop: "{{ range(0, custom_file_share | length) | list }}"
+    when: custom_file_share[item] is defined
+
+  - name: Mount NFS filesets
+    shell: "mount -t nfs4 -o sec=sys {{ protocol_node }}:/gpfs/fs1/{{ item.1 }} {{ item.0 }}"
+    loop: "{{ custom_file_share | zip(list_of_fileset) | list }}"
