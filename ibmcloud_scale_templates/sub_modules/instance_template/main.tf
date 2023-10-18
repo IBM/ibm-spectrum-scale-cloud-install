@@ -323,6 +323,7 @@ data "ibm_is_subnet" "storage_cluster_private_subnets_cidr" {
 }
 
 data "ibm_is_subnet" "protocol_cluster_private_subnets_cidr" {
+  count      = local.scale_ces_enabled == true ? 1 : 0
   identifier = var.vpc_protocol_cluster_private_subnets[0]
 }
 
@@ -600,7 +601,7 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_names                   = jsonencode([])
   storage_subnet_cidr                              = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   compute_subnet_cidr                              = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
-  protocol_subnet_cidr                             = local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.protocol_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
+  protocol_subnet_cidr                             = local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.protocol_cluster_private_subnets_cidr[0].ipv4_cidr_block) : jsonencode("")
   opposit_cluster_clustername                      = local.enable_mrot_conf ? jsonencode(format("%s.%s", var.resource_prefix, var.vpc_compute_cluster_dns_domain)) : jsonencode("")
   protocol_cluster_instance_names                  = local.scale_ces_enabled == true ? jsonencode(keys(one(module.protocol_cluster_instances[*].instance_name_id_map))) : jsonencode([])
   smb                                              = false
