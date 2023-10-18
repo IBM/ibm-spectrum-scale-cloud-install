@@ -61,7 +61,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 |------|-------------|------|
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
-| <a name="input_custom_file_shares"></a> [custom_file_shares](#input_custom_file_shares) | Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares. | <pre>list(object({<br>    mount_path = string,<br>    size       = number<br>  }))</pre> |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | This is the IBM Cloud API key for the IBM Cloud account where the IBM Storage Scale cluster needs to be deployed. For more information on how to create an API key, see [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey&interface=ui). | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
@@ -76,7 +75,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC id were to deploy the bastion. | `string` |
 | <a name="input_vpc_protocol_cluster_dns_service_id"></a> [vpc_protocol_cluster_dns_service_id](#input_vpc_protocol_cluster_dns_service_id) | IBM Cloud compute cluster DNS service resource id. | `string` |
 | <a name="input_vpc_protocol_cluster_dns_zone_id"></a> [vpc_protocol_cluster_dns_zone_id](#input_vpc_protocol_cluster_dns_zone_id) | IBM Cloud compute cluster DNS zone id. | `string` |
-| <a name="input_vpc_protocol_cluster_private_subnets"></a> [vpc_protocol_cluster_private_subnets](#input_vpc_protocol_cluster_private_subnets) | List of IDs of protocol nodes private subnets. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where IBM Cloud operations will take place. Examples are us-east, us-south, etc. | `string` |
 | <a name="input_vpc_storage_cluster_dns_service_id"></a> [vpc_storage_cluster_dns_service_id](#input_vpc_storage_cluster_dns_service_id) | IBM Cloud storage cluster DNS service resource id. | `string` |
 | <a name="input_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#input_vpc_storage_cluster_dns_zone_id) | IBM Cloud storage cluster DNS zone id. | `string` |
@@ -88,7 +86,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Provide the username for Bastion login. | `string` |
 | <a name="input_client_cluster_key_pair"></a> [client_cluster_key_pair](#input_client_cluster_key_pair) | The key pair to use to launch the client cluster host. | `list(string)` |
-| <a name="input_client_vsi_osimage_id"></a> [client_vsi_osimage_id](#input_client_vsi_osimage_id) | Image id to use for provisioning the client cluster instances. | `string` |
 | <a name="input_client_vsi_osimage_name"></a> [client_vsi_osimage_name](#input_client_vsi_osimage_name) | Image name to use for provisioning the client cluster instances. | `string` |
 | <a name="input_client_vsi_profile"></a> [client_vsi_profile](#input_client_vsi_profile) | Client nodes vis profile | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
@@ -98,6 +95,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_compute_vsi_profile"></a> [compute_vsi_profile](#input_compute_vsi_profile) | Profile to be used for compute cluster virtual server instance. | `string` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
 | <a name="input_create_separate_namespaces"></a> [create_separate_namespaces](#input_create_separate_namespaces) | Flag to select if separate namespace needs to be created for compute instances. | `bool` |
+| <a name="input_custom_file_shares"></a> [custom_file_shares](#input_custom_file_shares) | Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares. | <pre>list(object({<br>    mount_path = string,<br>    size       = number<br>  }))</pre> |
 | <a name="input_deploy_controller_sec_group_id"></a> [deploy_controller_sec_group_id](#input_deploy_controller_sec_group_id) | Deployment controller security group id. Default: null | `string` |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
 | <a name="input_gklm_instance_dns_domain"></a> [gklm_instance_dns_domain](#input_gklm_instance_dns_domain) | IBM Cloud DNS domain name to be used for GKLM instances. | `string` |
@@ -137,6 +135,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_vpc_client_cluster_dns_domain"></a> [vpc_client_cluster_dns_domain](#input_vpc_client_cluster_dns_domain) | IBM Cloud DNS domain name to be used for client cluster. | `string` |
 | <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | IBM Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_create_activity_tracker"></a> [vpc_create_activity_tracker](#input_vpc_create_activity_tracker) | Flag to select if IBM Cloud activity tracker to be created or not. Note: You can only provision 1 instance of this service per IBM Cloud region. | `bool` |
+| <a name="input_vpc_protocol_cluster_private_subnets"></a> [vpc_protocol_cluster_private_subnets](#input_vpc_protocol_cluster_private_subnets) | List of IDs of protocol nodes private subnets. | `list(string)` |
 | <a name="input_vpc_protocolcluster_dns_domain"></a> [vpc_protocolcluster_dns_domain](#input_vpc_protocolcluster_dns_domain) | IBM Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | IBM Cloud DNS domain name to be used for storage cluster. | `string` |
 

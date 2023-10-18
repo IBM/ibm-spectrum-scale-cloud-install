@@ -382,6 +382,7 @@ variable "ibmcloud_api_key" {
 
 variable "vpc_protocol_cluster_private_subnets" {
   type        = list(string)
+  default     = ["10.241.2.0/24"]
   description = "List of IDs of protocol nodes private subnets."
 }
 
@@ -409,7 +410,7 @@ variable "vpc_protocol_cluster_dns_zone_id" {
 
 variable "vpc_protocolcluster_dns_domain" {
   type        = string
-  default     = "scaleces.com"
+  default     = "cesscale.com"
   description = "IBM Cloud DNS domain name to be used for compute cluster."
 }
 
@@ -418,7 +419,7 @@ variable "custom_file_shares" {
     mount_path = string,
     size       = number
   }))
-  #default     = [{ mount_path = "/mnt/binaries", size = 100 }, { mount_path = "/mnt/data", size = 100 }]
+  default     = [{ mount_path = "/mnt/binaries", size = 100 }, { mount_path = "/mnt/data", size = 100 }]
   description = "Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares."
 }
 
@@ -428,12 +429,6 @@ variable "total_client_cluster_instances" {
   type        = number
   default     = 2
   description = "Client cluster node counts"
-}
-
-variable "client_vsi_osimage_id" {
-  type        = string
-  default     = ""
-  description = "Image id to use for provisioning the client cluster instances."
 }
 
 variable "client_vsi_osimage_name" {
@@ -460,7 +455,7 @@ variable "vpc_client_cluster_dns_zone_id" {
 
 variable "vpc_client_cluster_dns_domain" {
   type        = string
-  default     = "client.com"
+  default     = "clientscale.com"
   description = "IBM Cloud DNS domain name to be used for client cluster."
 }
 

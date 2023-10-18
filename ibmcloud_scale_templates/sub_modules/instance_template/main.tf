@@ -15,7 +15,6 @@ locals {
 locals {
   compute_instance_image_id   = var.compute_vsi_osimage_id != "" ? var.compute_vsi_osimage_id : data.ibm_is_image.compute_instance_image[0].id
   storage_instance_image_id   = var.storage_vsi_osimage_id != "" ? var.storage_vsi_osimage_id : data.ibm_is_image.storage_instance_image[0].id
-  client_instance_image_id    = var.client_vsi_osimage_id != "" ? var.client_vsi_osimage_id : data.ibm_is_image.client_instance_image[0].id
   storage_bare_metal_image_id = var.storage_bare_metal_osimage_id != "" ? var.storage_bare_metal_osimage_id : data.ibm_is_image.storage_bare_metal_image[0].id
   gklm_instance_image_id      = var.gklm_vsi_osimage_id != "" ? var.gklm_vsi_osimage_id : data.ibm_is_image.gklm_instance_image[0].id
 }
@@ -209,7 +208,7 @@ data "ibm_is_image" "compute_instance_image" {
 
 data "ibm_is_image" "client_instance_image" {
   name  = var.client_vsi_osimage_name
-  count = var.client_vsi_osimage_id != "" ? 0 : 1
+  count = var.total_client_cluster_instances > 0 ? 1 : 0
 }
 
 data "ibm_is_subnet" "compute_cluster_private_subnets_cidr" {
@@ -241,7 +240,7 @@ module "compute_cluster_instances" {
   storage_dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
   storage_subnet_id            = var.vpc_storage_cluster_private_subnets
   storage_sec_group            = [module.storage_cluster_security_group.sec_group_id]
-  enable_sec_interface_compute = false
+  enable_sec_interface_compute = local.enable_sec_interface_compute
   user_data                    = ""
   enable_mrot_conf             = local.enable_mrot_conf
   comp_gateway_ip              = local.comp_subnet_gateway_ip
@@ -258,7 +257,7 @@ module "client_cluster_instances" {
   vpc_id                       = var.vpc_id
   resource_group_id            = var.resource_group_id
   zones                        = [var.vpc_availability_zones[0]]
-  vsi_image_id                 = local.client_instance_image_id
+  vsi_image_id                 = data.ibm_is_image.client_instance_image[0].id
   vsi_profile                  = var.client_vsi_profile
   dns_domain                   = var.vpc_client_cluster_dns_domain
   dns_service_id               = var.vpc_client_cluster_dns_service_id
@@ -791,6 +790,8 @@ module "mount_fileset_configuration" {
   inventory_path                  = format("%s/%s/ibmcloud_scale_templates/sub_modules/instance_template/client_inventory.ini", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-cloud-install")
   playbook_path                   = format("%s/%s/resources/ibmcloud/scripts/mount_fileset_playbook.yaml", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-cloud-install")
   tamplate                        = "${data.template_file.file_share_userdat[0].rendered} ${file("${path.module}/../../../resources/ibmcloud/scripts/file_share.sh")}"
+  clone_path                      = var.scale_ansible_repo_clone_path
+  meta_private_key                = module.generate_compute_cluster_keys.private_key_content
   depends_on                      = [module.route_table_route]
 }
 
