@@ -386,16 +386,10 @@ variable "vpc_protocol_cluster_private_subnets" {
   description = "List of IDs of protocol nodes private subnets."
 }
 
-variable "total_protocol_cluster_instances" {
-  type        = number
-  default     = 2
-  description = "protocol nodes"
-}
-
-variable "protocol_vsi_profile" {
+variable "vpc_protocol_cluster_dns_domain" {
   type        = string
-  default     = "cx2-32x64"
-  description = "Profile to be used for compute cluster virtual server instance."
+  default     = "cesscale.com"
+  description = "IBM Cloud DNS domain name to be used for compute cluster."
 }
 
 variable "vpc_protocol_cluster_dns_service_id" {
@@ -408,10 +402,16 @@ variable "vpc_protocol_cluster_dns_zone_id" {
   description = "IBM Cloud compute cluster DNS zone id."
 }
 
-variable "vpc_protocolcluster_dns_domain" {
+variable "protocol_vsi_profile" {
   type        = string
-  default     = "cesscale.com"
-  description = "IBM Cloud DNS domain name to be used for compute cluster."
+  default     = "cx2-32x64"
+  description = "Profile to be used for compute cluster virtual server instance."
+}
+
+variable "total_protocol_cluster_instances" {
+  type        = number
+  default     = 2
+  description = "protocol nodes"
 }
 
 variable "custom_file_shares" {

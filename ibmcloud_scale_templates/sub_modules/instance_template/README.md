@@ -135,8 +135,8 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_vpc_client_cluster_dns_domain"></a> [vpc_client_cluster_dns_domain](#input_vpc_client_cluster_dns_domain) | IBM Cloud DNS domain name to be used for client cluster. | `string` |
 | <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | IBM Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_create_activity_tracker"></a> [vpc_create_activity_tracker](#input_vpc_create_activity_tracker) | Flag to select if IBM Cloud activity tracker to be created or not. Note: You can only provision 1 instance of this service per IBM Cloud region. | `bool` |
+| <a name="input_vpc_protocol_cluster_dns_domain"></a> [vpc_protocol_cluster_dns_domain](#input_vpc_protocol_cluster_dns_domain) | IBM Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_protocol_cluster_private_subnets"></a> [vpc_protocol_cluster_private_subnets](#input_vpc_protocol_cluster_private_subnets) | List of IDs of protocol nodes private subnets. | `list(string)` |
-| <a name="input_vpc_protocolcluster_dns_domain"></a> [vpc_protocolcluster_dns_domain](#input_vpc_protocolcluster_dns_domain) | IBM Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | IBM Cloud DNS domain name to be used for storage cluster. | `string` |
 
 #### Outputs

@@ -347,7 +347,7 @@ module "protocol_cluster_instances" {
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
   depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
   resource_tags        = var.scale_cluster_resource_tags
-  protocol_domain      = var.vpc_protocolcluster_dns_domain
+  protocol_domain      = var.vpc_protocol_cluster_dns_domain
   protocol_subnet_id   = var.vpc_protocol_cluster_private_subnets
 }
 
@@ -358,7 +358,7 @@ module "protocol_reserved_ip" {
   subnet_id  = var.vpc_protocol_cluster_private_subnets
   name       = format("%s-ces", var.resource_prefix)
   #auto_delete             = true
-  protocol_domain         = var.vpc_protocolcluster_dns_domain
+  protocol_domain         = var.vpc_protocol_cluster_dns_domain
   protocol_dns_service_id = var.vpc_protocol_cluster_dns_service_id
   protocol_dns_zone_id    = var.vpc_protocol_cluster_dns_zone_id
 }
