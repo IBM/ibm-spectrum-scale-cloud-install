@@ -9,7 +9,7 @@
     when: is_admin_node | default(false) == true
     run_once: true
 
-  - name: Debug if fileset available or not
+  - name: Debug the ces ips sorted based on hostname
     debug:
       var: ces_ips.stdout_lines
     when: is_admin_node | default(false) == true

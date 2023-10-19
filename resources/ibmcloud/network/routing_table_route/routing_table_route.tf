@@ -64,7 +64,7 @@ resource "ibm_is_vpc_routing_table_route" "itself" {
   action        = var.action
   next_hop      = each.value.next_hop
   priority      = var.priority
-  depends_on    = [resource.null_resource.get_ces_ips, data.local_file.read_ces_ips]
+  depends_on    = [resource.null_resource.get_ces_ips]
 }
 
 output "details" {
