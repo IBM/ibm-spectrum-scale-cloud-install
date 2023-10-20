@@ -242,13 +242,13 @@ def prepare_ansible_playbook_ldap_server():
     # Write to playbook
     content = """---
 # Encryption setup for the ldap server
-- hosts: "{{ ldap_node }}"
+- hosts: all
   collections:
      - ibm.spectrum_scale
   any_errors_fatal: true
 
   roles:
-     - ldap_prepare
+     - auth_prepare
 """
     return content.format()
 
@@ -263,7 +263,7 @@ def prepare_ansible_playbook_ldap_cluster(hosts_config):
   any_errors_fatal: true
 
   roles:
-     - ldap_configure
+     - auth_configure
 """
     return content.format(hosts_config=hosts_config)
 
