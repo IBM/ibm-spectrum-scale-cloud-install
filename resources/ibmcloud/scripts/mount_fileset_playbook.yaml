@@ -78,7 +78,7 @@
     when: item.stdout_lines == []
 
   - name: Mount NFS filesets
-    shell: "mount -t nfs4 -o sec=sys {{ protocol_node }}:/gpfs/fs1/{{ item.0 }} {{ item.1.item }}"
+    shell: "mount -t nfs -o sec=sys,vers=4.1 {{ protocol_node }}:/gpfs/fs1/{{ item.0 }} {{ item.1.item }} -vv"
     register: mounted_filesets
     with_together:
       - "{{ list_of_fileset }}"

@@ -49,6 +49,8 @@ variable "vpc_id" {}
 variable "resource_group_id" {}
 variable "ibmcloud_api_key" {}
 variable "vpc_rt_id" {}
+variable "list_of_quotas" {}
+variable "bastion_instance_private_ip" {}
 
 resource "local_sensitive_file" "itself" {
   count    = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
@@ -92,9 +94,11 @@ resource "local_sensitive_file" "itself" {
     "filesystem": ${var.filesystem},
     "mountpoint": ${var.mountpoint},
     "list_of_fileset": ${var.list_of_fileset},
+    "list_of_quotas": ${var.list_of_quotas},
     "proto_gateway_ip": ${var.proto_gateway_ip},
     "comp_gateway_ip": ${var.comp_gateway_ip},
     "strg_gateway_ip": ${var.strg_gateway_ip},
+    "bastion_instance_private_ip": ${var.bastion_instance_private_ip},
     "vpc_id": ${var.vpc_id},
     "resource_group_id": ${var.resource_group_id},
     "ibmcloud_api_key": ${var.ibmcloud_api_key},

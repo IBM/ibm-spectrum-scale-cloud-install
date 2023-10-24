@@ -124,8 +124,8 @@ firewall-offline-cmd --zone=public --add-port=32768/tcp
 firewall-offline-cmd --zone=public --add-port=32768/udp
 firewall-offline-cmd --zone=public --add-port=32769/tcp
 firewall-offline-cmd --zone=public --add-port=32769/udp
-# systemctl start firewalld
-# systemctl enable firewalld
+systemctl start firewalld
+systemctl enable firewalld
 
 sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
 nmcli conn del "$sec_interface"

@@ -464,3 +464,9 @@ variable "client_cluster_key_pair" {
   default     = []
   description = "The key pair to use to launch the client cluster host."
 }
+
+variable "bastion_instance_private_ip" {
+  type        = string
+  default     = ""
+  description = "Ip address of bastion server"
+}

@@ -32,12 +32,11 @@ variable "storage_sec_group" {}
 variable "storage_domain_name" {}
 variable "storage_dns_service_id" {}
 variable "storage_dns_zone_id" {}
-variable "user_data" {}
 variable "comp_gateway_ip" {}
-variable "strg_gateway_ip" {}
 variable "comp_subnets_cidr" {}
 variable "strg_subnets_cidr" {}
 variable "enable_mrot_conf" {}
+variable "bastion_instance_private_ip" {}
 
 locals {
   comp_ntwk_address = split("/", var.comp_subnets_cidr)[0]
@@ -134,8 +133,8 @@ firewall-offline-cmd --zone=public --add-port=32768/tcp
 firewall-offline-cmd --zone=public --add-port=32768/udp
 firewall-offline-cmd --zone=public --add-port=32769/tcp
 firewall-offline-cmd --zone=public --add-port=32769/udp
-#systemctl start firewalld
-#systemctl enable firewalld
+systemctl start firewalld
+systemctl enable firewalld
 
 if [ "${var.enable_sec_interface_compute}" == true ]; then
     sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
@@ -169,10 +168,9 @@ if [[ ${var.enable_sec_interface_compute} == true && ${var.enable_mrot_conf} == 
     echo "from $secondary_ip/32 table subnet_${local.strg_ntwk_address}_eth1" >> "/etc/sysconfig/network-scripts/rule-eth1"
 
     echo "${var.comp_subnets_cidr} dev eth0 table subnet_${local.comp_ntwk_address}_eth0" >> "/etc/sysconfig/network-scripts/route-eth0"
-    echo "default via ${var.comp_gateway_ip} dev eth0 table subnet_${local.comp_ntwk_address}_eth0" >> "/etc/sysconfig/network-scripts/route-eth0"
+    echo "${var.bastion_instance_private_ip} via ${var.comp_gateway_ip} dev eth0 table subnet_${local.comp_ntwk_address}_eth0" >> "/etc/sysconfig/network-scripts/route-eth0"
 
     echo "${var.strg_subnets_cidr} dev eth1 table subnet_${local.strg_ntwk_address}_eth1" >> "/etc/sysconfig/network-scripts/route-eth1"
-    echo "default via ${var.strg_gateway_ip} dev eth1 table subnet_${local.strg_ntwk_address}_eth1" >> "/etc/sysconfig/network-scripts/route-eth1"
     systemctl restart NetworkManager
 fi
 EOF
@@ -214,7 +212,7 @@ resource "ibm_is_instance" "itself" {
   zone           = each.value.zone
   resource_group = var.resource_group_id
   keys           = var.vsi_user_public_key
-  user_data      = "${data.template_file.metadata_startup_script.rendered} ${var.user_data}"
+  user_data      = data.template_file.metadata_startup_script.rendered
 
   boot_volume {
     name = format("%s-boot-%03s", var.vsi_name_prefix, each.value.sequence_string)

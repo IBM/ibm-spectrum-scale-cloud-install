@@ -241,12 +241,11 @@ module "compute_cluster_instances" {
   storage_subnet_id            = var.vpc_storage_cluster_private_subnets
   storage_sec_group            = [module.storage_cluster_security_group.sec_group_id]
   enable_sec_interface_compute = local.enable_sec_interface_compute
-  user_data                    = ""
   enable_mrot_conf             = local.enable_mrot_conf
   comp_gateway_ip              = local.comp_subnet_gateway_ip
-  strg_gateway_ip              = local.strg_subnet_gateway_ip
   comp_subnets_cidr            = data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block
   strg_subnets_cidr            = data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block
+  bastion_instance_private_ip  = var.bastion_instance_private_ip
 }
 
 module "client_cluster_instances" {
@@ -275,9 +274,8 @@ module "client_cluster_instances" {
   storage_subnet_id            = var.vpc_storage_cluster_private_subnets
   storage_sec_group            = [module.storage_cluster_security_group.sec_group_id]
   enable_sec_interface_compute = false
-  user_data                    = "" #local.scale_ces_enabled == true ? "${data.template_file.file_share_userdat[0].rendered} ${file("${path.module}/../../../resources/ibmcloud/scripts/file_share.sh")}" : ""
+  bastion_instance_private_ip  = ""
   comp_gateway_ip              = ""
-  strg_gateway_ip              = ""
   comp_subnets_cidr            = ""
   strg_subnets_cidr            = ""
   enable_mrot_conf             = false
@@ -508,6 +506,7 @@ locals {
 
   fileset_size_map = try({ for details in var.custom_file_shares : details.mount_path => details.size }, {})
   list_of_fileset  = [for mount_path in keys(local.fileset_size_map) : reverse(split("/", mount_path))[0]]
+  list_of_quotas   = [for quota in values(local.fileset_size_map) : quota]
 
   protocol_reserved_name_ips_map = try({ for details in data.ibm_is_subnet_reserved_ips.protocol_subnet_reserved_ips[0].reserved_ips : details.name => details.address }, {})
   protocol_subnet_gateway_ip     = local.scale_ces_enabled == true ? local.protocol_reserved_name_ips_map.ibm-default-gateway : ""
@@ -561,9 +560,11 @@ module "write_compute_cluster_inventory" {
   filesystem                                       = jsonencode("")
   mountpoint                                       = jsonencode("")
   list_of_fileset                                  = jsonencode([])
+  list_of_quotas                                   = jsonencode([])
   proto_gateway_ip                                 = jsonencode("")
   comp_gateway_ip                                  = local.enable_mrot_conf ? jsonencode(local.comp_subnet_gateway_ip) : jsonencode("")
   strg_gateway_ip                                  = local.enable_mrot_conf ? jsonencode(local.strg_subnet_gateway_ip) : jsonencode("")
+  bastion_instance_private_ip                      = local.enable_mrot_conf ? jsonencode(var.bastion_instance_private_ip) : jsonencode("")
   vpc_id                                           = jsonencode("")
   resource_group_id                                = jsonencode("")
   ibmcloud_api_key                                 = jsonencode("")
@@ -612,9 +613,11 @@ module "write_storage_cluster_inventory" {
   filesystem                                       = local.scale_ces_enabled == true ? jsonencode("cesSharedRoot") : jsonencode("")
   mountpoint                                       = local.scale_ces_enabled == true ? jsonencode(var.storage_cluster_filesystem_mountpoint) : jsonencode("")
   list_of_fileset                                  = local.scale_ces_enabled == true ? jsonencode(local.list_of_fileset) : jsonencode([])
+  list_of_quotas                                   = local.scale_ces_enabled == true ? jsonencode(local.list_of_quotas) : jsonencode([])
   proto_gateway_ip                                 = local.scale_ces_enabled == true ? jsonencode(local.protocol_subnet_gateway_ip) : jsonencode("")
   comp_gateway_ip                                  = local.enable_mrot_conf ? jsonencode(local.comp_subnet_gateway_ip) : jsonencode("")
   strg_gateway_ip                                  = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(local.strg_subnet_gateway_ip) : jsonencode("")
+  bastion_instance_private_ip                      = jsonencode("")
   vpc_id                                           = local.scale_ces_enabled == true ? jsonencode(var.vpc_id) : jsonencode("")
   resource_group_id                                = local.scale_ces_enabled == true ? jsonencode(var.resource_group_id) : jsonencode("")
   ibmcloud_api_key                                 = local.scale_ces_enabled == true ? jsonencode(var.ibmcloud_api_key) : jsonencode("")
@@ -663,9 +666,11 @@ module "write_cluster_inventory" {
   filesystem                                       = jsonencode("")
   mountpoint                                       = jsonencode("")
   list_of_fileset                                  = jsonencode([])
+  list_of_quotas                                   = jsonencode([])
   proto_gateway_ip                                 = jsonencode("")
   comp_gateway_ip                                  = jsonencode("")
   strg_gateway_ip                                  = jsonencode("")
+  bastion_instance_private_ip                      = jsonencode("")
   vpc_id                                           = jsonencode("")
   resource_group_id                                = jsonencode("")
   ibmcloud_api_key                                 = jsonencode("")

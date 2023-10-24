@@ -248,7 +248,7 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username, password, scale_profile_path, scale_replica_config, enable_mrot,
-                               config_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_subnet_cidr, proto_gateway_ip, comp_gateway_ip, strg_gateway_ip, opposit_cluster_clustername,
+                               config_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_subnet_cidr, proto_gateway_ip, comp_gateway_ip, strg_gateway_ip, bastion_instance_private_ip,  opposit_cluster_clustername,
                                ibmcloud_api_key, vpc_region, vpc_availability_zones, resource_group_id, vpc_id, vpc_rt_id, scale_encryption_servers, scale_encryption_admin_password):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
@@ -277,6 +277,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['proto_gateway_ip'] = proto_gateway_ip
     cluster_details['comp_gateway_ip'] = comp_gateway_ip
     cluster_details['strg_gateway_ip'] = strg_gateway_ip
+    cluster_details['bastion_instance_private_ip'] = bastion_instance_private_ip
     cluster_details['opposit_cluster_clustername'] = opposit_cluster_clustername
     cluster_details['ic_api_key'] = ibmcloud_api_key
     cluster_details['ic_region'] = vpc_region
@@ -624,7 +625,7 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size, disk_detail
     return storage
 
 
-def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, mountpoint, list_of_fileset):
+def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, mountpoint, list_of_fileset, list_of_quotas):
     """ Initialize ces details.
     :args: smb (bool), nfs (bool), object (bool),
            export_ip_pool (list), filesystem (string), mountpoint (string)
@@ -637,7 +638,8 @@ def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, m
             "export_ip_pool": export_ip_pool,
             "filesystem": filesystem,
             "mountpoint": mountpoint,
-            "list_of_fileset": list_of_fileset
+            "list_of_fileset": list_of_fileset,
+            "list_of_quotas": list_of_quotas
         }
     }
     return ces
@@ -907,6 +909,7 @@ if __name__ == "__main__":
                                                     TF['proto_gateway_ip'],
                                                     TF['comp_gateway_ip'],
                                                     TF['strg_gateway_ip'],
+                                                    TF['bastion_instance_private_ip'],
                                                     TF['opposit_cluster_clustername'],
                                                     TF['ibmcloud_api_key'],
                                                     TF['vpc_region'],
@@ -967,7 +970,8 @@ if __name__ == "__main__":
                                                        TF['export_ip_pool'],
                                                        TF['filesystem'],
                                                        TF['mountpoint'],
-                                                       TF['list_of_fileset'])
+                                                       TF['list_of_fileset'],
+                                                       TF['list_of_quotas'])
         output_data = {
             'scale_protocols': scale_protocols['scale_protocols'],
             'scale_storage': scale_storage['scale_storage']
