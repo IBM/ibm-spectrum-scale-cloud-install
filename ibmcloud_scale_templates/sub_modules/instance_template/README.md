@@ -61,10 +61,10 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 |------|-------------|------|
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
-| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | This is the IBM Cloud API key for the IBM Cloud account where the IBM Storage Scale cluster needs to be deployed. For more information on how to create an API key, see [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey&interface=ui). | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
+| <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | The key pair to use to launch the storage cluster host. | `list(string)` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
 | <a name="input_vpc_client_cluster_dns_service_id"></a> [vpc_client_cluster_dns_service_id](#input_vpc_client_cluster_dns_service_id) | IBM Cloud client cluster DNS service resource id. | `string` |
 | <a name="input_vpc_client_cluster_dns_zone_id"></a> [vpc_client_cluster_dns_zone_id](#input_vpc_client_cluster_dns_zone_id) | IBM Cloud client cluster DNS zone id. | `string` |
@@ -81,7 +81,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
 | <a name="input_activity_tracker_plan_type"></a> [activity_tracker_plan_type](#input_activity_tracker_plan_type) | IBM Cloud activity tracker plan type (Valid: lite, 7-day, 14-day, 30-day, hipaa-30-day). | `string` |
 | <a name="input_bastion_instance_id"></a> [bastion_instance_id](#input_bastion_instance_id) | Bastion instance id. | `string` |
-| <a name="input_bastion_instance_private_ip"></a> [bastion_instance_private_ip](#input_bastion_instance_private_ip) | Ip address of bastion server | `string` |
 | <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group id. | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
@@ -96,8 +95,8 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_compute_vsi_profile"></a> [compute_vsi_profile](#input_compute_vsi_profile) | Profile to be used for compute cluster virtual server instance. | `string` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
 | <a name="input_create_separate_namespaces"></a> [create_separate_namespaces](#input_create_separate_namespaces) | Flag to select if separate namespace needs to be created for compute instances. | `bool` |
-| <a name="input_custom_file_shares"></a> [custom_file_shares](#input_custom_file_shares) | Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares. | <pre>list(object({<br>    mount_path = string,<br>    size       = number<br>  }))</pre> |
 | <a name="input_deploy_controller_sec_group_id"></a> [deploy_controller_sec_group_id](#input_deploy_controller_sec_group_id) | Deployment controller security group id. Default: null | `string` |
+| <a name="input_filesets"></a> [filesets](#input_filesets) | Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares. | <pre>list(object({<br>    mount_path = string,<br>    size       = number<br>  }))</pre> |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
 | <a name="input_gklm_instance_dns_domain"></a> [gklm_instance_dns_domain](#input_gklm_instance_dns_domain) | IBM Cloud DNS domain name to be used for GKLM instances. | `string` |
 | <a name="input_gklm_instance_dns_service_id"></a> [gklm_instance_dns_service_id](#input_gklm_instance_dns_service_id) | IBM Cloud GKLM Instance DNS service resource id. | `string` |
@@ -106,6 +105,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_gklm_vsi_osimage_id"></a> [gklm_vsi_osimage_id](#input_gklm_vsi_osimage_id) | Image id to use for provisioning the GKLM instances. | `string` |
 | <a name="input_gklm_vsi_osimage_name"></a> [gklm_vsi_osimage_name](#input_gklm_vsi_osimage_name) | Image name to use for provisioning the GKLM instances. | `string` |
 | <a name="input_gklm_vsi_profile"></a> [gklm_vsi_profile](#input_gklm_vsi_profile) | Profile to be used for GKLM virtual server instance. | `string` |
+| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | This is the IBM Cloud API key for the IBM Cloud account where the IBM Storage Scale cluster needs to be deployed. For more information on how to create an API key, see [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey&interface=ui). | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_protocol_vsi_profile"></a> [protocol_vsi_profile](#input_protocol_vsi_profile) | Profile to be used for compute cluster virtual server instance. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
@@ -120,7 +120,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_storage_bare_metal_osimage_name"></a> [storage_bare_metal_osimage_name](#input_storage_bare_metal_osimage_name) | Image name to use for provisioning the storage Baremetal cluster. | `string` |
 | <a name="input_storage_bare_metal_server_profile"></a> [storage_bare_metal_server_profile](#input_storage_bare_metal_server_profile) | Specify the virtual server instance profile type name to be used to create the Baremetal Storage nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui). | `string` |
 | <a name="input_storage_cluster_filesystem_mountpoint"></a> [storage_cluster_filesystem_mountpoint](#input_storage_cluster_filesystem_mountpoint) | Storage cluster (owningCluster) Filesystem mount point. | `string` |
-| <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | The key pair to use to launch the storage cluster host. | `list(string)` |
 | <a name="input_storage_type"></a> [storage_type](#input_storage_type) | Select the required scale filesystem deployment method. Note: Choosing the scale scratch or evaluation type will deploy scale filesystem on VSI and scale persistent type will deploy scale filesystem on Baremetal server. | `string` |
 | <a name="input_storage_vsi_osimage_id"></a> [storage_vsi_osimage_id](#input_storage_vsi_osimage_id) | Image id to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_osimage_name"></a> [storage_vsi_osimage_name](#input_storage_vsi_osimage_name) | Image name to use for provisioning the storage cluster instances. | `string` |

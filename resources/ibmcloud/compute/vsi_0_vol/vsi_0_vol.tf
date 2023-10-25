@@ -32,16 +32,6 @@ variable "storage_sec_group" {}
 variable "storage_domain_name" {}
 variable "storage_dns_service_id" {}
 variable "storage_dns_zone_id" {}
-variable "comp_gateway_ip" {}
-variable "comp_subnets_cidr" {}
-variable "strg_subnets_cidr" {}
-variable "enable_mrot_conf" {}
-variable "bastion_instance_private_ip" {}
-
-locals {
-  comp_ntwk_address = split("/", var.comp_subnets_cidr)[0]
-  strg_ntwk_address = split("/", var.strg_subnets_cidr)[0]
-}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -142,35 +132,6 @@ if [ "${var.enable_sec_interface_compute}" == true ]; then
     nmcli con add type ethernet con-name eth1 ifname eth1
     echo "DOMAIN=\"${var.storage_domain_name}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
     echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
-    systemctl restart NetworkManager
-fi
-
-if [[ ${var.enable_sec_interface_compute} == true && ${var.enable_mrot_conf} == false ]]; then
-
-    # Wait for the secondary interface to come up
-    retries=10
-    while [ $retries -gt 0 ]; do
-        secondary_ip=$(ip addr show eth1 | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}')
-        if [ -n "$secondary_ip" ]; then
-            break
-        fi
-        echo "retrying for secondary IP address"
-        sleep 5
-        ((retries--))
-    done
-
-    primary_ip=$(ip addr show eth0 | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}')
-
-    echo "200 subnet_${local.comp_ntwk_address}_eth0" >> "/etc/iproute2/rt_tables"
-    echo "201 subnet_${local.strg_ntwk_address}_eth1" >> "/etc/iproute2/rt_tables"
-
-    echo "from $primary_ip/32 table subnet_${local.comp_ntwk_address}_eth0" >> "/etc/sysconfig/network-scripts/rule-eth0"
-    echo "from $secondary_ip/32 table subnet_${local.strg_ntwk_address}_eth1" >> "/etc/sysconfig/network-scripts/rule-eth1"
-
-    echo "${var.comp_subnets_cidr} dev eth0 table subnet_${local.comp_ntwk_address}_eth0" >> "/etc/sysconfig/network-scripts/route-eth0"
-    echo "${var.bastion_instance_private_ip} via ${var.comp_gateway_ip} dev eth0 table subnet_${local.comp_ntwk_address}_eth0" >> "/etc/sysconfig/network-scripts/route-eth0"
-
-    echo "${var.strg_subnets_cidr} dev eth1 table subnet_${local.strg_ntwk_address}_eth1" >> "/etc/sysconfig/network-scripts/route-eth1"
     systemctl restart NetworkManager
 fi
 EOF

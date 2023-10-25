@@ -42,7 +42,7 @@ variable "total_compute_cluster_instances" {
 
 variable "compute_cluster_key_pair" {
   type        = list(string)
-  default     = []
+  default     = null
   description = "The key pair to use to launch the compute cluster host."
 }
 
@@ -96,7 +96,6 @@ variable "storage_vsi_profile" {
 
 variable "storage_cluster_key_pair" {
   type        = list(string)
-  default     = []
   description = "The key pair to use to launch the storage cluster host."
 }
 
@@ -321,7 +320,7 @@ variable "total_gklm_instances" {
 
 variable "gklm_instance_key_pair" {
   type        = list(string)
-  default     = []
+  default     = null
   description = "The key pair to use to launch the GKLM host."
 }
 
@@ -375,6 +374,8 @@ variable "scale_encryption_admin_password" {
 
 variable "ibmcloud_api_key" {
   type        = string
+  sensitive   = true
+  default     = null
   description = "This is the IBM Cloud API key for the IBM Cloud account where the IBM Storage Scale cluster needs to be deployed. For more information on how to create an API key, see [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey&interface=ui)."
 }
 
@@ -414,12 +415,12 @@ variable "total_protocol_cluster_instances" {
   description = "protocol nodes"
 }
 
-variable "custom_file_shares" {
+variable "filesets" {
   type = list(object({
     mount_path = string,
     size       = number
   }))
-  default     = [{ mount_path = "/mnt/binaries", size = 100 }, { mount_path = "/mnt/data", size = 100 }]
+  default     = [{ mount_path = "/mnt/binaries", size = 0 }, { mount_path = "/mnt/data", size = 0 }]
   description = "Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares."
 }
 
@@ -455,18 +456,12 @@ variable "vpc_client_cluster_dns_zone_id" {
 
 variable "vpc_client_cluster_dns_domain" {
   type        = string
-  default     = "clientscale.com"
+  default     = "clntscale.com"
   description = "IBM Cloud DNS domain name to be used for client cluster."
 }
 
 variable "client_cluster_key_pair" {
   type        = list(string)
-  default     = []
+  default     = null
   description = "The key pair to use to launch the client cluster host."
-}
-
-variable "bastion_instance_private_ip" {
-  type        = string
-  default     = ""
-  description = "Ip address of bastion server"
 }

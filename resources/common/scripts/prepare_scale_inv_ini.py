@@ -158,6 +158,9 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: nfs_verify, when: config_ces }}
      - {{ role: nfs_failover, when: config_ces }}
      - {{ role: nfs_fileset, when: config_ces }}
+    #  - {{ role: fileset_configure, when: config_ces }}
+    #  - {{ role: ces_auth_configure, when: config_ces }}
+    #  - {{ role: nfs_file_share, when: config_ces }}
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content
@@ -248,7 +251,7 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username, password, scale_profile_path, scale_replica_config, enable_mrot,
-                               config_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_subnet_cidr, proto_gateway_ip, comp_gateway_ip, strg_gateway_ip, bastion_instance_private_ip,  opposit_cluster_clustername,
+                               config_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_subnet_cidr, proto_gateway_ip, strg_gateway_ip, opposit_cluster_clustername,
                                ibmcloud_api_key, vpc_region, vpc_availability_zones, resource_group_id, vpc_id, vpc_rt_id, scale_encryption_servers, scale_encryption_admin_password):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
@@ -275,9 +278,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['compute_subnet_cidr'] = compute_subnet_cidr
     cluster_details['protocol_subnet_cidr'] = protocol_subnet_cidr
     cluster_details['proto_gateway_ip'] = proto_gateway_ip
-    cluster_details['comp_gateway_ip'] = comp_gateway_ip
     cluster_details['strg_gateway_ip'] = strg_gateway_ip
-    cluster_details['bastion_instance_private_ip'] = bastion_instance_private_ip
     cluster_details['opposit_cluster_clustername'] = opposit_cluster_clustername
     cluster_details['ic_api_key'] = ibmcloud_api_key
     cluster_details['ic_region'] = vpc_region
@@ -907,9 +908,7 @@ if __name__ == "__main__":
                                                     TF['compute_subnet_cidr'],
                                                     TF['protocol_subnet_cidr'],
                                                     TF['proto_gateway_ip'],
-                                                    TF['comp_gateway_ip'],
                                                     TF['strg_gateway_ip'],
-                                                    TF['bastion_instance_private_ip'],
                                                     TF['opposit_cluster_clustername'],
                                                     TF['ibmcloud_api_key'],
                                                     TF['vpc_region'],

@@ -10,7 +10,7 @@ echo START `date '+%Y-%m-%d %H:%M:%S'`
 %EXPORT_USER_DATA%
 
 #input parameters
-custom_file_shares="${custom_file_shares}"
+filesets="${filesets}"
 list_of_filesets="${list_of_filesets}"
 client_nodes="${client_nodes}"
 protocol_instance_names="${protocol_instance_names}"

@@ -37,7 +37,7 @@
   - name: Run the mount command and check for the mount
     shell: mount | grep -w {{ item }}
     register: mount_output
-    loop: "{{ custom_file_share }}"
+    loop: "{{ fileset }}"
     ignore_errors: true
     failed_when: mount_output.rc == 2
 
@@ -56,7 +56,7 @@
     stat:
       path: "{{ item }}"
     register: dir_stat
-    loop: "{{ custom_file_share }}"
+    loop: "{{ fileset }}"
 
   - name: Display the result if dir exists
     debug:

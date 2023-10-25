@@ -12,7 +12,7 @@ fi
 
 IFS=' ' read -ra client_node <<< "$client_nodes"
 IFS=' ' read -ra protocol_instance_name <<< "$protocol_instance_names"
-IFS=' ' read -ra custom_file_share <<< "$custom_file_shares"
+IFS=' ' read -ra fileset <<< "$filesets"
 IFS=' ' read -ra list_of_fileset <<< "$list_of_filesets"
 
 key="ansible_ssh_private_key_file=/opt/IBM/ibm-spectrumscale-cloud-deploy/compute_key/id_rsa"
@@ -24,7 +24,7 @@ for ((i=0; i<${#client_node[@]}; i++)); do
 done
 
 protocol_instance_array=("${protocol_instance_name[@]}")
-file_share_array=("${custom_file_share[@]}")
+file_share_array=("${fileset[@]}")
 fileset_array=("${list_of_fileset[@]}")
 
 echo "[all:vars]" >> client_inventory.ini
@@ -40,7 +40,7 @@ do
 done
 echo "]" >> client_inventory.ini
 
-echo -n "custom_file_share = [" >> client_inventory.ini
+echo -n "fileset = [" >> client_inventory.ini
 for ((i=0; i<${#file_share_array[@]}; i++))
 do
     if [ $i -eq $((${#file_share_array[@]}-1)) ]; then
