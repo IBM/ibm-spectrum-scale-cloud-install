@@ -372,13 +372,6 @@ variable "scale_encryption_admin_password" {
   description = "Password that is used for performing administrative operations for the GKLM.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. Visit this [page](https://www.ibm.com/docs/en/gklm/3.0.1?topic=roles-password-policy) to know more about password policy of GKLM. "
 }
 
-variable "ibmcloud_api_key" {
-  type        = string
-  sensitive   = true
-  default     = null
-  description = "This is the IBM Cloud API key for the IBM Cloud account where the IBM Storage Scale cluster needs to be deployed. For more information on how to create an API key, see [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey&interface=ui)."
-}
-
 # CES Variables
 
 variable "vpc_protocol_cluster_private_subnets" {

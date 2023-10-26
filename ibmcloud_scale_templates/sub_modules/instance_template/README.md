@@ -105,7 +105,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_gklm_vsi_osimage_id"></a> [gklm_vsi_osimage_id](#input_gklm_vsi_osimage_id) | Image id to use for provisioning the GKLM instances. | `string` |
 | <a name="input_gklm_vsi_osimage_name"></a> [gklm_vsi_osimage_name](#input_gklm_vsi_osimage_name) | Image name to use for provisioning the GKLM instances. | `string` |
 | <a name="input_gklm_vsi_profile"></a> [gklm_vsi_profile](#input_gklm_vsi_profile) | Profile to be used for GKLM virtual server instance. | `string` |
-| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | This is the IBM Cloud API key for the IBM Cloud account where the IBM Storage Scale cluster needs to be deployed. For more information on how to create an API key, see [Managing user API keys](https://cloud.ibm.com/docs/account?topic=account-userapikey&interface=ui). | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_protocol_vsi_profile"></a> [protocol_vsi_profile](#input_protocol_vsi_profile) | Profile to be used for compute cluster virtual server instance. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |

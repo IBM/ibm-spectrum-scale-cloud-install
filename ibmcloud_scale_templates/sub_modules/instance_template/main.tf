@@ -310,11 +310,6 @@ data "ibm_is_subnet" "storage_cluster_private_subnets_cidr" {
   identifier = var.vpc_storage_cluster_private_subnets[0]
 }
 
-data "ibm_is_subnet" "protocol_cluster_private_subnets_cidr" {
-  count      = local.scale_ces_enabled == true ? 1 : 0
-  identifier = var.vpc_protocol_cluster_private_subnets[0]
-}
-
 module "protocol_cluster_instances" {
   count                = local.scale_ces_enabled == true ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/protocol_vsi"
@@ -478,10 +473,6 @@ data "ibm_is_subnet_reserved_ips" "protocol_subnet_reserved_ips" {
   subnet = var.vpc_protocol_cluster_private_subnets[0]
 }
 
-data "ibm_is_subnet_reserved_ips" "strg_subnet_reserved_ips" {
-  subnet = var.vpc_storage_cluster_private_subnets[0]
-}
-
 locals {
   storage_cluster_instance_ids                = local.scale_ces_enabled == false ? values(one(module.storage_cluster_instances[*].instance_name_id_map)) : concat(values(one(module.storage_cluster_instances[*].instance_name_id_map)), values(one(module.protocol_cluster_instances[*].instance_name_id_map)))
   storage_cluster_instance_names              = local.scale_ces_enabled == false ? keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : concat(keys(one(module.storage_cluster_instances[*].instance_name_id_map)), keys(one(module.protocol_cluster_instances[*].instance_name_id_map)))
@@ -491,13 +482,10 @@ locals {
 
   fileset_size_map = try({ for details in var.filesets : details.mount_path => details.size }, {})
   list_of_fileset  = [for mount_path in keys(local.fileset_size_map) : reverse(split("/", mount_path))[0]]
-  list_of_quotas   = [for quota in values(local.fileset_size_map) : quota]
+  quotas           = [for quota in values(local.fileset_size_map) : quota]
 
   protocol_reserved_name_ips_map = try({ for details in data.ibm_is_subnet_reserved_ips.protocol_subnet_reserved_ips[0].reserved_ips : details.name => details.address }, {})
   protocol_subnet_gateway_ip     = local.scale_ces_enabled == true ? local.protocol_reserved_name_ips_map.ibm-default-gateway : ""
-
-  strg_reserved_name_ips_map = try({ for details in data.ibm_is_subnet_reserved_ips.strg_subnet_reserved_ips.reserved_ips : details.name => details.address }, {})
-  strg_subnet_gateway_ip     = local.strg_reserved_name_ips_map.ibm-default-gateway
 }
 
 module "write_compute_cluster_inventory" {
@@ -530,8 +518,7 @@ module "write_compute_cluster_inventory" {
   compute_cluster_instance_names                   = local.enable_sec_interface_compute ? jsonencode(keys(one(module.compute_cluster_instances[*].secondary_interface_name_id_map))) : var.total_compute_cluster_instances > 0 ? jsonencode(keys(one(module.compute_cluster_instances[*].instance_name_id_map))) : jsonencode([])
   storage_cluster_instance_names                   = jsonencode([])
   storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
-  compute_subnet_cidr                              = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
-  protocol_subnet_cidr                             = jsonencode("")
+  compute_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   opposit_cluster_clustername                      = local.enable_mrot_conf ? jsonencode(format("%s.%s", var.resource_prefix, var.vpc_storage_cluster_dns_domain)) : jsonencode("")
   protocol_cluster_instance_names                  = jsonencode([])
   smb                                              = false
@@ -542,12 +529,10 @@ module "write_compute_cluster_inventory" {
   filesystem                                       = jsonencode("")
   mountpoint                                       = jsonencode("")
   list_of_fileset                                  = jsonencode([])
-  list_of_quotas                                   = jsonencode([])
+  quotas                                           = jsonencode([])
   proto_gateway_ip                                 = jsonencode("")
-  strg_gateway_ip                                  = local.enable_mrot_conf ? jsonencode(local.strg_subnet_gateway_ip) : jsonencode("")
   vpc_id                                           = jsonencode("")
   resource_group_id                                = jsonencode("")
-  ibmcloud_api_key                                 = jsonencode("")
   vpc_rt_id                                        = jsonencode("")
 }
 
@@ -580,9 +565,8 @@ module "write_storage_cluster_inventory" {
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
   storage_cluster_instance_names                   = var.storage_type == "persistent" ? jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map))) : jsonencode(local.storage_cluster_instance_names)
   compute_cluster_instance_names                   = jsonencode([])
-  storage_subnet_cidr                              = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
+  storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   compute_subnet_cidr                              = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
-  protocol_subnet_cidr                             = local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.protocol_cluster_private_subnets_cidr[0].ipv4_cidr_block) : jsonencode("")
   opposit_cluster_clustername                      = local.enable_mrot_conf ? jsonencode(format("%s.%s", var.resource_prefix, var.vpc_compute_cluster_dns_domain)) : jsonencode("")
   protocol_cluster_instance_names                  = local.scale_ces_enabled == true ? jsonencode(keys(one(module.protocol_cluster_instances[*].instance_name_id_map))) : jsonencode([])
   smb                                              = false
@@ -593,12 +577,10 @@ module "write_storage_cluster_inventory" {
   filesystem                                       = local.scale_ces_enabled == true ? jsonencode("cesSharedRoot") : jsonencode("")
   mountpoint                                       = local.scale_ces_enabled == true ? jsonencode(var.storage_cluster_filesystem_mountpoint) : jsonencode("")
   list_of_fileset                                  = local.scale_ces_enabled == true ? jsonencode(local.list_of_fileset) : jsonencode([])
-  list_of_quotas                                   = local.scale_ces_enabled == true ? jsonencode(local.list_of_quotas) : jsonencode([])
+  quotas                                           = local.scale_ces_enabled == true ? jsonencode(local.quotas) : jsonencode([])
   proto_gateway_ip                                 = local.scale_ces_enabled == true ? jsonencode(local.protocol_subnet_gateway_ip) : jsonencode("")
-  strg_gateway_ip                                  = local.scale_ces_enabled == true ? jsonencode(local.strg_subnet_gateway_ip) : jsonencode("")
   vpc_id                                           = local.scale_ces_enabled == true ? jsonencode(var.vpc_id) : jsonencode("")
   resource_group_id                                = local.scale_ces_enabled == true ? jsonencode(var.resource_group_id) : jsonencode("")
-  ibmcloud_api_key                                 = local.scale_ces_enabled == true ? jsonencode(var.ibmcloud_api_key) : jsonencode("")
   vpc_rt_id                                        = local.scale_ces_enabled == true ? jsonencode(data.ibm_is_vpc.vpc_rt_id.default_routing_table) : jsonencode("")
 }
 
@@ -633,7 +615,6 @@ module "write_cluster_inventory" {
   compute_cluster_instance_names                   = jsonencode([])
   storage_subnet_cidr                              = jsonencode("")
   compute_subnet_cidr                              = jsonencode("")
-  protocol_subnet_cidr                             = jsonencode("")
   opposit_cluster_clustername                      = jsonencode("")
   protocol_cluster_instance_names                  = jsonencode([])
   smb                                              = false
@@ -644,12 +625,10 @@ module "write_cluster_inventory" {
   filesystem                                       = jsonencode("")
   mountpoint                                       = jsonencode("")
   list_of_fileset                                  = jsonencode([])
-  list_of_quotas                                   = jsonencode([])
+  quotas                                           = jsonencode([])
   proto_gateway_ip                                 = jsonencode("")
-  strg_gateway_ip                                  = jsonencode("")
   vpc_id                                           = jsonencode("")
   resource_group_id                                = jsonencode("")
-  ibmcloud_api_key                                 = jsonencode("")
   vpc_rt_id                                        = jsonencode("")
 }
 

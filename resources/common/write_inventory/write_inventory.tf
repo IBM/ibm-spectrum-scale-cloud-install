@@ -31,7 +31,6 @@ variable "compute_cluster_instance_names" {}
 variable "storage_cluster_instance_names" {}
 variable "storage_subnet_cidr" {}
 variable "compute_subnet_cidr" {}
-variable "protocol_subnet_cidr" {}
 variable "opposit_cluster_clustername" {}
 variable "protocol_cluster_instance_names" {}
 variable "smb" {}
@@ -43,12 +42,10 @@ variable "mountpoint" {}
 variable "object" {}
 variable "list_of_fileset" {}
 variable "proto_gateway_ip" {}
-variable "strg_gateway_ip" {}
 variable "vpc_id" {}
 variable "resource_group_id" {}
-variable "ibmcloud_api_key" {}
 variable "vpc_rt_id" {}
-variable "list_of_quotas" {}
+variable "quotas" {}
 
 resource "local_sensitive_file" "itself" {
   count    = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
@@ -81,7 +78,6 @@ resource "local_sensitive_file" "itself" {
     "storage_subnet_cidr": ${var.storage_subnet_cidr},
     "compute_subnet_cidr": ${var.compute_subnet_cidr},
     "opposit_cluster_clustername": ${var.opposit_cluster_clustername},
-    "protocol_subnet_cidr": ${var.protocol_subnet_cidr},
     "opposit_cluster_clustername": ${var.opposit_cluster_clustername},
     "protocol_cluster_instance_names": ${var.protocol_cluster_instance_names},
     "smb": ${var.smb},
@@ -92,12 +88,10 @@ resource "local_sensitive_file" "itself" {
     "filesystem": ${var.filesystem},
     "mountpoint": ${var.mountpoint},
     "list_of_fileset": ${var.list_of_fileset},
-    "list_of_quotas": ${var.list_of_quotas},
+    "quotas": ${var.quotas},
     "proto_gateway_ip": ${var.proto_gateway_ip},
-    "strg_gateway_ip": ${var.strg_gateway_ip},
     "vpc_id": ${var.vpc_id},
     "resource_group_id": ${var.resource_group_id},
-    "ibmcloud_api_key": ${var.ibmcloud_api_key},
     "vpc_rt_id": ${var.vpc_rt_id}
 }
 EOT
