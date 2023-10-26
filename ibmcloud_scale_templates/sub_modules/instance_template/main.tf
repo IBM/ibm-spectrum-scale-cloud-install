@@ -533,7 +533,6 @@ module "write_compute_cluster_inventory" {
   proto_gateway_ip                                 = jsonencode("")
   vpc_id                                           = jsonencode("")
   resource_group_id                                = jsonencode("")
-  ibmcloud_api_key                                 = jsonencode("")
   vpc_rt_id                                        = jsonencode("")
 }
 
@@ -582,7 +581,6 @@ module "write_storage_cluster_inventory" {
   proto_gateway_ip                                 = local.scale_ces_enabled == true ? jsonencode(local.protocol_subnet_gateway_ip) : jsonencode("")
   vpc_id                                           = local.scale_ces_enabled == true ? jsonencode(var.vpc_id) : jsonencode("")
   resource_group_id                                = local.scale_ces_enabled == true ? jsonencode(var.resource_group_id) : jsonencode("")
-  ibmcloud_api_key                                 = local.scale_ces_enabled == true ? jsonencode(var.ibmcloud_api_key) : jsonencode("")
   vpc_rt_id                                        = local.scale_ces_enabled == true ? jsonencode(data.ibm_is_vpc.vpc_rt_id.default_routing_table) : jsonencode("")
 }
 
@@ -631,7 +629,6 @@ module "write_cluster_inventory" {
   proto_gateway_ip                                 = jsonencode("")
   vpc_id                                           = jsonencode("")
   resource_group_id                                = jsonencode("")
-  ibmcloud_api_key                                 = jsonencode("")
   vpc_rt_id                                        = jsonencode("")
 }
 

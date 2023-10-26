@@ -44,7 +44,6 @@ variable "list_of_fileset" {}
 variable "proto_gateway_ip" {}
 variable "vpc_id" {}
 variable "resource_group_id" {}
-variable "ibmcloud_api_key" {}
 variable "vpc_rt_id" {}
 variable "quotas" {}
 
@@ -93,7 +92,6 @@ resource "local_sensitive_file" "itself" {
     "proto_gateway_ip": ${var.proto_gateway_ip},
     "vpc_id": ${var.vpc_id},
     "resource_group_id": ${var.resource_group_id},
-    "ibmcloud_api_key": ${var.ibmcloud_api_key},
     "vpc_rt_id": ${var.vpc_rt_id}
 }
 EOT

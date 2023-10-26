@@ -251,8 +251,8 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username, password, scale_profile_path, scale_replica_config, enable_mrot,
-                               config_ces, storage_subnet_cidr, compute_subnet_cidr, proto_gateway_ip, opposit_cluster_clustername,
-                               ibmcloud_api_key, vpc_region, vpc_availability_zones, resource_group_id, vpc_id, vpc_rt_id, scale_encryption_servers, scale_encryption_admin_password):
+                               config_ces, storage_subnet_cidr, compute_subnet_cidr, proto_gateway_ip, opposit_cluster_clustername, vpc_region,
+                               vpc_availability_zones, resource_group_id, vpc_id, vpc_rt_id, scale_encryption_servers, scale_encryption_admin_password):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
@@ -278,7 +278,6 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['compute_subnet_cidr'] = compute_subnet_cidr
     cluster_details['proto_gateway_ip'] = proto_gateway_ip
     cluster_details['opposit_cluster_clustername'] = opposit_cluster_clustername
-    cluster_details['ic_api_key'] = ibmcloud_api_key
     cluster_details['ic_region'] = vpc_region
     cluster_details['ic_zone'] = vpc_availability_zones[0]
     cluster_details['ic_rg'] = resource_group_id
@@ -906,7 +905,6 @@ if __name__ == "__main__":
                                                     TF['compute_subnet_cidr'],
                                                     TF['proto_gateway_ip'],
                                                     TF['opposit_cluster_clustername'],
-                                                    TF['ibmcloud_api_key'],
                                                     TF['vpc_region'],
                                                     TF['vpc_availability_zones'],
                                                     TF['resource_group_id'],
