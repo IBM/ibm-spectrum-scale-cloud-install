@@ -53,13 +53,13 @@ output "storage_cluster_desc_with_dns_hostname" {
   description = "Storage cluster desc dns hostname mapping."
 }
 
-output "storage_cluster_security_id" {
-  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? local.scale_network_tags : null
+output "storage_cluster_security_group_id" {
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? local.scale_cluster_network_tag : null
   description = "Storage cluster security ids."
 }
 
-output "compute_cluster_security_id" {
-  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? local.scale_network_tags : null
+output "compute_cluster_security_group_id" {
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? local.scale_cluster_network_tag : null
   description = "Compute cluster security ids."
 }
 

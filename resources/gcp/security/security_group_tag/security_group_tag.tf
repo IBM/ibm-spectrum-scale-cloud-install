@@ -8,29 +8,31 @@ variable "firewall_name_prefix" {}
 variable "firewall_description" {}
 variable "source_tags" {}
 variable "target_tags" {}
-variable "protocols" {}
-variable "ports" {}
+variable "tcp_ports" {}
+variable "udp_ports" {}
 
 resource "google_compute_firewall" "itself" {
-  count       = var.turn_on ? length(var.protocols) : 0
-  name        = var.protocols[count.index] == "icmp" ? format("%s-allow-icmp", var.firewall_name_prefix) : format("%s-allow-%s-%s", var.firewall_name_prefix, lower(var.protocols[count.index]), var.ports[count.index])
+  count       = var.turn_on ? 1 : 0
+  name        = var.firewall_name_prefix
   network     = var.vpc_ref
-  description = element(var.firewall_description, count.index)
+  description = var.firewall_description
   source_tags = var.source_tags
   target_tags = var.target_tags
 
-  dynamic "allow" {
-    for_each = var.protocols[count.index] == "icmp" ? ["icmp"] : []
-    content {
-      protocol = "icmp"
-    }
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = var.tcp_ports
   }
 
   dynamic "allow" {
-    for_each = var.protocols[count.index] != "icmp" ? [var.ports[count.index]] : []
+    for_each = var.udp_ports
     content {
-      protocol = var.protocols[count.index]
-      ports    = [var.ports[count.index]]
+      protocol = "udp"
+      ports    = [allow.value]
     }
   }
 }

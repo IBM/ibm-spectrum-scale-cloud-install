@@ -5,22 +5,18 @@
 */
 
 locals {
-  security_rule_description_bastion_external_ingress = ["Allow ICMP traffic from external cidr to bastion instances",
-  "Allow SSH traffic from external cidr to bastion instances"]
-
-  bastion_network_tag = format("%s-bastion-external", var.resource_prefix)
+  bastion_network_tag = format("%s-bastion-tag", var.resource_prefix)
 }
 
 # Allow traffic from external cidr block to bastion instances
 module "allow_traffic_from_external_cidr_to_bastion" {
   source               = "../../../resources/gcp/security/security_rule_target_tags"
   turn_on              = true
-  firewall_name_prefix = format("%s-bastion-ingress", var.resource_prefix)
-  firewall_description = local.security_rule_description_bastion_external_ingress
+  firewall_name_prefix = format("%s-bastion-tag", var.resource_prefix)
+  firewall_description = "Allow SSH, ICMP traffic from external cidr to bastion instances"
   vpc_ref              = var.vpc_ref
   source_ranges        = var.remote_cidr_blocks
-  protocols            = ["icmp", "TCP"]
-  ports                = [-1, var.bastion_public_ssh_port]
+  ports                = [var.bastion_public_ssh_port]
   target_tags          = [local.bastion_network_tag]
 }
 

@@ -240,7 +240,7 @@ The following steps will provision GCP resources (compute and storage instances 
 |------|-------------|
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Compute cluster private ips. |
-| <a name="output_compute_cluster_security_id"></a> [compute_cluster_security_id](#output_compute_cluster_security_id) | Compute cluster security ids. |
+| <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security ids. |
 | <a name="output_compute_cluster_with_dns_hostname"></a> [compute_cluster_with_dns_hostname](#output_compute_cluster_with_dns_hostname) | Compute cluster dns hostname mapping. |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
@@ -248,7 +248,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="output_storage_cluster_desc_with_dns_hostname"></a> [storage_cluster_desc_with_dns_hostname](#output_storage_cluster_desc_with_dns_hostname) | Storage cluster desc dns hostname mapping. |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Storage cluster private ips. |
-| <a name="output_storage_cluster_security_id"></a> [storage_cluster_security_id](#output_storage_cluster_security_id) | Storage cluster security ids. |
+| <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security ids. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Storage cluster data volume mapping. |
 | <a name="output_storage_cluster_with_dns_hostname"></a> [storage_cluster_with_dns_hostname](#output_storage_cluster_with_dns_hostname) | Storage cluster dns hostname mapping. |
 | <a name="output_vpc_compute_cloud_dns"></a> [vpc_compute_cloud_dns](#output_vpc_compute_cloud_dns) | List of IDs of compute cluster cloud DNS. |

@@ -9,26 +9,11 @@ locals {
     (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets != null) ? "combined" : "none"
   )
 
-  security_rule_description_scale_cluster_internal = ["Allow ICMP traffic within scale instances",
-    "Allow SSH traffic within scale instances",
-    "Allow GPFS intra cluster traffic within scale instances",
-    "Allow GPFS ephemeral port range within scale instances",
-    "Allow management GUI (http/localhost) TCP traffic within scale instances",
-    "Allow management GUI (https/localhost) TCP traffic within scale instances",
-    "Allow management GUI (https/localhost) TCP traffic within scale instances",
-    "Allow management GUI (localhost) TCP traffic within scale instances",
-    "Allow management GUI (localhost) UDP traffic within scale instances",
-    "Allow performance monitoring collector traffic within scale instances",
-    "Allow performance monitoring collector traffic within scale instances",
-    "Allow http traffic within scale instances",
-  "Allow https traffic within scale instances"]
-
-  traffic_protocol_scale_cluster = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_port_scale_cluster     = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
-  scale_cluster_network_tag      = format("%s-scale-cluster-tag", var.resource_prefix)
-
-  gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
-  scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
+  tcp_port_scale_cluster    = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
+  udp_port_scale_cluster    = ["47443", "4739"]
+  scale_cluster_network_tag = format("%s-cluster-tag", var.resource_prefix)
+  gpfs_base_rpm_path        = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
+  scale_version             = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
   ssd_device_names = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
@@ -62,17 +47,39 @@ data "google_compute_subnetwork" "compute_cluster" {
 module "allow_traffic_within_scale_vms" {
   source               = "../../../resources/gcp/security/security_group_tag"
   turn_on              = (local.cluster_type == "compute" || local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
-  firewall_name_prefix = format("%s-compute-ingress", var.resource_prefix)
-  firewall_description = local.security_rule_description_scale_cluster_internal
+  firewall_name_prefix = format("%s-cluster-tag", var.resource_prefix)
+  firewall_description = "Allow traffic within scale instances"
   vpc_ref              = var.vpc_ref
   source_tags          = [local.scale_cluster_network_tag]
   target_tags          = [local.scale_cluster_network_tag]
-  protocols            = local.traffic_protocol_scale_cluster
-  ports                = local.traffic_port_scale_cluster
+  tcp_ports            = local.tcp_port_scale_cluster
+  udp_ports            = local.udp_port_scale_cluster
 }
 
-locals {
-  scale_network_tags = var.using_jumphost_connection ? [local.scale_cluster_network_tag, var.bastion_security_group_ref] : (var.using_direct_connection ? [local.scale_cluster_network_tag] : var.using_cloud_connection ? [local.scale_cluster_network_tag, var.client_security_group_ref] : [])
+# Create security rules to enable scale communication between bastion and scale instances
+module "cluster_ingress_security_rule_using_jumphost_connection" {
+  source               = "../../../resources/gcp/security/security_group_tag"
+  turn_on              = var.using_jumphost_connection ? true : false
+  firewall_name_prefix = format("%s-bastion-to-cluster", var.resource_prefix)
+  firewall_description = "Allow traffic betwen bastion instances and scale instances"
+  vpc_ref              = var.vpc_ref
+  source_tags          = [var.bastion_security_group_ref]
+  target_tags          = [local.scale_cluster_network_tag]
+  tcp_ports            = ["22", "443"]
+  udp_ports            = []
+}
+
+# Create security rules to enable scale communication between cloud-vm and scale instances
+module "cluster_ingress_security_rule_using_cloud_connection" {
+  source               = "../../../resources/gcp/security/security_group_tag"
+  turn_on              = var.using_cloud_connection ? true : false
+  firewall_name_prefix = format("%s-cloudvm-to-cluster", var.resource_prefix)
+  firewall_description = "Allow traffic betwen cloudvm instances and scale instances"
+  vpc_ref              = var.vpc_ref
+  source_tags          = [var.client_security_group_ref]
+  target_tags          = [local.scale_cluster_network_tag]
+  tcp_ports            = ["22", "443"]
+  udp_ports            = []
 }
 
 module "compute_dns_zone" {
@@ -157,8 +164,8 @@ module "compute_cluster_instances" {
   vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
-  network_tags                  = local.scale_network_tags
-  depends_on                    = [module.allow_traffic_within_scale_vms, module.compute_dns_zone, module.reverse_dns_zone]
+  network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  depends_on                    = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.compute_dns_zone, module.reverse_dns_zone]
 }
 
 module "storage_dns_zone" {
@@ -240,8 +247,8 @@ module "storage_cluster_instances" {
   vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
-  network_tags                  = local.scale_network_tags
-  depends_on                    = [module.allow_traffic_within_scale_vms, module.storage_dns_zone, module.reverse_dns_zone]
+  network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  depends_on                    = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
 }
 
 /*
@@ -309,8 +316,8 @@ module "storage_cluster_tie_breaker_instance" {
   vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
-  network_tags                  = local.scale_network_tags
-  depends_on                    = [module.allow_traffic_within_scale_vms, module.storage_dns_zone, module.reverse_dns_zone]
+  network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  depends_on                    = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
 }
 
 # Prepare ansible config
