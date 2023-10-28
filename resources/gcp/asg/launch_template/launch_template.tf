@@ -7,6 +7,7 @@ variable "subnetwork_name" {}
 variable "network_tier" {}
 variable "ssh_user_name" {}
 variable "ssh_key_path" {}
+variable "network_tags" {}
 
 data "local_sensitive_file" "itself" {
   filename = var.ssh_key_path
@@ -27,6 +28,7 @@ resource "google_compute_instance_template" "itself" {
       network_tier = var.network_tier
     }
   }
+  tags = var.network_tags
   metadata = {
     ssh-keys               = format("%s:%s", var.ssh_user_name, data.local_sensitive_file.itself.content)
     block-project-ssh-keys = true

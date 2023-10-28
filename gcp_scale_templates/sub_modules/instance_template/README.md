@@ -168,7 +168,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
-| <a name="requirement_google"></a> [google](#requirement_google) | ~> 4.0 |
+| <a name="requirement_google"></a> [google](#requirement_google) | ~> 5.0 |
 
 #### Inputs
 
@@ -178,6 +178,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_project_id"></a> [project_id](#input_project_id) | GCP project ID to manage resources. | `string` |
 | <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
 | <a name="input_bastion_instance_ref"></a> [bastion_instance_ref](#input_bastion_instance_ref) | Bastion instance reference. | `string` |
+| <a name="input_bastion_security_group_ref"></a> [bastion_security_group_ref](#input_bastion_security_group_ref) | Bastion security group reference (id/self-link). | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
 | <a name="input_block_device_kms_key_ref"></a> [block_device_kms_key_ref](#input_block_device_kms_key_ref) | GCP KMS Key reference to use when encrypting the volume. | `string` |
@@ -185,7 +186,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Data disk size in gigabytes. | `string` |
 | <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | GCE disk type (valid: pd-standard, pd-ssd , local-ssd). | `any` |
 | <a name="input_block_devices_per_storage_instance"></a> [block_devices_per_storage_instance](#input_block_devices_per_storage_instance) | Number of data disks to be attached to each storage instance. | `number` |
-| <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of gateway/client ip/cidr ranges. | `list(string)` |
+| <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
 | <a name="input_compute_boot_disk_size"></a> [compute_boot_disk_size](#input_compute_boot_disk_size) | Compute instances boot disk size in gigabytes. | `number` |
 | <a name="input_compute_boot_disk_type"></a> [compute_boot_disk_type](#input_compute_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
@@ -239,7 +240,7 @@ The following steps will provision GCP resources (compute and storage instances 
 |------|-------------|
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Compute cluster private ips. |
-| <a name="output_compute_cluster_security_id"></a> [compute_cluster_security_id](#output_compute_cluster_security_id) | Compute cluster security ids. |
+| <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security ids. |
 | <a name="output_compute_cluster_with_dns_hostname"></a> [compute_cluster_with_dns_hostname](#output_compute_cluster_with_dns_hostname) | Compute cluster dns hostname mapping. |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
@@ -247,7 +248,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="output_storage_cluster_desc_with_dns_hostname"></a> [storage_cluster_desc_with_dns_hostname](#output_storage_cluster_desc_with_dns_hostname) | Storage cluster desc dns hostname mapping. |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Storage cluster private ips. |
-| <a name="output_storage_cluster_security_id"></a> [storage_cluster_security_id](#output_storage_cluster_security_id) | Storage cluster security ids. |
+| <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security ids. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Storage cluster data volume mapping. |
 | <a name="output_storage_cluster_with_dns_hostname"></a> [storage_cluster_with_dns_hostname](#output_storage_cluster_with_dns_hostname) | Storage cluster dns hostname mapping. |
 | <a name="output_vpc_compute_cloud_dns"></a> [vpc_compute_cloud_dns](#output_vpc_compute_cloud_dns) | List of IDs of compute cluster cloud DNS. |

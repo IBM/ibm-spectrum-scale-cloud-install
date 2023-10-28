@@ -3,8 +3,9 @@ output "bastion_instance_autoscaling_group_ref" {
   description = "Bastion instances autoscaling group (id/self-link)."
 }
 
-output "bastion_security_group_id" {
-  value       = concat(module.allow_traffic_from_external_cidr_to_bastion.firewall_uri_ingress, module.allow_traffic_scale_cluster_bastion_internals.firewall_uri_ingress_bi, module.allow_traffic_scale_cluster_egress_all.firewall_uri_egress_all)
+output "bastion_security_group_ref" {
+  value       = local.bastion_network_tag
+  depends_on  = [module.allow_traffic_from_external_cidr_to_bastion]
   description = "Bastion firewall id."
 }
 

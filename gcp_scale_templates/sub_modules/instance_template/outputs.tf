@@ -53,13 +53,13 @@ output "storage_cluster_desc_with_dns_hostname" {
   description = "Storage cluster desc dns hostname mapping."
 }
 
-output "storage_cluster_security_id" {
-  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? concat(module.allow_traffic_scale_cluster_storage_internals.firewall_uri_ingress_bi, module.allow_traffic_scale_cluster_compute_to_storage.firewall_uri_ingress_bi, module.allow_traffic_scale_cluster_egress_all.firewall_uri_egress, module.allow_traffic_scale_cluster_egress_all.firewall_uri_egress_all) : null
+output "storage_cluster_security_group_id" {
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? local.scale_cluster_network_tag : null
   description = "Storage cluster security ids."
 }
 
-output "compute_cluster_security_id" {
-  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? concat(module.allow_traffic_scale_cluster_compute_internal.firewall_uri_ingress_bi, module.allow_traffic_scale_cluster_storage_to_compute.firewall_uri_ingress_bi) : null
+output "compute_cluster_security_group_id" {
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? local.scale_cluster_network_tag : null
   description = "Compute cluster security ids."
 }
 

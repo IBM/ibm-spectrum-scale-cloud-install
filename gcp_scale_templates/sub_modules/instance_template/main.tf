@@ -9,85 +9,11 @@ locals {
     (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets != null) ? "combined" : "none"
   )
 
-  security_rule_description_cluster_storage_internal_ingress = ["Allow ICMP traffic within storage instances",
-    "Allow SSH traffic within storage instances",
-    "Allow GPFS intra cluster traffic within storage instances",
-    "Allow GPFS ephemeral port range within storage instances",
-    "Allow management GUI (http/localhost) TCP traffic within storage instances",
-    "Allow management GUI (https/localhost) TCP traffic within storage instances",
-    "Allow management GUI (https/localhost) TCP traffic within storage instances",
-    "Allow management GUI (localhost) TCP traffic within storage instances",
-    "Allow management GUI (localhost) UDP traffic within storage instances",
-    "Allow performance monitoring collector traffic within storage instances",
-    "Allow performance monitoring collector traffic within storage instances",
-    "Allow http traffic within storage instances",
-  "Allow https traffic within storage instances"]
-
-  security_rule_description_cluster_compute_to_storage_ingress = ["Allow ICMP traffic from compute to storage instances",
-    "Allow SSH traffic from compute to storage instances",
-    "Allow GPFS intra cluster traffic from compute to storage instances",
-    "Allow GPFS ephemeral port range from compute to storage instances",
-    "Allow management GUI (http/localhost) TCP traffic from compute to storage instances",
-    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances",
-    "Allow management GUI (https/localhost) TCP traffic from compute to storage instances",
-    "Allow management GUI (localhost) TCP traffic from compute to storage instances",
-    "Allow management GUI (localhost) UDP traffic from compute to storage instances",
-    "Allow performance monitoring collector traffic from compute to storage instances",
-    "Allow performance monitoring collector traffic from compute to storage instances",
-    "Allow http traffic from compute to storage instances",
-  "Allow https traffic from compute to storage instances"]
-
-  traffic_protocol_cluster_storage_internal_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_port_cluster_storage_internal_ingress     = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
-
-  security_rule_description_cluster_compute_internal_ingress = ["Allow ICMP traffic within compute instances",
-    "Allow SSH traffic within compute instances",
-    "Allow GPFS intra cluster traffic within compute instances",
-    "Allow GPFS ephemeral port range within compute instances",
-    "Allow management GUI (http/localhost) TCP traffic within compute instances",
-    "Allow management GUI (https/localhost) TCP traffic within compute instances",
-    "Allow management GUI (https/localhost) TCP traffic within compute instances",
-    "Allow management GUI (localhost) TCP traffic within compute instances",
-    "Allow management GUI (localhost) UDP traffic within compute instances",
-    "Allow performance monitoring collector traffic within compute instances",
-    "Allow performance monitoring collector traffic within compute instances",
-    "Allow http traffic within compute instances",
-  "Allow https traffic within compute instances"]
-
-  security_rule_description_cluster_storage_to_compute_ingress = ["Allow ICMP traffic from storage to compute instances",
-    "Allow SSH traffic from storage to compute instances",
-    "Allow GPFS intra cluster traffic from storage to compute instances",
-    "Allow GPFS ephemeral port range from storage to compute instances",
-    "Allow management GUI (http/localhost) TCP traffic from storage to compute instances",
-    "Allow management GUI (https/localhost) TCP traffic from storage to compute instances",
-    "Allow management GUI (https/localhost) TCP traffic from storage to compute instances",
-    "Allow management GUI (localhost) TCP traffic from storage to compute instances",
-    "Allow management GUI (localhost) UDP traffic from storage to compute instances",
-    "Allow performance monitoring collector traffic from storage to compute instances",
-    "Allow performance monitoring collector traffic from storage to compute instances",
-    "Allow http traffic from storage to compute instances",
-  "Allow https traffic from storage to compute instances"]
-
-  traffic_protocol_cluster_compute_ingress = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_port_cluster_compute_ingress     = ["-1", "22", "1191", "60000-61000", "47080", "47443", "4444", "4739", "4739", "9080", "9081", "80", "443"]
-
-  security_rule_description_cluster_egress_all = ["Allow all egress traffic"]
-
-
-  # Using direct connection protocol and ports
-  traffic_protocol_cluster_ingress_using_direct_connection                  = ["icmp", "TCP"]
-  traffic_port_cluster_ingress_using_direct_connection                      = [-1, 22]
-  security_rule_description_compute_cluster_ingress_using_direct_connection = ["Allow ICMP traffic from client cidr/ip range to compute instances", "Allow SSH traffic from client cidr/ip range to compute instances"]
-  security_rule_description_storage_cluster_ingress_using_direct_connection = ["Allow ICMP traffic from client cidr/ip range to storage instances", "Allow SSH traffic from client cidr/ip range to storage instances"]
-
-  security_rule_description_bastion_scale_ingress = ["Allow ICMP traffic from bastion to scale instances",
-  "Allow SSH traffic from bastion to scale instances", "Allow GUI traffic from bastion to scale instances"]
-
-  traffic_protocol_cluster_bastion_scale_ingress = ["icmp", "TCP", "TCP"]
-  traffic_port_cluster_bastion_scale_ingress     = [-1, 22, 443]
-
-  gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
-  scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
+  tcp_port_scale_cluster    = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
+  udp_port_scale_cluster    = ["47443", "4739"]
+  scale_cluster_network_tag = format("%s-cluster-tag", var.resource_prefix)
+  gpfs_base_rpm_path        = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
+  scale_version             = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
   ssd_device_names = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
@@ -117,118 +43,43 @@ data "google_compute_subnetwork" "compute_cluster" {
   self_link = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
-# Obtain the bastion vm subnet
-data "google_compute_instance" "bastion_instance" {
-  count     = var.bastion_instance_ref != null ? 1 : 0
-  self_link = var.bastion_instance_ref
-  zone      = var.vpc_availability_zones[0]
-}
-
-# Obtain the bastion vm cidr range
-data "google_compute_subnetwork" "bastion_subnetwork" {
-  count  = var.bastion_instance_ref != null ? 1 : 0
-  name   = element(split("/", data.google_compute_instance.bastion_instance[0].network_interface[0].subnetwork), length(split("/", data.google_compute_instance.bastion_instance[0].network_interface[0].subnetwork)) - 1)
-  region = var.vpc_region
-}
-
-# Allow traffic from bastion to scale cluster
-module "allow_traffic_bastion_to_scale_cluster" {
-  source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress_bi   = var.using_cloud_connection == true ? false : true
-  firewall_name_prefix = "${var.resource_prefix}-bastion-to-scale"
+# Allow scale/gpfs traffic within the scale vm(s)
+module "allow_traffic_within_scale_vms" {
+  source               = "../../../resources/gcp/security/security_group_tag"
+  turn_on              = (local.cluster_type == "compute" || local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  firewall_name_prefix = format("%s-cluster-tag", var.resource_prefix)
+  firewall_description = "Allow traffic within scale instances"
   vpc_ref              = var.vpc_ref
-  source_ranges        = length(data.google_compute_subnetwork.bastion_subnetwork) > 0 ? (data.google_compute_subnetwork.bastion_subnetwork[0].ip_cidr_range != null ? [data.google_compute_subnetwork.bastion_subnetwork[0].ip_cidr_range] : null) : null
-  destination_ranges   = concat(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range, data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range)
-  protocol             = local.traffic_protocol_cluster_bastion_scale_ingress
-  ports                = local.traffic_port_cluster_bastion_scale_ingress
-  firewall_description = local.security_rule_description_bastion_scale_ingress
+  source_tags          = [local.scale_cluster_network_tag]
+  target_tags          = [local.scale_cluster_network_tag]
+  tcp_ports            = local.tcp_port_scale_cluster
+  udp_ports            = local.udp_port_scale_cluster
 }
 
-# Allow traffic within compute internals
-module "allow_traffic_scale_cluster_compute_internal" {
-  source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress_bi   = local.cluster_type == "compute" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-comp-inter"
+# Create security rules to enable scale communication between bastion and scale instances
+module "cluster_ingress_security_rule_using_jumphost_connection" {
+  source               = "../../../resources/gcp/security/security_group_tag"
+  turn_on              = var.using_jumphost_connection ? true : false
+  firewall_name_prefix = format("%s-bastion-to-cluster", var.resource_prefix)
+  firewall_description = "Allow traffic betwen bastion instances and scale instances"
   vpc_ref              = var.vpc_ref
-  source_ranges        = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
-  destination_ranges   = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
-  protocol             = local.traffic_protocol_cluster_compute_ingress
-  ports                = local.traffic_port_cluster_compute_ingress
-  firewall_description = local.security_rule_description_cluster_compute_internal_ingress
+  source_tags          = [var.bastion_security_group_ref]
+  target_tags          = [local.scale_cluster_network_tag]
+  tcp_ports            = ["22", "443"]
+  udp_ports            = []
 }
 
-# Allow traffic storage to compute
-module "allow_traffic_scale_cluster_storage_to_compute" {
-  source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress_bi   = local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-strg-comp"
+# Create security rules to enable scale communication between cloud-vm and scale instances
+module "cluster_ingress_security_rule_using_cloud_connection" {
+  source               = "../../../resources/gcp/security/security_group_tag"
+  turn_on              = var.using_cloud_connection ? true : false
+  firewall_name_prefix = format("%s-cloudvm-to-cluster", var.resource_prefix)
+  firewall_description = "Allow traffic betwen cloudvm instances and scale instances"
   vpc_ref              = var.vpc_ref
-  source_ranges        = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
-  destination_ranges   = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
-  protocol             = local.traffic_protocol_cluster_compute_ingress
-  ports                = local.traffic_port_cluster_compute_ingress
-  firewall_description = local.security_rule_description_cluster_storage_to_compute_ingress
-}
-
-# Allow traffic from compute to storage
-module "allow_traffic_scale_cluster_compute_to_storage" {
-  source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress_bi   = local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-comp-strg"
-  vpc_ref              = var.vpc_ref
-  source_ranges        = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
-  destination_ranges   = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
-  protocol             = local.traffic_protocol_cluster_storage_internal_ingress
-  ports                = local.traffic_port_cluster_storage_internal_ingress
-  firewall_description = local.security_rule_description_cluster_compute_to_storage_ingress
-}
-
-# Allow traffic storage internals
-module "allow_traffic_scale_cluster_storage_internals" {
-  source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress_bi   = local.cluster_type == "storage" || local.cluster_type == "combined" ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-strg-inter"
-  vpc_ref              = var.vpc_ref
-  source_ranges        = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
-  destination_ranges   = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
-  protocol             = local.traffic_protocol_cluster_storage_internal_ingress
-  ports                = local.traffic_port_cluster_storage_internal_ingress
-  firewall_description = local.security_rule_description_cluster_storage_internal_ingress
-}
-
-# Allow egress traffic to all instances
-module "allow_traffic_scale_cluster_egress_all" {
-  source                       = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_egress               = local.cluster_type != "none" ? true : false
-  firewall_name_prefix         = "${var.resource_prefix}-scale-all"
-  vpc_ref                      = var.vpc_ref
-  destination_range_egress_all = local.cluster_type != "none" ? ["0.0.0.0/0"] : null
-  firewall_description         = local.security_rule_description_cluster_egress_all
-}
-
-# Allow ingress firewall traffic from client_ip_ranges for using_direct_connection mode
-module "compute_cluster_ingress_security_rule_using_direct_connection" {
-  source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress_bi   = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == true) ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-compute-direct"
-  vpc_ref              = var.vpc_ref
-  source_ranges        = var.client_ip_ranges
-  destination_ranges   = length(data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.compute_cluster[*].ip_cidr_range : null
-  protocol             = local.traffic_protocol_cluster_ingress_using_direct_connection
-  ports                = local.traffic_port_cluster_ingress_using_direct_connection
-  firewall_description = local.security_rule_description_compute_cluster_ingress_using_direct_connection
-}
-
-module "storage_cluster_ingress_security_rule_using_direct_connection" {
-  source               = "../../../resources/gcp/security/allow_protocol_ports"
-  turn_on_ingress_bi   = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == true) ? true : false
-  firewall_name_prefix = "${var.resource_prefix}-storage-direct"
-  vpc_ref              = var.vpc_ref
-  source_ranges        = var.client_ip_ranges
-  destination_ranges   = length(data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range) > 0 ? data.google_compute_subnetwork.storage_cluster[*].ip_cidr_range : null
-  protocol             = local.traffic_protocol_cluster_ingress_using_direct_connection
-  ports                = local.traffic_port_cluster_ingress_using_direct_connection
-  firewall_description = local.security_rule_description_storage_cluster_ingress_using_direct_connection
+  source_tags          = [var.client_security_group_ref]
+  target_tags          = [local.scale_cluster_network_tag]
+  tcp_ports            = ["22", "443"]
+  udp_ports            = []
 }
 
 module "compute_dns_zone" {
@@ -313,8 +164,8 @@ module "compute_cluster_instances" {
   vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
-
-  depends_on = [module.compute_dns_zone, module.reverse_dns_zone]
+  network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  depends_on                    = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.compute_dns_zone, module.reverse_dns_zone]
 }
 
 module "storage_dns_zone" {
@@ -396,8 +247,8 @@ module "storage_cluster_instances" {
   vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
-
-  depends_on = [module.storage_dns_zone, module.reverse_dns_zone]
+  network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  depends_on                    = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
 }
 
 /*
@@ -465,8 +316,8 @@ module "storage_cluster_tie_breaker_instance" {
   vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
-
-  depends_on = [module.storage_dns_zone, module.reverse_dns_zone]
+  network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  depends_on                    = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
 }
 
 # Prepare ansible config

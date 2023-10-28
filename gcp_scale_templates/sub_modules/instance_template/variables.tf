@@ -326,13 +326,6 @@ variable "using_jumphost_connection" {
   description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
 }
 
-variable "client_ip_ranges" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of gateway/client ip/cidr ranges."
-}
-
 variable "storage_cluster_gui_username" {
   type        = string
   nullable    = true
@@ -354,6 +347,20 @@ variable "bastion_ssh_private_key" {
   nullable    = true
   default     = null
   description = "Bastion SSH private key path, which will be used to login to bastion host."
+}
+
+variable "bastion_security_group_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion security group reference (id/self-link)."
+}
+
+variable "client_security_group_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Client security group reference (id/self-link)."
 }
 
 variable "use_clouddns" {
