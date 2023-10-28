@@ -45,10 +45,10 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync firewalld"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync firewalld numactl"
     fi
 
     RETRY_LIMIT=5

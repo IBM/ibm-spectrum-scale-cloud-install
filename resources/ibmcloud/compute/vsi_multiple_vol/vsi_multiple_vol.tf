@@ -44,10 +44,10 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq"
     fi
 
     RETRY_LIMIT=5
@@ -122,18 +122,6 @@ firewall-offline-cmd --zone=public --add-port=9084/tcp
 firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
-firewall-offline-cmd --zone=public --add-port=2049/tcp
-firewall-offline-cmd --zone=public --add-port=2049/udp
-firewall-offline-cmd --zone=public --add-port=111/tcp
-firewall-offline-cmd --zone=public --add-port=111/udp
-firewall-offline-cmd --zone=public --add-port=32765/tcp
-firewall-offline-cmd --zone=public --add-port=32765/udp
-firewall-offline-cmd --zone=public --add-port=32767/tcp
-firewall-offline-cmd --zone=public --add-port=32767/udp
-firewall-offline-cmd --zone=public --add-port=32768/tcp
-firewall-offline-cmd --zone=public --add-port=32768/udp
-firewall-offline-cmd --zone=public --add-port=32769/tcp
-firewall-offline-cmd --zone=public --add-port=32769/udp
 systemctl start firewalld
 systemctl enable firewalld
 

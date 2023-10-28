@@ -29,9 +29,9 @@ variable "resource_tags" {}
 variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 
-data "ibm_is_instance_profile" "itself" {
-  name = var.vsi_profile
-}
+# data "ibm_is_instance_profile" "itself" {
+#   name = var.vsi_profile
+# }
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -45,10 +45,10 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq"
     fi
 
     RETRY_LIMIT=5
@@ -230,11 +230,11 @@ output "instance_private_ips" {
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
-output "instance_ips_with_vol_mapping" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.name =>
-  data.ibm_is_instance_profile.itself.disks[0].quantity[0].value == 1 ? ["/dev/vdb"] : ["/dev/vdb", "/dev/vdc"] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
+# output "instance_ips_with_vol_mapping" {
+#   value = try({ for instance_details in ibm_is_instance.itself : instance_details.name =>
+#   data.ibm_is_instance_profile.itself.disks[0].quantity[0].value == 1 ? ["/dev/vdb"] : ["/dev/vdb", "/dev/vdc"] }, {})
+#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+# }
 
 output "instance_private_dns_ip_map" {
   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})

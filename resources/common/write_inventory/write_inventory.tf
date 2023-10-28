@@ -31,8 +31,10 @@ variable "compute_cluster_instance_names" {}
 variable "storage_cluster_instance_names" {}
 variable "storage_subnet_cidr" {}
 variable "compute_subnet_cidr" {}
-variable "opposit_cluster_clustername" {}
+variable "scale_remote_cluster_clustername" {}
 variable "protocol_cluster_instance_names" {}
+variable "client_cluster_instance_names" {}
+variable "scale_protocol_nodes" {}
 variable "smb" {}
 variable "nfs" {}
 variable "interface" {}
@@ -40,12 +42,8 @@ variable "export_ip_pool" {}
 variable "filesystem" {}
 variable "mountpoint" {}
 variable "object" {}
-variable "list_of_fileset" {}
-variable "proto_gateway_ip" {}
-variable "vpc_id" {}
-variable "resource_group_id" {}
-variable "vpc_rt_id" {}
-variable "quotas" {}
+variable "protocol_gateway_ip" {}
+variable "filesets" {}
 
 resource "local_sensitive_file" "itself" {
   count    = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
@@ -77,9 +75,10 @@ resource "local_sensitive_file" "itself" {
     "storage_cluster_instance_names": ${var.storage_cluster_instance_names},
     "storage_subnet_cidr": ${var.storage_subnet_cidr},
     "compute_subnet_cidr": ${var.compute_subnet_cidr},
-    "opposit_cluster_clustername": ${var.opposit_cluster_clustername},
-    "opposit_cluster_clustername": ${var.opposit_cluster_clustername},
+    "scale_remote_cluster_clustername": ${var.scale_remote_cluster_clustername},
     "protocol_cluster_instance_names": ${var.protocol_cluster_instance_names},
+    "client_cluster_instance_names": ${var.client_cluster_instance_names},
+    "scale_protocol_nodes": ${var.scale_protocol_nodes},
     "smb": ${var.smb},
     "nfs": ${var.nfs},
     "object": ${var.object},
@@ -87,12 +86,8 @@ resource "local_sensitive_file" "itself" {
     "export_ip_pool": ${var.export_ip_pool},
     "filesystem": ${var.filesystem},
     "mountpoint": ${var.mountpoint},
-    "list_of_fileset": ${var.list_of_fileset},
-    "quotas": ${var.quotas},
-    "proto_gateway_ip": ${var.proto_gateway_ip},
-    "vpc_id": ${var.vpc_id},
-    "resource_group_id": ${var.resource_group_id},
-    "vpc_rt_id": ${var.vpc_rt_id}
+    "protocol_gateway_ip": ${var.protocol_gateway_ip},
+    "filesets": ${var.filesets}
 }
 EOT
   filename = var.inventory_path
