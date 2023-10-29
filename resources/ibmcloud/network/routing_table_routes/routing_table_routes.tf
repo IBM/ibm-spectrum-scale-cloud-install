@@ -23,6 +23,7 @@ variable "storage_cluster_create_complete" {}
 variable "create_scale_cluster" {}
 variable "inventory_path" {}
 variable "playbook_path" {}
+variable "scale_ces_enabled" {}
 
 resource "null_resource" "get_ces_ips" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
@@ -36,16 +37,17 @@ resource "null_resource" "get_ces_ips" {
 }
 
 data "local_file" "read_ces_ips" {
+  count      = (tobool(var.scale_ces_enabled) == true && tobool(var.create_scale_cluster) == true && tobool(var.storage_cluster_create_complete) == true) ? 1 : 0
   filename   = "/tmp/ces_ips.txt"
   depends_on = [resource.null_resource.get_ces_ips]
 }
 
 locals {
-  ces_ips = jsondecode(data.local_file.read_ces_ips.content)
+  ces_ips = (tobool(var.scale_ces_enabled) == true && tobool(var.create_scale_cluster) == true && tobool(var.storage_cluster_create_complete) == true) ? jsondecode(data.local_file.read_ces_ips[0].content) : []
 }
 
 resource "ibm_is_vpc_routing_table_route" "itself" {
-  for_each = {
+  for_each = (tobool(var.scale_ces_enabled) != true && tobool(var.create_scale_cluster) != true && tobool(var.storage_cluster_create_complete) == true) ? {} : {
     # This assigns a subnet-id to each of the instance
     # iteration.
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {

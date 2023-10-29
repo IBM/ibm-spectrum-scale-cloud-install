@@ -45,10 +45,10 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq"
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl"          #jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel 'dnf-command(versionlock)'"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl"           #jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel 'dnf-command(versionlock)'"
     fi
 
     RETRY_LIMIT=5
@@ -87,6 +87,13 @@ elif grep -q "Ubuntu" /etc/os-release
 then
     USER=ubuntu
 fi
+
+# yum update --security -y
+# yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
+# yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
+# yum versionlock list
+# echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
+
 sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" ~/.ssh/authorized_keys
 echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
