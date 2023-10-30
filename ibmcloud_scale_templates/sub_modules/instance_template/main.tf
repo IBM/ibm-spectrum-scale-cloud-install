@@ -325,7 +325,7 @@ module "protocol_cluster_instances" {
 }
 
 module "protocol_reserved_ip" {
-  source     = "../../../resources/ibmcloud/network/proto_reserved_ip"
+  source     = "../../../resources/ibmcloud/network/protocol_reserved_ip"
   total_vsis = var.total_protocol_cluster_instances
   subnet_id  = var.vpc_protocol_cluster_private_subnets
   name       = format("%s-ces", var.resource_prefix)
@@ -463,7 +463,6 @@ locals {
   storage_instance_names             = var.storage_type != "persistent" ? keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
   storage_instance_private_ips       = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map)) : []
   storageinstance_private_dns_ip_map = var.storage_type != "persistent" ? one(module.storage_cluster_instances[*].instance_private_dns_ip_map) : {}
-
 
   storage_cluster_instance_ids                = local.scale_ces_enabled == false ? local.storage_instance_ids : concat(local.storage_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)))
   storage_cluster_instance_names              = local.scale_ces_enabled == false ? local.storage_instance_names : concat(local.storage_instance_names, keys(one(module.protocol_cluster_instances[*].instance_name_id_map)))
@@ -723,7 +722,6 @@ module "combined_cluster_configuration" {
 }
 
 module "routing_table_routes" {
-  count                           = local.scale_ces_enabled == true ? 1 : 0
   source                          = "../../../resources/ibmcloud/network/routing_table_routes"
   turn_on                         = (var.create_separate_namespaces == true) ? true : false
   clone_complete                  = module.prepare_ansible_configuration.clone_complete
@@ -739,6 +737,7 @@ module "routing_table_routes" {
   action                          = "deliver"
   next_hop                        = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
   priority                        = 2
+  dest_ip                         = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
 }
 
 module "mount_fileset_configuration" {

@@ -24,9 +24,10 @@ variable "create_scale_cluster" {}
 variable "inventory_path" {}
 variable "playbook_path" {}
 variable "scale_ces_enabled" {}
+variable "dest_ip" {}
 
 resource "null_resource" "get_ces_ips" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.scale_ces_enabled) == true && tobool(var.clone_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -i ${var.inventory_path} ${var.playbook_path}"
@@ -37,22 +38,23 @@ resource "null_resource" "get_ces_ips" {
 }
 
 data "local_file" "read_ces_ips" {
-  count      = (tobool(var.scale_ces_enabled) == true && tobool(var.create_scale_cluster) == true && tobool(var.storage_cluster_create_complete) == true) ? 1 : 0
+  count      = var.scale_ces_enabled == true && var.create_scale_cluster == true ? 1 : 0
   filename   = "/tmp/ces_ips.txt"
   depends_on = [resource.null_resource.get_ces_ips]
 }
 
 locals {
-  ces_ips = (tobool(var.scale_ces_enabled) == true && tobool(var.create_scale_cluster) == true && tobool(var.storage_cluster_create_complete) == true) ? jsondecode(data.local_file.read_ces_ips[0].content) : []
+  ces_ips        = var.scale_ces_enabled == true && var.create_scale_cluster == true ? jsondecode(data.local_file.read_ces_ips[0].content) : []
+  destination_ip = var.scale_ces_enabled == true && var.create_scale_cluster == true ? local.ces_ips : var.dest_ip
 }
 
 resource "ibm_is_vpc_routing_table_route" "itself" {
-  for_each = (tobool(var.scale_ces_enabled) != true && tobool(var.create_scale_cluster) != true && tobool(var.storage_cluster_create_complete) == true) ? {} : {
+  for_each = var.scale_ces_enabled == true && var.create_scale_cluster != true ? {} : {
     # This assigns a subnet-id to each of the instance
     # iteration.
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       sequence_string = tostring(count_number)
-      destination_ip  = element(local.ces_ips, idx)
+      destination_ip  = element(local.destination_ip, idx)
       next_hop        = element(var.next_hop, idx)
       zone            = element(var.zone, idx)
     }
@@ -66,10 +68,10 @@ resource "ibm_is_vpc_routing_table_route" "itself" {
   action        = var.action
   next_hop      = each.value.next_hop
   priority      = var.priority
-  depends_on    = [resource.null_resource.get_ces_ips]
+  depends_on    = [data.local_file.read_ces_ips]
 }
 
-output "details" {
+output "route_details" {
   value      = resource.ibm_is_vpc_routing_table_route.itself
   depends_on = [resource.ibm_is_vpc_routing_table_route.itself]
 }
