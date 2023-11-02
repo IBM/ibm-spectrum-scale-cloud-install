@@ -29,10 +29,6 @@ variable "resource_tags" {}
 variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 
-# data "ibm_is_instance_profile" "itself" {
-#   name = var.vsi_profile
-# }
-
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
@@ -45,10 +41,10 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl"          #jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel 'dnf-command(versionlock)'"
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl"           #jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel 'dnf-command(versionlock)'"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel yum-plugin-versionlock"
     fi
 
     RETRY_LIMIT=5
@@ -88,11 +84,11 @@ then
     USER=ubuntu
 fi
 
-# yum update --security -y
-# yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
-# yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
-# yum versionlock list
-# echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
+yum update --security -y
+yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
+yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
+yum versionlock list
+echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
 
 sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" ~/.ssh/authorized_keys
 echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
@@ -236,12 +232,6 @@ output "instance_private_ips" {
   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"]]), [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
-
-# output "instance_ips_with_vol_mapping" {
-#   value = try({ for instance_details in ibm_is_instance.itself : instance_details.name =>
-#   data.ibm_is_instance_profile.itself.disks[0].quantity[0].value == 1 ? ["/dev/vdb"] : ["/dev/vdb", "/dev/vdc"] }, {})
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
 
 output "instance_private_dns_ip_map" {
   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})

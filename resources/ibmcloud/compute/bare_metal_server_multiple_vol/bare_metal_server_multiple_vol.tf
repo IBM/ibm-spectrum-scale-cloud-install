@@ -54,8 +54,8 @@ echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
-echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
-echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
+echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 sed -i -e "s#QUEUE_COUNT=3#QUEUE_COUNT=\`ethtool -l \$iface | echo \$(awk '\$1 ~ /Combined:/ {print \$2;exit}')\`#g" /var/lib/cloud/scripts/per-boot/iface-config
 ethtool -L ens1 combined 16
 chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser

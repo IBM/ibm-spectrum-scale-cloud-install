@@ -10,10 +10,9 @@ terraform {
   }
 }
 
-variable "total_vsis" {}
+variable "total_reserved_ips" {}
 variable "subnet_id" {}
 variable "name" {}
-#variable "auto_delete" {}
 variable "protocol_domain" {}
 variable "protocol_dns_service_id" {}
 variable "protocol_dns_zone_id" {}
@@ -23,7 +22,7 @@ resource "ibm_is_subnet_reserved_ip" "itself" {
   for_each = {
     # This assigns a subnet-id to each of the instance
     # iteration.
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+    for idx, count_number in range(1, var.total_reserved_ips + 1) : idx => {
       sequence_string = tostring(count_number)
       subnet_id       = element(var.subnet_id, idx)
     }
@@ -31,12 +30,11 @@ resource "ibm_is_subnet_reserved_ip" "itself" {
 
   subnet = each.value.subnet_id
   name   = format("%s-%s-res", var.name, each.value.sequence_string)
-  #auto_delete = var.auto_delete
 }
 
 resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+    for idx, count_number in range(1, var.total_reserved_ips + 1) : idx => {
       name       = element(tolist([for name_details in ibm_is_subnet_reserved_ip.itself : name_details.name]), idx)
       network_ip = element(tolist([for ip_details in ibm_is_subnet_reserved_ip.itself : ip_details.address]), idx)
     }
@@ -53,7 +51,7 @@ resource "ibm_dns_resource_record" "a_itself" {
 
 resource "ibm_dns_resource_record" "ptr_itself" {
   for_each = {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+    for idx, count_number in range(1, var.total_reserved_ips + 1) : idx => {
       name       = element(tolist([for name_details in ibm_is_subnet_reserved_ip.itself : name_details.name]), idx)
       network_ip = element(tolist([for ip_details in ibm_is_subnet_reserved_ip.itself : ip_details.address]), idx)
     }
@@ -68,7 +66,7 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
-output "details" {
+output "reserved_ips_details" {
   value = try(toset([for instance_details in ibm_is_subnet_reserved_ip.itself : instance_details]), [])
 }
 

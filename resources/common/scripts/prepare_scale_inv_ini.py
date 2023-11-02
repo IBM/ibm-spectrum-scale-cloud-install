@@ -152,14 +152,15 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - perfmon_configure
      - perfmon_verify
      - {{ role: mrot_config, when: enable_mrot }}
-     - {{ role: nfs_prepare, when: config_ces }}
-     - {{ role: nfs_install, when: "config_ces and scale_packages_installed is false" }}
-     - {{ role: nfs_configure, when: config_ces }}
-     - {{ role: nfs_verify, when: config_ces }}
-     - {{ role: nfs_failover, when: config_ces }}
-     - {{ role: nfs_ic_configure, when: config_ces }}
-     - {{ role: ces_auth_configure, when: config_ces }}
-     - {{ role: nfs_file_share, when: config_ces }}
+     - {{ role: nfs_prepare, when: enable_ces }}
+     - {{ role: nfs_install, when: "enable_ces and scale_packages_installed is false" }}
+     - {{ role: nfs_configure, when: enable_ces }}
+     - {{ role: nfs_verify, when: enable_ces }}
+     - {{ role: nfs_failover, when: enable_ces }}
+     - {{ role: nfs_ic_configure, when: enable_ces }}
+     - {{ role: auth_prepare, when: enable_ces }}
+     - {{ role: auth_configure, when: enable_ces }}
+     - {{ role: nfs_file_share, when: enable_ces }}
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content
@@ -219,21 +220,6 @@ def prepare_nogui_packer_ansible_playbook(hosts_config, cluster_config):
     return content
 
 
-def prepare_ansible_playbook_mount_fileset_client(hosts_config):
-    """ Write to playbook """
-    content = """---
-# Mounting mount filesets on client nodes
-- hosts: {hosts_config}
-  collections:
-     - ibm.spectrum_scale
-  any_errors_fatal: true
-
-  roles:
-     - mountfilesets_configure
-""".format(hosts_config=hosts_config)
-    return content
-
-
 def prepare_ansible_playbook_encryption_gklm():
     # Write to playbook
     content = """---
@@ -265,7 +251,7 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username, password, scale_profile_path, scale_replica_config, enable_mrot,
-                               config_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_gateway_ip, scale_remote_cluster_clustername,
+                               enable_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_gateway_ip, scale_remote_cluster_clustername,
                                scale_encryption_servers, scale_encryption_admin_password):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
@@ -287,7 +273,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['scale_cluster_profile_dir_path'] = str(
         pathlib.PurePath(scale_profile_path).parent)
     cluster_details['enable_mrot'] = enable_mrot
-    cluster_details['config_ces'] = config_ces
+    cluster_details['enable_ces'] = enable_ces
     cluster_details['storage_subnet_cidr'] = storage_subnet_cidr
     cluster_details['compute_subnet_cidr'] = compute_subnet_cidr
     cluster_details['protocol_gateway_ip'] = protocol_gateway_ip
@@ -526,26 +512,6 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
     return node_details
 
 
-def initialize_client_node_details(client_cluster_instance_names, client_instance_private_key, scale_protocol_nodes, filesets):
-    inventory_content = f"""
-[client_nodes]
-"""
-    for node in client_cluster_instance_names:
-        inventory_content += f"{node} ansible_ssh_private_key_file={client_instance_private_key}\n"
-
-    filesets_list = []
-    for mount_path in filesets.keys():
-        name = mount_path.split('/')[-1]
-        filesets_list.append({'name': name, 'mount_path': mount_path})
-
-    inventory_content += f"""
-[all:vars]
-scale_protocol_nodes = {scale_protocol_nodes}
-filesets = {filesets_list}
-"""
-    return inventory_content
-
-
 def initialize_scale_config_details(node_classes, param_key, param_value):
     """ Initialize scale cluster config details.
     :args: node_class (list), param_key (string), param_value (string)
@@ -710,10 +676,8 @@ if __name__ == "__main__":
                         help='Spectrum Scale GUI password')
     PARSER.add_argument('--enable_mrot_conf', required=True,
                         help='Configure MROT and Logical Subnet')
-    PARSER.add_argument('--config_ces', required=True,
+    PARSER.add_argument('--enable_ces', required=True,
                         help='Configure CES on protocol nodes')
-    PARSER.add_argument('--client_instance_private_key', required=True,
-                        help='Client instances SSH private key path')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     PARSER.add_argument('--scale_encryption_enabled', help='Enabling encryption feature with GKLM',
@@ -886,15 +850,6 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Content of ansible playbook:\n", playbook_content)
 
-    if ARGUMENTS.config_ces == "True":
-        playbook_content = prepare_ansible_playbook_mount_fileset_client(
-            "client_nodes")
-        write_to_file("/%s/%s/%s_cloud_playbook.yaml" % (ARGUMENTS.install_infra_path,
-                                                         "ibm-spectrum-scale-install-infra",
-                                                         "client"), playbook_content)
-    if ARGUMENTS.verbose:
-        print("Content of ansible playbook for mount filesets:\n", playbook_content)
-
     # Step-4.1: Create Encryption playbook
     if ARGUMENTS.scale_encryption_enabled == "true":
         encryption_playbook_content = prepare_ansible_playbook_encryption_gklm()
@@ -941,7 +896,7 @@ if __name__ == "__main__":
                                                     profile_path,
                                                     replica_config,
                                                     ARGUMENTS.enable_mrot_conf,
-                                                    ARGUMENTS.config_ces,
+                                                    ARGUMENTS.enable_ces,
                                                     TF['storage_subnet_cidr'],
                                                     TF['compute_subnet_cidr'],
                                                     TF['protocol_gateway_ip'],
@@ -967,13 +922,6 @@ if __name__ == "__main__":
         print('[all:vars]')
         for each_key in config['all:vars']:
             print("%s: %s" % (each_key, config.get('all:vars', each_key)))
-
-    if ARGUMENTS.config_ces == "True":
-        client_ini_details = initialize_client_node_details(
-            TF['client_cluster_instance_names'], ARGUMENTS.client_instance_private_key, TF['scale_protocol_nodes'], TF['filesets'])
-        write_to_file("/%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
-                                                   "ibm-spectrum-scale-install-infra",
-                                                   "client"), client_ini_details)
 
     # Step-6: Create group_vars directory
     create_directory("%s/%s/%s" % (ARGUMENTS.install_infra_path,

@@ -32,6 +32,7 @@ variable "storage_sec_group" {}
 variable "storage_domain_name" {}
 variable "storage_dns_service_id" {}
 variable "storage_dns_zone_id" {}
+variable "scale_fire_wall_rules_enabled" {}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -45,10 +46,10 @@ then
     if grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl"           #jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel 'dnf-command(versionlock)'"
+        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync firewalld numactl"      #jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel 'dnf-command(versionlock)'"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel yum-plugin-versionlock"
     fi
 
     RETRY_LIMIT=5
@@ -88,11 +89,11 @@ then
     USER=ubuntu
 fi
 
-# yum update --security -y
-# yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
-# yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
-# yum versionlock list
-# echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
+yum update --security -y
+yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
+yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
+yum versionlock list
+echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
 
 sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" ~/.ssh/authorized_keys
 echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
@@ -103,33 +104,25 @@ echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
-systemctl stop firewalld
-firewall-offline-cmd --zone=public --add-port=1191/tcp
-firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
-firewall-offline-cmd --zone=public --add-port=47080/tcp
-firewall-offline-cmd --zone=public --add-port=47080/udp
-firewall-offline-cmd --zone=public --add-port=47443/tcp
-firewall-offline-cmd --zone=public --add-port=47443/udp
-firewall-offline-cmd --zone=public --add-port=4444/tcp
-firewall-offline-cmd --zone=public --add-port=4444/udp
-firewall-offline-cmd --zone=public --add-port=4739/udp
-firewall-offline-cmd --zone=public --add-port=4739/tcp
-firewall-offline-cmd --zone=public --add-port=9084/tcp
-firewall-offline-cmd --zone=public --add-port=9085/tcp
-firewall-offline-cmd --zone=public --add-service=http
-firewall-offline-cmd --zone=public --add-service=https
-firewall-offline-cmd --zone=public --add-port=2049/tcp
-firewall-offline-cmd --zone=public --add-port=2049/udp
-firewall-offline-cmd --zone=public --add-port=111/tcp
-firewall-offline-cmd --zone=public --add-port=111/udp
-firewall-offline-cmd --zone=public --add-port=32765/tcp
-firewall-offline-cmd --zone=public --add-port=32765/udp
-firewall-offline-cmd --zone=public --add-port=32767/tcp
-firewall-offline-cmd --zone=public --add-port=32767/udp
-firewall-offline-cmd --zone=public --add-port=32768/tcp
-firewall-offline-cmd --zone=public --add-port=32768/udp
-firewall-offline-cmd --zone=public --add-port=32769/tcp
-firewall-offline-cmd --zone=public --add-port=32769/udp
+
+if [ "${var.scale_fire_wall_rules_enabled}" == true ]; then
+    systemctl stop firewalld
+    firewall-offline-cmd --zone=public --add-port=1191/tcp
+    firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
+    firewall-offline-cmd --zone=public --add-port=47080/tcp
+    firewall-offline-cmd --zone=public --add-port=47080/udp
+    firewall-offline-cmd --zone=public --add-port=47443/tcp
+    firewall-offline-cmd --zone=public --add-port=47443/udp
+    firewall-offline-cmd --zone=public --add-port=4444/tcp
+    firewall-offline-cmd --zone=public --add-port=4444/udp
+    firewall-offline-cmd --zone=public --add-port=4739/udp
+    firewall-offline-cmd --zone=public --add-port=4739/tcp
+    firewall-offline-cmd --zone=public --add-port=9084/tcp
+    firewall-offline-cmd --zone=public --add-port=9085/tcp
+    firewall-offline-cmd --zone=public --add-service=http
+    firewall-offline-cmd --zone=public --add-service=https
+fi
+
 systemctl start firewalld
 systemctl enable firewalld
 

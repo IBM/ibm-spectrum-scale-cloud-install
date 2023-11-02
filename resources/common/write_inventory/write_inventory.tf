@@ -34,7 +34,7 @@ variable "compute_subnet_cidr" {}
 variable "scale_remote_cluster_clustername" {}
 variable "protocol_cluster_instance_names" {}
 variable "client_cluster_instance_names" {}
-variable "scale_protocol_nodes" {}
+variable "protocol_cluster_reserved_names" {}
 variable "smb" {}
 variable "nfs" {}
 variable "interface" {}
@@ -78,7 +78,7 @@ resource "local_sensitive_file" "itself" {
     "scale_remote_cluster_clustername": ${var.scale_remote_cluster_clustername},
     "protocol_cluster_instance_names": ${var.protocol_cluster_instance_names},
     "client_cluster_instance_names": ${var.client_cluster_instance_names},
-    "scale_protocol_nodes": ${var.scale_protocol_nodes},
+    "protocol_cluster_reserved_names": ${var.protocol_cluster_reserved_names},
     "smb": ${var.smb},
     "nfs": ${var.nfs},
     "object": ${var.object},
