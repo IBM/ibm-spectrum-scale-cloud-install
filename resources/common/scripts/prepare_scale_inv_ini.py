@@ -591,11 +591,14 @@ def get_disks_list(az_count, disk_mapping, desc_disk_mapping, disk_type):
     return disks_list
 
 
-def initialize_scale_storage_details(az_count, fs_mount, block_size, disk_details, default_metadata_replicas, max_metadata_replicas, default_data_replicas, max_data_replicas):
+def initialize_scale_storage_details(az_count, fs_mount, block_size, disk_details, default_metadata_replicas, max_metadata_replicas, default_data_replicas, max_data_replicas, filesets):
     """ Initialize storage details.
     :args: az_count (int), fs_mount (string), block_size (string),
-           disks_list (list)
+           disks_list (list), filesets (dictionary)
     """
+    filesets_name_size = {
+        key.split('/')[-1]: value for key, value in filesets.items()}
+
     storage = {}
     storage['scale_storage'] = []
     if not default_data_replicas:
@@ -614,17 +617,22 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size, disk_detail
                                      "maxMetadataReplicas": max_metadata_replicas,
                                      "automaticMountOption": "true",
                                      "defaultMountPoint": fs_mount,
-                                     "disks": disk_details})
+                                     "disks": disk_details,
+                                     "filesets": filesets_name_size})
     return storage
 
 
-def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, mountpoint, filesets):
+def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, mountpoint, filesets, enable_ces):
     """ Initialize ces details.
     :args: smb (bool), nfs (bool), object (bool),
            export_ip_pool (list), filesystem (string), mountpoint (string)
     """
-    filesets_name_size = {
-        key.split('/')[-1]: value for key, value in filesets.items()}
+    exports = []
+    if enable_ces:
+        filesets_name_size = {
+            key.split('/')[-1]: value for key, value in filesets.items()}
+        exports = list(filesets_name_size.keys())
+
     ces = {
         "scale_protocols": {
             "nfs": nfs,
@@ -633,7 +641,7 @@ def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, m
             "export_ip_pool": export_ip_pool,
             "filesystem": filesystem,
             "mountpoint": mountpoint,
-            "filesets": filesets_name_size
+            "exports": exports
         }
     }
     return ces
@@ -947,14 +955,15 @@ if __name__ == "__main__":
                                                          TF['filesystem_block_size'],
                                                          disks_list, int(ARGUMENTS.default_metadata_replicas), int(
                                                              ARGUMENTS.max_metadata_replicas),
-                                                         int(ARGUMENTS.default_data_replicas), int(ARGUMENTS.max_data_replicas))
+                                                         int(ARGUMENTS.default_data_replicas), int(ARGUMENTS.max_data_replicas), TF['filesets'])
         scale_protocols = initialize_scale_ces_details(TF['smb'],
                                                        TF['nfs'],
                                                        TF['object'],
                                                        TF['export_ip_pool'],
                                                        TF['filesystem'],
                                                        TF['mountpoint'],
-                                                       TF['filesets'])
+                                                       TF['filesets'],
+                                                       ARGUMENTS.enable_ces)
         scale_storage_cluster = {
             'scale_protocols': scale_protocols['scale_protocols'],
             'scale_storage': scale_storage['scale_storage']
