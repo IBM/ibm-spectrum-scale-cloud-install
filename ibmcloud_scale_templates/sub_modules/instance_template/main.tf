@@ -634,7 +634,7 @@ module "write_client_cluster_inventory" {
   source                                           = "../../../resources/common/write_inventory"
   write_inventory                                  = (var.create_separate_namespaces == true && var.total_client_cluster_instances > 0) ? 1 : 0
   clone_complete                                   = module.prepare_ansible_configuration.clone_complete
-  bastion_user                                     = jsonencode("")
+  bastion_user                                     = jsonencode(var.bastion_user)
   inventory_path                                   = format("%s/client_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   cloud_platform                                   = jsonencode("")
   resource_prefix                                  = jsonencode("")
