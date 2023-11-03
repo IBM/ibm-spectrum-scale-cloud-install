@@ -427,7 +427,7 @@ variable "total_client_cluster_instances" {
 
 variable "client_vsi_osimage_name" {
   type        = string
-  default     = "ibm-redhat-8-6-minimal-amd64-6"
+  default     = "ibm-redhat-8-8-minimal-amd64-2"
   description = "Image name to use for provisioning the client cluster instances."
 }
 

@@ -32,7 +32,7 @@ variable "storage_sec_group" {}
 variable "storage_domain_name" {}
 variable "storage_dns_service_id" {}
 variable "storage_dns_zone_id" {}
-variable "scale_fire_wall_rules_enabled" {}
+variable "scale_firewall_rules_enabled" {}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -105,7 +105,7 @@ echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
 
-if [ "${var.scale_fire_wall_rules_enabled}" == true ]; then
+if [ "${var.scale_firewall_rules_enabled}" == true ]; then
     systemctl stop firewalld
     firewall-offline-cmd --zone=public --add-port=1191/tcp
     firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
