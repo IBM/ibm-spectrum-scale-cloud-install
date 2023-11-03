@@ -628,7 +628,7 @@ def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, m
            export_ip_pool (list), filesystem (string), mountpoint (string)
     """
     exports = []
-    if enable_ces:
+    if enable_ces == "True":
         filesets_name_size = {
             key.split('/')[-1]: value for key, value in filesets.items()}
         exports = list(filesets_name_size.keys())
