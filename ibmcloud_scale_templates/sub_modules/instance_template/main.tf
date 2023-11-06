@@ -961,7 +961,7 @@ module "ldap_configuration" {
   bastion_user                     = jsonencode(var.bastion_user)
   write_inventory_complete         = module.write_storage_cluster_inventory.write_inventory_complete
   scale_cluster_clustername        = var.resource_prefix
-  script_path                      = format("%s/%s/resources/ibmcloud/scripts/prepare_ldap_inv.py", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-cloud-install")
+  script_path                      = format("%s/%s/resources/common/scripts/prepare_ldap_inv.py", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-cloud-install")
   using_jumphost_connection        = var.using_jumphost_connection
   bastion_instance_public_ip       = var.bastion_instance_public_ip
   bastion_ssh_private_key          = var.bastion_ssh_private_key
