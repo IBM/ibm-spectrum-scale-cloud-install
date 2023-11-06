@@ -458,3 +458,58 @@ variable "client_cluster_key_pair" {
   default     = null
   description = "The key pair to use to launch the client cluster host."
 }
+
+variable "ldap_basedns" {
+  type        = string
+  default     = null
+  description = "Base DNS of LDAP Server. If none given the LDAP feature will not be enabled."
+}
+
+variable "ldap_server" {
+  type        = string
+  default     = null
+  description = "IP of existing LDAP server. If none given a new ldap server will be created"
+}
+
+variable "ldap_admin_password" {
+  type        = string
+  sensitive   = true
+  default     = null
+  description = "Password that is used for performing administrative operations for LDAP.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. "
+}
+
+variable "ldap_user_name" {
+  type        = string
+  sensitive   = true
+  default     = null
+  description = "Custom LDAP User for performing cluster operations. Note: Username should be at least 4 characters, (any combination of lowercase and uppercase letters)."
+  validation {
+    condition     = var.ldap_user_name == null || (try(length(var.ldap_user_name), 0) >= 4 && try(length(var.ldap_user_name), 0) <= 32)
+    error_message = "Specified input for \"ldap_user_name\" is not valid. username should be greater or equal to 4 letters."
+  }
+}
+
+variable "ldap_user_password" {
+  type        = string
+  sensitive   = true
+  default     = null
+  description = "LDAP User Password that is used for performing operations on the cluster.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username."
+}
+
+variable "ldap_instance_key_pair" {
+  type        = list(string)
+  default     = null
+  description = "Name of the SSH key configured in your IBM Cloud account that is used to establish a connection to the LDAP Server. Make sure that the SSH key is present in the same resource group and region where the LDAP Servers are provisioned. If you do not have an SSH key in your IBM Cloud account, create one by using the [SSH keys](https://cloud.ibm.com/docs/vpc?topic=vpc-ssh-keys) instructions."
+}
+
+variable "ldap_vsi_profile" {
+  type        = string
+  default     = "cx2-2x4"
+  description = "Profile to be used for LDAP virtual server instance."
+}
+
+variable "ldap_vsi_osimage_name" {
+  type        = string
+  default     = "ibm-ubuntu-22-04-3-minimal-amd64-1"
+  description = "Image name to use for provisioning the LDAP instances."
+}
