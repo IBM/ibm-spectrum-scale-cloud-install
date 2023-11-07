@@ -62,7 +62,7 @@ def initialize_cluster_details(cluster_name, ldap_basedns, ldap_admin_password, 
     :args: cluster_name (string) ldap_basedns (string), ldap_admin_password (string) ldap_user_name (string) ldap_user_password (string)
     """
     cluster_details = {}
-    cluster_details['scale_cluster_clustername'] = cluster_name
+    cluster_details['ldap_cluster_prefix'] = cluster_name
     cluster_details['ldap_basedns'] = ldap_basedns
     cluster_details['ldap_admin_password'] = ldap_admin_password
     cluster_details['ldap_user_name'] = ldap_user_name
