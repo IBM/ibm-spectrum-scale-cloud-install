@@ -158,8 +158,6 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: nfs_route_configure, when: enable_ces }}
      - {{ role: nfs_failover, when: enable_ces }}
      - {{ role: nfs_verify, when: enable_ces }}
-     - {{ role: auth_prepare, when: enable_ces }}
-     - {{ role: auth_configure, when: enable_ces }}
      - {{ role: nfs_file_share, when: enable_ces }}
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)

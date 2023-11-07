@@ -511,5 +511,5 @@ variable "ldap_vsi_profile" {
 variable "ldap_vsi_osimage_name" {
   type        = string
   default     = "ibm-ubuntu-22-04-3-minimal-amd64-1"
-  description = "Image name to use for provisioning the LDAP instances."
+  description = "Image name to be used for provisioning the LDAP instances."
 }
