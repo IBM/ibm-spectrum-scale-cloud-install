@@ -156,7 +156,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: nfs_install, when: "enable_ces and scale_packages_installed is false" }}
      - {{ role: nfs_configure, when: enable_ces }}
      - {{ role: nfs_route_configure, when: enable_ces }}
-     - {{ role: nfs_failover, when: enable_ces }}
+     - {{ role: nfs_ic_failover, when: enable_ces }}
      - {{ role: nfs_verify, when: enable_ces }}
      - {{ role: auth_prepare, when: enable_ces }}
      - {{ role: auth_configure, when: enable_ces }}
