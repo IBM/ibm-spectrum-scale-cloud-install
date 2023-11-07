@@ -774,8 +774,6 @@ module "routing_table_routes" {
   create_scale_cluster            = var.create_scale_cluster
   scale_ces_enabled               = local.scale_ces_enabled == true ? true : false
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-  inventory_path                  = format("%s/%s/storage_inventory.ini", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
-  playbook_path                   = format("%s/%s/resources/ibmcloud/scripts/route_playbook.yaml", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-cloud-install")
   total_vsis                      = var.total_protocol_cluster_instances
   vpc_id                          = var.vpc_id
   routing_table                   = data.ibm_is_vpc.vpc_rt_id.default_routing_table
@@ -784,6 +782,9 @@ module "routing_table_routes" {
   next_hop                        = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
   priority                        = 2
   dest_ip                         = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
+  storage_admin_ip                = values(one(module.storage_cluster_instances[*].instance_name_ip_map))[0]
+  storage_private_key             = "/opt/IBM/ibm-spectrumscale-cloud-deploy/storage_key/id_rsa"
+  depends_on                      = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.compute_cluster_configuration, module.storage_cluster_configuration]
 }
 
 module "client_configuration" {
