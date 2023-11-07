@@ -57,9 +57,9 @@ def prepare_ansible_playbook_ldap_cluster(hosts_config):
     return content.format(hosts_config=hosts_config)
 
 
-def initialize_cluster_details(ldap_basedns, ldap_admin_password, ldap_user_name, ldap_user_password, cluster_name):
+def initialize_cluster_details(cluster_name, ldap_basedns, ldap_admin_password, ldap_user_name, ldap_user_password):
     """ Initialize cluster details.
-    :args: pldap_basedns (string), ldap_admin_password (string) ldap_user_name (string) ldap_user_password (string) cluster_name (string)
+    :args: cluster_name (string) ldap_basedns (string), ldap_admin_password (string) ldap_user_name (string) ldap_user_password (string)
     """
     cluster_details = {}
     cluster_details['scale_cluster_clustername'] = cluster_name
