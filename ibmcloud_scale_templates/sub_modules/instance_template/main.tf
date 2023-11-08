@@ -972,6 +972,7 @@ module "ldap_configuration" {
   ldap_user_password               = var.ldap_user_password
   ldap_server                      = jsonencode(one(module.ldap_instance[*].vsi_private_ip))
   meta_private_key                 = module.generate_ldap_instance_keys.private_key_content
+  enable_ldap                      = local.enable_ldap
   storage_enable_ldap              = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
   compute_enable_ldap              = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
   combined_enable_ldap             = var.create_separate_namespaces == false ? true : false

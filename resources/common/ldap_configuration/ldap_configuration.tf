@@ -20,6 +20,7 @@ variable "compute_cluster_create_complete" {}
 variable "storage_cluster_create_complete" {}
 variable "combined_cluster_create_complete" {}
 variable "remote_mount_create_complete" {}
+variable "enable_ldap" {}
 variable "storage_enable_ldap" {}
 variable "compute_enable_ldap" {}
 variable "combined_enable_ldap" {}
@@ -85,7 +86,7 @@ resource "null_resource" "perform_ldap_storage" {
   count = (tobool(var.turn_on) == true && tobool(var.storage_enable_ldap) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.remote_mount_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/local/bin/ansible-playbook -f 32 -i ${local.storage_inventory_path} ${local.ldap_cluster_playbook} -e ldap_server=${local.ldap_server}"
+    command     = "/usr/local/bin/ansible-playbook -f 32 -i ${local.storage_inventory_path} ${local.ldap_cluster_playbook} -e ldap_server=${local.ldap_server} -e enable_ldap=${var.enable_ldap}"
   }
   depends_on = [null_resource.perform_ldap_prepare]
   triggers = {
@@ -97,7 +98,7 @@ resource "null_resource" "perform_ldap_compute" {
   count = (tobool(var.turn_on) == true && tobool(var.compute_enable_ldap) == true && tobool(var.compute_cluster_create_complete) == true && tobool(var.remote_mount_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/local/bin/ansible-playbook -f 32 -i ${local.compute_inventory_path} ${local.ldap_cluster_playbook} -e ldap_server=${local.ldap_server}"
+    command     = "/usr/local/bin/ansible-playbook -f 32 -i ${local.compute_inventory_path} ${local.ldap_cluster_playbook} -e ldap_server=${local.ldap_server} -e enable_ldap=${var.enable_ldap}"
   }
   depends_on = [null_resource.perform_ldap_prepare, null_resource.perform_ldap_storage]
   triggers = {
@@ -109,7 +110,7 @@ resource "null_resource" "perform_ldap_combined" {
   count = (tobool(var.turn_on) == true && tobool(var.combined_enable_ldap) == true && tobool(var.combined_cluster_create_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "/usr/local/bin/ansible-playbook -f 32 -i ${local.combined_inventory_path} ${local.ldap_cluster_playbook}  -e ldap_server=${local.ldap_server}"
+    command     = "/usr/local/bin/ansible-playbook -f 32 -i ${local.combined_inventory_path} ${local.ldap_cluster_playbook}  -e ldap_server=${local.ldap_server} -e enable_ldap=${var.enable_ldap}"
   }
   depends_on = [null_resource.perform_ldap_prepare]
   triggers = {
