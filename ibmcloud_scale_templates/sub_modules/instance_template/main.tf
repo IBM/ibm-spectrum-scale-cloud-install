@@ -773,7 +773,7 @@ module "routing_table_routes" {
   priority                        = 2
   dest_ip                         = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
   storage_admin_ip                = values(one(module.storage_cluster_instances[*].instance_name_ip_map))[0]
-  storage_private_key             = "/opt/IBM/ibm-spectrumscale-cloud-deploy/storage_key/id_rsa"
+  storage_private_key             = format("%s/storage_key/id_rsa", var.scale_ansible_repo_clone_path)
   depends_on                      = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.compute_cluster_configuration, module.storage_cluster_configuration]
 }
 
