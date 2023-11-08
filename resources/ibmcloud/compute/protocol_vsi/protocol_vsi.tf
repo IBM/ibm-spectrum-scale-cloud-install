@@ -28,6 +28,8 @@ variable "resource_group_id" {}
 variable "resource_tags" {}
 variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
+variable "vpc_region" {}
+variable "vpc_rt_id" {}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -136,6 +138,13 @@ nmcli con add type ethernet con-name eth1 ifname eth1
 echo "DOMAIN=\"${var.protocol_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
 systemctl restart NetworkManager
+
+###### TODO: Fix Me ######
+echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
+echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
+echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
+echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
+echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 EOF
 }
 

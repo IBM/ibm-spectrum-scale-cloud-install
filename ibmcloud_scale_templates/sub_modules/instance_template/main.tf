@@ -323,6 +323,8 @@ module "protocol_cluster_instances" {
   protocol_domain      = var.vpc_protocol_cluster_dns_domain
   protocol_subnet_id   = var.vpc_protocol_cluster_private_subnets
   resource_tags        = var.scale_cluster_resource_tags
+  vpc_region           = var.vpc_region
+  vpc_rt_id            = data.ibm_is_vpc.vpc_rt_id.default_routing_table
   depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
@@ -478,18 +480,6 @@ locals {
 
 data "ibm_is_vpc" "vpc_rt_id" {
   identifier = var.vpc_id
-}
-
-module "update_failover_script" {
-  source               = "../../../resources/ibmcloud/scripts/update_failover_script"
-  turn_on              = (var.create_scale_cluster == true && local.scale_ces_enabled == true) ? true : false
-  create_scale_cluster = var.create_scale_cluster
-  ic_region            = var.vpc_region
-  ic_zone              = var.vpc_availability_zones[0]
-  ic_rg                = var.resource_group_id
-  ic_vpc               = var.vpc_id
-  ic_rt                = data.ibm_is_vpc.vpc_rt_id.default_routing_table
-  file                 = "../../../resources/ibmcloud/scripts/mmcesExtendedIpMgmt"
 }
 
 module "write_compute_cluster_inventory" {
