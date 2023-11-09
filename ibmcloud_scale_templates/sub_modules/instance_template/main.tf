@@ -462,15 +462,25 @@ data "ibm_is_subnet_reserved_ips" "protocol_subnet_reserved_ips" {
 }
 
 locals {
-  storage_instance_ids               = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
-  storage_instance_names             = var.storage_type != "persistent" ? keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
-  storage_instance_private_ips       = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map)) : []
-  storageinstance_private_dns_ip_map = var.storage_type != "persistent" ? one(module.storage_cluster_instances[*].instance_private_dns_ip_map) : {}
+  storage_instance_ids                = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
+  storage_instance_names              = var.storage_type != "persistent" ? keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
+  storage_instance_private_ips        = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map)) : []
+  storage_instance_private_dns_ip_map = var.storage_type != "persistent" ? one(module.storage_cluster_instances[*].instance_private_dns_ip_map) : {}
 
   storage_cluster_instance_ids                = local.scale_ces_enabled == false ? local.storage_instance_ids : concat(local.storage_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)))
   storage_cluster_instance_names              = local.scale_ces_enabled == false ? local.storage_instance_names : concat(local.storage_instance_names, keys(one(module.protocol_cluster_instances[*].instance_name_id_map)))
   storage_cluster_instance_private_ips        = local.scale_ces_enabled == false ? local.storage_instance_private_ips : concat(local.storage_instance_private_ips, values(one(module.protocol_cluster_instances[*].instance_name_ip_map)))
-  storage_cluster_instance_private_dns_ip_map = local.scale_ces_enabled == false ? local.storageinstance_private_dns_ip_map : merge(local.storageinstance_private_dns_ip_map, one(module.protocol_cluster_instances[*].instance_private_dns_ip_map))
+  storage_cluster_instance_private_dns_ip_map = local.scale_ces_enabled == false ? local.storage_instance_private_dns_ip_map : merge(local.storage_instance_private_dns_ip_map, one(module.protocol_cluster_instances[*].instance_private_dns_ip_map))
+
+  baremetal_instance_ids                = var.storage_type == "persistent" ? values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
+  baremetal_instance_names              = var.storage_type == "persistent" ? keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
+  baremetal_instance_private_ips        = var.storage_type == "persistent" ? values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map)) : []
+  baremetal_instance_private_dns_ip_map = var.storage_type == "persistent" ? one(module.storage_cluster_bare_metal_server[*].instance_private_dns_ip_map) : {}
+
+  baremetal_cluster_instance_ids                = var.storage_type == "persistent" && local.scale_ces_enabled == false ? local.baremetal_instance_ids : concat(local.baremetal_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)))
+  baremetal_cluster_instance_names              = var.storage_type == "persistent" && local.scale_ces_enabled == false ? local.baremetal_instance_names : concat(local.baremetal_instance_names, keys(one(module.protocol_cluster_instances[*].instance_name_id_map)))
+  baremetal_cluster_instance_private_ips        = var.storage_type == "persistent" && local.scale_ces_enabled == false ? local.baremetal_instance_private_ips : concat(local.baremetal_instance_private_ips, values(one(module.protocol_cluster_instances[*].instance_name_ip_map)))
+  baremetal_cluster_instance_private_dns_ip_map = var.storage_type == "persistent" && local.scale_ces_enabled == false ? local.baremetal_instance_private_dns_ip_map : merge(local.baremetal_instance_private_dns_ip_map, one(module.protocol_cluster_instances[*].instance_private_dns_ip_map))
 
   fileset_size_map = try({ for details in var.filesets : details.mount_path => details.size }, {})
 
@@ -547,15 +557,15 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_private_ips             = jsonencode([])
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = var.storage_type == "persistent" ? jsonencode(values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map))) : jsonencode(local.storage_cluster_instance_ids)
-  storage_cluster_instance_private_ips             = var.storage_type == "persistent" ? jsonencode(values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))) : jsonencode(local.storage_cluster_instance_private_ips)
+  storage_cluster_instance_ids                     = var.storage_type == "persistent" ? jsonencode(local.baremetal_cluster_instance_ids) : jsonencode(local.storage_cluster_instance_ids)
+  storage_cluster_instance_private_ips             = var.storage_type == "persistent" ? jsonencode(local.baremetal_cluster_instance_private_ips) : jsonencode(local.storage_cluster_instance_private_ips)
   storage_cluster_with_data_volume_mapping         = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
-  storage_cluster_instance_private_dns_ip_map      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_dns_ip_map)) : jsonencode(local.storage_cluster_instance_private_dns_ip_map)
+  storage_cluster_instance_private_dns_ip_map      = var.storage_type == "persistent" ? jsonencode(local.baremetal_cluster_instance_private_dns_ip_map) : jsonencode(local.storage_cluster_instance_private_dns_ip_map)
   storage_cluster_desc_instance_ids                = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
-  storage_cluster_instance_names                   = var.storage_type == "persistent" ? jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map))) : jsonencode(local.storage_cluster_instance_names)
+  storage_cluster_instance_names                   = var.storage_type == "persistent" ? jsonencode(local.baremetal_cluster_instance_names) : jsonencode(local.storage_cluster_instance_names)
   compute_cluster_instance_names                   = jsonencode([])
   storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   compute_subnet_cidr                              = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
@@ -772,7 +782,7 @@ module "routing_table_routes" {
   next_hop                        = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
   priority                        = 2
   dest_ip                         = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
-  storage_admin_ip                = values(one(module.storage_cluster_instances[*].instance_name_ip_map))[0]
+  storage_admin_ip                = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map))[0] : values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))[0]
   storage_private_key             = format("%s/storage_key/id_rsa", var.scale_ansible_repo_clone_path)
   depends_on                      = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.compute_cluster_configuration, module.storage_cluster_configuration]
 }
