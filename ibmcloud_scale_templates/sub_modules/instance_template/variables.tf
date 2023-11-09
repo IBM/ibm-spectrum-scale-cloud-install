@@ -41,7 +41,8 @@ variable "total_compute_cluster_instances" {
 }
 
 variable "compute_cluster_key_pair" {
-  type        = string
+  type        = list(string)
+  default     = null
   description = "The key pair to use to launch the compute cluster host."
 }
 
@@ -94,7 +95,7 @@ variable "storage_vsi_profile" {
 }
 
 variable "storage_cluster_key_pair" {
-  type        = string
+  type        = list(string)
   description = "The key pair to use to launch the storage cluster host."
 }
 
@@ -318,7 +319,7 @@ variable "total_gklm_instances" {
 }
 
 variable "gklm_instance_key_pair" {
-  type        = string
+  type        = list(string)
   default     = null
   description = "The key pair to use to launch the GKLM host."
 }
@@ -369,4 +370,91 @@ variable "scale_encryption_admin_password" {
   type        = string
   default     = null
   description = "Password that is used for performing administrative operations for the GKLM.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. Visit this [page](https://www.ibm.com/docs/en/gklm/3.0.1?topic=roles-password-policy) to know more about password policy of GKLM. "
+}
+
+# CES Variables
+
+variable "vpc_protocol_cluster_private_subnets" {
+  type        = list(string)
+  default     = ["10.241.2.0/24"]
+  description = "List of IDs of protocol nodes private subnets."
+}
+
+variable "vpc_protocol_cluster_dns_domain" {
+  type        = string
+  default     = "cesscale.com"
+  description = "IBM Cloud DNS domain name to be used for compute cluster."
+}
+
+variable "vpc_protocol_cluster_dns_service_id" {
+  type        = string
+  description = "IBM Cloud compute cluster DNS service resource id."
+}
+
+variable "vpc_protocol_cluster_dns_zone_id" {
+  type        = string
+  description = "IBM Cloud compute cluster DNS zone id."
+}
+
+variable "protocol_vsi_profile" {
+  type        = string
+  default     = "cx2-32x64"
+  description = "Profile to be used for compute cluster virtual server instance."
+}
+
+variable "total_protocol_cluster_instances" {
+  type        = number
+  default     = 2
+  description = "protocol nodes"
+}
+
+variable "filesets" {
+  type = list(object({
+    mount_path = string,
+    size       = number
+  }))
+  default     = [{ mount_path = "/mnt/binaries", size = 0 }, { mount_path = "/mnt/data", size = 0 }]
+  description = "Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares."
+}
+
+# Client Cluster Variables
+
+variable "total_client_cluster_instances" {
+  type        = number
+  default     = 2
+  description = "Client cluster node counts"
+}
+
+variable "client_vsi_osimage_name" {
+  type        = string
+  default     = "ibm-redhat-8-8-minimal-amd64-2"
+  description = "Image name to use for provisioning the client cluster instances."
+}
+
+variable "client_vsi_profile" {
+  type        = string
+  default     = "cx2-2x4"
+  description = "Client nodes vis profile"
+}
+
+variable "vpc_client_cluster_dns_service_id" {
+  type        = string
+  description = "IBM Cloud client cluster DNS service resource id."
+}
+
+variable "vpc_client_cluster_dns_zone_id" {
+  type        = string
+  description = "IBM Cloud client cluster DNS zone id."
+}
+
+variable "vpc_client_cluster_dns_domain" {
+  type        = string
+  default     = "clntscale.com"
+  description = "IBM Cloud DNS domain name to be used for client cluster."
+}
+
+variable "client_cluster_key_pair" {
+  type        = list(string)
+  default     = null
+  description = "The key pair to use to launch the client cluster host."
 }

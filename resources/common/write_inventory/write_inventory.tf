@@ -31,7 +31,19 @@ variable "compute_cluster_instance_names" {}
 variable "storage_cluster_instance_names" {}
 variable "storage_subnet_cidr" {}
 variable "compute_subnet_cidr" {}
-variable "opposit_cluster_clustername" {}
+variable "scale_remote_cluster_clustername" {}
+variable "protocol_cluster_instance_names" {}
+variable "client_cluster_instance_names" {}
+variable "protocol_cluster_reserved_names" {}
+variable "smb" {}
+variable "nfs" {}
+variable "interface" {}
+variable "export_ip_pool" {}
+variable "filesystem" {}
+variable "mountpoint" {}
+variable "object" {}
+variable "protocol_gateway_ip" {}
+variable "filesets" {}
 
 resource "local_sensitive_file" "itself" {
   count    = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
@@ -63,7 +75,19 @@ resource "local_sensitive_file" "itself" {
     "storage_cluster_instance_names": ${var.storage_cluster_instance_names},
     "storage_subnet_cidr": ${var.storage_subnet_cidr},
     "compute_subnet_cidr": ${var.compute_subnet_cidr},
-    "opposit_cluster_clustername": ${var.opposit_cluster_clustername}
+    "scale_remote_cluster_clustername": ${var.scale_remote_cluster_clustername},
+    "protocol_cluster_instance_names": ${var.protocol_cluster_instance_names},
+    "client_cluster_instance_names": ${var.client_cluster_instance_names},
+    "protocol_cluster_reserved_names": ${var.protocol_cluster_reserved_names},
+    "smb": ${var.smb},
+    "nfs": ${var.nfs},
+    "object": ${var.object},
+    "interface": ${var.interface},
+    "export_ip_pool": ${var.export_ip_pool},
+    "filesystem": ${var.filesystem},
+    "mountpoint": ${var.mountpoint},
+    "protocol_gateway_ip": ${var.protocol_gateway_ip},
+    "filesets": ${var.filesets}
 }
 EOT
   filename = var.inventory_path

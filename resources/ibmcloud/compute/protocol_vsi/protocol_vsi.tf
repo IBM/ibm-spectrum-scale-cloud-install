@@ -26,13 +26,10 @@ variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
-variable "enable_sec_interface_compute" {}
-variable "storage_subnet_id" {}
-variable "storage_sec_group" {}
-variable "storage_domain_name" {}
-variable "storage_dns_service_id" {}
-variable "storage_dns_zone_id" {}
-variable "scale_firewall_rules_enabled" {}
+variable "protocol_domain" {}
+variable "protocol_subnet_id" {}
+variable "vpc_region" {}
+variable "vpc_rt_id" {}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -49,7 +46,7 @@ then
         package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
     else
         PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) rsync firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel yum-plugin-versionlock"
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel yum-plugin-versionlock"
     fi
 
     RETRY_LIMIT=5
@@ -100,40 +97,54 @@ echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
+
 echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
-
-if [ "${var.scale_firewall_rules_enabled}" == true ]; then
-    systemctl stop firewalld
-    firewall-offline-cmd --zone=public --add-port=1191/tcp
-    firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
-    firewall-offline-cmd --zone=public --add-port=47080/tcp
-    firewall-offline-cmd --zone=public --add-port=47080/udp
-    firewall-offline-cmd --zone=public --add-port=47443/tcp
-    firewall-offline-cmd --zone=public --add-port=47443/udp
-    firewall-offline-cmd --zone=public --add-port=4444/tcp
-    firewall-offline-cmd --zone=public --add-port=4444/udp
-    firewall-offline-cmd --zone=public --add-port=4739/udp
-    firewall-offline-cmd --zone=public --add-port=4739/tcp
-    firewall-offline-cmd --zone=public --add-port=9084/tcp
-    firewall-offline-cmd --zone=public --add-port=9085/tcp
-    firewall-offline-cmd --zone=public --add-service=http
-    firewall-offline-cmd --zone=public --add-service=https
-fi
-
+systemctl stop firewalld
+firewall-offline-cmd --zone=public --add-port=1191/tcp
+firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
+firewall-offline-cmd --zone=public --add-port=47080/tcp
+firewall-offline-cmd --zone=public --add-port=47080/udp
+firewall-offline-cmd --zone=public --add-port=47443/tcp
+firewall-offline-cmd --zone=public --add-port=47443/udp
+firewall-offline-cmd --zone=public --add-port=4444/tcp
+firewall-offline-cmd --zone=public --add-port=4444/udp
+firewall-offline-cmd --zone=public --add-port=4739/udp
+firewall-offline-cmd --zone=public --add-port=4739/tcp
+firewall-offline-cmd --zone=public --add-port=9084/tcp
+firewall-offline-cmd --zone=public --add-port=9085/tcp
+firewall-offline-cmd --zone=public --add-service=http
+firewall-offline-cmd --zone=public --add-service=https
+firewall-offline-cmd --zone=public --add-port=2049/tcp
+firewall-offline-cmd --zone=public --add-port=2049/udp
+firewall-offline-cmd --zone=public --add-port=111/tcp
+firewall-offline-cmd --zone=public --add-port=111/udp
+firewall-offline-cmd --zone=public --add-port=32765/tcp
+firewall-offline-cmd --zone=public --add-port=32765/udp
+firewall-offline-cmd --zone=public --add-port=32767/tcp
+firewall-offline-cmd --zone=public --add-port=32767/udp
+firewall-offline-cmd --zone=public --add-port=32768/tcp
+firewall-offline-cmd --zone=public --add-port=32768/udp
+firewall-offline-cmd --zone=public --add-port=32769/tcp
+firewall-offline-cmd --zone=public --add-port=32769/udp
 systemctl start firewalld
 systemctl enable firewalld
 
-if [ "${var.enable_sec_interface_compute}" == true ]; then
-    sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
-    nmcli conn del "$sec_interface"
-    nmcli con add type ethernet con-name eth1 ifname eth1
-    echo "DOMAIN=\"${var.storage_domain_name}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
-    echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
-    systemctl restart NetworkManager
-fi
+sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
+nmcli conn del "$sec_interface"
+nmcli con add type ethernet con-name eth1 ifname eth1
+echo "DOMAIN=\"${var.protocol_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
+echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
+systemctl restart NetworkManager
+
+###### TODO: Fix Me ######
+echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
+echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
+echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
+echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
+echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 EOF
 }
 
@@ -142,10 +153,10 @@ resource "ibm_is_instance" "itself" {
     # This assigns a subnet-id to each of the instance
     # iteration.
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      sequence_string   = tostring(count_number)
-      subnet_id         = element(var.vsi_subnet_id, idx)
-      storage_subnet_id = element(var.storage_subnet_id, idx)
-      zone              = element(var.zones, idx)
+      sequence_string    = tostring(count_number)
+      subnet_id          = element(var.vsi_subnet_id, idx)
+      protocol_subnet_id = element(var.protocol_subnet_id, idx)
+      zone               = element(var.zones, idx)
     }
   }
 
@@ -155,24 +166,22 @@ resource "ibm_is_instance" "itself" {
   tags    = var.resource_tags
 
   primary_network_interface {
-    name            = format("%s-%03s-pri", var.vsi_name_prefix, each.value.sequence_string)
+    name            = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
     subnet          = each.value.subnet_id
     security_groups = var.vsi_security_group
   }
 
-  dynamic "network_interfaces" {
-    for_each = var.enable_sec_interface_compute ? [1] : []
-    content {
-      name            = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
-      subnet          = each.value.storage_subnet_id
-      security_groups = var.storage_sec_group
-    }
+  network_interfaces {
+    name              = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+    subnet            = each.value.protocol_subnet_id
+    allow_ip_spoofing = true
+    security_groups   = var.vsi_security_group
   }
 
   vpc            = var.vpc_id
   zone           = each.value.zone
-  resource_group = var.resource_group_id
   keys           = var.vsi_user_public_key
+  resource_group = var.resource_group_id
   user_data      = data.template_file.metadata_startup_script.rendered
 
   boot_volume {
@@ -223,44 +232,6 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
-# A Record for Secondary network Interface
-
-resource "ibm_dns_resource_record" "sec_interface_a_record" {
-  for_each = var.enable_sec_interface_compute == false ? {} : {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
-      network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
-    }
-  }
-
-  instance_id = var.storage_dns_service_id
-  zone_id     = var.storage_dns_zone_id
-  type        = "A"
-  name        = each.value.name
-  rdata       = each.value.network_ip
-  ttl         = 300
-  depends_on  = [ibm_is_instance.itself]
-}
-
-# PTR Record for Secondary network Interface
-
-resource "ibm_dns_resource_record" "sec_interface_ptr_record" {
-  for_each = var.enable_sec_interface_compute == false ? {} : {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
-      network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
-    }
-  }
-
-  instance_id = var.storage_dns_service_id
-  zone_id     = var.storage_dns_zone_id
-  type        = "PTR"
-  name        = each.value.network_ip
-  rdata       = format("%s.%s", each.value.name, var.storage_domain_name)
-  ttl         = 300
-  depends_on  = [ibm_dns_resource_record.sec_interface_a_record]
-}
-
 output "instance_ids" {
   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
@@ -282,11 +253,6 @@ output "instance_name_id_map" {
 
 output "instance_name_ip_map" {
   value      = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "secondary_interface_name_id_map" {
-  value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.network_interfaces[0]["name"]}.${var.storage_domain_name}" => instance_details.id }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
