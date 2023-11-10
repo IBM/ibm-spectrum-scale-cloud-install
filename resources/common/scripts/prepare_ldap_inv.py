@@ -33,12 +33,12 @@ def prepare_ansible_playbook_ldap_server(hosts_config):
     # Write to playbook
     content = """---
 # Encryption setup for the ldap server
-- hosts: all
+- hosts: {hosts_config}
   collections:
      - ibm.spectrum_scale
   any_errors_fatal: true
   roles:
-     - auth_prepare
+     - auth_ldap_server_prepare
 """
     return content.format(hosts_config=hosts_config)
 
