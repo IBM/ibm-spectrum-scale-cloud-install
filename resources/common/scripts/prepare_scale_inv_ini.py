@@ -252,7 +252,7 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username, password, scale_profile_path, scale_replica_config, enable_mrot,
                                enable_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_gateway_ip, scale_remote_cluster_clustername,
-                               scale_encryption_servers, scale_encryption_admin_password, enable_ldap, ldap_basedns, ldap_server):
+                               scale_encryption_servers, scale_encryption_admin_password, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
@@ -291,6 +291,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['enable_ldap'] = enable_ldap
     cluster_details['ldap_basedns'] = ldap_basedns
     cluster_details['ldap_server'] = ldap_server
+    cluster_details['ldap_admin_password'] = ldap_admin_password
     return cluster_details
 
 
@@ -703,6 +704,8 @@ if __name__ == "__main__":
                         default="null")
     PARSER.add_argument('--ldap_server', help='LDAP Server IP',
                         default="null")
+    PARSER.add_argument('--ldap_admin_password', help='LDAP Admin Password',
+                        default="null")
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
@@ -922,7 +925,8 @@ if __name__ == "__main__":
                                                     ARGUMENTS.scale_encryption_admin_password,
                                                     ARGUMENTS.enable_ldap,
                                                     ARGUMENTS.ldap_basedns,
-                                                    ARGUMENTS.ldap_server)
+                                                    ARGUMENTS.ldap_server,
+                                                    ARGUMENTS.ldap_admin_password)
     with open("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                           "ibm-spectrum-scale-install-infra",
                                           cluster_type), 'w') as configfile:
