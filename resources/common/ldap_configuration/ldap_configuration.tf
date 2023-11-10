@@ -64,7 +64,7 @@ resource "null_resource" "perform_ldap_prepare" {
     interpreter = ["/bin/bash", "-c"]
     command     = "/usr/local/bin/ansible-playbook -f 32 -i ${local.ldap_inventory_path} ${local.ldap_configure_playbook} -e ldap_server=${local.ldap_server}"
   }
-  depends_on = [local_sensitive_file.write_meta_private_key]
+  depends_on = [local_sensitive_file.write_meta_private_key, null_resource.prepare_ansible_inventory, null_resource.prepare_ansible_inventory_using_jumphost_connection]
   triggers = {
     build = timestamp()
   }
