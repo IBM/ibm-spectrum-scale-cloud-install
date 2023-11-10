@@ -43,20 +43,6 @@ def prepare_ansible_playbook_ldap_server(hosts_config):
     return content.format(hosts_config=hosts_config)
 
 
-def prepare_ansible_playbook_ldap_cluster(hosts_config):
-    # Write to playbook
-    content = """---
-# Enabling ldap on Storage Scale Clusters
-- hosts: {hosts_config}
-  collections:
-     - ibm.spectrum_scale
-  any_errors_fatal: true
-  roles:
-     - auth_configure
-"""
-    return content.format(hosts_config=hosts_config)
-
-
 def initialize_cluster_details(cluster_name, ldap_basedns, ldap_admin_password, ldap_user_name, ldap_user_password):
     """ Initialize cluster details.
     :args: cluster_name (string) ldap_basedns (string), ldap_admin_password (string) ldap_user_name (string) ldap_user_password (string)
@@ -146,10 +132,6 @@ if __name__ == "__main__":
             "ldap_nodes")
         write_to_file("%s/%s/ldap_configure_playbook.yaml" % (ARGUMENTS.install_infra_path,
                                                               "ibm-spectrum-scale-install-infra"), ldap_playbook_content)
-        ldap_playbook_content = prepare_ansible_playbook_ldap_cluster(
-            "scale_nodes")
-        write_to_file("%s/%s/ldap_cluster_playbook.yaml" % (ARGUMENTS.install_infra_path,
-                                                            "ibm-spectrum-scale-install-infra"), ldap_playbook_content)
     if ARGUMENTS.verbose:
         print("Content of ansible playbook for ldap:\n",
               ldap_playbook_content)
