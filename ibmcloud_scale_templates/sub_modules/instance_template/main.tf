@@ -26,7 +26,8 @@ locals {
   enable_sec_interface_compute = local.scale_ces_enabled == false && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
   enable_sec_interface_storage = local.scale_ces_enabled == false && var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
-  enable_ldap                  = var.ldap_basedns != null ? true : false
+  enable_ldap                  = var.ldap_basedns != "null" ? true : false
+  ldap_server                  = var.ldap_server != null ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
 }
 
 module "generate_compute_cluster_keys" {
@@ -781,7 +782,11 @@ module "compute_cluster_configuration" {
   scale_encryption_enabled        = var.scale_encryption_enabled
   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+  enable_ldap                     = local.enable_ldap
   ldap_basedns                    = var.ldap_basedns
+  ldap_server                     = local.ldap_server
+  ldap_admin_password             = var.ldap_admin_password
+  depends_on                      = [module.ldap_configuration]
 }
 
 module "storage_cluster_configuration" {
@@ -818,7 +823,11 @@ module "storage_cluster_configuration" {
   scale_encryption_enabled        = var.scale_encryption_enabled
   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+  enable_ldap                     = local.enable_ldap
   ldap_basedns                    = var.ldap_basedns
+  ldap_server                     = local.ldap_server
+  ldap_admin_password             = var.ldap_admin_password
+  depends_on                      = [module.ldap_configuration]
 }
 
 module "combined_cluster_configuration" {
@@ -845,7 +854,11 @@ module "combined_cluster_configuration" {
   scale_encryption_enabled        = var.scale_encryption_enabled
   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+  enable_ldap                     = local.enable_ldap
   ldap_basedns                    = var.ldap_basedns
+  ldap_server                     = local.ldap_server
+  ldap_admin_password             = var.ldap_admin_password
+  depends_on                      = [module.ldap_configuration]
 }
 
 module "routing_table_routes" {
@@ -955,31 +968,23 @@ module "encryption_configuration" {
 }
 
 module "ldap_configuration" {
-  source                           = "../../../resources/common/ldap_configuration"
-  turn_on                          = local.enable_ldap
-  clone_path                       = var.scale_ansible_repo_clone_path
-  clone_complete                   = module.prepare_ansible_configuration.clone_complete
-  create_scale_cluster             = var.create_scale_cluster
-  bastion_user                     = jsonencode(var.bastion_user)
-  write_inventory_complete         = module.write_storage_cluster_inventory.write_inventory_complete
-  ldap_cluster_prefix              = var.resource_prefix
-  script_path                      = format("%s/%s/resources/common/scripts/prepare_ldap_inv.py", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-cloud-install")
-  using_jumphost_connection        = var.using_jumphost_connection
-  bastion_instance_public_ip       = var.bastion_instance_public_ip
-  bastion_ssh_private_key          = var.bastion_ssh_private_key
-  ldap_basedns                     = var.ldap_basedns
-  ldap_admin_password              = var.ldap_admin_password
-  ldap_user_name                   = var.ldap_user_name
-  ldap_user_password               = var.ldap_user_password
-  ldap_server                      = jsonencode(one(module.ldap_instance[*].vsi_private_ip))
-  meta_private_key                 = module.generate_ldap_instance_keys.private_key_content
-  enable_ldap                      = local.enable_ldap
-  storage_enable_ldap              = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
-  compute_enable_ldap              = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
-  combined_enable_ldap             = var.create_separate_namespaces == false ? true : false
-  compute_cluster_create_complete  = module.compute_cluster_configuration.compute_cluster_create_complete
-  storage_cluster_create_complete  = module.storage_cluster_configuration.storage_cluster_create_complete
-  combined_cluster_create_complete = module.combined_cluster_configuration.combined_cluster_create_complete
-  remote_mount_create_complete     = module.remote_mount_configuration.remote_mount_create_complete
-  depends_on                       = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
+  source                     = "../../../resources/common/ldap_configuration"
+  turn_on                    = local.enable_ldap
+  clone_path                 = var.scale_ansible_repo_clone_path
+  clone_complete             = module.prepare_ansible_configuration.clone_complete
+  create_scale_cluster       = var.create_scale_cluster
+  bastion_user               = jsonencode(var.bastion_user)
+  write_inventory_complete   = module.write_storage_cluster_inventory.write_inventory_complete
+  ldap_cluster_prefix        = var.resource_prefix
+  script_path                = format("%s/%s/resources/common/scripts/prepare_ldap_inv.py", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-cloud-install")
+  using_jumphost_connection  = var.using_jumphost_connection
+  bastion_instance_public_ip = var.bastion_instance_public_ip
+  bastion_ssh_private_key    = var.bastion_ssh_private_key
+  ldap_basedns               = var.ldap_basedns
+  ldap_admin_password        = var.ldap_admin_password
+  ldap_user_name             = var.ldap_user_name
+  ldap_user_password         = var.ldap_user_password
+  ldap_server                = jsonencode(one(module.ldap_instance[*].vsi_private_ip))
+  meta_private_key           = module.generate_ldap_instance_keys.private_key_content
+  depends_on                 = [module.ldap_instance]
 }
