@@ -115,6 +115,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
       - gpfs.gss.pmsensors
       - gpfs.gui
       - gpfs.java
+      - gpfs.nfs-ganesha
   tasks:
   - name: Check if scale packages are already installed
     shell: rpm -q "{{{{ item }}}}"
@@ -134,9 +135,6 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   collections:
      - ibm.spectrum_scale
   any_errors_fatal: true
-  vars:
-    - scale_version: "{{{{ scale_version }}}}"
-    - scale_install_localpkg_path: /opt/IBM/gpfs_cloud_rpms
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
   roles:
