@@ -241,6 +241,16 @@ module "ldap_instance_ingress_security_rule_wo_bastion" {
   source_security_group_id = [local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
 }
 
+data "ibm_is_ssh_key" "ldap_ssh_key" {
+  count = local.enable_ldap == true && var.ldap_instance_key_pair != null ? length(var.ldap_instance_key_pair) : 0
+  name  = var.ldap_instance_key_pair[count.index]
+}
+
+data "ibm_is_image" "ldap_instance_image" {
+  name  = var.ldap_vsi_osimage_name
+  count = var.ldap_basedns == null && var.ldap_server != null ? 0 : 1
+}
+
 module "ldap_instance" {
   count                = local.enable_ldap == true && var.ldap_server == "null" ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/ldap_vsi"
@@ -259,16 +269,6 @@ module "ldap_instance" {
   resource_tags        = var.scale_cluster_resource_tags
   ldap_admin_password  = var.ldap_admin_password
   ldap_basedns         = var.ldap_basedns
-}
-
-data "ibm_is_ssh_key" "ldap_ssh_key" {
-  count = local.enable_ldap == true && var.ldap_instance_key_pair != null ? length(var.ldap_instance_key_pair) : 0
-  name  = var.ldap_instance_key_pair[count.index]
-}
-
-data "ibm_is_image" "ldap_instance_image" {
-  name  = var.ldap_vsi_osimage_name
-  count = var.ldap_basedns == null && var.ldap_server != null ? 0 : 1
 }
 
 data "ibm_is_ssh_key" "compute_ssh_key" {
