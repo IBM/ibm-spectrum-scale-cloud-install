@@ -883,7 +883,7 @@ module "routing_table_routes" {
 
 module "client_configuration" {
   source                          = "../../../resources/common/client_configuration"
-  turn_on                         = (var.create_separate_namespaces == true && local.scale_ces_enabled == true) ? true : false
+  turn_on                         = (var.total_client_cluster_instances > 0 && var.create_separate_namespaces == true && local.scale_ces_enabled == true) ? true : false
   clone_complete                  = module.prepare_ansible_configuration.clone_complete
   create_scale_cluster            = var.create_scale_cluster
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
