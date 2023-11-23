@@ -3,6 +3,7 @@ output "vnet_id" {
   description = "The ID of the vnet."
 }
 
+/*
 output "resource_group_name" {
   value       = module.resource_group.resource_group_name
   description = "New resource group name"
@@ -32,3 +33,4 @@ output "compute_priv_dns_zone_name" {
   value       = module.compute_private_dns_zone.private_dns_zone_name
   description = "The dns zone for compute private zone."
 }
+*/

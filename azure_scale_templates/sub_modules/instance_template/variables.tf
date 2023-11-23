@@ -18,12 +18,12 @@ variable "subscription_id" {
   description = "The subscription ID to use."
 }
 
-variable "vnet_location" {
+variable "vpc_region" {
   type        = string
   description = "The location/region of the vnet to create. Examples are East US, West US, etc."
 }
 
-variable "vnet_availability_zones" {
+variable "vpc_availability_zones" {
   type        = list(string)
   description = "A list of availability zones ids in the region/location."
 }
@@ -77,17 +77,19 @@ variable "storage_cluster_ssh_public_key" {
   description = "The SSH public key to use to launch the storage cluster host."
 }
 
-variable "vnet_compute_cluster_private_subnets" {
+variable "vpc_compute_cluster_private_subnets" {
   type        = list(string)
   description = "List of IDs of compute cluster private subnets."
+  default     = null
 }
 
-variable "vnet_storage_cluster_private_subnets" {
+variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)
   description = "List of IDs of storage cluster private subnets."
+  default     = null
 }
 
-variable "compute_cluster_vm_size" {
+variable "compute_cluster_instance_type" {
   type        = string
   default     = "Standard_A2_v2"
   description = "Instance type to use for provisioning the compute cluster instances."
@@ -99,9 +101,9 @@ variable "using_rest_api_remote_mount" {
   description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
 }
 
-variable "storage_cluster_vm_size" {
+variable "storage_cluster_instance_type" {
   type        = string
-  default     = "Standard_A2_v2"
+  default     = "Standard_A8_v2"
   description = "Instance type to use for provisioning the storage cluster instances."
 }
 
@@ -135,7 +137,7 @@ variable "compute_cluster_os_disk_caching" {
   description = "Specifies the caching requirements for the OS Disk (Ex: None, ReadOnly and ReadWrite)."
 }
 
-variable "compute_cluster_os_storage_account_type" {
+variable "compute_boot_disk_type" {
   type        = string
   default     = "Standard_LRS"
   description = "Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS)."
@@ -177,7 +179,7 @@ variable "storage_cluster_os_disk_caching" {
   description = "Specifies the caching requirements for the OS Disk (Ex: None, ReadOnly and ReadWrite)."
 }
 
-variable "storage_cluster_os_storage_account_type" {
+variable "storage_boot_disk_type" {
   type        = string
   default     = "Standard_LRS"
   description = "Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS)."
@@ -195,13 +197,13 @@ variable "data_disks_per_storage_instance" {
   description = "Additional Data disks to attach per storage cluster instance."
 }
 
-variable "data_disk_size" {
+variable "block_device_volume_size" {
   type        = number
   default     = 500
   description = "Size of the volume in gibibytes (GB)."
 }
 
-variable "data_disk_storage_account_type" {
+variable "block_device_volume_type" {
   type        = string
   default     = "Standard_LRS"
   description = "Type of storage to use for the managed disk (Ex: Standard_LRS, Premium_LRS, StandardSSD_LRS or UltraSSD_LRS)."
