@@ -189,9 +189,10 @@ module "compute_private_route_table" {
 }
 
 # NAT gateways attached to all storage private routes.
+# This is not required in a private only mode
 module "storage_private_route" {
   source          = "../../../resources/aws/network/route"
-  turn_on         = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on         = ((var.vpc_public_subnets_cidr_blocks != null) && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
   total_routes    = length(var.vpc_availability_zones)
   route_table_id  = module.storage_private_route_table.table_id
   dest_cidr_block = "0.0.0.0/0"
@@ -200,9 +201,10 @@ module "storage_private_route" {
 }
 
 # NAT gateways attached to all compute private routes.
+# This is not required in a private only mode
 module "compute_private_route" {
   source          = "../../../resources/aws/network/route"
-  turn_on         = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on         = ((var.vpc_public_subnets_cidr_blocks != null) && (local.cluster_type == "compute" || local.cluster_type == "combined")) ? true : false
   total_routes    = length(var.vpc_availability_zones)
   route_table_id  = module.compute_private_route_table.table_id
   dest_cidr_block = "0.0.0.0/0"
