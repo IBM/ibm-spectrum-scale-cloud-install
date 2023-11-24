@@ -191,7 +191,7 @@ variable "storage_cluster_login_username" {
   description = "The username of the local administrator used for the Virtual Machine."
 }
 
-variable "data_disks_per_storage_instance" {
+variable "block_devices_per_storage_instance" {
   type        = number
   default     = 1
   description = "Additional Data disks to attach per storage cluster instance."
@@ -319,4 +319,46 @@ variable "os_diff_disk" {
   nullable    = true
   default     = "CacheDisk"
   description = "Ephemeral OS disk placement option, possible values: CacheDisk, ResourceDisk"
+}
+
+variable "create_remote_mount_cluster" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup."
+}
+
+variable "bastion_instance_public_ip" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion instance public ip address."
+}
+
+variable "bastion_instance_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion instance reference."
+}
+
+variable "scratch_devices_per_storage_instance" {
+  type        = number
+  nullable    = true
+  default     = 0
+  description = "Number of scratch disks to be attached to each storage instance."
+}
+
+variable "using_jumphost_connection" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+}
+
+variable "bastion_ssh_private_key" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Bastion SSH private key path, which will be used to login to bastion host."
 }

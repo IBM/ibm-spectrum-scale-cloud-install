@@ -91,3 +91,7 @@ output "instance_private_ips" {
 output "instance_ids" {
   value = azurerm_linux_virtual_machine.itself.id
 }
+
+output "instance_dns_name" {
+  value = "${azurerm_network_interface.itself.name}.${azurerm_network_interface.itself.internal_domain_name_suffix}"
+}

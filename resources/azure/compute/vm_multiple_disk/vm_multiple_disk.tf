@@ -131,3 +131,7 @@ output "instance_ids" {
 output "instance_ips_with_data_mapping" {
   value = { (azurerm_linux_virtual_machine.itself.private_ip_address) = slice(var.data_disk_device_names, 0, var.data_disks_per_storage_instance) }
 }
+
+output "instance_dns_name" {
+  value = "${azurerm_network_interface.itself.name}.${azurerm_network_interface.itself.internal_domain_name_suffix}"
+}

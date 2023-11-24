@@ -29,18 +29,17 @@ output "bastion_user" {
   description = "Bastion OS Login username."
 }
 
-/*
 output "storage_cluster_desc_instance_ids" {
-  value       = module.storage_cluster_tie_breaker_instance.instance_ids
+  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids]
   description = "Storage cluster desc instance id."
 }
 
 output "storage_cluster_desc_instance_private_ips" {
-  value       = module.storage_cluster_tie_breaker_instance.instance_private_ips
+  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
   description = "Private IP address of storage cluster desc instance."
 }
 
 output "storage_cluster_desc_data_volume_mapping" {
-  value       = module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping
+  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ips_with_data_mapping]
   description = "Mapping of storage cluster desc instance ip vs. device path."
-}*/
+}
