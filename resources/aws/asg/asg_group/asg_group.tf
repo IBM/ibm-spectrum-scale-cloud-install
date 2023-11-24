@@ -44,36 +44,6 @@ resource "aws_autoscaling_group" "itself" {
   }
 }
 
-data "aws_instances" "itself" {
-  depends_on = [aws_autoscaling_group.itself]
-
-  instance_tags = {
-    Name = var.asg_tags["value"]
-  }
-}
-
-data "aws_instance" "itself" {
-  count       = var.asg_desired_size
-  depends_on  = [data.aws_instances.itself]
-  instance_id = data.aws_instances.itself.ids[count.index]
-}
-
-output "asg_id" {
-  value = aws_autoscaling_group.itself[*].id
-}
-
 output "asg_arn" {
   value = aws_autoscaling_group.itself[*].arn
-}
-
-output "asg_instance_id" {
-  value = data.aws_instance.itself[*].id
-}
-
-output "asg_instance_public_ip" {
-  value = data.aws_instance.itself[*].public_ip
-}
-
-output "asg_instance_private_ip" {
-  value = data.aws_instance.itself[*].private_ip
 }
