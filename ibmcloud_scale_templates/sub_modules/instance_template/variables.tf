@@ -405,7 +405,7 @@ variable "protocol_vsi_profile" {
 variable "total_protocol_cluster_instances" {
   type        = number
   default     = 2
-  description = "protocol nodes"
+  description = "Total number of protocol nodes that you need to provision. A minimum of 2 nodes and a maximum of 16 nodes are supported"
 }
 
 variable "filesets" {
@@ -414,7 +414,7 @@ variable "filesets" {
     size       = number
   }))
   default     = [{ mount_path = "/mnt/binaries", size = 0 }, { mount_path = "/mnt/data", size = 0 }]
-  description = "Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares."
+  description = "Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 file shares."
 }
 
 # Client Cluster Variables
@@ -422,13 +422,13 @@ variable "filesets" {
 variable "total_client_cluster_instances" {
   type        = number
   default     = 2
-  description = "Client cluster node counts"
+  description = "Total number of client cluster instances that you need to provision. A minimum of 2 nodes and a maximum of 64 nodes are supported"
 }
 
 variable "client_vsi_osimage_name" {
   type        = string
   default     = "ibm-redhat-8-8-minimal-amd64-2"
-  description = "Image name to use for provisioning the client cluster instances."
+  description = "Name of the image that you would like to use to create the client cluster nodes for the IBM Storage Scale cluster. The solution supports only stock images that use RHEL8.8 version."
 }
 
 variable "client_vsi_profile" {

@@ -87,7 +87,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Provide the username for Bastion login. | `string` |
 | <a name="input_client_cluster_key_pair"></a> [client_cluster_key_pair](#input_client_cluster_key_pair) | The key pair to use to launch the client cluster host. | `list(string)` |
-| <a name="input_client_vsi_osimage_name"></a> [client_vsi_osimage_name](#input_client_vsi_osimage_name) | Image name to use for provisioning the client cluster instances. | `string` |
+| <a name="input_client_vsi_osimage_name"></a> [client_vsi_osimage_name](#input_client_vsi_osimage_name) | Name of the image that you would like to use to create the client cluster nodes for the IBM Storage Scale cluster. The solution supports only stock images that use RHEL8.8 version. | `string` |
 | <a name="input_client_vsi_profile"></a> [client_vsi_profile](#input_client_vsi_profile) | Client nodes vis profile | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_key_pair"></a> [compute_cluster_key_pair](#input_compute_cluster_key_pair) | The key pair to use to launch the compute cluster host. | `list(string)` |
@@ -97,7 +97,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
 | <a name="input_create_separate_namespaces"></a> [create_separate_namespaces](#input_create_separate_namespaces) | Flag to select if separate namespace needs to be created for compute instances. | `bool` |
 | <a name="input_deploy_controller_sec_group_id"></a> [deploy_controller_sec_group_id](#input_deploy_controller_sec_group_id) | Deployment controller security group id. Default: null | `string` |
-| <a name="input_filesets"></a> [filesets](#input_filesets) | Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 shares. | <pre>list(object({<br>    mount_path = string,<br>    size       = number<br>  }))</pre> |
+| <a name="input_filesets"></a> [filesets](#input_filesets) | Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 file shares. | <pre>list(object({<br>    mount_path = string,<br>    size       = number<br>  }))</pre> |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
 | <a name="input_gklm_instance_dns_domain"></a> [gklm_instance_dns_domain](#input_gklm_instance_dns_domain) | IBM Cloud DNS domain name to be used for GKLM instances. | `string` |
 | <a name="input_gklm_instance_dns_service_id"></a> [gklm_instance_dns_service_id](#input_gklm_instance_dns_service_id) | IBM Cloud GKLM Instance DNS service resource id. | `string` |
@@ -132,10 +132,10 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_storage_vsi_osimage_id"></a> [storage_vsi_osimage_id](#input_storage_vsi_osimage_id) | Image id to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_osimage_name"></a> [storage_vsi_osimage_name](#input_storage_vsi_osimage_name) | Image name to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_profile"></a> [storage_vsi_profile](#input_storage_vsi_profile) | Profile to be used for storage cluster virtual server instance. | `string` |
-| <a name="input_total_client_cluster_instances"></a> [total_client_cluster_instances](#input_total_client_cluster_instances) | Client cluster node counts | `number` |
+| <a name="input_total_client_cluster_instances"></a> [total_client_cluster_instances](#input_total_client_cluster_instances) | Total number of client cluster instances that you need to provision. A minimum of 2 nodes and a maximum of 64 nodes are supported | `number` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of instances to be launched for compute cluster. | `number` |
 | <a name="input_total_gklm_instances"></a> [total_gklm_instances](#input_total_gklm_instances) | Number of instances to be launched for GKLM. | `number` |
-| <a name="input_total_protocol_cluster_instances"></a> [total_protocol_cluster_instances](#input_total_protocol_cluster_instances) | protocol nodes | `number` |
+| <a name="input_total_protocol_cluster_instances"></a> [total_protocol_cluster_instances](#input_total_protocol_cluster_instances) | Total number of protocol nodes that you need to provision. A minimum of 2 nodes and a maximum of 16 nodes are supported | `number` |
 | <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of instances to be launched for storage cluster. | `number` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | If true, will skip the jump/bastion host configuration. | `bool` |
 | <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
