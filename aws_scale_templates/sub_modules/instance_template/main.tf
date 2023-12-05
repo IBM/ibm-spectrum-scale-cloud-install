@@ -563,6 +563,36 @@ module "gateway_autoscaling_group" {
   asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "gateway-asg") })
 }
 
+# Below module creates a protocol(s) autoscaling launch template
+module "protocol_autoscaling_launch_template" {
+  source                      = "../../../resources/aws/asg/launch_template"
+  turn_on                     = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  launch_template_name_prefix = format("%s-%s", var.resource_prefix, "protocol-launch-tmpl")
+  image_id                    = var.storage_cluster_image_ref
+  instance_type               = var.protocol_instance_type
+  instance_iam_profile        = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  enable_userdata             = true
+  enable_public_ip_address    = false
+  meta_private_key            = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key             = module.generate_storage_cluster_keys.public_key_content
+  key_name                    = var.storage_cluster_key_pair
+  sec_groups                  = [module.storage_cluster_security_group.sec_group_id]
+}
+
+# Below module creates a protocol autoscaling group
+module "protocol_autoscaling_group" {
+  source                     = "../../../resources/aws/asg/asg_group"
+  turn_on                    = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  asg_name_prefix            = format("%s-%s", var.resource_prefix, "protocol")
+  asg_launch_template_id     = module.protocol_autoscaling_launch_template.asg_launch_template_id
+  asg_max_size               = var.protocol_instance_asg_max_size
+  asg_min_size               = var.protocol_instance_asg_min_size
+  asg_desired_size           = (local.cluster_type == "storage" || local.cluster_type == "combined") ? var.protocol_instance_asg_desired_size : 0
+  auto_scaling_group_subnets = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
+  asg_suspend_processes      = ["AZRebalance"]
+  asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "gateway-asg") })
+}
+
 module "prepare_ansible_configuration" {
   source     = "../../../resources/common/git_utils"
   turn_on    = (var.airgap == true) ? false : true # Disable git module in airgap mode.

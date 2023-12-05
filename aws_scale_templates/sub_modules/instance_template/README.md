@@ -269,6 +269,10 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_operator_email"></a> [operator_email](#input_operator_email) | SNS notifications will be sent to provided email id. | `string` |
+| <a name="input_protocol_instance_asg_desired_size"></a> [protocol_instance_asg_desired_size](#input_protocol_instance_asg_desired_size) | Protocol Instance autoscaling group desired size. | `number` |
+| <a name="input_protocol_instance_asg_max_size"></a> [protocol_instance_asg_max_size](#input_protocol_instance_asg_max_size) | Protocol Instance autoscaling group maximum size. | `number` |
+| <a name="input_protocol_instance_asg_min_size"></a> [protocol_instance_asg_min_size](#input_protocol_instance_asg_min_size) | Protocol instance autoscaling group minimum size. | `number` |
+| <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
@@ -309,6 +313,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="output_gateway_instance_autoscaling_group_id"></a> [gateway_instance_autoscaling_group_id](#output_gateway_instance_autoscaling_group_id) | Gateway instances autoscaling group id. |
 | <a name="output_instance_iam_profile"></a> [instance_iam_profile](#output_instance_iam_profile) | n/a |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | Placement group id. |
+| <a name="output_protocol_instance_autoscaling_group_id"></a> [protocol_instance_autoscaling_group_id](#output_protocol_instance_autoscaling_group_id) | Protocol instances autoscaling group id. |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |

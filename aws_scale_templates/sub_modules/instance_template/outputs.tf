@@ -82,6 +82,11 @@ output "gateway_instance_autoscaling_group_id" {
   description = "Gateway instances autoscaling group id."
 }
 
+output "protocol_instance_autoscaling_group_id" {
+  value       = try(module.protocol_autoscaling_group.asg_id[0], null)
+  description = "Protocol instances autoscaling group id."
+}
+
 output "storage_cluster_instance_cidrs" {
   value = [for subnet in data.aws_subnet.vpc_storage_cluster_private_subnet_cidrs : subnet.cidr_block]
 }
