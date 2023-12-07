@@ -165,6 +165,34 @@ variable "gateway_instance_asg_desired_size" {
   description = "Gateway Instance autoscaling group desired size."
 }
 
+variable "protocol_instance_type" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the protocol instances."
+}
+
+variable "protocol_instance_asg_min_size" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Protocol instance autoscaling group minimum size."
+}
+
+variable "protocol_instance_asg_max_size" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Protocol Instance autoscaling group maximum size."
+}
+
+variable "protocol_instance_asg_desired_size" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Protocol Instance autoscaling group desired size."
+}
+
 variable "storage_cluster_tags" {
   type        = map(string)
   nullable    = true
