@@ -1,5 +1,5 @@
 source "googlecompute" "itself" {
-  account_file          = var.credential_json_path
+  credentials_json      = var.credential_json_path
   disk_size             = var.volume_size
   disk_type             = var.volume_type
   source_image          = var.source_image_reference
