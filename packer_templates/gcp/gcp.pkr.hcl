@@ -9,7 +9,7 @@ source "googlecompute" "itself" {
   project_id            = var.project_id
   region                = var.vpc_region
   source_image_family   = var.source_image_family
-  ssh_username          = var.os_login_username
+  ssh_username          = var.ssh_username
   zone                  = var.vpc_zone
   network               = var.vpc_id
   subnetwork            = var.vpc_subnet_id

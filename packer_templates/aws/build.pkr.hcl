@@ -4,6 +4,19 @@ build {
   provisioner "shell" {
     inline = [
       "sleep 30",
+      "if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release;",
+      "then",
+      "sudo apt install unzip",
+      "sudo curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip",
+      "sudo unzip awscliv2.zip",
+      "sudo ./aws/install",
+      "sudo rm -rf awscliv2.zip",
+      "curl -sS http://\"${var.package_repository}\".s3-website.\"${var.vpc_region}\".amazonaws.com/\"${var.scale_version}\"/Public_Keys/                        Storage_Scale_public_key.pgp | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/scale.gpg",
+      "sudo ua detach --assume-yes",
+      "sudo rm -rf /var/log/ubuntu-advantage.log",
+      "sudo cloud-init clean --machine-id",
+      "elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release;",
+      "then",
       "sudo dnf install -y unzip python3 python3-pip jq numactl",
       "sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`",
       "sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils nftables iptables nvme-cli",
@@ -49,7 +62,8 @@ build {
       "sudo dnf clean all",
       "sudo rm -rf /var/cache/dnf",
       "sudo rm -rf /root/.bash_history",
-      "sudo rm -rf /home/ec2-user/.bash_history"
+      "sudo rm -rf /home/ec2-user/.bash_history",
+      "fi"
     ]
   }
 
