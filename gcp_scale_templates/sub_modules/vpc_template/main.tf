@@ -63,7 +63,7 @@ module "router" {
 
 module "compute_cloud_nat" {
   source            = "../../../resources/gcp/network/cloud_nat"
-  turn_on           = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on           = ((var.vpc_public_subnets_cidr_blocks != null) && (local.cluster_type == "compute" || local.cluster_type == "combined")) ? true : false
   nat_name          = format("%s-comp-pvt-%s", var.resource_prefix, "nat")
   router_name       = module.router.router_name
   private_subnet_id = module.compute_private_subnet.subnet_id
@@ -71,7 +71,7 @@ module "compute_cloud_nat" {
 
 module "storage_cloud_nat" {
   source            = "../../../resources/gcp/network/cloud_nat"
-  turn_on           = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on           = ((var.vpc_public_subnets_cidr_blocks != null) && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
   nat_name          = format("%s-strg-pvt-%s", var.resource_prefix, "nat")
   router_name       = module.router.router_name
   private_subnet_id = module.storage_private_subnet.subnet_id
