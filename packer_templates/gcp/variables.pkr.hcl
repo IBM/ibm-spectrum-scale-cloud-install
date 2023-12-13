@@ -10,25 +10,21 @@ variable "credential_json_path" {
 
 variable "vpc_region" {
   type        = string
-  default     = "us-central1"
   description = "The region where GCP operations will take place. Examples are us-central1, us-east1 etc."
 }
 
 variable "vpc_zone" {
   type        = string
-  default     = "us-central1-a"
   description = "The VPC zone you want to use for building image."
 }
 
-variable "vpc_id" {
+variable "vpc_ref" {
   type        = string
-  default     = null
   description = "The vpc network id or URL to use for the launched instance."
 }
 
 variable "vpc_subnet_id" {
   type        = string
-  default     = null
   description = "The vpc subnetwork id or URL to use for the launched instance."
 }
 
@@ -45,19 +41,16 @@ variable "image_description" {
 
 variable "instance_type" {
   type        = string
-  default     = "n1-standard-2"
   description = "The GCP VM machine type to use while building the image."
 }
 
 variable "source_image_reference" {
   type        = string
-  default     = "rhel-8-v20230202"
   description = "The source image name used to create instance."
 }
 
 variable "source_image_family" {
   type        = string
-  default     = "rhel-8"
   description = "The source image family whose root volume will be copied and provisioned on the currently running instance."
 }
 
@@ -78,9 +71,8 @@ variable "volume_type" {
   description = "The volume type."
 }
 
-variable "os_login_username" {
+variable "ssh_username" {
   type        = string
-  default     = "gcpuser"
   description = "The username to login/connect to SSH with."
 }
 

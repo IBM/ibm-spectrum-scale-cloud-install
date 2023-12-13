@@ -29,7 +29,7 @@ build {
       "sudo sh -c \"echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc\"",
       "sudo rm -rf /etc/yum.repos.d/scale.repo",
       "sudo rm -rf /root/.bash_history",
-      "sudo rm -rf /home/${var.os_login_username}/.bash_history"
+      "sudo rm -rf /home/${var.ssh_username}/.bash_history"
     ]
   }
 

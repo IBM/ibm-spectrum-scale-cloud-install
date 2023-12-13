@@ -23,6 +23,11 @@ variable "resource_prefix" {
   description = "The name of the resulting AMI. To make this unique, timestamp will be appended."
 }
 
+variable "ssh_username" {
+  type        = string
+  description = "The username to connect to instance via SSH."
+}
+
 variable "image_description" {
   type        = string
   default     = "IBM Spectrum Scale AMI"
