@@ -43,12 +43,3 @@ module "bastion_autoscaling_group" {
   asg_desired_size  = var.desired_instance_count
   instance_template = module.bastion_autoscaling_launch_template.asg_launch_template_self_link
 }
-
-# Note: module.bastion_autoscaling_group.instances returns instances url which is not vaild to use neither
-# as instance id nor as instance name. Hence needed to apply trimsuffix operation to extract instance name
-data "google_compute_instance" "itself" {
-  count      = var.desired_instance_count
-  name       = ([for instance in module.bastion_autoscaling_group.instances : trimsuffix(element(split("/", instance), 10), "\"")])[count.index]
-  zone       = var.vpc_availability_zones[0]
-  depends_on = [module.bastion_autoscaling_group]
-}
