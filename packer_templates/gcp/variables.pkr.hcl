@@ -18,7 +18,7 @@ variable "vpc_zone" {
   description = "The VPC zone you want to use for building image."
 }
 
-variable "vpc_id" {
+variable "vpc_ref" {
   type        = string
   description = "The vpc network id or URL to use for the launched instance."
 }
