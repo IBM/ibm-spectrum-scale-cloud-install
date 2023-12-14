@@ -326,6 +326,35 @@ module "compute_cluster_instances" {
   depends_on                   = [module.compute_cluster_ingress_security_rule, module.compute_cluster_ingress_security_rule_wt_bastion, module.compute_cluster_ingress_security_rule_wo_bastion, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
+module "afm_cluster_instances" {
+  source                       = "../../../resources/ibmcloud/compute/vsi_0_vol"
+  total_vsis                   = var.total_afm_cluster_instances
+  vsi_name_prefix              = format("%s-afm", var.resource_prefix)
+  vpc_id                       = var.vpc_id
+  resource_group_id            = var.resource_group_id
+  zones                        = [var.vpc_availability_zones[0]]
+  vsi_image_id                 = local.storage_instance_image_id
+  vsi_profile                  = var.afm_vsi_profile
+  dns_domain                   = var.vpc_storage_cluster_dns_domain
+  dns_service_id               = var.vpc_storage_cluster_dns_service_id
+  dns_zone_id                  = var.vpc_storage_cluster_dns_zone_id
+  vsi_subnet_id                = var.vpc_storage_cluster_private_subnets
+  vsi_security_group           = [module.storage_cluster_security_group.sec_group_id]
+  vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
+  vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
+  vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
+  storage_domain_name          = var.vpc_storage_cluster_dns_domain
+  storage_dns_service_id       = var.vpc_storage_cluster_dns_service_id
+  storage_dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
+  storage_subnet_id            = var.vpc_storage_cluster_private_subnets
+  storage_sec_group            = [module.storage_cluster_security_group.sec_group_id]
+  enable_sec_interface_compute = false
+  scale_firewall_rules_enabled = false
+  resource_tags                = var.scale_cluster_resource_tags
+  depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
+
+}
+
 module "client_cluster_instances" {
   source                       = "../../../resources/ibmcloud/compute/vsi_0_vol"
   total_vsis                   = var.total_client_cluster_instances

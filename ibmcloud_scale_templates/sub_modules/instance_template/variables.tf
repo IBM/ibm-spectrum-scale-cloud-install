@@ -513,3 +513,15 @@ variable "ldap_vsi_osimage_name" {
   default     = "ibm-ubuntu-22-04-3-minimal-amd64-1"
   description = "Image name to be used for provisioning the LDAP instances."
 }
+
+variable "total_afm_cluster_instances" {
+  type        = number
+  default     = 1
+  description = "Total number of afm nodes that you need to provision."
+}
+
+variable "afm_vsi_profile" {
+  type        = string
+  default     = "cx2-2x4"
+  description = "The virtual server instance profile type name to be used to create the protocol cluster nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui)."
+}
