@@ -533,64 +533,44 @@ module "storage_cluster_tie_breaker_instance" {
   tags                                   = var.storage_cluster_tags
 }
 
-# Below module creates an AFM autoscaling launch template
-module "gateway_autoscaling_launch_template" {
-  source                      = "../../../resources/aws/asg/launch_template"
-  turn_on                     = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
-  launch_template_name_prefix = format("%s-%s", var.resource_prefix, "gateway-launch-tmpl")
-  image_id                    = var.storage_cluster_image_ref
-  instance_type               = var.gateway_instance_type
-  instance_iam_profile        = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  enable_userdata             = true
-  enable_public_ip_address    = false
-  meta_private_key            = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key             = module.generate_storage_cluster_keys.public_key_content
-  key_name                    = var.storage_cluster_key_pair
-  sec_groups                  = [module.storage_cluster_security_group.sec_group_id]
+module "gateway_instances" {
+  source                 = "../../../resources/aws/compute/ec2_0_vol"
+  instances_count        = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_gateway_instances : 0
+  name_prefix            = format("%s-gateway", var.resource_prefix)
+  ami_id                 = var.storage_cluster_image_ref
+  instance_type          = var.gateway_instance_type
+  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  placement_group        = null
+  subnet_ids             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
+  root_volume_type       = var.storage_cluster_root_volume_type
+  root_volume_encrypted  = var.block_device_encrypted
+  root_volume_kms_key_id = var.block_device_kms_key_ref
+  user_public_key        = var.storage_cluster_key_pair
+  meta_private_key       = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key        = module.generate_storage_cluster_keys.public_key_content
+  volume_tags            = var.gateway_volume_tags
+  tags                   = var.gateway_tags
 }
 
-# Below module creates an AFM autoscaling group
-module "gateway_autoscaling_group" {
-  source                     = "../../../resources/aws/asg/asg_group"
-  turn_on                    = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
-  asg_name_prefix            = format("%s-%s", var.resource_prefix, "gateway")
-  asg_launch_template_id     = module.gateway_autoscaling_launch_template.asg_launch_template_id
-  asg_max_size               = var.gateway_instance_asg_max_size
-  asg_min_size               = var.gateway_instance_asg_min_size
-  asg_desired_size           = (local.cluster_type == "storage" || local.cluster_type == "combined") ? var.gateway_instance_asg_desired_size : 0
-  auto_scaling_group_subnets = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
-  asg_suspend_processes      = ["AZRebalance"]
-  asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "gateway-asg") })
-}
-
-# Below module creates a protocol(s) autoscaling launch template
-module "protocol_autoscaling_launch_template" {
-  source                      = "../../../resources/aws/asg/launch_template"
-  turn_on                     = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
-  launch_template_name_prefix = format("%s-%s", var.resource_prefix, "protocol-launch-tmpl")
-  image_id                    = var.storage_cluster_image_ref
-  instance_type               = var.protocol_instance_type
-  instance_iam_profile        = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  enable_userdata             = true
-  enable_public_ip_address    = false
-  meta_private_key            = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key             = module.generate_storage_cluster_keys.public_key_content
-  key_name                    = var.storage_cluster_key_pair
-  sec_groups                  = [module.storage_cluster_security_group.sec_group_id]
-}
-
-# Below module creates a protocol autoscaling group
-module "protocol_autoscaling_group" {
-  source                     = "../../../resources/aws/asg/asg_group"
-  turn_on                    = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
-  asg_name_prefix            = format("%s-%s", var.resource_prefix, "protocol")
-  asg_launch_template_id     = module.protocol_autoscaling_launch_template.asg_launch_template_id
-  asg_max_size               = var.protocol_instance_asg_max_size
-  asg_min_size               = var.protocol_instance_asg_min_size
-  asg_desired_size           = (local.cluster_type == "storage" || local.cluster_type == "combined") ? var.protocol_instance_asg_desired_size : 0
-  auto_scaling_group_subnets = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
-  asg_suspend_processes      = ["AZRebalance"]
-  asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "gateway-asg") })
+module "protocol_instances" {
+  source                 = "../../../resources/aws/compute/ec2_0_vol"
+  instances_count        = local.cluster_type == "storage" || local.cluster_type == "combined" ? var.total_protocol_instances : 0
+  name_prefix            = format("%s-protocol", var.resource_prefix)
+  ami_id                 = var.storage_cluster_image_ref
+  instance_type          = var.protocol_instance_type
+  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  placement_group        = null
+  subnet_ids             = var.vpc_storage_cluster_private_subnets != null ? (length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets) : null
+  root_volume_type       = var.storage_cluster_root_volume_type
+  root_volume_encrypted  = var.block_device_encrypted
+  root_volume_kms_key_id = var.block_device_kms_key_ref
+  user_public_key        = var.storage_cluster_key_pair
+  meta_private_key       = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key        = module.generate_storage_cluster_keys.public_key_content
+  volume_tags            = var.protocol_volume_tags
+  tags                   = var.protocol_tags
 }
 
 module "prepare_ansible_configuration" {
