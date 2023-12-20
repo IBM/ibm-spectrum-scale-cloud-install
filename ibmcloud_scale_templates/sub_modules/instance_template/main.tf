@@ -644,6 +644,8 @@ module "write_compute_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = jsonencode({})
+  afm_existing_cos_details                         = jsonencode([])
+  afm_cos_config_details                           = jsonencode([])
 }
 
 module "write_storage_cluster_inventory" {
@@ -690,6 +692,8 @@ module "write_storage_cluster_inventory" {
   mountpoint                                       = local.scale_ces_enabled == true ? jsonencode(var.storage_cluster_filesystem_mountpoint) : jsonencode("")
   protocol_gateway_ip                              = local.scale_ces_enabled == true ? jsonencode(local.protocol_subnet_gateway_ip) : jsonencode("")
   filesets                                         = jsonencode(local.fileset_size_map)
+  afm_existing_cos_details                         = jsonencode(var.afm_existing_cos_details)
+  afm_cos_config_details                           = jsonencode(var.afm_cos_config_details)
 }
 
 module "write_cluster_inventory" {
@@ -736,6 +740,8 @@ module "write_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = jsonencode({})
+  afm_existing_cos_details                         = jsonencode([])
+  afm_cos_config_details                           = jsonencode([])
 }
 
 module "write_client_cluster_inventory" {
@@ -782,6 +788,8 @@ module "write_client_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = local.scale_ces_enabled == true ? jsonencode(local.fileset_size_map) : jsonencode({})
+  afm_existing_cos_details                         = jsonencode([])
+  afm_cos_config_details                           = jsonencode([])
 }
 
 module "compute_cluster_configuration" {

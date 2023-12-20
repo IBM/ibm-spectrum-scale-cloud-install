@@ -525,3 +525,23 @@ variable "afm_vsi_profile" {
   default     = "cx2-2x4"
   description = "The virtual server instance profile type name to be used to create the protocol cluster nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui)."
 }
+
+variable "afm_existing_cos_details" {
+  type = list(object({
+    bucket = string,
+    akey   = string,
+    akey   = string,
+  }))
+  description = "Existing Bucket name, access and secret key"
+}
+
+variable "afm_cos_config_details" {
+  type = list(object({
+    bucket     = string,
+    filesystem = string,
+    fileset    = string,
+    endpoint   = string,
+    mode       = string
+  }))
+  description = "Existing Bucket name and config details"
+}
