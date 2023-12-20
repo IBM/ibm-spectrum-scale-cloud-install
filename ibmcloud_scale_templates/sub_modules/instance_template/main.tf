@@ -575,10 +575,10 @@ locals {
   storage_instance_private_ips        = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map)) : []
   storage_instance_private_dns_ip_map = var.storage_type != "persistent" ? one(module.storage_cluster_instances[*].instance_private_dns_ip_map) : {}
 
-  storage_cluster_instance_ids                = local.scale_ces_enabled == false ? local.storage_instance_ids : concat(local.storage_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)))
-  storage_cluster_instance_names              = local.scale_ces_enabled == false ? local.storage_instance_names : concat(local.storage_instance_names, keys(one(module.protocol_cluster_instances[*].instance_name_id_map)))
-  storage_cluster_instance_private_ips        = local.scale_ces_enabled == false ? local.storage_instance_private_ips : concat(local.storage_instance_private_ips, values(one(module.protocol_cluster_instances[*].instance_name_ip_map)))
-  storage_cluster_instance_private_dns_ip_map = local.scale_ces_enabled == false ? local.storage_instance_private_dns_ip_map : merge(local.storage_instance_private_dns_ip_map, one(module.protocol_cluster_instances[*].instance_private_dns_ip_map))
+  storage_cluster_instance_ids                = local.scale_ces_enabled == false ? local.storage_instance_ids : concat(local.storage_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)), values(module.afm_cluster_instances.instance_name_id_map))
+  storage_cluster_instance_names              = local.scale_ces_enabled == false ? local.storage_instance_names : concat(local.storage_instance_names, keys(one(module.protocol_cluster_instances[*].instance_name_id_map)), keys(module.afm_cluster_instances.instance_name_id_map))
+  storage_cluster_instance_private_ips        = local.scale_ces_enabled == false ? local.storage_instance_private_ips : concat(local.storage_instance_private_ips, values(one(module.protocol_cluster_instances[*].instance_name_ip_map)), values(module.afm_cluster_instances.instance_name_ip_map))
+  storage_cluster_instance_private_dns_ip_map = local.scale_ces_enabled == false ? local.storage_instance_private_dns_ip_map : merge(local.storage_instance_private_dns_ip_map, one(module.protocol_cluster_instances[*].instance_private_dns_ip_map), module.afm_cluster_instances.instance_private_dns_ip_map)
 
   baremetal_instance_ids                = var.storage_type == "persistent" ? values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
   baremetal_instance_names              = var.storage_type == "persistent" ? keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
@@ -646,6 +646,7 @@ module "write_compute_cluster_inventory" {
   filesets                                         = jsonencode({})
   afm_existing_cos_details                         = jsonencode([])
   afm_cos_config_details                           = jsonencode([])
+  afm_cluster_instance_names                       = jsonencode([])
 }
 
 module "write_storage_cluster_inventory" {
@@ -694,6 +695,7 @@ module "write_storage_cluster_inventory" {
   filesets                                         = jsonencode(local.fileset_size_map)
   afm_existing_cos_details                         = jsonencode(var.afm_existing_cos_details)
   afm_cos_config_details                           = jsonencode(var.afm_cos_config_details)
+  afm_cluster_instance_names                       = jsonencode(keys(module.afm_cluster_instances.instance_name_id_map))
 }
 
 module "write_cluster_inventory" {
@@ -742,6 +744,7 @@ module "write_cluster_inventory" {
   filesets                                         = jsonencode({})
   afm_existing_cos_details                         = jsonencode([])
   afm_cos_config_details                           = jsonencode([])
+  afm_cluster_instance_names                       = jsonencode([])
 }
 
 module "write_client_cluster_inventory" {
@@ -790,6 +793,7 @@ module "write_client_cluster_inventory" {
   filesets                                         = local.scale_ces_enabled == true ? jsonencode(local.fileset_size_map) : jsonencode({})
   afm_existing_cos_details                         = jsonencode([])
   afm_cos_config_details                           = jsonencode([])
+  afm_cluster_instance_names                       = jsonencode([])
 }
 
 module "compute_cluster_configuration" {

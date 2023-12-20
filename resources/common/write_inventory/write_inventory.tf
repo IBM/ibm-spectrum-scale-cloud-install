@@ -46,6 +46,7 @@ variable "protocol_gateway_ip" {}
 variable "filesets" {}
 variable "afm_existing_cos_details" {}
 variable "afm_cos_config_details" {}
+variable "afm_cluster_instance_names" {}
 
 resource "local_sensitive_file" "itself" {
   count    = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
@@ -91,7 +92,8 @@ resource "local_sensitive_file" "itself" {
     "protocol_gateway_ip": ${var.protocol_gateway_ip},
     "filesets": ${var.filesets},
     "afm_existing_cos_details": ${var.afm_existing_cos_details},
-    "afm_cos_config_details": ${var.afm_cos_config_details}
+    "afm_cos_config_details": ${var.afm_cos_config_details},
+    "afm_cluster_instance_names": ${var.afm_cluster_instance_names}
 }
 EOT
   filename = var.inventory_path
