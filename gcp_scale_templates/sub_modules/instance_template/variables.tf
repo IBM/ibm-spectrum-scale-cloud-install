@@ -405,3 +405,31 @@ variable "vpc_storage_cluster_dns_domain" { # equivalent to DNS name
   default     = "strgscale.com"
   description = "GCP Cloud DNS domain name to be used for storage cluster."
 }
+
+variable "gateway_instance_type" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the gateway instances."
+}
+
+variable "total_gateway_instances" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Number of EC2 instances to be launched for gateway nodes."
+}
+
+variable "protocol_instance_type" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the protocol instances."
+}
+
+variable "total_protocol_instances" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Number of EC2 instances to be launched for protocol nodes."
+}
