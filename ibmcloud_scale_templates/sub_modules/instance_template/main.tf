@@ -28,6 +28,7 @@ locals {
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
   enable_ldap                  = var.ldap_basedns != "null" ? true : false
   ldap_server                  = var.ldap_server != null ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
+  enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
 }
 
 module "generate_compute_cluster_keys" {
@@ -827,6 +828,7 @@ module "compute_cluster_configuration" {
   ldap_basedns                    = var.ldap_basedns
   ldap_server                     = local.ldap_server
   ldap_admin_password             = var.ldap_admin_password
+  enable_afm                      = local.enable_afm
   depends_on                      = [module.ldap_configuration]
 }
 
@@ -868,6 +870,7 @@ module "storage_cluster_configuration" {
   ldap_basedns                    = var.ldap_basedns
   ldap_server                     = local.ldap_server
   ldap_admin_password             = var.ldap_admin_password
+  enable_afm                      = local.enable_afm
   depends_on                      = [module.ldap_configuration]
 }
 
