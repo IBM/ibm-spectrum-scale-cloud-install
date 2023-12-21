@@ -144,25 +144,25 @@ variable "gateway_instance_type" {
   description = "Instance type to use for provisioning the gateway instances."
 }
 
-variable "gateway_instance_asg_min_size" {
+variable "total_gateway_instances" {
   type        = number
   nullable    = true
   default     = null
-  description = "Gateway instance autoscaling group minimum size."
+  description = "Number of EC2 instances to be launched for gateway nodes."
 }
 
-variable "gateway_instance_asg_max_size" {
-  type        = number
+variable "gateway_volume_tags" {
+  type        = map(string)
   nullable    = true
   default     = null
-  description = "Gateway Instance autoscaling group maximum size."
+  description = "Additional tags for the gateway volume(s)."
 }
 
-variable "gateway_instance_asg_desired_size" {
-  type        = number
+variable "gateway_tags" {
+  type        = map(string)
   nullable    = true
   default     = null
-  description = "Gateway Instance autoscaling group desired size."
+  description = "Additional tags for the gateway instances."
 }
 
 variable "protocol_instance_type" {
@@ -172,25 +172,25 @@ variable "protocol_instance_type" {
   description = "Instance type to use for provisioning the protocol instances."
 }
 
-variable "protocol_instance_asg_min_size" {
+variable "total_protocol_instances" {
   type        = number
   nullable    = true
   default     = null
-  description = "Protocol instance autoscaling group minimum size."
+  description = "Number of EC2 instances to be launched for protocol nodes."
 }
 
-variable "protocol_instance_asg_max_size" {
-  type        = number
+variable "protocol_volume_tags" {
+  type        = map(string)
   nullable    = true
   default     = null
-  description = "Protocol Instance autoscaling group maximum size."
+  description = "Additional tags for the protocol volume(s)."
 }
 
-variable "protocol_instance_asg_desired_size" {
-  type        = number
+variable "protocol_tags" {
+  type        = map(string)
   nullable    = true
   default     = null
-  description = "Protocol Instance autoscaling group desired size."
+  description = "Additional tags for the protocol instances."
 }
 
 variable "storage_cluster_tags" {

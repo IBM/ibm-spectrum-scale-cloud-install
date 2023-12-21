@@ -377,6 +377,20 @@ variable "create_clouddns" {
   description = "Indicates whether to create new cloud DNS zones or reuse existing DNS zones."
 }
 
+variable "vpc_compute_cluster_private_subnets_cidr_block" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "cidr_block of compute private subnet."
+}
+
+variable "vpc_storage_cluster_private_subnets_cidr_block" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "cidr_block of storage private subnet."
+}
+
 variable "vpc_forward_dns_zone" {
   type        = string
   nullable    = true
@@ -404,4 +418,32 @@ variable "vpc_storage_cluster_dns_domain" { # equivalent to DNS name
   type        = string
   default     = "strgscale.com"
   description = "GCP Cloud DNS domain name to be used for storage cluster."
+}
+
+variable "gateway_instance_type" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the gateway instances."
+}
+
+variable "total_gateway_instances" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Number of EC2 instances to be launched for gateway nodes."
+}
+
+variable "protocol_instance_type" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the protocol instances."
+}
+
+variable "total_protocol_instances" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Number of EC2 instances to be launched for protocol nodes."
 }

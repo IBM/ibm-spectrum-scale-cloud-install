@@ -77,14 +77,24 @@ output "compute_cluster_security_group_id" {
   description = "Compute cluster security group id."
 }
 
-output "gateway_instance_autoscaling_group_id" {
-  value       = try(module.gateway_autoscaling_group.asg_id[0], null)
-  description = "Gateway instances autoscaling group id."
+output "gateway_instance_ids" {
+  value       = module.gateway_instances.instance_ids
+  description = "Gateway instance ids."
 }
 
-output "protocol_instance_autoscaling_group_id" {
-  value       = try(module.protocol_autoscaling_group.asg_id[0], null)
-  description = "Protocol instances autoscaling group id."
+output "gateway_instance_private_ips" {
+  value       = module.gateway_instances.instance_private_ips
+  description = "Private IP address of gateway instances."
+}
+
+output "protocol_instance_ids" {
+  value       = module.protocol_instances.instance_ids
+  description = "Protocol instance ids."
+}
+
+output "protocol_instance_private_ips" {
+  value       = module.protocol_instances.instance_private_ips
+  description = "Private IP address of protocol instances."
 }
 
 output "storage_cluster_instance_cidrs" {

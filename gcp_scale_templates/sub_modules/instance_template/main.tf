@@ -31,18 +31,6 @@ module "generate_storage_cluster_keys" {
   turn_on = var.total_storage_cluster_instances != null ? true : false
 }
 
-# Obtain the storage cluster/vm cidr range
-data "google_compute_subnetwork" "storage_cluster" {
-  count     = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 0 ? length(var.vpc_storage_cluster_private_subnets) : 0 : 0
-  self_link = var.vpc_storage_cluster_private_subnets[count.index]
-}
-
-# Obtain the compute cluster/vm cidr range
-data "google_compute_subnetwork" "compute_cluster" {
-  count     = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) > 0 ? length(var.vpc_compute_cluster_private_subnets) : 0 : 0
-  self_link = var.vpc_compute_cluster_private_subnets[count.index]
-}
-
 # Allow scale/gpfs traffic within the scale vm(s)
 module "allow_traffic_within_scale_vms" {
   source               = "../../../resources/gcp/security/security_group_tag"
@@ -98,7 +86,7 @@ module "reverse_dns_zone" {
   # Prepare the reverse DNS zone name using first oclet of vpc.
   # Ex: vpc cidr = 10.0.0.0/24, then dns_name = 10.in-addr.arpa.
   # Trailing dot is required
-  dns_name    = format("%s.%s", try(split(".", cidrsubnet(local.cluster_type == "compute" ? data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range : data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  dns_name    = format("%s.%s", try(split(".", cidrsubnet(local.cluster_type == "compute" ? var.vpc_compute_cluster_private_subnets_cidr_block : var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   vpc_network = var.vpc_ref
   description = "Reverse Private DNS Zone for IBM Storage Scale instances DNS communication."
 }
@@ -161,7 +149,7 @@ module "compute_cluster_instances" {
   vpc_forward_dns_zone          = var.vpc_forward_dns_zone
   vpc_dns_domain                = var.vpc_compute_cluster_dns_domain
   vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_compute_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
   network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
@@ -244,7 +232,7 @@ module "storage_cluster_instances" {
   vpc_forward_dns_zone          = var.vpc_forward_dns_zone
   vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
   network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
@@ -313,7 +301,135 @@ module "storage_cluster_tie_breaker_instance" {
   vpc_forward_dns_zone          = var.vpc_forward_dns_zone
   vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
+  service_email                 = var.service_email
+  scopes                        = var.scopes
+  network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  depends_on                    = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
+}
+
+/*
+    Generate a list of gateway vm name(s).
+    Ex: vm_list = ["vm-1", "vm-2", "vm-3",]
+*/
+resource "null_resource" "generate_gateway_vm_name" {
+  count = (local.cluster_type == "storage" || local.cluster_type == "combined") ? (var.total_gateway_instances != null) ? var.total_gateway_instances : 0 : 0
+  triggers = {
+    vm_name = format("%s-gateway-%s", var.resource_prefix, count.index + 1)
+  }
+}
+
+/*
+    Generate a map using gateway vm name key and values of subnet and zone.
+    Ex:
+        gateway_vm_zone_map = {
+            "vm-1" = {
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-public-subnet-1"
+                "zone" = "us-central1-b"
+            }
+            "vm-2" = {
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-public-subnet-0"
+                "zone" = "us-central1-a"
+            }
+        }
+*/
+locals {
+  gateway_vm_zone_map = {
+    for idx, vm_name in resource.null_resource.generate_gateway_vm_name[*].triggers.vm_name :
+    vm_name => {
+      zone   = element(var.vpc_availability_zones, idx)
+      subnet = element(var.vpc_storage_cluster_private_subnets, idx)
+    }
+  }
+}
+
+module "gateway_instances" {
+  for_each                      = local.gateway_vm_zone_map
+  source                        = "../../../resources/gcp/compute/vm_instance_0_disk"
+  instance_name                 = each.key
+  zone                          = each.value["zone"]
+  subnet_name                   = each.value["subnet"]
+  vpc_region                    = var.vpc_region
+  is_multizone                  = length(var.vpc_availability_zones) > 1 ? true : false
+  machine_type                  = var.gateway_instance_type
+  boot_disk_size                = var.storage_boot_disk_size
+  boot_disk_type                = var.storage_boot_disk_type
+  boot_image                    = var.storage_cluster_image_ref
+  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref # Root volume custom encryption
+  block_device_kms_key_ref      = var.block_device_kms_key_ref      # Root volume custom encryption
+  ssh_user_name                 = var.instances_ssh_user_name
+  ssh_public_key_path           = var.storage_cluster_public_key_path
+  private_key_content           = module.generate_storage_cluster_keys.private_key_content
+  public_key_content            = module.generate_storage_cluster_keys.public_key_content
+  use_clouddns                  = var.use_clouddns
+  vpc_forward_dns_zone          = var.vpc_forward_dns_zone
+  vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
+  vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
+  service_email                 = var.service_email
+  scopes                        = var.scopes
+  network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  depends_on                    = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
+}
+
+/*
+    Generate a list of protocol vm name(s).
+    Ex: vm_list = ["vm-1", "vm-2", "vm-3",]
+*/
+resource "null_resource" "generate_protocol_vm_name" {
+  count = (local.cluster_type == "storage" || local.cluster_type == "combined") ? (var.total_protocol_instances != null) ? var.total_protocol_instances : 0 : 0
+  triggers = {
+    vm_name = format("%s-protocol-%s", var.resource_prefix, count.index + 1)
+  }
+}
+
+/*
+    Generate a map using protocol vm name key and values of subnet and zone.
+    Ex:
+        protocol_vm_zone_map = {
+            "vm-1" = {
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-public-subnet-1"
+                "zone" = "us-central1-b"
+            }
+            "vm-2" = {
+                "subnet" = "https://www.googleapis.com/compute/v1/projects/spectrum-scale-xyz/regions/us-central1/subnetworks/test-public-subnet-0"
+                "zone" = "us-central1-a"
+            }
+        }
+*/
+locals {
+  protocol_vm_zone_map = {
+    for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
+    vm_name => {
+      zone   = element(var.vpc_availability_zones, idx)
+      subnet = element(var.vpc_storage_cluster_private_subnets, idx)
+    }
+  }
+}
+
+module "protocol_instances" {
+  for_each                      = local.protocol_vm_zone_map
+  source                        = "../../../resources/gcp/compute/vm_instance_0_disk"
+  instance_name                 = each.key
+  zone                          = each.value["zone"]
+  subnet_name                   = each.value["subnet"]
+  vpc_region                    = var.vpc_region
+  is_multizone                  = length(var.vpc_availability_zones) > 1 ? true : false
+  machine_type                  = var.protocol_instance_type
+  boot_disk_size                = var.storage_boot_disk_size
+  boot_disk_type                = var.storage_boot_disk_type
+  boot_image                    = var.storage_cluster_image_ref
+  block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref # Root volume custom encryption
+  block_device_kms_key_ref      = var.block_device_kms_key_ref      # Root volume custom encryption
+  ssh_user_name                 = var.instances_ssh_user_name
+  ssh_public_key_path           = var.storage_cluster_public_key_path
+  private_key_content           = module.generate_storage_cluster_keys.private_key_content
+  public_key_content            = module.generate_storage_cluster_keys.public_key_content
+  use_clouddns                  = var.use_clouddns
+  vpc_forward_dns_zone          = var.vpc_forward_dns_zone
+  vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
+  vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
   network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
