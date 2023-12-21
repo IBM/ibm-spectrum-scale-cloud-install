@@ -377,6 +377,20 @@ variable "create_clouddns" {
   description = "Indicates whether to create new cloud DNS zones or reuse existing DNS zones."
 }
 
+variable "vpc_compute_cluster_private_subnets_cidr_block" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "cidr_block of compute private subnet."
+}
+
+variable "vpc_storage_cluster_private_subnets_cidr_block" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "cidr_block of storage private subnet."
+}
+
 variable "vpc_forward_dns_zone" {
   type        = string
   nullable    = true

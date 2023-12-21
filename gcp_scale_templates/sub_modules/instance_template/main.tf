@@ -31,18 +31,6 @@ module "generate_storage_cluster_keys" {
   turn_on = var.total_storage_cluster_instances != null ? true : false
 }
 
-# Obtain the storage cluster/vm cidr range
-data "google_compute_subnetwork" "storage_cluster" {
-  count     = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) > 0 ? length(var.vpc_storage_cluster_private_subnets) : 0 : 0
-  self_link = var.vpc_storage_cluster_private_subnets[count.index]
-}
-
-# Obtain the compute cluster/vm cidr range
-data "google_compute_subnetwork" "compute_cluster" {
-  count     = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) > 0 ? length(var.vpc_compute_cluster_private_subnets) : 0 : 0
-  self_link = var.vpc_compute_cluster_private_subnets[count.index]
-}
-
 # Allow scale/gpfs traffic within the scale vm(s)
 module "allow_traffic_within_scale_vms" {
   source               = "../../../resources/gcp/security/security_group_tag"
@@ -98,7 +86,7 @@ module "reverse_dns_zone" {
   # Prepare the reverse DNS zone name using first oclet of vpc.
   # Ex: vpc cidr = 10.0.0.0/24, then dns_name = 10.in-addr.arpa.
   # Trailing dot is required
-  dns_name    = format("%s.%s", try(split(".", cidrsubnet(local.cluster_type == "compute" ? data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range : data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  dns_name    = format("%s.%s", try(split(".", cidrsubnet(local.cluster_type == "compute" ? var.vpc_compute_cluster_private_subnets_cidr_block : var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   vpc_network = var.vpc_ref
   description = "Reverse Private DNS Zone for IBM Storage Scale instances DNS communication."
 }
@@ -161,7 +149,7 @@ module "compute_cluster_instances" {
   vpc_forward_dns_zone          = var.vpc_forward_dns_zone
   vpc_dns_domain                = var.vpc_compute_cluster_dns_domain
   vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.compute_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_compute_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
   network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
@@ -244,7 +232,7 @@ module "storage_cluster_instances" {
   vpc_forward_dns_zone          = var.vpc_forward_dns_zone
   vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
   network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
@@ -313,7 +301,7 @@ module "storage_cluster_tie_breaker_instance" {
   vpc_forward_dns_zone          = var.vpc_forward_dns_zone
   vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
   network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
@@ -377,7 +365,7 @@ module "gateway_instances" {
   vpc_forward_dns_zone          = var.vpc_forward_dns_zone
   vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
   network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
@@ -441,7 +429,7 @@ module "protocol_instances" {
   vpc_forward_dns_zone          = var.vpc_forward_dns_zone
   vpc_dns_domain                = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone          = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(data.google_compute_subnetwork.storage_cluster[0].ip_cidr_range, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain        = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   service_email                 = var.service_email
   scopes                        = var.scopes
   network_tags                  = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
