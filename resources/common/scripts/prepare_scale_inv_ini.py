@@ -302,8 +302,8 @@ def get_host_format(node):
     return host_format
 
 
-def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, storage_private_ips, afm_cluster_instance_names,
-                            storage_cluster_instance_names, protocol_cluster_instance_names, desc_private_ips, quorum_count,
+def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, storage_private_ips,
+                            storage_cluster_instance_names, afm_cluster_instance_names, protocol_cluster_instance_names, desc_private_ips, quorum_count,
                             user, key_file):
     """ Initialize node details for cluster definition.
     :args: az_count (int), cls_type (string), compute_private_ips (list),
