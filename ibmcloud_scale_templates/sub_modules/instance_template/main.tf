@@ -828,7 +828,7 @@ module "compute_cluster_configuration" {
   ldap_basedns                    = var.ldap_basedns
   ldap_server                     = local.ldap_server
   ldap_admin_password             = var.ldap_admin_password
-  enable_afm                      = local.enable_afm
+  enable_afm                      = "False"
   depends_on                      = [module.ldap_configuration]
 }
 
