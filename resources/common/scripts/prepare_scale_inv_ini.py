@@ -298,7 +298,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
 
 def get_host_format(node):
     """ Return host entries """
-    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']}  scale_protocol_node={node['scale_protocol_node']}"
+    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']}  scale_protocol_node={node['scale_protocol_node']} scale_cluster_gateway={node['scale_cluster_gateway']}"
     return host_format
 
 
@@ -353,7 +353,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
             each_name = each_ip.split('.')[0]
             scale_protocol_node = each_ip in protocol_cluster_instance_names
             is_nsd = each_ip not in protocol_cluster_instance_names
-            scale_cluster_gateway = each_ip in afm_cluster_instance_names
+            #scale_cluster_gateway = each_ip in afm_cluster_instance_names
             if storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     storage_cluster_instance_names.index(each_ip) <= (manager_count - 1):
                 if storage_cluster_instance_names.index(each_ip) == 0:
