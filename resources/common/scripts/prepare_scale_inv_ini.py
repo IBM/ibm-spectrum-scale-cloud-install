@@ -692,6 +692,8 @@ if __name__ == "__main__":
                         help='Configure MROT and Logical Subnet')
     PARSER.add_argument('--enable_ces', required=True,
                         help='Configure CES on protocol nodes')
+    PARSER.add_argument('--enable_afm', required=True,
+                        help='Configure CES on protocol nodes')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
     PARSER.add_argument('--scale_encryption_enabled', help='Enabling encryption feature with GKLM',
