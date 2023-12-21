@@ -530,7 +530,7 @@ variable "afm_existing_cos_details" {
   type = list(object({
     bucket = string,
     akey   = string,
-    akey   = string,
+    skey   = string,
   }))
   description = "Existing Bucket name, access and secret key"
 }
