@@ -250,7 +250,7 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username, password, scale_profile_path, scale_replica_config, enable_mrot,
-                               enable_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_gateway_ip, scale_remote_cluster_clustername,
+                               enable_ces, enable_afm, storage_subnet_cidr, compute_subnet_cidr, protocol_gateway_ip, scale_remote_cluster_clustername,
                                scale_encryption_servers, scale_encryption_admin_password, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password, afm_existing_cos_details, afm_cos_config_details):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
@@ -273,6 +273,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
         pathlib.PurePath(scale_profile_path).parent)
     cluster_details['enable_mrot'] = enable_mrot
     cluster_details['enable_ces'] = enable_ces
+    cluster_details['enable_afm'] = enable_afm
     cluster_details['storage_subnet_cidr'] = storage_subnet_cidr
     cluster_details['compute_subnet_cidr'] = compute_subnet_cidr
     cluster_details['protocol_gateway_ip'] = protocol_gateway_ip
@@ -922,6 +923,7 @@ if __name__ == "__main__":
                                                     replica_config,
                                                     ARGUMENTS.enable_mrot_conf,
                                                     ARGUMENTS.enable_ces,
+                                                    ARGUMENTS.enable_afm,
                                                     TF['storage_subnet_cidr'],
                                                     TF['compute_subnet_cidr'],
                                                     TF['protocol_gateway_ip'],
