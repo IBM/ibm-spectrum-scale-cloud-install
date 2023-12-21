@@ -292,8 +292,8 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['ldap_basedns'] = ldap_basedns
     cluster_details['ldap_server'] = ldap_server
     cluster_details['ldap_admin_password'] = ldap_admin_password
-    cluster_details['afm_existing_cos_details'] = afm_existing_cos_details
-    cluster_details['afm_cos_config_details'] = afm_cos_config_details
+    cluster_details['scale_afm_cos_bucket_params'] = afm_existing_cos_details
+    cluster_details['scale_afm_cos_filesets_params'] = afm_cos_config_details
     return cluster_details
 
 
