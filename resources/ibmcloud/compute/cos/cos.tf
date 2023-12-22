@@ -18,9 +18,9 @@ variable "resource_group_id" {}
 variable "cos_bucket_plan" {}
 variable "region_location" {}
 variable "storage_class" {}
-variable "bucket_location" {}
-variable "obj_key" {}
-variable "obj_content" {}
+# variable "bucket_location" {}
+# variable "obj_key" {}
+# variable "obj_content" {}
 
 /**
 * COS Instance
@@ -54,10 +54,10 @@ resource "ibm_cos_bucket" "cos_bucket" {
 * Element : cos_object
 * This resource will be used to create a COS Bucket Object.
 **/
-resource "ibm_cos_bucket_object" "cos_object" {
-  bucket_crn      = ibm_cos_bucket.cos_bucket.crn
-  bucket_location = var.bucket_location
-  key             = var.obj_key
-  content         = var.obj_content
-  depends_on      = [ibm_cos_bucket.cos_bucket]
-}
+# resource "ibm_cos_bucket_object" "cos_object" {
+#   bucket_crn      = ibm_cos_bucket.cos_bucket.crn
+#   bucket_location = var.bucket_location
+#   key             = var.obj_key
+#   content         = var.obj_content
+#   depends_on      = [ibm_cos_bucket.cos_bucket]
+# }

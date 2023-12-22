@@ -549,14 +549,14 @@ module "gklm_instance" {
 module "cos" {
   #count                 = var.afm_existing_cos_details == [] ? 1 : 0
   source            = "../../../resources/ibmcloud/compute/cos"
-  prefix            = "${var.resource_prefix}region-${var.vpc_region}-"
+  prefix            = "${var.resource_prefix}-region-${var.vpc_region}-"
   resource_group_id = var.resource_group_id
   cos_bucket_plan   = var.cos_bucket_plan
   region_location   = var.vpc_region
   storage_class     = var.storage_class
-  bucket_location   = var.bucket_location
-  obj_key           = var.obj_key
-  obj_content       = var.obj_content
+  # bucket_location   = var.bucket_location
+  # obj_key           = var.obj_key
+  # obj_content       = var.obj_content
 }
 
 module "activity_tracker" {

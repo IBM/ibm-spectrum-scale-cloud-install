@@ -607,30 +607,30 @@ variable "storage_class" {
 * Type: String
 * Desc: The location of the COS bucket.
 **/
-variable "bucket_location" {
-  description = "The location of the COS bucket"
-  type        = string
-}
+# variable "bucket_location" {
+#   description = "The location of the COS bucket"
+#   type        = string
+# }
 
 /**
 * Name: obj_key
 * Type: String
 * Desc: The name of an object in the COS bucket. This is used to identify our object.
 **/
-variable "obj_key" {
-  description = "The name of an object in the COS bucket. This is used to identify our object."
-  type        = string
-}
+# variable "obj_key" {
+#   description = "The name of an object in the COS bucket. This is used to identify our object."
+#   type        = string
+# }
 
 /**
 * Name: obj_content
 * Type: String
 * Desc:  Literal string value to use as an object content, which will be uploaded as UTF-8 encoded text. Conflicts with content_base64 and content_file.
 **/
-variable "obj_content" {
-  description = "Literal string value to use as an object content, which will be uploaded as UTF-8 encoded text. Conflicts with content_base64 and content_file"
-  type        = string
-}
+# variable "obj_content" {
+#   description = "Literal string value to use as an object content, which will be uploaded as UTF-8 encoded text. Conflicts with content_base64 and content_file"
+#   type        = string
+# }
 
 /**
 #################################################################################################################
