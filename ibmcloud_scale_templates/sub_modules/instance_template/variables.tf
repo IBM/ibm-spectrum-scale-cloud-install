@@ -579,7 +579,7 @@ variable "cos_bucket_plan" {
 * 2. eu
 * 3. ap
 **/
-# variable "cross_region_location" {
+# variable "region_location" {
 #   description = "Cross Region service provides higher durability and availability than using a single region, at the cost of slightly higher latency. This service is available today in the U.S., E.U., and A.P. areas."
 #   type        = string
 # }

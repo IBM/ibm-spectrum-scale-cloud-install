@@ -16,7 +16,7 @@ terraform {
 variable "prefix" {}
 variable "resource_group_id" {}
 variable "cos_bucket_plan" {}
-variable "cross_region_location" {}
+variable "region_location" {}
 variable "storage_class" {}
 variable "bucket_location" {}
 variable "obj_key" {}
@@ -42,11 +42,11 @@ resource "ibm_resource_instance" "cos_instance" {
 * This resource will be used to create a COS Bucket.
 **/
 resource "ibm_cos_bucket" "cos_bucket" {
-  bucket_name           = "${var.prefix}bucket"
-  resource_instance_id  = ibm_resource_instance.cos_instance.id
-  cross_region_location = var.cross_region_location
-  storage_class         = var.storage_class
-  depends_on            = [ibm_resource_instance.cos_instance]
+  bucket_name          = "${var.prefix}bucket"
+  resource_instance_id = ibm_resource_instance.cos_instance.id
+  region_location      = var.region_location
+  storage_class        = var.storage_class
+  depends_on           = [ibm_resource_instance.cos_instance]
 }
 
 /**
