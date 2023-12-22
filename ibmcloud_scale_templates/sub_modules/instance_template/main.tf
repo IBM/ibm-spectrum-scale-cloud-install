@@ -546,6 +546,19 @@ module "gklm_instance" {
   depends_on           = [module.gklm_instance_ingress_security_rule, module.gklm_instance_ingress_security_rule_wt_bastion, module.gklm_instance_ingress_security_rule_wo_bastion, module.gklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
+module "cos" {
+  count                 = var.afm_existing_cos_details == [] ? 1 : 0
+  source                = "../../../resources/ibmcloud/compute/cos"
+  prefix                = "${var.resource_prefix}region-${var.vpc_region}-"
+  resource_group_id     = var.resource_group_id
+  cos_bucket_plan       = var.cos_bucket_plan
+  cross_region_location = var.vpc_region
+  storage_class         = var.storage_class
+  bucket_location       = var.bucket_location
+  obj_key               = var.obj_key
+  obj_content           = var.obj_content
+}
+
 module "activity_tracker" {
   source                 = "../../../resources/ibmcloud/resource_instance"
   service_count          = var.vpc_create_activity_tracker == true ? 1 : 0

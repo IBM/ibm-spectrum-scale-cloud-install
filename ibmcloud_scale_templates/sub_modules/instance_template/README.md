@@ -62,9 +62,14 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 |------|-------------|------|
 | <a name="input_afm_cos_config_details"></a> [afm_cos_config_details](#input_afm_cos_config_details) | Existing Bucket name and config details | <pre>list(object({<br>    bucket     = string,<br>    filesystem = string,<br>    fileset    = string,<br>    endpoint   = string,<br>    mode       = string<br>  }))</pre> |
 | <a name="input_afm_existing_cos_details"></a> [afm_existing_cos_details](#input_afm_existing_cos_details) | Existing Bucket name, access and secret key | <pre>list(object({<br>    bucket = string,<br>    akey   = string,<br>    skey   = string,<br>  }))</pre> |
+| <a name="input_bucket_location"></a> [bucket_location](#input_bucket_location) | The location of the COS bucket | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
+| <a name="input_cos_bucket_plan"></a> [cos_bucket_plan](#input_cos_bucket_plan) | Please enter plan name for COS bucket. Possible value is <br>1:lite<br>2:standard | `string` |
+| <a name="input_obj_content"></a> [obj_content](#input_obj_content) | Literal string value to use as an object content, which will be uploaded as UTF-8 encoded text. Conflicts with content_base64 and content_file | `string` |
+| <a name="input_obj_key"></a> [obj_key](#input_obj_key) | The name of an object in the COS bucket. This is used to identify our object. | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
+| <a name="input_storage_class"></a> [storage_class](#input_storage_class) | Storage class helps in choosing a right storage plan and location and helps in reducing the cost. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | The key pair to use to launch the storage cluster host. | `list(string)` |
