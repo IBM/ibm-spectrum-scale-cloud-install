@@ -547,7 +547,7 @@ module "gklm_instance" {
 }
 
 module "cos" {
-  count                 = var.afm_existing_cos_details == [] ? 1 : 0
+  #count                 = var.afm_existing_cos_details == [] ? 1 : 0
   source                = "../../../resources/ibmcloud/compute/cos"
   prefix                = "${var.resource_prefix}region-${var.vpc_region}-"
   resource_group_id     = var.resource_group_id
