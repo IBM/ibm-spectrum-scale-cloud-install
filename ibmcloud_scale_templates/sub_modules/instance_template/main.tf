@@ -29,7 +29,7 @@ locals {
   enable_ldap                  = var.ldap_basedns != "null" ? true : false
   ldap_server                  = var.ldap_server != null ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
-  create_cos_bucket            = var.afm_existing_cos_details == [] ? true : false
+  #create_cos_bucket            = var.afm_existing_cos_details == [] ? true : false
 }
 
 module "generate_compute_cluster_keys" {
@@ -548,7 +548,7 @@ module "gklm_instance" {
 }
 
 module "cos" {
-  count             = local.create_cos_bucket == true ? 1 : 0
+  #count             = local.create_cos_bucket == true ? 1 : 0
   source            = "../../../resources/ibmcloud/compute/cos"
   prefix            = "${var.resource_prefix}-region-${var.vpc_region}-"
   resource_group_id = var.resource_group_id
