@@ -558,10 +558,12 @@ module "cos" {
 }
 
 output "cos_keys" {
-  value = module.cos.access_key_id
+  sensitive = true
+  value     = module.cos.access_key_id
 }
 output "cos_keyss" {
-  value = module.cos.secret_access_key
+  sensitive = true
+  value     = module.cos.secret_access_key
 }
 
 module "activity_tracker" {
