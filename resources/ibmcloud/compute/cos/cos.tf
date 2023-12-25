@@ -34,3 +34,10 @@ resource "ibm_resource_key" "hmac_key" {
   parameters           = { "HMAC" = true }
   role                 = "Manager"
 }
+
+output "access_key_id" {
+  value = ibm_resource_key.hmac_key.credentials["cos_hmac_keys.access_key_id"]
+}
+output "secret_access_key" {
+  value = ibm_resource_key.hmac_key.credentials["cos_hmac_keys.secret_access_key"]
+}

@@ -557,6 +557,13 @@ module "cos" {
   storage_class     = var.storage_class
 }
 
+output "cos_keys" {
+  value = module.cos.access_key_id
+}
+output "cos_keyss" {
+  value = module.cos.secret_access_key
+}
+
 module "activity_tracker" {
   source                 = "../../../resources/ibmcloud/resource_instance"
   service_count          = var.vpc_create_activity_tracker == true ? 1 : 0
