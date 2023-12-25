@@ -42,6 +42,6 @@ output "secret_access_key" {
   value = ibm_resource_key.hmac_key.credentials["cos_hmac_keys.secret_access_key"]
 }
 
-output "details" {
-  value = ibm_cos_bucket.cos_bucket
+output "bucket_name" {
+  value = ibm_cos_bucket.cos_bucket.bucket_name
 }
