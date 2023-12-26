@@ -591,7 +591,7 @@ locals {
   afm_endpoint          = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_endpoint : local.existing_bucket_endpoint : ""
 
   afm_cos_bucket_details = [{ bucket = local.afm_bucket_name, akey = local.afm_access_key_id, skey = local.afm_secret_access_key }]
-  afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config_details[0].afm_fileset, endpoint = local.afm_endpoint, mode = var.afm_cos_config_details[0].mode }]
+  afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config_details[0].afm_fileset, endpoint = "https://${local.afm_endpoint}", mode = var.afm_cos_config_details[0].mode }]
 }
 
 module "activity_tracker" {
