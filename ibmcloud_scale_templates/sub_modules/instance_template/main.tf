@@ -548,7 +548,7 @@ module "gklm_instance" {
 }
 
 module "cos" {
-  #count             = local.create_cos_bucket == true ? 1 : 0
+  count             = local.create_cos_bucket == true ? 1 : 0
   source            = "../../../resources/ibmcloud/compute/cos"
   prefix            = "${var.resource_prefix}-region-${var.vpc_region}-"
   resource_group_id = var.resource_group_id
@@ -567,20 +567,16 @@ data "ibm_cos_bucket" "existing_cos_bucket" {
   bucket_type          = "region_location"
 }
 
-output "cos_details" {
-  value = data.ibm_cos_bucket.existing_cos_bucket
-}
-
 data "ibm_resource_key" "existing_hmac_key" {
   name                 = var.existing_cos_bucket[0].hmac_key
   resource_instance_id = data.ibm_resource_instance.cos_instance.id
 }
 
 locals {
-  new_bucket_name              = module.cos.bucket_name
-  new_bucket_endpoint          = module.cos.bucket_endpoint
-  new_bucket_access_key_id     = module.cos.access_key_id
-  new_bucket_secret_access_key = module.cos.secret_access_key
+  new_bucket_name              = module.cos[0].bucket_name
+  new_bucket_endpoint          = module.cos[0].bucket_endpoint
+  new_bucket_access_key_id     = module.cos[0].access_key_id
+  new_bucket_secret_access_key = module.cos[0].secret_access_key
 
   existing_bucket_endpoint   = data.ibm_cos_bucket.existing_cos_bucket.s3_endpoint_direct
   existing_access_key_id     = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.access_key_id"]
@@ -591,26 +587,8 @@ locals {
   afm_secret_access_key = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_secret_access_key : local.existing_secret_access_key : ""
   afm_endpoint          = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_endpoint : local.existing_bucket_endpoint : ""
 
-  afm_cos_bucket_details = [{ "bucket" = local.afm_bucket_name, "akey" = local.afm_access_key_id, "skey" = local.afm_secret_access_key }]
+  afm_cos_bucket_details = [{ bucket = local.afm_bucket_name, akey = local.afm_access_key_id, skey = local.afm_secret_access_key }]
   afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config_details[0].afm_fileset, endpoint = local.afm_endpoint, mode = var.afm_cos_config_details[0].mode }]
-}
-
-
-output "access_key_id" {
-  sensitive = true
-  value     = local.afm_access_key_id
-}
-output "secret_access_key" {
-  sensitive = true
-  value     = local.afm_secret_access_key
-}
-
-output "buk" {
-  value = local.afm_bucket_name
-}
-
-output "bukkkkk" {
-  value = local.afm_endpoint
 }
 
 module "activity_tracker" {
