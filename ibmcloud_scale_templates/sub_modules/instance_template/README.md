@@ -61,7 +61,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | Name | Description | Type |
 |------|-------------|------|
 | <a name="input_afm_cos_config_details"></a> [afm_cos_config_details](#input_afm_cos_config_details) | Existing Bucket name and config details | <pre>list(object({<br>    bucket     = string,<br>    filesystem = string,<br>    fileset    = string,<br>    endpoint   = string,<br>    mode       = string<br>  }))</pre> |
-| <a name="input_afm_existing_cos_details"></a> [afm_existing_cos_details](#input_afm_existing_cos_details) | Existing Bucket name, access and secret key | <pre>list(object({<br>    bucket = string,<br>    akey   = string,<br>    skey   = string,<br>  }))</pre> |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
 | <a name="input_cos_bucket_plan"></a> [cos_bucket_plan](#input_cos_bucket_plan) | Please enter plan name for COS bucket. Possible value is <br>1:lite<br>2:standard | `string` |

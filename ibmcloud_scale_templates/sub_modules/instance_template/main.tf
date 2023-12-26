@@ -728,7 +728,7 @@ module "write_storage_cluster_inventory" {
   mountpoint                                       = local.scale_ces_enabled == true ? jsonencode(var.storage_cluster_filesystem_mountpoint) : jsonencode("")
   protocol_gateway_ip                              = local.scale_ces_enabled == true ? jsonencode(local.protocol_subnet_gateway_ip) : jsonencode("")
   filesets                                         = jsonencode(local.fileset_size_map)
-  afm_existing_cos_details                         = jsonencode(var.afm_existing_cos_details)
+  afm_existing_cos_details                         = jsonencode([]) #jsonencode(var.afm_existing_cos_details)
   afm_cos_config_details                           = jsonencode(var.afm_cos_config_details)
   afm_cluster_instance_names                       = jsonencode(keys(module.afm_cluster_instances.instance_name_id_map))
 }
