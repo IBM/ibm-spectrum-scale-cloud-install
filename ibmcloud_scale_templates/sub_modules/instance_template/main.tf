@@ -591,8 +591,10 @@ locals {
   afm_secret_access_key = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_secret_access_key : local.existing_secret_access_key : ""
   afm_endpoint          = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_endpoint : local.existing_bucket_endpoint : ""
 
-  #afm_existing_cos_details = [{ "bucket" = "${local.afm_bucket_name}", "akey" = "${local.afm_access_key_id}", "skey" = "${local.afm_secret_access_key}" }]
+  afm_cos_bucket_details = [{ "bucket" = local.afm_bucket_name, "akey" = local.afm_access_key_id, "skey" = local.afm_secret_access_key }]
+  afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config_details[0].afm_fileset, endpoint = local.afm_endpoint, mode = var.afm_cos_config_details[0].mode }]
 }
+
 
 output "access_key_id" {
   sensitive = true
@@ -710,8 +712,8 @@ module "write_compute_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = jsonencode({})
-  afm_existing_cos_details                         = jsonencode([])
-  afm_cos_config_details                           = jsonencode([])
+  afm_cos_bucket_details                           = jsonencode([])
+  afm_config_details                               = jsonencode([])
   afm_cluster_instance_names                       = jsonencode([])
 }
 
@@ -759,8 +761,8 @@ module "write_storage_cluster_inventory" {
   mountpoint                                       = local.scale_ces_enabled == true ? jsonencode(var.storage_cluster_filesystem_mountpoint) : jsonencode("")
   protocol_gateway_ip                              = local.scale_ces_enabled == true ? jsonencode(local.protocol_subnet_gateway_ip) : jsonencode("")
   filesets                                         = jsonencode(local.fileset_size_map)
-  afm_existing_cos_details                         = jsonencode([]) #jsonencode(var.afm_existing_cos_details)
-  afm_cos_config_details                           = jsonencode(var.afm_cos_config_details)
+  afm_cos_bucket_details                           = local.enable_afm == true ? jsonencode(local.afm_cos_bucket_details) : jsonencode([])
+  afm_config_details                               = local.enable_afm == true ? jsonencode(local.afm_config_details) : jsonencode([])
   afm_cluster_instance_names                       = jsonencode(keys(module.afm_cluster_instances.instance_name_id_map))
 }
 
@@ -808,8 +810,8 @@ module "write_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = jsonencode({})
-  afm_existing_cos_details                         = jsonencode([])
-  afm_cos_config_details                           = jsonencode([])
+  afm_cos_bucket_details                           = jsonencode([])
+  afm_config_details                               = jsonencode([])
   afm_cluster_instance_names                       = jsonencode([])
 }
 
@@ -857,8 +859,8 @@ module "write_client_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = local.scale_ces_enabled == true ? jsonencode(local.fileset_size_map) : jsonencode({})
-  afm_existing_cos_details                         = jsonencode([])
-  afm_cos_config_details                           = jsonencode([])
+  afm_cos_bucket_details                           = jsonencode([])
+  afm_config_details                               = jsonencode([])
   afm_cluster_instance_names                       = jsonencode([])
 }
 

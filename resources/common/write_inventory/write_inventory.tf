@@ -44,8 +44,8 @@ variable "mountpoint" {}
 variable "object" {}
 variable "protocol_gateway_ip" {}
 variable "filesets" {}
-variable "afm_existing_cos_details" {}
-variable "afm_cos_config_details" {}
+variable "afm_cos_bucket_details" {}
+variable "afm_config_details" {}
 variable "afm_cluster_instance_names" {}
 
 resource "local_sensitive_file" "itself" {
@@ -91,8 +91,8 @@ resource "local_sensitive_file" "itself" {
     "mountpoint": ${var.mountpoint},
     "protocol_gateway_ip": ${var.protocol_gateway_ip},
     "filesets": ${var.filesets},
-    "afm_existing_cos_details": ${var.afm_existing_cos_details},
-    "afm_cos_config_details": ${var.afm_cos_config_details},
+    "afm_cos_bucket_details": ${var.afm_cos_bucket_details},
+    "afm_config_details": ${var.afm_config_details},
     "afm_cluster_instance_names": ${var.afm_cluster_instance_names}
 }
 EOT

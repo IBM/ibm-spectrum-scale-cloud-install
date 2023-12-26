@@ -251,7 +251,7 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username, password, scale_profile_path, scale_replica_config, enable_mrot,
                                enable_ces, enable_afm, storage_subnet_cidr, compute_subnet_cidr, protocol_gateway_ip, scale_remote_cluster_clustername,
-                               scale_encryption_servers, scale_encryption_admin_password, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password, afm_existing_cos_details, afm_cos_config_details):
+                               scale_encryption_servers, scale_encryption_admin_password, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password, afm_cos_bucket_details, afm_config_details):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
@@ -292,8 +292,8 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['ldap_basedns'] = ldap_basedns
     cluster_details['ldap_server'] = ldap_server
     cluster_details['ldap_admin_password'] = ldap_admin_password
-    cluster_details['scale_afm_cos_bucket_params'] = afm_existing_cos_details
-    cluster_details['scale_afm_cos_filesets_params'] = afm_cos_config_details
+    cluster_details['scale_afm_cos_bucket_params'] = afm_cos_bucket_details
+    cluster_details['scale_afm_cos_filesets_params'] = afm_config_details
     return cluster_details
 
 
@@ -934,8 +934,8 @@ if __name__ == "__main__":
                                                     ARGUMENTS.ldap_basedns,
                                                     ARGUMENTS.ldap_server,
                                                     ARGUMENTS.ldap_admin_password,
-                                                    TF['afm_existing_cos_details'],
-                                                    TF['afm_cos_config_details'])
+                                                    TF['afm_cos_bucket_details'],
+                                                    TF['afm_config_details'])
     with open("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                           "ibm-spectrum-scale-install-infra",
                                           cluster_type), 'w') as configfile:
