@@ -526,32 +526,20 @@ variable "afm_vsi_profile" {
   description = "The virtual server instance profile type name to be used to create the protocol cluster nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui)."
 }
 
-# variable "afm_existing_cos_details" {
-#   type = list(object({
-#     bucket = string,
-#     akey   = string,
-#     skey   = string,
-#   }))
-#   description = "Existing Bucket name, access and secret key"
-# }
+variable "existing_cos_bucket" {
+  type = list(object({
+    cos_instance  = string,
+    bucket_name   = string,
+    bucket_region = string,
+    hmac_key      = string
+  }))
+  description = "Existing Bucket name and cos instance name"
+}
 
 variable "afm_cos_config_details" {
   type = list(object({
-    bucket     = string,
-    filesystem = string,
-    fileset    = string,
-    endpoint   = string,
-    mode       = string
+    afm_fileset = string,
+    mode        = string
   }))
   description = "Existing Bucket name and config details"
-}
-
-variable "cos_bucket_plan" {
-  description = "Please enter plan name for COS bucket. Possible value is \n1:lite\n2:standard"
-  type        = string
-}
-
-variable "storage_class" {
-  description = "Storage class helps in choosing a right storage plan and location and helps in reducing the cost."
-  type        = string
 }

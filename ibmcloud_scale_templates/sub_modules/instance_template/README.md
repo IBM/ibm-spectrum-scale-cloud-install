@@ -60,12 +60,11 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 
 | Name | Description | Type |
 |------|-------------|------|
-| <a name="input_afm_cos_config_details"></a> [afm_cos_config_details](#input_afm_cos_config_details) | Existing Bucket name and config details | <pre>list(object({<br>    bucket     = string,<br>    filesystem = string,<br>    fileset    = string,<br>    endpoint   = string,<br>    mode       = string<br>  }))</pre> |
+| <a name="input_afm_cos_config_details"></a> [afm_cos_config_details](#input_afm_cos_config_details) | Existing Bucket name and config details | <pre>list(object({<br>    afm_fileset = string,<br>    mode        = string<br>  }))</pre> |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
-| <a name="input_cos_bucket_plan"></a> [cos_bucket_plan](#input_cos_bucket_plan) | Please enter plan name for COS bucket. Possible value is <br>1:lite<br>2:standard | `string` |
+| <a name="input_existing_cos_bucket"></a> [existing_cos_bucket](#input_existing_cos_bucket) | Existing Bucket name and cos instance name | <pre>list(object({<br>    cos_instance  = string,<br>    bucket_name   = string,<br>    bucket_region = string,<br>    hmac_key      = string<br>  }))</pre> |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
-| <a name="input_storage_class"></a> [storage_class](#input_storage_class) | Storage class helps in choosing a right storage plan and location and helps in reducing the cost. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | The key pair to use to launch the storage cluster host. | `list(string)` |

@@ -552,20 +552,18 @@ module "cos" {
   source            = "../../../resources/ibmcloud/compute/cos"
   prefix            = "${var.resource_prefix}-region-${var.vpc_region}-"
   resource_group_id = var.resource_group_id
-  cos_bucket_plan   = var.cos_bucket_plan
   region_location   = var.vpc_region
-  storage_class     = var.storage_class
 }
 
 data "ibm_resource_instance" "cos_instance" {
-  name    = "jay-fm3-region-eu-de-instance"
+  name    = var.existing_cos_bucket[0].cos_instance
   service = "cloud-object-storage"
 }
 
 data "ibm_cos_bucket" "existing_cos_bucket" {
-  bucket_name          = "jay-fm3-region-eu-de-bucket"
+  bucket_name          = var.existing_cos_bucket[0].bucket_name
   resource_instance_id = data.ibm_resource_instance.cos_instance.id
-  bucket_region        = "eu-de"
+  bucket_region        = var.existing_cos_bucket[0].bucket_region
   bucket_type          = "region_location"
 }
 
