@@ -579,10 +579,12 @@ data "ibm_resource_key" "existing_hmac_key" {
 }
 
 output "access_key_id" {
-  value = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.access_key_id"]
+  sensitive = true
+  value     = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.access_key_id"]
 }
 output "secret_access_key" {
-  value = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.secret_access_key"]
+  sensitive = true
+  value     = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.secret_access_key"]
 }
 
 # locals {
