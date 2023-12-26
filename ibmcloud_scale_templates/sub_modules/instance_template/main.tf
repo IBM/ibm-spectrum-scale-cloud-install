@@ -29,7 +29,11 @@ locals {
   enable_ldap                  = var.ldap_basedns != "null" ? true : false
   ldap_server                  = var.ldap_server != null ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
-  #create_cos_bucket            = var.afm_existing_cos_details == [] ? true : false
+  create_cos_bucket            = var.existing_cos_bucket[0].bucket_name == "" ? true : false
+}
+
+output "namhhe" {
+  value = local.create_cos_bucket
 }
 
 module "generate_compute_cluster_keys" {
@@ -572,7 +576,7 @@ output "cos_details" {
 }
 
 data "ibm_resource_key" "existing_hmac_key" {
-  name                 = "jay-fm3-region-eu-de-bucket"
+  name                 = var.existing_cos_bucket[0].hmac_key
   resource_instance_id = data.ibm_resource_instance.cos_instance.id
 }
 
@@ -594,7 +598,8 @@ output "secret_access_key" {
 # existing_bucket_endpoint   = data.ibm_cos_bucket.existing_cos_bucket.s3_endpoint_direct
 # existing_access_key_id     = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.access_key_id"]
 # existing_secret_access_key = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.secret_access_key"]
-#   afm_existing_cos_details = [{ "bucket" = "${local.bucket_name}", "akey" = "${local.access_key_id}", "skey" = "${module.cos.secret_access_key}" }]
+
+# afm_existing_cos_details = [{ "bucket" = "${local.bucket_name}", "akey" = "${local.access_key_id}", "skey" = "${module.cos.secret_access_key}" }]
 # }
 
 module "activity_tracker" {

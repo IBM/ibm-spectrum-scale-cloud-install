@@ -162,6 +162,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_cos_details"></a> [cos_details](#output_cos_details) | n/a |
+| <a name="output_namhhe"></a> [namhhe](#output_namhhe) | n/a |
 | <a name="output_secret_access_key"></a> [secret_access_key](#output_secret_access_key) | n/a |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
