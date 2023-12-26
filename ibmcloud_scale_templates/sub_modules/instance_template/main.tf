@@ -573,10 +573,27 @@ output "cos_details" {
   value = data.ibm_cos_bucket.existing_cos_bucket
 }
 
+data "ibm_resource_key" "existing_hmac_key" {
+  name                 = "jay-fm3-region-eu-de-bucket"
+  resource_instance_id = data.ibm_resource_instance.cos_instance.id
+}
+
+output "access_key_id" {
+  value = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.access_key_id"]
+}
+output "secret_access_key" {
+  value = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.secret_access_key"]
+}
+
 # locals {
-#   bucket_name       = module.cos.bucket_name
-#   access_key_id     = module.cos.access_key_id
-#   secret_access_key = module.cos.secret_access_key
+# new_bucket_name              = module.cos.bucket_name
+# new_bucket_endpoint          = module.cos.bucket_endpoint
+# new_bucket_access_key_id     = module.cos.access_key_id
+# new_bucket_secret_access_key = module.cos.secret_access_key
+
+# existing_bucket_endpoint   = data.ibm_cos_bucket.existing_cos_bucket.s3_endpoint_direct
+# existing_access_key_id     = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.access_key_id"]
+# existing_secret_access_key = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.secret_access_key"]
 #   afm_existing_cos_details = [{ "bucket" = "${local.bucket_name}", "akey" = "${local.access_key_id}", "skey" = "${module.cos.secret_access_key}" }]
 # }
 

@@ -35,13 +35,18 @@ resource "ibm_resource_key" "hmac_key" {
   role                 = "Manager"
 }
 
+output "bucket_name" {
+  value = ibm_cos_bucket.cos_bucket.bucket_name
+}
+
 output "access_key_id" {
   value = ibm_resource_key.hmac_key.credentials["cos_hmac_keys.access_key_id"]
 }
+
 output "secret_access_key" {
   value = ibm_resource_key.hmac_key.credentials["cos_hmac_keys.secret_access_key"]
 }
 
-output "bucket_name" {
-  value = ibm_cos_bucket.cos_bucket.bucket_name
+output "bucket_endpoint" {
+  value = ibm_cos_bucket.cos_bucket.s3_endpoint_direct
 }
