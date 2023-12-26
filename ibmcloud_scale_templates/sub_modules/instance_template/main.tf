@@ -557,6 +557,22 @@ module "cos" {
   storage_class     = var.storage_class
 }
 
+data "ibm_resource_instance" "cos_instance" {
+  name    = "jay_custom_image_log"
+  service = "cloud-object-storage"
+}
+
+data "ibm_cos_bucket" "existing_cos_bucket" {
+  bucket_name          = "jay-custom-image-log"
+  resource_instance_id = data.ibm_resource_instance.cos_instance.id
+  bucket_region        = "us-south"
+  bucket_type          = "region_location"
+}
+
+output "cos_details" {
+  value = data.ibm_cos_bucket.existing_cos_bucket
+}
+
 # locals {
 #   bucket_name       = module.cos.bucket_name
 #   access_key_id     = module.cos.access_key_id
