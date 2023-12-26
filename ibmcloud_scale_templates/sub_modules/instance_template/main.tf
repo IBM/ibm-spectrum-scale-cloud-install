@@ -581,9 +581,9 @@ locals {
   new_bucket_access_key_id     = local.create_cos_bucket == true ? module.cos[0].access_key_id : ""
   new_bucket_secret_access_key = local.create_cos_bucket == true ? module.cos[0].secret_access_key : ""
 
-  existing_bucket_endpoint   = data.ibm_cos_bucket.existing_cos_bucket[0].s3_endpoint_direct
-  existing_access_key_id     = data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.access_key_id"]
-  existing_secret_access_key = data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.secret_access_key"]
+  existing_bucket_endpoint   = local.create_cos_bucket == false ? data.ibm_cos_bucket.existing_cos_bucket[0].s3_endpoint_direct : ""
+  existing_access_key_id     = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.access_key_id"] : ""
+  existing_secret_access_key = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.secret_access_key"] : ""
 
   afm_bucket_name       = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_name : var.existing_cos_bucket[0].bucket_name : ""
   afm_access_key_id     = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_access_key_id : local.existing_access_key_id : ""
