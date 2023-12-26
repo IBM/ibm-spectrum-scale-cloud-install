@@ -557,14 +557,12 @@ module "cos" {
   storage_class     = var.storage_class
 }
 
-output "cos_keys" {
-  sensitive = true
-  value     = module.cos.access_key_id
-}
-output "cos_keyss" {
-  sensitive = true
-  value     = module.cos.secret_access_key
-}
+# locals {
+#   bucket_name       = module.cos.bucket_name
+#   access_key_id     = module.cos.access_key_id
+#   secret_access_key = module.cos.secret_access_key
+#   afm_existing_cos_details = [{ "bucket" = "${local.bucket_name}", "akey" = "${local.access_key_id}", "skey" = "${module.cos.secret_access_key}" }]
+# }
 
 module "activity_tracker" {
   source                 = "../../../resources/ibmcloud/resource_instance"
