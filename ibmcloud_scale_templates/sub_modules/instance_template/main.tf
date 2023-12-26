@@ -573,10 +573,10 @@ data "ibm_resource_key" "existing_hmac_key" {
 }
 
 locals {
-  new_bucket_name              = module.cos[0].bucket_name
-  new_bucket_endpoint          = module.cos[0].bucket_endpoint
-  new_bucket_access_key_id     = module.cos[0].access_key_id
-  new_bucket_secret_access_key = module.cos[0].secret_access_key
+  new_bucket_name              = local.create_cos_bucket == true ? module.cos[0].bucket_name : ""
+  new_bucket_endpoint          = local.create_cos_bucket == true ? module.cos[0].bucket_endpoint : ""
+  new_bucket_access_key_id     = local.create_cos_bucket == true ? module.cos[0].access_key_id : ""
+  new_bucket_secret_access_key = local.create_cos_bucket == true ? module.cos[0].secret_access_key : ""
 
   existing_bucket_endpoint   = data.ibm_cos_bucket.existing_cos_bucket.s3_endpoint_direct
   existing_access_key_id     = data.ibm_resource_key.existing_hmac_key.credentials["cos_hmac_keys.access_key_id"]
