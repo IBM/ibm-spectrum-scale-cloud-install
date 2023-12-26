@@ -558,14 +558,14 @@ module "cos" {
 }
 
 data "ibm_resource_instance" "cos_instance" {
-  name    = "jay_custom_image_log"
+  name    = "jay-fm3-region-eu-de-instance"
   service = "cloud-object-storage"
 }
 
 data "ibm_cos_bucket" "existing_cos_bucket" {
-  bucket_name          = "jay-custom-image-log"
+  bucket_name          = "jay-fm3-region-eu-de-bucket"
   resource_instance_id = data.ibm_resource_instance.cos_instance.id
-  bucket_region        = "us-south"
+  bucket_region        = "eu-de"
   bucket_type          = "region_location"
 }
 
