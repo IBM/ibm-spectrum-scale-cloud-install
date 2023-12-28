@@ -60,10 +60,9 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 
 | Name | Description | Type |
 |------|-------------|------|
-| <a name="input_afm_cos_config_details"></a> [afm_cos_config_details](#input_afm_cos_config_details) | Existing Bucket name and config details | <pre>list(object({<br>    afm_fileset = string,<br>    mode        = string<br>  }))</pre> |
+| <a name="input_afm_cos_config"></a> [afm_cos_config](#input_afm_cos_config) | Existing Bucket name and cos instance name | <pre>list(object({<br>    cos_instance  = string,<br>    bucket_name   = string,<br>    bucket_region = string,<br>    hmac_key      = string,<br>    afm_fileset   = string,<br>    mode          = string<br>  }))</pre> |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
-| <a name="input_existing_cos_bucket"></a> [existing_cos_bucket](#input_existing_cos_bucket) | Existing Bucket name and cos instance name | <pre>list(object({<br>    cos_instance  = string,<br>    bucket_name   = string,<br>    bucket_region = string,<br>    hmac_key      = string<br>  }))</pre> |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |

@@ -29,7 +29,7 @@ locals {
   enable_ldap                  = var.ldap_basedns != "null" ? true : false
   ldap_server                  = var.ldap_server != null ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
-  create_cos_bucket            = var.existing_cos_bucket[0].bucket_name == "" ? true : false
+  create_cos_bucket            = var.afm_cos_config[0].bucket_name == "" ? true : false
 }
 
 module "generate_compute_cluster_keys" {
@@ -557,21 +557,21 @@ module "cos" {
 
 data "ibm_resource_instance" "cos_instance" {
   count   = local.create_cos_bucket == false ? 1 : 0
-  name    = var.existing_cos_bucket[0].cos_instance
+  name    = var.afm_cos_config[0].cos_instance
   service = "cloud-object-storage"
 }
 
 data "ibm_cos_bucket" "existing_cos_bucket" {
   count                = local.create_cos_bucket == false ? 1 : 0
-  bucket_name          = var.existing_cos_bucket[0].bucket_name
+  bucket_name          = var.afm_cos_config[0].bucket_name
   resource_instance_id = data.ibm_resource_instance.cos_instance[0].id
-  bucket_region        = var.existing_cos_bucket[0].bucket_region
+  bucket_region        = var.afm_cos_config[0].bucket_region
   bucket_type          = "region_location"
 }
 
 data "ibm_resource_key" "existing_hmac_key" {
   count                = local.create_cos_bucket == false ? 1 : 0
-  name                 = var.existing_cos_bucket[0].hmac_key
+  name                 = var.afm_cos_config[0].hmac_key
   resource_instance_id = data.ibm_resource_instance.cos_instance[0].id
 }
 
@@ -585,13 +585,13 @@ locals {
   existing_access_key_id     = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.access_key_id"] : ""
   existing_secret_access_key = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.secret_access_key"] : ""
 
-  afm_bucket_name       = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_name : var.existing_cos_bucket[0].bucket_name : ""
+  afm_bucket_name       = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_name : var.afm_cos_config[0].bucket_name : ""
   afm_access_key_id     = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_access_key_id : local.existing_access_key_id : ""
   afm_secret_access_key = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_secret_access_key : local.existing_secret_access_key : ""
   afm_endpoint          = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_endpoint : local.existing_bucket_endpoint : ""
 
   afm_cos_bucket_details = [{ bucket = local.afm_bucket_name, akey = local.afm_access_key_id, skey = local.afm_secret_access_key }]
-  afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config_details[0].afm_fileset, endpoint = "https://${local.afm_endpoint}", mode = var.afm_cos_config_details[0].mode }]
+  afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config[0].afm_fileset, endpoint = "https://${local.afm_endpoint}", mode = var.afm_cos_config[0].mode }]
 }
 
 module "activity_tracker" {
