@@ -18,12 +18,12 @@ output "instance_iam_profile" {
 }
 
 output "compute_cluster_instance_ids" {
-  value       = module.compute_cluster_instances.instance_ids
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? [for instance in module.compute_cluster_instances : instance.instance_ids] : null
   description = "Compute cluster instance ids."
 }
 
 output "compute_cluster_instance_private_ips" {
-  value       = module.compute_cluster_instances.instance_private_ips
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? [for instance in module.compute_cluster_instances : instance.instance_private_ips] : null
   description = "Private IP address of compute cluster instances."
 }
 
@@ -33,12 +33,12 @@ output "compute_instance_memory_size" {
 }
 
 output "storage_cluster_instance_ids" {
-  value       = module.storage_cluster_instances.instance_ids
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.storage_cluster_instances : instance.instance_ids] : null
   description = "Storage cluster instance ids."
 }
 
 output "storage_cluster_instance_private_ips" {
-  value       = module.storage_cluster_instances.instance_private_ips
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : null
   description = "Private IP address of storage cluster instances."
 }
 
@@ -48,22 +48,22 @@ output "storage_instance_memory_size" {
 }
 
 output "storage_cluster_with_data_volume_mapping" {
-  value       = module.storage_cluster_instances.instance_ips_with_ebs_mapping
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? local.storage_instance_ips_with_disk_mapping : null
   description = "Mapping of storage cluster instance ip vs. device path."
 }
 
 output "storage_cluster_desc_instance_ids" {
-  value       = module.storage_cluster_tie_breaker_instance.instance_ids
+  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids] : null
   description = "Storage cluster desc instance id."
 }
 
 output "storage_cluster_desc_instance_private_ips" {
-  value       = module.storage_cluster_tie_breaker_instance.instance_private_ips
+  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : null
   description = "Private IP address of storage cluster desc instance."
 }
 
 output "storage_cluster_desc_data_volume_mapping" {
-  value       = module.storage_cluster_tie_breaker_instance.instance_ips_with_ebs_mapping
+  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? local.storage_instance_desc_ip_with_disk_mapping : null
   description = "Mapping of storage cluster desc instance ip vs. device path."
 }
 
@@ -78,22 +78,22 @@ output "compute_cluster_security_group_id" {
 }
 
 output "gateway_instance_ids" {
-  value       = module.gateway_instances.instance_ids
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.gateway_instances : instance.instance_ids] : null
   description = "Gateway instance ids."
 }
 
 output "gateway_instance_private_ips" {
-  value       = module.gateway_instances.instance_private_ips
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.gateway_instances : instance.instance_private_ips] : null
   description = "Private IP address of gateway instances."
 }
 
 output "protocol_instance_ids" {
-  value       = module.protocol_instances.instance_ids
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.protocol_instances : instance.instance_ids] : null
   description = "Protocol instance ids."
 }
 
 output "protocol_instance_private_ips" {
-  value       = module.protocol_instances.instance_private_ips
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.protocol_instances : instance.instance_private_ips] : null
   description = "Private IP address of protocol instances."
 }
 

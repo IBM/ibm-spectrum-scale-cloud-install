@@ -15,18 +15,19 @@ variable "compute_cluster_filesystem_mountpoint" {}
 variable "bastion_user" {}
 variable "bastion_instance_id" {}
 variable "bastion_instance_public_ip" {}
+variable "instances_ssh_user_name" {}
 variable "compute_cluster_instance_ids" {}
 variable "compute_cluster_instance_private_ips" {}
-variable "compute_cluster_instance_private_dns_ip_map" {}
+variable "compute_cluster_instance_private_dns" {}
 variable "storage_cluster_filesystem_mountpoint" {}
 variable "storage_cluster_instance_ids" {}
 variable "storage_cluster_instance_private_ips" {}
 variable "storage_cluster_with_data_volume_mapping" {}
-variable "storage_cluster_instance_private_dns_ip_map" {}
+variable "storage_cluster_instance_private_dns" {}
 variable "storage_cluster_desc_instance_ids" {}
 variable "storage_cluster_desc_instance_private_ips" {}
 variable "storage_cluster_desc_data_volume_mapping" {}
-variable "storage_cluster_desc_instance_private_dns_ip_map" {}
+variable "storage_cluster_desc_instance_private_dns" {}
 variable "compute_cluster_instance_names" {}
 variable "storage_cluster_instance_names" {}
 variable "storage_subnet_cidr" {}
@@ -47,18 +48,19 @@ resource "local_sensitive_file" "itself" {
     "bastion_user": ${var.bastion_user},
     "bastion_instance_id": ${var.bastion_instance_id},
     "bastion_instance_public_ip": ${var.bastion_instance_public_ip},
+    "instances_ssh_user_name": ${var.instances_ssh_user_name},
     "compute_cluster_instance_ids": ${var.compute_cluster_instance_ids},
     "compute_cluster_instance_private_ips": ${var.compute_cluster_instance_private_ips},
-    "compute_cluster_instance_private_dns_ip_map": ${var.compute_cluster_instance_private_dns_ip_map},
+    "compute_cluster_instance_private_dns": ${var.compute_cluster_instance_private_dns},
     "storage_cluster_filesystem_mountpoint": ${var.storage_cluster_filesystem_mountpoint},
     "storage_cluster_instance_ids": ${var.storage_cluster_instance_ids},
     "storage_cluster_instance_private_ips": ${var.storage_cluster_instance_private_ips},
     "storage_cluster_with_data_volume_mapping": ${var.storage_cluster_with_data_volume_mapping},
-    "storage_cluster_instance_private_dns_ip_map": ${var.storage_cluster_instance_private_dns_ip_map},
+    "storage_cluster_instance_private_dns": ${var.storage_cluster_instance_private_dns},
     "storage_cluster_desc_instance_ids": ${var.storage_cluster_desc_instance_ids},
     "storage_cluster_desc_instance_private_ips": ${var.storage_cluster_desc_instance_private_ips},
     "storage_cluster_desc_data_volume_mapping": ${var.storage_cluster_desc_data_volume_mapping},
-    "storage_cluster_desc_instance_private_dns_ip_map": ${var.storage_cluster_desc_instance_private_dns_ip_map},
+    "storage_cluster_desc_instance_private_dns": ${var.storage_cluster_desc_instance_private_dns},
     "compute_cluster_instance_names": ${var.compute_cluster_instance_names},
     "storage_cluster_instance_names": ${var.storage_cluster_instance_names},
     "storage_subnet_cidr": ${var.storage_subnet_cidr},
