@@ -14,8 +14,9 @@ data "local_sensitive_file" "itself" {
 }
 
 resource "google_compute_instance_template" "itself" {
-  name_prefix  = var.launch_template_name_prefix
-  machine_type = var.instance_type
+  name_prefix    = var.launch_template_name_prefix
+  machine_type   = var.instance_type
+  can_ip_forward = false
   disk {
     source_image = var.image_id
     disk_type    = var.boot_disk_type

@@ -780,7 +780,7 @@ locals {
   storage_cluster_private_ips                = (local.cluster_type == "storage" || local.cluster_type == "combined") && (var.total_storage_cluster_instances != null) ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
   storage_instance_ips_with_disk_mapping     = (local.cluster_type == "storage" || local.cluster_type == "combined") && (var.total_storage_cluster_instances != null) ? tobool(var.enable_instance_store_block_device) == true ? { for ip in local.storage_cluster_private_ips : ip => slice(local.instance_storage_device_names, 0, local.nvme_block_device_count) } : { for ip in local.storage_cluster_private_ips : ip => slice(local.ebs_device_names, 0, var.block_devices_per_storage_instance * length(var.block_device_volume_size)) } : {}
   storage_cluster_desc_private_ips           = (local.cluster_type == "storage" || local.cluster_type == "combined") && (var.total_storage_cluster_instances != null) && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
-  storage_instance_desc_ip_with_disk_mapping = (local.cluster_type == "storage" || local.cluster_type == "combined") && var.total_storage_cluster_instances != null && var.block_devices_per_storage_instance > 0 && length(var.vpc_availability_zones) > 1 ? { for ip in local.storage_cluster_desc_private_ips : ip => slice(local.ebs_device_names, 0, 1) } : {}
+  storage_instance_desc_ip_with_disk_mapping = (local.cluster_type == "storage" || local.cluster_type == "combined") && (var.total_storage_cluster_instances != null) && length(var.vpc_availability_zones) > 1 ? { for ip in local.storage_cluster_desc_private_ips : ip => slice(local.ebs_device_names, 0, 1) } : {}
 }
 
 # Write the compute cluster related inventory.
@@ -799,7 +799,7 @@ module "write_compute_cluster_inventory" {
   bastion_instance_id                       = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                              = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  instances_ssh_user_name                   = var.instances_ssh_user_name
+  instances_ssh_user_name                   = var.instances_ssh_user_name == null ? jsonencode("None") : jsonencode(var.instances_ssh_user_name)
   compute_cluster_instance_ids              = jsonencode([for instance in module.compute_cluster_instances : instance.instance_ids])
   compute_cluster_instance_private_ips      = jsonencode([for instance in module.compute_cluster_instances : instance.instance_private_ips])
   compute_cluster_instance_private_dns      = jsonencode([for instance in module.compute_cluster_instances : instance.instance_private_dns_name])
@@ -835,7 +835,7 @@ module "write_storage_cluster_inventory" {
   bastion_instance_id                       = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                              = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  instances_ssh_user_name                   = var.instances_ssh_user_name
+  instances_ssh_user_name                   = var.instances_ssh_user_name == null ? jsonencode("None") : jsonencode(var.instances_ssh_user_name)
   compute_cluster_instance_ids              = jsonencode([])
   compute_cluster_instance_private_ips      = jsonencode([])
   compute_cluster_instance_private_dns      = jsonencode({})
@@ -871,7 +871,7 @@ module "write_cluster_inventory" {
   bastion_instance_id                       = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
   bastion_user                              = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  instances_ssh_user_name                   = var.instances_ssh_user_name
+  instances_ssh_user_name                   = var.instances_ssh_user_name == null ? jsonencode("None") : jsonencode(var.instances_ssh_user_name)
   compute_cluster_instance_ids              = jsonencode([for instance in module.compute_cluster_instances : instance.instance_ids])
   compute_cluster_instance_private_ips      = jsonencode([for instance in module.compute_cluster_instances : instance.instance_private_ips])
   compute_cluster_instance_private_dns      = jsonencode([for instance in module.compute_cluster_instances : instance.instance_private_dns_name])
