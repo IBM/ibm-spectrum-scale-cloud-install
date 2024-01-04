@@ -1082,19 +1082,19 @@ if __name__ == "__main__":
     # Step-5: Create hosts
     initialize_node_details(len(TF['vpc_availability_zones']), cluster_type,
                             TF['compute_cluster_instance_private_ips'],
-                            TF['compute_cluster_instance_private_dns_ip_map'],
+                            TF['compute_cluster_instance_private_dns'],
                             TF['storage_cluster_instance_private_ips'],
-                            TF['storage_cluster_instance_private_dns_ip_map'],
+                            TF['storage_cluster_instance_private_dns'],
                             TF['storage_cluster_desc_instance_private_ips'],
-                            TF['storage_cluster_desc_instance_private_dns_ip_map'],
+                            TF['storage_cluster_desc_instance_private_dns'],
                             quorum_count, "root", ARGUMENTS.instance_private_key)
 
     if cluster_type in ['storage', 'combined']:
         disks_list = get_disks_list(len(TF['vpc_availability_zones']),
                                     TF['storage_cluster_with_data_volume_mapping'],
-                                    TF['storage_cluster_instance_private_dns_ip_map'],
+                                    TF['storage_cluster_instance_private_dns'],
                                     TF['storage_cluster_desc_data_volume_mapping'],
-                                    TF['storage_cluster_desc_instance_private_dns_ip_map'],
+                                    TF['storage_cluster_desc_instance_private_dns'],
                                     TF['storage_cluster_filesystem_mountpoint'])
 
         scale_storage = initialize_scale_storage_details(len(TF['vpc_availability_zones']),
