@@ -17,8 +17,6 @@ variable "ssh_user_name" {}
 variable "ssh_public_key_path" {}
 variable "data_disk_description" {}
 variable "physical_block_size_bytes" {}
-variable "data_disk_type" {}
-variable "data_disk_size" {}
 variable "private_key_content" {}
 variable "public_key_content" {}
 variable "use_clouddns" {}
@@ -57,12 +55,12 @@ EOF
 #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
 resource "google_compute_disk" "itself" {
   for_each                  = var.disk
-  name                      = each.value
+  name                      = each.key
   zone                      = var.zone
   description               = var.data_disk_description
   physical_block_size_bytes = var.physical_block_size_bytes
-  type                      = var.data_disk_type
-  size                      = var.data_disk_size
+  type                      = each.value["type"]
+  size                      = each.value["size"]
   dynamic "disk_encryption_key" {
     for_each = length(data.google_kms_crypto_key.itself) > 0 ? [1] : []
     content {

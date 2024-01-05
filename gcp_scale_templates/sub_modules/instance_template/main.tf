@@ -193,12 +193,19 @@ resource "null_resource" "generate_storage_vm_name" {
         }
 */
 locals {
+  block_device_volume_size = var.block_device_volume_size == null ? [] : var.block_device_volume_size
   storage_vm_zone_map = {
     for idx, vm_name in resource.null_resource.generate_storage_vm_name[*].triggers.vm_name :
     vm_name => {
       zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)                                        # Consider only first 2 elements in multi-az
       subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
-      disks  = toset([for i in range(1, var.block_devices_per_storage_instance + 1) : "${vm_name}-data-${i}"])                                                                                  # Persistent disk names
+      disks = tomap({
+        # Dont increment from 1, it distrubs the ordering
+        for i in range(0, (var.block_devices_per_storage_instance * length(local.block_device_volume_size))) : "${vm_name}-data-${i + 1}" => {
+          size = var.block_device_volume_size[i % length(var.block_device_volume_size)]
+          type = var.block_device_volume_type[i % length(var.block_device_volume_type)]
+        }
+      })
     }
   }
 }
@@ -224,8 +231,6 @@ module "storage_cluster_instances" {
   boot_disk_size                = var.storage_boot_disk_size
   boot_disk_type                = var.storage_boot_disk_type
   boot_image                    = var.storage_cluster_image_ref
-  data_disk_type                = var.block_device_volume_type
-  data_disk_size                = var.block_device_volume_size
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
   use_clouddns                  = var.use_clouddns
@@ -293,8 +298,6 @@ module "storage_cluster_tie_breaker_instance" {
   boot_disk_size                = var.storage_boot_disk_size
   boot_disk_type                = var.storage_boot_disk_type
   boot_image                    = var.storage_cluster_image_ref
-  data_disk_type                = var.block_device_volume_type
-  data_disk_size                = var.block_device_volume_size
   block_device_kms_key_ring_ref = var.block_device_kms_key_ring_ref
   block_device_kms_key_ref      = var.block_device_kms_key_ref
   use_clouddns                  = var.use_clouddns
@@ -337,8 +340,8 @@ locals {
   gateway_vm_zone_map = {
     for idx, vm_name in resource.null_resource.generate_gateway_vm_name[*].triggers.vm_name :
     vm_name => {
-      zone   = element(var.vpc_availability_zones, idx)
-      subnet = element(var.vpc_storage_cluster_private_subnets, idx)
+      zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)                                        # Consider only first 2 elements in multi-az
+      subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
     }
   }
 }
@@ -401,8 +404,8 @@ locals {
   protocol_vm_zone_map = {
     for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
     vm_name => {
-      zone   = element(var.vpc_availability_zones, idx)
-      subnet = element(var.vpc_storage_cluster_private_subnets, idx)
+      zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)                                        # Consider only first 2 elements in multi-az
+      subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
     }
   }
 }
@@ -447,37 +450,38 @@ module "prepare_ansible_configuration" {
 
 # Write the compute cluster related inventory.
 module "write_compute_cluster_inventory" {
-  source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = (var.create_remote_mount_cluster == true && local.cluster_type == "compute" || local.cluster_type == "combined") ? 1 : 0
-  clone_complete                                   = module.prepare_ansible_configuration.clone_complete
-  inventory_path                                   = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                                   = jsonencode("GCP")
-  resource_prefix                                  = jsonencode(var.resource_prefix)
-  vpc_region                                       = jsonencode(var.vpc_region)
-  vpc_availability_zones                           = jsonencode(var.vpc_availability_zones)
-  scale_version                                    = jsonencode(local.scale_version)
-  filesystem_block_size                            = jsonencode("None")
-  compute_cluster_filesystem_mountpoint            = jsonencode(var.compute_cluster_filesystem_mountpoint)
-  bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
-  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_selflink]))
-  compute_cluster_instance_private_ips             = jsonencode([for instance in module.compute_cluster_instances : instance.instance_ip])
-  compute_cluster_instance_private_dns_ip_map      = length(module.compute_cluster_instances) > 0 ? jsonencode([for instance in module.compute_cluster_instances : instance.instance_dns_name]) : jsonencode({})
-  storage_cluster_filesystem_mountpoint            = jsonencode("None")
-  storage_cluster_instance_ids                     = jsonencode([])
-  storage_cluster_instance_private_ips             = jsonencode([])
-  storage_cluster_with_data_volume_mapping         = jsonencode({})
-  storage_cluster_instance_private_dns_ip_map      = jsonencode({})
-  storage_cluster_desc_instance_ids                = jsonencode([])
-  storage_cluster_desc_instance_private_ips        = jsonencode([])
-  storage_cluster_desc_data_volume_mapping         = jsonencode({})
-  storage_cluster_desc_instance_private_dns_ip_map = jsonencode({})
-  compute_subnet_cidr                              = jsonencode("None")
-  storage_subnet_cidr                              = jsonencode("None")
-  opposit_cluster_clustername                      = jsonencode("None")
-  compute_cluster_instance_names                   = jsonencode("None")
-  storage_cluster_instance_names                   = jsonencode("None")
+  source                                    = "../../../resources/common/write_inventory"
+  write_inventory                           = (var.create_remote_mount_cluster == true && local.cluster_type == "compute" || local.cluster_type == "combined") ? 1 : 0
+  clone_complete                            = module.prepare_ansible_configuration.clone_complete
+  inventory_path                            = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                            = jsonencode("GCP")
+  resource_prefix                           = jsonencode(var.resource_prefix)
+  vpc_region                                = jsonencode(var.vpc_region)
+  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
+  scale_version                             = jsonencode(local.scale_version)
+  filesystem_block_size                     = jsonencode("None")
+  compute_cluster_filesystem_mountpoint     = jsonencode(var.compute_cluster_filesystem_mountpoint)
+  bastion_instance_id                       = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
+  bastion_user                              = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
+  bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  instances_ssh_user_name                   = var.instances_ssh_user_name == null ? jsonencode("None") : jsonencode(var.instances_ssh_user_name)
+  compute_cluster_instance_ids              = jsonencode(flatten([for instance in module.compute_cluster_instances : instance.instance_selflink]))
+  compute_cluster_instance_private_ips      = jsonencode([for instance in module.compute_cluster_instances : instance.instance_ip])
+  compute_cluster_instance_private_dns      = length(module.compute_cluster_instances) > 0 ? jsonencode([for instance in module.compute_cluster_instances : instance.instance_dns_name]) : jsonencode({})
+  storage_cluster_filesystem_mountpoint     = jsonencode("None")
+  storage_cluster_instance_ids              = jsonencode([])
+  storage_cluster_instance_private_ips      = jsonencode([])
+  storage_cluster_with_data_volume_mapping  = jsonencode({})
+  storage_cluster_instance_private_dns      = jsonencode({})
+  storage_cluster_desc_instance_ids         = jsonencode([])
+  storage_cluster_desc_instance_private_ips = jsonencode([])
+  storage_cluster_desc_data_volume_mapping  = jsonencode({})
+  storage_cluster_desc_instance_private_dns = jsonencode({})
+  compute_subnet_cidr                       = jsonencode("None")
+  storage_subnet_cidr                       = jsonencode("None")
+  opposit_cluster_clustername               = jsonencode("None")
+  compute_cluster_instance_names            = jsonencode("None")
+  storage_cluster_instance_names            = jsonencode("None")
 }
 
 locals {
@@ -489,72 +493,74 @@ locals {
 
 # Write the storage cluster related inventory.
 module "write_storage_cluster_inventory" {
-  source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = (var.create_remote_mount_cluster == true && local.cluster_type == "storage" || local.cluster_type == "combined") ? 1 : 0
-  clone_complete                                   = module.prepare_ansible_configuration.clone_complete
-  inventory_path                                   = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                                   = jsonencode("GCP")
-  resource_prefix                                  = jsonencode(var.resource_prefix)
-  vpc_region                                       = jsonencode(var.vpc_region)
-  vpc_availability_zones                           = jsonencode(var.vpc_availability_zones)
-  scale_version                                    = jsonencode(local.scale_version)
-  filesystem_block_size                            = jsonencode(var.filesystem_block_size)
-  compute_cluster_filesystem_mountpoint            = jsonencode("None")
-  bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
-  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode([])
-  compute_cluster_instance_private_ips             = jsonencode([])
-  compute_cluster_instance_private_dns_ip_map      = jsonencode({})
-  storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = jsonencode([for instance in module.storage_cluster_instances : instance.instance_selflink])
-  storage_cluster_instance_private_ips             = jsonencode([for instance in module.storage_cluster_instances : instance.instance_ip])
-  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode(local.storage_instance_ips_with_disk_mapping) : jsonencode({})
-  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode([for instance in module.storage_cluster_instances : instance.instance_dns_name]) : jsonencode({})
-  storage_cluster_desc_instance_ids                = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_selflink])
-  storage_cluster_desc_instance_private_ips        = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip])
-  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(local.storage_instance_desc_ip_with_disk_mapping) : jsonencode({})
-  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_dns_name]) : jsonencode({})
-  compute_subnet_cidr                              = jsonencode("None")
-  storage_subnet_cidr                              = jsonencode("None")
-  opposit_cluster_clustername                      = jsonencode("None")
-  compute_cluster_instance_names                   = jsonencode("None")
-  storage_cluster_instance_names                   = jsonencode("None")
+  source                                    = "../../../resources/common/write_inventory"
+  write_inventory                           = (var.create_remote_mount_cluster == true && local.cluster_type == "storage" || local.cluster_type == "combined") ? 1 : 0
+  clone_complete                            = module.prepare_ansible_configuration.clone_complete
+  inventory_path                            = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                            = jsonencode("GCP")
+  resource_prefix                           = jsonencode(var.resource_prefix)
+  vpc_region                                = jsonencode(var.vpc_region)
+  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
+  scale_version                             = jsonencode(local.scale_version)
+  filesystem_block_size                     = jsonencode(var.filesystem_block_size)
+  compute_cluster_filesystem_mountpoint     = jsonencode("None")
+  bastion_instance_id                       = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
+  bastion_user                              = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
+  bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  instances_ssh_user_name                   = var.instances_ssh_user_name == null ? jsonencode("None") : jsonencode(var.instances_ssh_user_name)
+  compute_cluster_instance_ids              = jsonencode([])
+  compute_cluster_instance_private_ips      = jsonencode([])
+  compute_cluster_instance_private_dns      = jsonencode({})
+  storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
+  storage_cluster_instance_ids              = jsonencode([for instance in module.storage_cluster_instances : instance.instance_selflink])
+  storage_cluster_instance_private_ips      = jsonencode([for instance in module.storage_cluster_instances : instance.instance_ip])
+  storage_cluster_with_data_volume_mapping  = length(module.storage_cluster_instances) > 0 ? jsonencode(local.storage_instance_ips_with_disk_mapping) : jsonencode({})
+  storage_cluster_instance_private_dns      = length(module.storage_cluster_instances) > 0 ? jsonencode([for instance in module.storage_cluster_instances : instance.instance_dns_name]) : jsonencode({})
+  storage_cluster_desc_instance_ids         = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_selflink])
+  storage_cluster_desc_instance_private_ips = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip])
+  storage_cluster_desc_data_volume_mapping  = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(local.storage_instance_desc_ip_with_disk_mapping) : jsonencode({})
+  storage_cluster_desc_instance_private_dns = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_dns_name]) : jsonencode({})
+  compute_subnet_cidr                       = jsonencode("None")
+  storage_subnet_cidr                       = jsonencode("None")
+  opposit_cluster_clustername               = jsonencode("None")
+  compute_cluster_instance_names            = jsonencode("None")
+  storage_cluster_instance_names            = jsonencode("None")
 }
 
 # Write combined cluster related inventory.
 module "write_cluster_inventory" {
-  source                                           = "../../../resources/common/write_inventory"
-  write_inventory                                  = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? 1 : 0
-  clone_complete                                   = module.prepare_ansible_configuration.clone_complete
-  inventory_path                                   = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  cloud_platform                                   = jsonencode("GCP")
-  resource_prefix                                  = jsonencode(var.resource_prefix)
-  vpc_region                                       = jsonencode(var.vpc_region)
-  vpc_availability_zones                           = jsonencode(var.vpc_availability_zones)
-  scale_version                                    = jsonencode(local.scale_version)
-  filesystem_block_size                            = jsonencode(var.filesystem_block_size)
-  compute_cluster_filesystem_mountpoint            = jsonencode("None")
-  bastion_instance_id                              = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
-  bastion_user                                     = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
-  bastion_instance_public_ip                       = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
-  compute_cluster_instance_ids                     = jsonencode([for instance in module.compute_cluster_instances : instance.instance_selflink])
-  compute_cluster_instance_private_ips             = jsonencode([for instance in module.compute_cluster_instances : instance.instance_ip])
-  compute_cluster_instance_private_dns_ip_map      = jsonencode({})
-  storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = jsonencode([for instance in module.storage_cluster_instances : instance.instance_selflink])
-  storage_cluster_instance_private_ips             = jsonencode([for instance in module.storage_cluster_instances : instance.instance_ip])
-  storage_cluster_with_data_volume_mapping         = length(module.storage_cluster_instances) > 0 ? jsonencode(local.storage_instance_ips_with_disk_mapping) : jsonencode({})
-  storage_cluster_instance_private_dns_ip_map      = length(module.storage_cluster_instances) > 0 ? jsonencode([for instance in module.storage_cluster_instances : instance.instance_dns_name]) : jsonencode({})
-  storage_cluster_desc_instance_ids                = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_selflink])
-  storage_cluster_desc_instance_private_ips        = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip])
-  storage_cluster_desc_data_volume_mapping         = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(local.storage_instance_desc_ip_with_disk_mapping) : jsonencode({})
-  storage_cluster_desc_instance_private_dns_ip_map = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_dns_name]) : jsonencode({})
-  compute_subnet_cidr                              = jsonencode("None")
-  storage_subnet_cidr                              = jsonencode("None")
-  opposit_cluster_clustername                      = jsonencode("None")
-  compute_cluster_instance_names                   = jsonencode("None")
-  storage_cluster_instance_names                   = jsonencode("None")
+  source                                    = "../../../resources/common/write_inventory"
+  write_inventory                           = (var.create_remote_mount_cluster == false && local.cluster_type == "combined") ? 1 : 0
+  clone_complete                            = module.prepare_ansible_configuration.clone_complete
+  inventory_path                            = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  cloud_platform                            = jsonencode("GCP")
+  resource_prefix                           = jsonencode(var.resource_prefix)
+  vpc_region                                = jsonencode(var.vpc_region)
+  vpc_availability_zones                    = jsonencode(var.vpc_availability_zones)
+  scale_version                             = jsonencode(local.scale_version)
+  filesystem_block_size                     = jsonencode(var.filesystem_block_size)
+  compute_cluster_filesystem_mountpoint     = jsonencode("None")
+  bastion_instance_id                       = var.bastion_instance_ref == null ? jsonencode("None") : jsonencode(var.bastion_instance_ref)
+  bastion_user                              = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
+  bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
+  instances_ssh_user_name                   = var.instances_ssh_user_name == null ? jsonencode("None") : jsonencode(var.instances_ssh_user_name)
+  compute_cluster_instance_ids              = jsonencode([for instance in module.compute_cluster_instances : instance.instance_selflink])
+  compute_cluster_instance_private_ips      = jsonencode([for instance in module.compute_cluster_instances : instance.instance_ip])
+  compute_cluster_instance_private_dns      = jsonencode({})
+  storage_cluster_filesystem_mountpoint     = jsonencode(var.storage_cluster_filesystem_mountpoint)
+  storage_cluster_instance_ids              = jsonencode([for instance in module.storage_cluster_instances : instance.instance_selflink])
+  storage_cluster_instance_private_ips      = jsonencode([for instance in module.storage_cluster_instances : instance.instance_ip])
+  storage_cluster_with_data_volume_mapping  = length(module.storage_cluster_instances) > 0 ? jsonencode(local.storage_instance_ips_with_disk_mapping) : jsonencode({})
+  storage_cluster_instance_private_dns      = length(module.storage_cluster_instances) > 0 ? jsonencode([for instance in module.storage_cluster_instances : instance.instance_dns_name]) : jsonencode({})
+  storage_cluster_desc_instance_ids         = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_selflink])
+  storage_cluster_desc_instance_private_ips = jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip])
+  storage_cluster_desc_data_volume_mapping  = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode(local.storage_instance_desc_ip_with_disk_mapping) : jsonencode({})
+  storage_cluster_desc_instance_private_dns = length(module.storage_cluster_tie_breaker_instance) > 0 ? jsonencode([for instance in module.storage_cluster_tie_breaker_instance : instance.instance_dns_name]) : jsonencode({})
+  compute_subnet_cidr                       = jsonencode("None")
+  storage_subnet_cidr                       = jsonencode("None")
+  opposit_cluster_clustername               = jsonencode("None")
+  compute_cluster_instance_names            = jsonencode("None")
+  storage_cluster_instance_names            = jsonencode("None")
 }
 
 # Configure the compute cluster using ansible based on the create_scale_cluster input.
