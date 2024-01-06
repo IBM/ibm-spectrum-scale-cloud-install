@@ -1,15 +1,14 @@
 /*
-     Creates specified number of AWS EC2 instance(s).
+     Creates AWS EC2 instance(s).
 */
 
 variable "name_prefix" {}
-variable "instances_count" {}
 variable "ami_id" {}
 variable "instance_type" {}
 variable "security_groups" {}
 variable "iam_instance_profile" {}
 variable "placement_group" {}
-variable "subnet_ids" {}
+variable "subnet_id" {}
 variable "root_volume_type" {}
 variable "root_volume_encrypted" {}
 variable "root_volume_kms_key_id" {}
@@ -44,20 +43,11 @@ data "aws_kms_key" "itself" {
 }
 
 resource "aws_instance" "itself" {
-  for_each = {
-    # This assigns a subnet-id to each of the instance
-    # iteration.
-    for idx, count_number in range(1, var.instances_count + 1) : idx => {
-      sequence_string = tostring(count_number)
-      subnet_id       = element(var.subnet_ids, idx)
-    }
-  }
-
   ami             = var.ami_id
   instance_type   = var.instance_type
   key_name        = var.user_public_key
   security_groups = var.security_groups
-  subnet_id       = each.value.subnet_id
+  subnet_id       = var.subnet_id
 
   # Only include iam_instance_profile if var.iam_instance_profile is a non-empty string
   # otherwise, skip the parameter entirely
@@ -74,7 +64,7 @@ resource "aws_instance" "itself" {
 
   volume_tags = merge(
     {
-      "Name" = format("%s-root-%s", var.name_prefix, each.value.sequence_string)
+      "Name" = format("%s-root", var.name_prefix)
     },
     var.volume_tags,
   )
@@ -82,7 +72,7 @@ resource "aws_instance" "itself" {
   user_data_base64 = data.template_cloudinit_config.user_data64.rendered
   tags = merge(
     {
-      "Name" = format("%s-%s", var.name_prefix, each.value.sequence_string)
+      "Name" = var.name_prefix
     },
     var.tags,
   )
@@ -98,13 +88,13 @@ resource "aws_instance" "itself" {
 }
 
 output "instance_private_ips" {
-  value = try(toset([for instance_details in aws_instance.itself : instance_details.private_ip]), [])
+  value = aws_instance.itself.private_ip
 }
 
 output "instance_ids" {
-  value = try(toset([for instance_details in aws_instance.itself : instance_details.id]), [])
+  value = aws_instance.itself.id
 }
 
-output "instance_private_dns_ip_map" {
-  value = try({ for instance_details in aws_instance.itself : instance_details.private_ip => instance_details.private_dns }, {})
+output "instance_private_dns_name" {
+  value = aws_instance.itself.private_dns
 }

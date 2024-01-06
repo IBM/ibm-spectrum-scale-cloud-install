@@ -17,8 +17,6 @@ variable "ssh_user_name" {}
 variable "ssh_public_key_path" {}
 variable "data_disk_description" {}
 variable "physical_block_size_bytes" {}
-variable "data_disk_type" {}
-variable "data_disk_size" {}
 variable "private_key_content" {}
 variable "public_key_content" {}
 variable "use_clouddns" {}
@@ -54,23 +52,6 @@ echo "StrictHostKeyChecking no" >> ~/.ssh/config
 EOF
 }
 
-#tfsec:ignore:google-compute-vm-disk-encryption-customer-key
-resource "google_compute_disk" "itself" {
-  for_each                  = var.disk
-  name                      = each.value
-  zone                      = var.zone
-  description               = var.data_disk_description
-  physical_block_size_bytes = var.physical_block_size_bytes
-  type                      = var.data_disk_type
-  size                      = var.data_disk_size
-  dynamic "disk_encryption_key" {
-    for_each = length(data.google_kms_crypto_key.itself) > 0 ? [1] : []
-    content {
-      kms_key_self_link = data.google_kms_crypto_key.itself[0].id
-    }
-  }
-}
-
 #tfsec:ignore:google-compute-enable-shielded-vm-im
 #tfsec:ignore:google-compute-enable-shielded-vm-vtpm
 #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
@@ -101,15 +82,6 @@ resource "google_compute_instance" "itself" {
   }
   tags = var.network_tags
 
-  # Block for persistent disk attachment
-  dynamic "attached_disk" {
-    for_each = google_compute_disk.itself
-    content {
-      source = attached_disk.value.self_link
-      mode   = "READ_WRITE"
-    }
-  }
-
   # Block for scratch/local-ssd disk attachment
   dynamic "scratch_disk" {
     for_each = range(var.total_local_ssd_disks)
@@ -129,6 +101,10 @@ resource "google_compute_instance" "itself" {
   service_account {
     email  = var.service_email
     scopes = var.scopes
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 
@@ -150,6 +126,30 @@ resource "google_dns_record_set" "ptr_itself" {
   managed_zone = var.vpc_reverse_dns_zone
   ttl          = 300
   rrdatas      = [format("%s.%s.", google_compute_instance.itself.name, var.vpc_dns_domain)] # Trailing dot is required
+}
+
+#tfsec:ignore:google-compute-vm-disk-encryption-customer-key
+resource "google_compute_disk" "itself" {
+  for_each                  = var.disk
+  name                      = each.key
+  zone                      = var.zone
+  description               = var.data_disk_description
+  physical_block_size_bytes = var.physical_block_size_bytes
+  type                      = each.value["type"]
+  size                      = each.value["size"]
+  dynamic "disk_encryption_key" {
+    for_each = length(data.google_kms_crypto_key.itself) > 0 ? [1] : []
+    content {
+      kms_key_self_link = data.google_kms_crypto_key.itself[0].id
+    }
+  }
+}
+
+resource "google_compute_attached_disk" "itself" {
+  for_each = google_compute_disk.itself
+  disk     = each.key
+  instance = google_compute_instance.itself.id
+  mode     = "READ_WRITE"
 }
 
 output "instance_id" {

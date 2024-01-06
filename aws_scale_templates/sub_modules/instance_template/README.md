@@ -241,11 +241,11 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
 | <a name="input_block_device_delete_on_termination"></a> [block_device_delete_on_termination](#input_block_device_delete_on_termination) | If true, all ebs volumes will be destroyed on instance termination. | `bool` |
 | <a name="input_block_device_encrypted"></a> [block_device_encrypted](#input_block_device_encrypted) | Whether to enable volume encryption. | `bool` |
-| <a name="input_block_device_iops"></a> [block_device_iops](#input_block_device_iops) | Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3. | `number` |
+| <a name="input_block_device_iops"></a> [block_device_iops](#input_block_device_iops) | Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3. | `list(string)` |
 | <a name="input_block_device_kms_key_ref"></a> [block_device_kms_key_ref](#input_block_device_kms_key_ref) | Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume. | `string` |
-| <a name="input_block_device_throughput"></a> [block_device_throughput](#input_block_device_throughput) | Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3. | `number` |
-| <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Size of the volume in gibibytes (GiB). | `number` |
-| <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | EBS volume types: io1, io2, gp2, gp3. | `string` |
+| <a name="input_block_device_throughput"></a> [block_device_throughput](#input_block_device_throughput) | Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3. | `list(string)` |
+| <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Size of the volume in gibibytes (GiB). | `list(string)` |
+| <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | EBS volume types: io1, io2, gp2, gp3. | `list(string)` |
 | <a name="input_block_devices_per_storage_instance"></a> [block_devices_per_storage_instance](#input_block_devices_per_storage_instance) | Additional EBS block devices to attach per storage cluster instance. | `number` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of gateway/client ip/cidr ranges. | `list(string)` |
 | <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
@@ -266,6 +266,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
 | <a name="input_gateway_tags"></a> [gateway_tags](#input_gateway_tags) | Additional tags for the gateway instances. | `map(string)` |
 | <a name="input_gateway_volume_tags"></a> [gateway_volume_tags](#input_gateway_volume_tags) | Additional tags for the gateway volume(s). | `map(string)` |
+| <a name="input_instances_ssh_user_name"></a> [instances_ssh_user_name](#input_instances_ssh_user_name) | Compute/Storage EC2 instances login username. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_operator_email"></a> [operator_email](#input_operator_email) | SNS notifications will be sent to provided email id. | `string` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |

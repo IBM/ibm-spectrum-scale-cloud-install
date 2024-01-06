@@ -51,6 +51,13 @@ variable "total_compute_cluster_instances" {
   description = "Number of EC2 instances to be launched for compute cluster."
 }
 
+variable "instances_ssh_user_name" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Compute/Storage EC2 instances login username."
+}
+
 variable "compute_cluster_key_pair" {
   type        = string
   nullable    = true
@@ -281,14 +288,14 @@ variable "block_device_encrypted" {
 }
 
 variable "block_device_iops" {
-  type        = number
+  type        = list(string)
   nullable    = true
   default     = null
   description = "Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3."
 }
 
 variable "block_device_throughput" {
-  type        = number
+  type        = list(string)
   nullable    = true
   default     = null
   description = "Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3."
@@ -302,14 +309,14 @@ variable "block_device_kms_key_ref" {
 }
 
 variable "block_device_volume_size" {
-  type        = number
+  type        = list(string)
   nullable    = true
   default     = null
   description = "Size of the volume in gibibytes (GiB)."
 }
 
 variable "block_device_volume_type" {
-  type        = string
+  type        = list(string)
   nullable    = true
   default     = null
   description = "EBS volume types: io1, io2, gp2, gp3."

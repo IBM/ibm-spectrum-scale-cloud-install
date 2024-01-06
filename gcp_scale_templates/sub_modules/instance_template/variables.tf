@@ -34,7 +34,7 @@ variable "instances_ssh_user_name" {
   type        = string
   nullable    = true
   default     = null
-  description = "Name of the administrator to access the bastion instance."
+  description = "Compute/Storage VM login username."
 }
 
 variable "compute_cluster_public_key_path" {
@@ -85,15 +85,16 @@ variable "compute_cluster_instance_type" {
 }
 
 variable "compute_boot_disk_size" {
-  type        = number
+  type        = list(string)
   nullable    = true
   default     = null
   description = "Compute instances boot disk size in gigabytes."
 }
 
 variable "compute_boot_disk_type" {
-  type        = string
-  default     = "pd-standard"
+  type        = list(string)
+  nullable    = true
+  default     = null
   description = "GCE disk type (valid: pd-standard, pd-ssd)."
 }
 
@@ -197,13 +198,14 @@ variable "physical_block_size_bytes" {
 }
 
 variable "block_device_volume_type" {
+  type        = list(string)
   nullable    = true
   default     = null
   description = "GCE disk type (valid: pd-standard, pd-ssd , local-ssd)."
 }
 
 variable "block_device_volume_size" {
-  type        = string
+  type        = list(string)
   nullable    = true
   default     = null
   description = "Data disk size in gigabytes."
