@@ -11,6 +11,19 @@ resource "azurerm_network_security_group" "itself" {
   name                = var.security_group_name
   location            = var.location
   resource_group_name = var.resource_group_name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1011
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
   security_rule {
     name                       = "AllowHttpsInBound"
     priority                   = 100
@@ -54,17 +67,6 @@ resource "azurerm_network_security_group" "itself" {
     destination_address_prefix = "VirtualNetwork"
     source_port_range          = "*"
     destination_port_range     = "5701-8080"
-  }
-  security_rule {
-    name                       = "DenyAllInBound"
-    priority                   = 1000
-    access                     = "Deny"
-    protocol                   = "*"
-    direction                  = "Inbound"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
   }
   security_rule {
     name                       = "AllowSshRdpOutBound"
@@ -120,17 +122,6 @@ resource "azurerm_network_security_group" "itself" {
     destination_address_prefix = "*"
     source_port_range          = "*"
     destination_port_range     = "80-443"
-  }
-  security_rule {
-    name                       = "DenyAllOutBound"
-    priority                   = 1000
-    access                     = "Deny"
-    protocol                   = "*"
-    direction                  = "Outbound"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
   }
 }
 

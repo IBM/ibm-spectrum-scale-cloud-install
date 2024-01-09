@@ -43,7 +43,7 @@ resource "azurerm_network_interface" "itself" {
 
 resource "azurerm_linux_virtual_machine" "itself" {
   count                        = var.vm_count
-  name                         = format("%s-%s", var.vm_name_prefix, count.index)
+  name                         = format("%s-%s", var.vm_name_prefix, count.index + 1)
   resource_group_name          = var.resource_group_name
   location                     = var.location
   size                         = var.vm_size

@@ -1,10 +1,10 @@
 /*
-  Local variables for the vnet module.
+  Local variables for the vpc module.
  */
 locals {
   cluster_type = (
-    (var.vnet_strg_priv_subnet_address_spaces != null && var.vnet_comp_priv_subnet_address_spaces == null) ? "storage" :
-    (var.vnet_strg_priv_subnet_address_spaces == null && var.vnet_comp_priv_subnet_address_spaces != null) ? "compute" :
-    (var.vnet_strg_priv_subnet_address_spaces != null && var.vnet_comp_priv_subnet_address_spaces != null) ? "combined" : "none"
+    (var.vpc_strg_priv_subnet_address_spaces != null && var.vpc_comp_priv_subnet_address_spaces == null) ? "storage" :
+    (var.vpc_strg_priv_subnet_address_spaces == null && var.vpc_comp_priv_subnet_address_spaces != null) ? "compute" :
+    (var.vpc_strg_priv_subnet_address_spaces != null && var.vpc_comp_priv_subnet_address_spaces != null) ? "combined" : "none"
   )
 }
