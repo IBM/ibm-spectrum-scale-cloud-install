@@ -11,6 +11,8 @@ variable "vpc_region" {}
 variable "vpc_availability_zones" {}
 variable "scale_version" {}
 variable "filesystem_block_size" {}
+variable "filesystem_data_replication" {}
+variable "filesystem_metadata_replication" {}
 variable "compute_cluster_filesystem_mountpoint" {}
 variable "bastion_user" {}
 variable "bastion_instance_id" {}
@@ -45,6 +47,8 @@ resource "local_sensitive_file" "itself" {
     "scale_version": ${var.scale_version},
     "compute_cluster_filesystem_mountpoint": ${var.compute_cluster_filesystem_mountpoint},
     "filesystem_block_size": ${var.filesystem_block_size},
+    "filesystem_data_replication": ${var.filesystem_data_replication},
+    "filesystem_metadata_replication": ${var.filesystem_metadata_replication},
     "bastion_user": ${var.bastion_user},
     "bastion_instance_id": ${var.bastion_instance_id},
     "bastion_instance_public_ip": ${var.bastion_instance_public_ip},
