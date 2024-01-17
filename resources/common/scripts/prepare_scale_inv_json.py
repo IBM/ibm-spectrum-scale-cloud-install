@@ -951,6 +951,7 @@ if __name__ == "__main__":
                         help='Spectrum Scale GUI username')
     PARSER.add_argument('--gui_password', required=True,
                         help='Spectrum Scale GUI password')
+    PARSER.add_argument('--disk_type', help='Disk type')
     PARSER.add_argument('--enable_mrot_conf', required=True)
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
