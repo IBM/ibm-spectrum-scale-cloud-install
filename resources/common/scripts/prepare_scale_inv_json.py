@@ -876,18 +876,25 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
     return disks_list
 
 
-def initialize_scale_storage_details(az_count, fs_mount, block_size):
+def initialize_scale_storage_details(az_count, fs_mount, block_size, default_data_replicas, default_metadata_replicas):
     """ Initialize storage details.
     :args: az_count (int), fs_mount (string), block_size (string),
            disks_list (list)
     """
     storage = []
-    if az_count > 1:
-        data_replicas = 2
-        metadata_replicas = 2
-    else:
-        data_replicas = 1
-        metadata_replicas = 2
+    if default_data_replicas is None:
+        if az_count > 1:
+            default_data_replicas = 2
+        else:
+            default_data_replicas = 1
+    max_data_replicas = 2
+
+    if default_metadata_replicas is None:
+        if az_count > 1:
+            metadata_replicas = 2
+        else:
+            metadata_replicas = 2
+    default_metadata_replicas = 2
 
     # "scale_filesystem": [
     #    {
@@ -908,10 +915,10 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size):
     storage.append({"filesystem": pathlib.PurePath(fs_mount).name,
                     "defaultMountPoint": fs_mount,
                     "blockSize": block_size,
-                    "defaultDataReplicas": data_replicas,
-                    "maxDataReplicas": "2",
-                    "defaultMetadataReplicas": metadata_replicas,
-                    "maxMetadataReplicas": "2",
+                    "defaultDataReplicas": default_data_replicas,
+                    "maxDataReplicas": max_data_replicas,
+                    "defaultMetadataReplicas": default_metadata_replicas,
+                    "maxMetadataReplicas": max_metadata_replicas,
                     "scale_fal_enable": False,
                     "logfileset": ".audit_log",
                     "retention": "365"})
@@ -945,15 +952,6 @@ if __name__ == "__main__":
     PARSER.add_argument('--gui_password', required=True,
                         help='Spectrum Scale GUI password')
     PARSER.add_argument('--enable_mrot_conf', required=True)
-    PARSER.add_argument('--disk_type', help='Disk type')
-    PARSER.add_argument('--default_data_replicas',
-                        help='Value for default data replica')
-    PARSER.add_argument('--max_data_replicas',
-                        help='Value for max data replica')
-    PARSER.add_argument('--default_metadata_replicas',
-                        help='Value for default metadata replica')
-    PARSER.add_argument('--max_metadata_replicas',
-                        help='Value for max metadata replica')
     PARSER.add_argument('--verbose', action='store_true',
                         help='print log messages')
 
@@ -1099,7 +1097,9 @@ if __name__ == "__main__":
 
         scale_storage = initialize_scale_storage_details(len(TF['vpc_availability_zones']),
                                                          TF['storage_cluster_filesystem_mountpoint'],
-                                                         TF['filesystem_block_size'])
+                                                         TF['filesystem_block_size'],
+                                                         TF['filesystem_data_replication'],
+                                                         TF['filesystem_metadata_replication'])
 
         CLUSTER_DEFINITION_JSON.update({"scale_filesystem": scale_storage})
         CLUSTER_DEFINITION_JSON.update({"scale_disks": disks_list})

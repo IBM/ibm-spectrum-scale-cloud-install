@@ -13,7 +13,6 @@ variable "vpc_region" {
 variable "vpc_availability_zones" {
   type        = list(string)
   nullable    = true
-  default     = null
   description = "A list of availability zones names or ids in the region."
 }
 
@@ -332,7 +331,6 @@ variable "enable_instance_store_block_device" {
 variable "scale_ansible_repo_clone_path" {
   type        = string
   nullable    = true
-  default     = null
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
 
@@ -369,6 +367,20 @@ variable "filesystem_block_size" {
   nullable    = true
   default     = null
   description = "Filesystem block size."
+}
+
+variable "filesystem_data_replication" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Filesystem default replication factor (-r) for data blocks."
+}
+
+variable "filesystem_metadata_replication" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Filesystem default replication factor (-m) for metadata."
 }
 
 variable "create_remote_mount_cluster" {

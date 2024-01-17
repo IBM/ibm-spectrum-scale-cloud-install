@@ -20,7 +20,6 @@ variable "vpc_ref" {
 variable "vpc_availability_zones" {
   type        = list(string)
   nullable    = true
-  default     = null
   description = "A list of availability zones names or ids in the region."
 }
 
@@ -227,7 +226,6 @@ variable "scopes" {
 variable "scale_ansible_repo_clone_path" {
   type        = string
   nullable    = true
-  default     = null
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
 
@@ -287,6 +285,20 @@ variable "filesystem_block_size" {
   description = "Filesystem block size."
 }
 
+variable "filesystem_data_replication" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Filesystem default replication factor (-r) for data blocks."
+}
+
+variable "filesystem_metadata_replication" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Filesystem default replication factor (-m) for metadata."
+}
+
 variable "create_scale_cluster" {
   type        = bool
   nullable    = true
@@ -317,14 +329,12 @@ variable "using_direct_connection" {
 variable "using_cloud_connection" {
   type        = bool
   nullable    = true
-  default     = null
   description = "This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
 }
 
 variable "using_jumphost_connection" {
   type        = bool
   nullable    = true
-  default     = null
   description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
 }
 
@@ -368,14 +378,12 @@ variable "client_security_group_ref" {
 variable "use_clouddns" {
   type        = bool
   nullable    = true
-  default     = null
   description = "Indicates whether to use cloud DNS or internal DNS."
 }
 
 variable "create_clouddns" {
   type        = bool
   nullable    = true
-  default     = null
   description = "Indicates whether to create new cloud DNS zones or reuse existing DNS zones."
 }
 
