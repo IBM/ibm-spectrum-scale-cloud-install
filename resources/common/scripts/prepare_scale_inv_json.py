@@ -891,10 +891,10 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size, default_dat
 
     if default_metadata_replicas is None:
         if az_count > 1:
-            metadata_replicas = 2
+            default_metadata_replicas = 2
         else:
-            metadata_replicas = 2
-    default_metadata_replicas = 2
+            default_metadata_replicas = 2
+    max_metadata_replicas = 2
 
     # "scale_filesystem": [
     #    {
