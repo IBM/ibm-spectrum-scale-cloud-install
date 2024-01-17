@@ -3,8 +3,8 @@
  */
 locals {
   cluster_type = (
-    (var.vpc_strg_priv_subnet_address_spaces != null && var.vpc_comp_priv_subnet_address_spaces == null) ? "storage" :
-    (var.vpc_strg_priv_subnet_address_spaces == null && var.vpc_comp_priv_subnet_address_spaces != null) ? "compute" :
-    (var.vpc_strg_priv_subnet_address_spaces != null && var.vpc_comp_priv_subnet_address_spaces != null) ? "combined" : "none"
+    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks == null) ? "storage" :
+    (var.vpc_storage_cluster_private_subnets_cidr_blocks == null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "compute" :
+    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "combined" : "none"
   )
 }

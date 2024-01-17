@@ -104,9 +104,9 @@ module "compute_cluster_instances" {
   proximity_placement_group_id = length(var.vpc_availability_zones) > 1 ? null : module.proximity_group.proximity_group_compute_id
   os_disk_caching              = var.compute_cluster_os_disk_caching
   os_storage_account_type      = var.compute_boot_disk_type
-  user_public_key              = var.create_separate_namespaces == true ? var.compute_cluster_ssh_public_key : var.storage_cluster_ssh_public_key
-  meta_private_key             = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
-  meta_public_key              = var.create_separate_namespaces == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
+  user_public_key              = var.create_remote_mount_cluster == true ? var.compute_cluster_ssh_public_key : var.storage_cluster_ssh_public_key
+  meta_private_key             = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
+  meta_public_key              = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   dns_zone                     = var.compute_cluster_dns_zone
   availability_zone            = each.value["zone"]
 }

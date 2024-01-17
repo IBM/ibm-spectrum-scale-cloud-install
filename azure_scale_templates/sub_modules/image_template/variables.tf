@@ -106,3 +106,13 @@ variable "blob_container" {
   type        = string
   description = "Storage Blob container name."
 }
+
+variable "gpfs_version" {
+  type        = string
+  description = "GPFS rpm version."
+}
+
+variable "zimon_os_dir" {
+  type        = string
+  description = "zimon rpm os dir name."
+}

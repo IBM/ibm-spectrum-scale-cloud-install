@@ -20,6 +20,8 @@ variable "subscription_id" {
 
 variable "vpc_location" {
   type        = string
+  nullable    = true
+  default     = null
   description = "The location/region of the vnet to create. Examples are East US, West US, etc."
 }
 

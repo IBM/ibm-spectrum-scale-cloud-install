@@ -32,6 +32,8 @@ module "create_image_vm" {
   tenant_id               = var.tenant_id
   client_id               = var.client_id
   subscription_id         = var.subscription_id
+  gpfs_version            = var.gpfs_version
+  zimon_os_dir            = var.zimon_os_dir
 }
 
 resource "null_resource" "vm_deallocate" {

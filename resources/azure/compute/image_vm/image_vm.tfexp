@@ -52,7 +52,7 @@ echo 'enabled=1' >> /etc/yum.repos.d/azure-cli.repo
 echo 'gpgcheck=1' >> /etc/yum.repos.d/azure-cli.repo
 echo 'gpgkey=https://packages.microsoft.com/keys/microsoft.asc' >> /etc/yum.repos.d/azure-cli.repo
 dnf install -y azure-cli
-az login --service-principal --tenant "${var.tenant_id}" --username "${var.client_id}" --password "${var.client_secret}" --output table
+az login --identity
 az storage blob download-batch --source "${var.blob_container}" --destination . --account-name "${var.storage_account}" --auth-mode login
 dnf install "${var.gpfs_version}"/gpfs_rpms/*.rpm "${var.gpfs_version}"/zimon_rpms/"{var.zimon_os_dir}"/gpfs*.rpm -y
 rm -rf *.rpm *.gpg

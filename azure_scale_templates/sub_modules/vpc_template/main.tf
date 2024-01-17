@@ -12,25 +12,25 @@
 
 module "resource_group" {
   source              = "../../../resources/azure/resource_group"
-  location            = var.vpc_location
+  location            = var.vpc_region
   resource_group_name = format("%s-rg", var.resource_prefix)
 }
 
 module "vpc" {
   source              = "../../../resources/azure/network/vpc"
   vnet_name           = format("%s-vpc", var.resource_prefix)
-  vnet_location       = var.vpc_location
+  vnet_location       = var.vpc_region
   resource_group_name = module.resource_group.resource_group_name
-  vnet_address_space  = var.vpc_address_space
+  vnet_address_space  = [var.vpc_cidr_block]
   vnet_tags           = var.vpc_tags
 }
 
 module "public_subnet" {
   source              = "../../../resources/azure/network/subnet"
-  turn_on             = var.vpc_public_subnet_address_spaces != null ? true : false
+  turn_on             = var.vpc_public_subnets_cidr_blocks != null ? true : false
   resource_group_name = module.resource_group.resource_group_name
   subnet_name         = "AzureBastionSubnet"
-  subnet_cidr_range   = var.vpc_public_subnet_address_spaces
+  subnet_cidr_range   = var.vpc_public_subnets_cidr_blocks
   vnet_name           = module.vpc.vnet_name
 }
 
@@ -38,13 +38,13 @@ module "public_ip" {
   source              = "../../../resources/azure/network/public_ip"
   public_ip_name      = format("%s-snet-pubip", var.resource_prefix)
   resource_group_name = module.resource_group.resource_group_name
-  location            = var.vpc_location
+  location            = var.vpc_region
 }
 
 module "nat_gateway" {
   source              = "../../../resources/azure/network/nat_gateway"
   name                = format("%s-ngw", var.resource_prefix)
-  location            = var.vpc_location
+  location            = var.vpc_region
   resource_group_name = module.resource_group.resource_group_name
 }
 
@@ -66,7 +66,7 @@ module "vnet_strg_private_subnet" {
   subnet_name         = format("%s-strg-priv-snet", var.resource_prefix)
   resource_group_name = module.resource_group.resource_group_name
   vnet_name           = module.vpc.vnet_name
-  subnet_cidr_range   = var.vpc_strg_priv_subnet_address_spaces
+  subnet_cidr_range   = var.vpc_storage_cluster_private_subnets_cidr_blocks
 }
 
 module "vnet_comp_private_subnet" {
@@ -75,20 +75,20 @@ module "vnet_comp_private_subnet" {
   subnet_name         = format("%s-comp-priv-snet", var.resource_prefix)
   resource_group_name = module.resource_group.resource_group_name
   vnet_name           = module.vpc.vnet_name
-  subnet_cidr_range   = var.vpc_comp_priv_subnet_address_spaces
+  subnet_cidr_range   = var.vpc_compute_cluster_private_subnets_cidr_blocks
 }
 
 module "storage_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
   turn_on             = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
-  dns_domain_name     = format("%s.%s", var.vpc_location, var.strg_dns_domain)
+  dns_domain_name     = format("%s.%s", var.vpc_region, var.strg_dns_domain)
   resource_group_name = module.resource_group.resource_group_name
 }
 
 module "compute_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
   turn_on             = (local.cluster_type == "compute" || local.cluster_type == "combined") == true ? true : false
-  dns_domain_name     = format("%s.%s", var.vpc_location, var.comp_dns_domain)
+  dns_domain_name     = format("%s.%s", var.vpc_region, var.comp_dns_domain)
   resource_group_name = module.resource_group.resource_group_name
 }
 
