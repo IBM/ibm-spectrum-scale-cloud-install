@@ -193,8 +193,8 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | GCE disk type (valid: pd-standard, pd-ssd , local-ssd). | `list(string)` |
 | <a name="input_block_devices_per_storage_instance"></a> [block_devices_per_storage_instance](#input_block_devices_per_storage_instance) | Number of data disks to be attached to each storage instance. | `number` |
 | <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
-| <a name="input_compute_boot_disk_size"></a> [compute_boot_disk_size](#input_compute_boot_disk_size) | Compute instances boot disk size in gigabytes. | `list(string)` |
-| <a name="input_compute_boot_disk_type"></a> [compute_boot_disk_type](#input_compute_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `list(string)` |
+| <a name="input_compute_boot_disk_size"></a> [compute_boot_disk_size](#input_compute_boot_disk_size) | Compute instances boot disk size in gigabytes. | `string` |
+| <a name="input_compute_boot_disk_type"></a> [compute_boot_disk_type](#input_compute_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for Compute cluster GUI. | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |

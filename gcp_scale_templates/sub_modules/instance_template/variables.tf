@@ -84,14 +84,14 @@ variable "compute_cluster_instance_type" {
 }
 
 variable "compute_boot_disk_size" {
-  type        = list(string)
+  type        = string
   nullable    = true
   default     = null
   description = "Compute instances boot disk size in gigabytes."
 }
 
 variable "compute_boot_disk_type" {
-  type        = list(string)
+  type        = string
   nullable    = true
   default     = null
   description = "GCE disk type (valid: pd-standard, pd-ssd)."
