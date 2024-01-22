@@ -624,7 +624,7 @@ locals {
     for idx, vm_name in resource.null_resource.generate_storage_tie_vm_name[*].triggers.vm_name :
     vm_name => {
       zone   = var.vpc_availability_zones[2]              # Consider only last element
-      subnet = var.vpc_storage_cluster_private_subnets[2] # Consider only last 2 elements
+      subnet = var.vpc_storage_cluster_private_subnets[2] # Consider only last element
       disks = tomap({
         for i in range(1) : "${vm_name}-tie-disk" => {
           size        = 5
@@ -765,6 +765,32 @@ module "protocol_instances" {
   meta_public_key        = module.generate_storage_cluster_keys.public_key_content
   volume_tags            = var.protocol_volume_tags
   tags                   = var.protocol_tags
+}
+
+/*
+    Notes:
+    1. One additional ENI will be provisioned per protocol node
+    2. Each ENI will only have 1 secondary ip
+*/
+locals {
+  protocol_vm_ces_map = {
+    for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
+    vm_name => {
+      subnet      = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
+      private_ips = var.ces_private_ips == null ? null : element(var.ces_private_ips, idx)
+      description = format("%s-ces", vm_name)
+    }
+  }
+}
+
+module "protocol_enis" {
+  for_each          = local.protocol_vm_ces_map
+  source            = "../../../resources/aws/network/eni"
+  subnet_id         = each.value["subnet"]
+  private_ips       = each.value["private_ips"]
+  private_ips_count = 1
+  security_groups   = [module.storage_cluster_security_group.sec_group_id]
+  description       = each.value["description"]
 }
 
 module "prepare_ansible_configuration" {
