@@ -185,6 +185,13 @@ variable "total_protocol_instances" {
   description = "Number of EC2 instances to be launched for protocol nodes."
 }
 
+variable "ces_private_ips" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of CES ipaddress to use (must be equal to total_protocol_instances). If null, random ips will be provisioned equal to total_protocol_instances."
+}
+
 variable "protocol_volume_tags" {
   type        = map(string)
   nullable    = true

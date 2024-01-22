@@ -7,7 +7,6 @@ variable "vpc_region" {
 variable "vpc_availability_zones" {
   type        = list(string)
   nullable    = true
-  default     = null
   description = "A list of availability zones names or ids in the region."
 }
 

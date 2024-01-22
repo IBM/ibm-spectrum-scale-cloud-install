@@ -226,7 +226,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 4.0 |
+| <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 5.0 |
 
 #### Inputs
 
@@ -249,6 +249,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Size of the volume in gibibytes (GiB). | `list(string)` |
 | <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | EBS volume types: io1, io2, gp2, gp3. | `list(string)` |
 | <a name="input_block_devices_per_storage_instance"></a> [block_devices_per_storage_instance](#input_block_devices_per_storage_instance) | Additional EBS block devices to attach per storage cluster instance. | `number` |
+| <a name="input_ces_private_ips"></a> [ces_private_ips](#input_ces_private_ips) | List of CES ipaddress to use (must be equal to total_protocol_instances). If null, random ips will be provisioned equal to total_protocol_instances. | `list(string)` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of gateway/client ip/cidr ranges. | `list(string)` |
 | <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
