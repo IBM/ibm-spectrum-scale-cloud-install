@@ -18,10 +18,10 @@ variable "subscription_id" {
   description = "The subscription ID to use."
 }
 
-variable "vnet_location" {
+variable "vpc_region" {
   type        = string
   nullable    = true
-  description = "The location/region of the vnet to create. Examples are East US, West US, etc."
+  description = "The location/region of the vpc to create. Examples are East US, West US, etc."
 }
 
 variable "resource_prefix" {
@@ -31,27 +31,28 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
-variable "vnet_address_space" {
-  type        = list(string)
-  default     = ["10.0.0.0/16"]
-  description = "The CIDR block for the vnet."
+variable "vpc_cidr_block" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "The CIDR block for the vpc."
 }
 
-variable "vnet_public_subnet_address_spaces" {
+variable "vpc_public_subnets_cidr_blocks" {
   type        = list(string)
   nullable    = true
   default     = null
   description = "List of cidr_blocks of public subnets."
 }
 
-variable "vnet_strg_priv_subnet_address_spaces" {
+variable "vpc_storage_cluster_private_subnets_cidr_blocks" {
   type        = list(string)
   nullable    = true
   default     = null
   description = "List of cidr_blocks for storage cluster private subnets."
 }
 
-variable "vnet_comp_priv_subnet_address_spaces" {
+variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
   type        = list(string)
   nullable    = true
   default     = null
@@ -72,7 +73,7 @@ variable "comp_dns_domain" {
   description = "Azure DNS domain name to be used for compute cluster."
 }
 
-variable "vnet_tags" {
+variable "vpc_tags" {
   type        = map(string)
   nullable    = true
   default     = {}
