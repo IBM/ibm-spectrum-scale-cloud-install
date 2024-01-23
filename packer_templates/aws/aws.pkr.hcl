@@ -24,7 +24,7 @@ source "amazon-ebs" "itself" {
   ssh_bastion_port             = var.ssh_bastion_port
   ssh_bastion_private_key_file = var.ssh_bastion_private_key_file
   ssh_clear_authorized_keys    = true
-  ssh_timeout                  = 2m
+  ssh_timeout                  = "2m"
   temporary_key_pair_name      = "amazon-packer-{{timestamp}}"
 
   metadata_options {

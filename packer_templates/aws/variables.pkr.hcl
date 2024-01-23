@@ -11,6 +11,7 @@ variable "vpc_region" {
 # If the security group id is not provided, a temporary security group with ssh access will be provisioned and cleaned up
 variable "vpc_security_group_id" {
   type        = string
+  default     = null
   description = "The security group id to assign to the instance, you must be sure the security group allows access to the ssh port."
 }
 
@@ -52,7 +53,7 @@ variable "ssh_bastion_port" {
 }
 
 variable "ssh_bastion_private_key_file" {
-  tyoe        = string
+  type        = string
   description = "Path to a private key file to use to authenticate with the bastion host."
 }
 
