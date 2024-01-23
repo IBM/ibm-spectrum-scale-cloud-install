@@ -8,8 +8,10 @@ variable "vpc_region" {
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
 }
 
+# If the security group id is not provided, a temporary security group with ssh access will be provisioned and cleaned up
 variable "vpc_security_group_id" {
   type        = string
+  default     = null
   description = "The security group id to assign to the instance, you must be sure the security group allows access to the ssh port."
 }
 
@@ -26,6 +28,33 @@ variable "resource_prefix" {
 variable "ssh_username" {
   type        = string
   description = "The username to connect to instance via SSH."
+}
+
+variable "ssh_port" {
+  type        = string
+  default     = "22"
+  description = "The port to connect to instance via SSH."
+}
+
+variable "ssh_bastion_host" {
+  type        = string
+  description = "A bastion host to use for the SSH connection."
+}
+
+variable "ssh_bastion_username" {
+  type        = string
+  description = "The username to connect to the bastion host."
+}
+
+variable "ssh_bastion_port" {
+  type        = string
+  default     = "22"
+  description = "The port of the bastion host."
+}
+
+variable "ssh_bastion_private_key_file" {
+  type        = string
+  description = "Path to a private key file to use to authenticate with the bastion host."
 }
 
 variable "image_description" {
