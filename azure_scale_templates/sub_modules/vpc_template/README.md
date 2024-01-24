@@ -67,9 +67,7 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 
 | Name | Description |
 |------|-------------|
-| <a name="output_compute_priv_dns_zone_name"></a> [compute_priv_dns_zone_name](#output_compute_priv_dns_zone_name) | The dns zone for compute private zone. |
 | <a name="output_resource_group_name"></a> [resource_group_name](#output_resource_group_name) | New resource group name |
-| <a name="output_storage_priv_dns_zone_name"></a> [storage_priv_dns_zone_name](#output_storage_priv_dns_zone_name) | The dns zone for storage private zone. |
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | The ID of the vpc. |
 | <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |

@@ -27,7 +27,7 @@ variable "vpc_region" {
 variable "resource_prefix" {
   type        = string
   nullable    = true
-  default     = "spectrum-scale"
+  default     = "ibm-storage-scale"
   description = "Prefix is added to all resources that are created."
 }
 
