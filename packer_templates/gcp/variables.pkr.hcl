@@ -73,7 +73,38 @@ variable "volume_type" {
 
 variable "ssh_username" {
   type        = string
+  default     = null
   description = "The username to login/connect to SSH with."
+}
+
+variable "ssh_port" {
+  type        = string
+  default     = "22"
+  description = "The port to connect to instance via SSH."
+}
+
+variable "ssh_bastion_host" {
+  type        = string
+  default     = null
+  description = "A bastion host to use for the SSH connection."
+}
+
+variable "ssh_bastion_username" {
+  type        = string
+  default     = null
+  description = "The username to connect to the bastion host."
+}
+
+variable "ssh_bastion_port" {
+  type        = string
+  default     = "22"
+  description = "The port of the bastion host."
+}
+
+variable "ssh_bastion_private_key_file" {
+  type        = string
+  default     = null
+  description = "Path to a private key file to use to authenticate with the bastion host."
 }
 
 variable "service_account_email" {
