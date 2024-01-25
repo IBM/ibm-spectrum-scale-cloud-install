@@ -66,13 +66,6 @@ module "nat_gw_public_pip_association" {
   nat_gateway_id       = module.nat_gateway.nat_gateway_id
 }
 
-# Associate nat to public subnet
-module "nat_gw_public_snet_association" {
-  source         = "../../../resources/azure/network/nat_gw_subnet_association"
-  subnet_id      = module.public_subnet.subnet_id
-  nat_gateway_id = module.nat_gateway.nat_gateway_id
-}
-
 # Create storage private subnet
 module "vnet_strg_private_subnet" {
   source              = "../../../resources/azure/network/subnet"
