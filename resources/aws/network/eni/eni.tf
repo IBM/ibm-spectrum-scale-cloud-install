@@ -16,6 +16,6 @@ resource "aws_network_interface" "itself" {
   description       = var.description
 }
 
-output "eni_id" {
+output "eni_ids" {
   value = aws_network_interface.itself.id
 }
