@@ -97,6 +97,11 @@ output "protocol_instance_private_ips" {
   description = "Private IP address of protocol instances."
 }
 
+output "ces_nic_ids" {
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for nic in module.protocol_enis : nic.eni_ids] : null
+  description = "CES/Protocol ENI (secondary nic) ids."
+}
+
 output "storage_cluster_instance_cidrs" {
   value = [for subnet in data.aws_subnet.vpc_storage_cluster_private_subnet_cidrs : subnet.cidr_block]
 }
