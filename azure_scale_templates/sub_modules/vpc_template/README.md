@@ -1,6 +1,6 @@
 ### Configure Azure VPC
 
-Below steps will provision Azure VPC required for IBM Spectrum Scale cloud solution.
+Below steps will provision Azure VPC required for IBM Storage Scale cloud solution.
 
 1. Change working directory to `azure_scale_templates/sub_modules/vpc_template`.
 
@@ -14,10 +14,10 @@ Below steps will provision Azure VPC required for IBM Spectrum Scale cloud solut
 
     ```json
     {
-        "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
-        "client_secret": "0e760437-bf34-4aad-9f8d-870be799c55d",
-        "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
-        "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee",
+        "client_id": "xxxx1ee24-5f02-4066-b3b7-xxxxxxxxxx",
+        "client_secret": "xxxxxxwiywnrm.FaqwZxxxxxxxxxxxx",
+        "subscription_id": "xxx3cd6f-667b-4a89-a046-dexxxxxxxx",
+        "tenant_id": "xxxx057-50c9-4ad4-98f3-xxxxxx",
         "vpc_location": "eastus",
         "resource_group_name": "spectrum-scale",
         "resource_prefix": "spectrum-scale",
@@ -53,25 +53,23 @@ Below steps will provision Azure VPC required for IBM Spectrum Scale cloud solut
 | <a name="input_client_secret"></a> [client_secret](#input_client_secret) | The password or secret for your service principal. | `string` |
 | <a name="input_subscription_id"></a> [subscription_id](#input_subscription_id) | The subscription ID to use. | `string` |
 | <a name="input_tenant_id"></a> [tenant_id](#input_tenant_id) | The Active Directory tenant identifier, must provide when using service principals. | `string` |
-| <a name="input_vnet_location"></a> [vnet_location](#input_vnet_location) | The location/region of the vnet to create. Examples are East US, West US, etc. | `string` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The location/region of the vpc to create. Examples are East US, West US, etc. | `string` |
 | <a name="input_comp_dns_domain"></a> [comp_dns_domain](#input_comp_dns_domain) | Azure DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_strg_dns_domain"></a> [strg_dns_domain](#input_strg_dns_domain) | Azure DNS domain name to be used for storage cluster. | `string` |
-| <a name="input_vnet_address_space"></a> [vnet_address_space](#input_vnet_address_space) | The CIDR block for the vnet. | `list(string)` |
-| <a name="input_vnet_comp_priv_subnet_address_spaces"></a> [vnet_comp_priv_subnet_address_spaces](#input_vnet_comp_priv_subnet_address_spaces) | List of cidr_blocks for compute cluster private subnets. | `list(string)` |
-| <a name="input_vnet_public_subnet_address_spaces"></a> [vnet_public_subnet_address_spaces](#input_vnet_public_subnet_address_spaces) | List of cidr_blocks of public subnets. | `list(string)` |
-| <a name="input_vnet_strg_priv_subnet_address_spaces"></a> [vnet_strg_priv_subnet_address_spaces](#input_vnet_strg_priv_subnet_address_spaces) | List of cidr_blocks for storage cluster private subnets. | `list(string)` |
-| <a name="input_vnet_tags"></a> [vnet_tags](#input_vnet_tags) | The tags to associate with your network and subnets. | `map(string)` |
+| <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the vpc. | `string` |
+| <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks for compute cluster private subnets. | `list(string)` |
+| <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of cidr_blocks of public subnets. | `list(string)` |
+| <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks for storage cluster private subnets. | `list(string)` |
+| <a name="input_vpc_tags"></a> [vpc_tags](#input_vpc_tags) | The tags to associate with your network and subnets. | `map(string)` |
 
 #### Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_compute_priv_dns_zone_name"></a> [compute_priv_dns_zone_name](#output_compute_priv_dns_zone_name) | The dns zone for compute private zone. |
 | <a name="output_resource_group_name"></a> [resource_group_name](#output_resource_group_name) | New resource group name |
-| <a name="output_storage_priv_dns_zone_name"></a> [storage_priv_dns_zone_name](#output_storage_priv_dns_zone_name) | The dns zone for storage private zone. |
-| <a name="output_vnet_compute_cluster_private_subnets"></a> [vnet_compute_cluster_private_subnets](#output_vnet_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
-| <a name="output_vnet_id"></a> [vnet_id](#output_vnet_id) | The ID of the vnet. |
-| <a name="output_vnet_public_subnets"></a> [vnet_public_subnets](#output_vnet_public_subnets) | List of IDs of public subnets. |
-| <a name="output_vnet_storage_cluster_private_subnets"></a> [vnet_storage_cluster_private_subnets](#output_vnet_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |
+| <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
+| <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | The ID of the vpc. |
+| <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
+| <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |
 <!-- END_TF_DOCS -->
