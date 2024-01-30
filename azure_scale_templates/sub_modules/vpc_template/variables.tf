@@ -59,20 +59,6 @@ variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
   description = "List of cidr_blocks for compute cluster private subnets."
 }
 
-variable "strg_dns_domain" {
-  type        = string
-  nullable    = true
-  default     = "strgscale.com"
-  description = "Azure DNS domain name to be used for storage cluster."
-}
-
-variable "comp_dns_domain" {
-  type        = string
-  nullable    = true
-  default     = "compscale.com"
-  description = "Azure DNS domain name to be used for compute cluster."
-}
-
 variable "vpc_tags" {
   type        = map(string)
   nullable    = true

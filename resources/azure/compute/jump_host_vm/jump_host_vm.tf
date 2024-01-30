@@ -1,5 +1,5 @@
 /*
-    Manages a Linux Virtual Machine.
+  Azure Bastion host
 */
 
 variable "vm_count" {}
@@ -43,7 +43,7 @@ resource "azurerm_network_interface" "itself" {
 
 resource "azurerm_linux_virtual_machine" "itself" {
   count                        = var.vm_count
-  name                         = format("%s-%s", var.vm_name_prefix, count.index)
+  name                         = format("%s-%s", var.vm_name_prefix, count.index + 1)
   resource_group_name          = var.resource_group_name
   location                     = var.location
   size                         = var.vm_size
@@ -60,8 +60,6 @@ resource "azurerm_linux_virtual_machine" "itself" {
     caching              = var.os_disk_caching
     storage_account_type = var.os_storage_account_type
   }
-
-
 
   source_image_reference {
     publisher = var.image_publisher

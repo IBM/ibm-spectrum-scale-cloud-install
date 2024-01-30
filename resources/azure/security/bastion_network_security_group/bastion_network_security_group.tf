@@ -5,12 +5,14 @@
 variable "security_group_name" {}
 variable "location" {}
 variable "resource_group_name" {}
+variable "remote_cidr_blocks" {}
 
 # tfsec:ignore:azure-network-no-public-egress
 resource "azurerm_network_security_group" "itself" {
   name                = var.security_group_name
   location            = var.location
   resource_group_name = var.resource_group_name
+
   security_rule {
     name                       = "AllowHttpsInBound"
     priority                   = 100
@@ -54,6 +56,17 @@ resource "azurerm_network_security_group" "itself" {
     destination_address_prefix = "VirtualNetwork"
     source_port_range          = "*"
     destination_port_range     = "5701-8080"
+  }
+  security_rule {
+    name                       = "SSH"
+    priority                   = 140
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.remote_cidr_blocks
   }
   security_rule {
     name                       = "DenyAllInBound"

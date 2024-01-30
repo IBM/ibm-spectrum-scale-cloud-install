@@ -21,6 +21,10 @@ resource "azurerm_bastion_host" "itself" {
   }
 }
 
-output "bastion_dns_name" {
+output "bastion_service_id" {
+  value = azurerm_bastion_host.itself.id
+}
+
+output "bastion_service_dns_name" {
   value = azurerm_bastion_host.itself.dns_name
 }
