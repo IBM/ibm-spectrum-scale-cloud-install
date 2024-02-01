@@ -271,61 +271,18 @@ variable "enable_placement_group" {
   description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
 }
 
-variable "block_devices_per_storage_instance" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Additional EBS block devices to attach per storage cluster instance."
-}
-
-# Below parameters are only applicable if ebs_block_devices_per_storage_instance is set > 0
-variable "block_device_delete_on_termination" {
+variable "root_device_encrypted" {
   type        = bool
   nullable    = true
   default     = null
-  description = "If true, all ebs volumes will be destroyed on instance termination."
+  description = "Whether to enable volume encryption for root device."
 }
 
-variable "block_device_encrypted" {
-  type        = bool
-  nullable    = true
-  default     = null
-  description = "Whether to enable volume encryption."
-}
-
-variable "block_device_iops" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3."
-}
-
-variable "block_device_throughput" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3."
-}
-
-variable "block_device_kms_key_ref" {
+variable "root_device_kms_key_ref" {
   type        = string
   nullable    = true
   default     = null
-  description = "Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume."
-}
-
-variable "block_device_volume_size" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Size of the volume in gibibytes (GiB)."
-}
-
-variable "block_device_volume_type" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "EBS volume types: io1, io2, gp2, gp3."
+  description = "Amazon Resource Name (ARN) of the KMS Key to use when encrypting the root volume."
 }
 
 variable "enable_instance_store_block_device" {
@@ -353,6 +310,28 @@ variable "operator_email" {
   nullable    = true
   default     = null
   description = "SNS notifications will be sent to provided email id."
+}
+
+variable "filesystem_parameters" {
+  type = list(object({
+    name                   = string
+    mount_point            = string
+    filesystem_config_file = string
+    disk_config = list(object({
+      filesystem_pool                    = string
+      block_device_delete_on_termination = bool
+      block_devices_per_storage_instance = number
+      block_device_volume_type           = string
+      block_device_volume_size           = string
+      block_device_iops                  = string
+      block_device_throughput            = string
+      block_device_encrypted             = bool
+      block_device_kms_key_ref           = string
+    }))
+  }))
+  default     = null
+  nullable    = true
+  description = "Filesystem parameters in relationship with disk parameters."
 }
 
 variable "storage_cluster_filesystem_mountpoint" {

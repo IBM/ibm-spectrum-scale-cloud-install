@@ -489,8 +489,8 @@ module "compute_cluster_instances" {
   placement_group        = null
   subnet_id              = each.value["subnet"]
   root_volume_type       = var.compute_cluster_root_volume_type
-  root_volume_encrypted  = var.block_device_encrypted
-  root_volume_kms_key_id = var.block_device_kms_key_ref
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
   user_public_key        = var.compute_cluster_key_pair
   meta_private_key       = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
@@ -521,46 +521,90 @@ resource "null_resource" "generate_storage_vm_name" {
             "vm-1" = {
                 "zone"  = "us-east-2a"
                 "disks" = {
-                    "vm-1-disk-1": {
-                        "size": "500",
-                        "type": "gp3"
-                    },
-                    "vm-1-disk-2": {
-                        "size": "100",
-                        "type": "gp2"
-                    }
-                "subnet" = "test-private-subnet-1"
-            }
-            "vm-2" = {
-                "zone"  = "us-east-2a"
-                "disks" = {
-                    "vm-1-disk-1": {
-                        "size": "500",
-                        "type": "gp3"
-                    },
-                    "vm-1-disk-2": {
-                        "size": "100",
-                        "type": "gp2"
-                    }
+                    "0" = {
+                            "name" = "fs1-Gold-disk-1"
+                            "size" = "50"
+                            "type" = "gp2"
+                        }
+                    "1" = {
+                            "name" = "fs1-Gold-disk-2"
+                            "size" = "50"
+                            "type" = "gp2"
+                        }
+                    "2" = {
+                            "name" = "fs1-system-disk-1"
+                            "size" = "500"
+                            "type" = "gp2"
+                        }
+                   "3" = {
+                            "name"  = "fs1-system-disk-2"
+                             "size" = "500"
+                            "type" = "gp2"
+                        }
+                    "4" = {
+                            "name" = "fs2-system-disk-1"
+                            "size" = "100"
+                            "type" = "gp2"
+                        }
+                    "5" = {
+                            "name": "fs2-system-disk-2"
+                            "size" = "100"
+                            "type" = "gp2"
+                        }
+                }
                 "subnet" = "test-private-subnet-1"
             }
         }
 */
 locals {
-  block_device_volume_size = var.block_device_volume_size == null ? [] : var.block_device_volume_size
+  disks_per_vm = flatten([
+    for fs_params in var.filesystem_parameters : [
+      for disk_details in fs_params.disk_config : {
+        for i in range(disk_details.block_devices_per_storage_instance) :
+        "${fs_params.name}-${disk_details.filesystem_pool}-${i + 1}" => {
+          "termination" = disk_details.block_device_delete_on_termination
+          "size"        = disk_details.block_device_volume_size
+          "type"        = disk_details.block_device_volume_type
+          "iops"        = disk_details.block_device_iops
+          "throughput"  = disk_details.block_device_throughput
+          "encrypted"   = disk_details.block_device_encrypted
+          "kms_key"     = disk_details.block_device_kms_key_ref
+        }
+      }
+    ]
+  ])
+  flatten_disks_per_vm = flatten([
+    for pool in local.disks_per_vm :
+    [for disk, properties in pool :
+      {
+        name        = disk
+        size        = properties["size"]
+        type        = properties["type"]
+        termination = properties["termination"]
+        iops        = properties["iops"]
+        throughput  = properties["throughput"]
+        encrypted   = properties["encrypted"]
+        kms_key     = properties["kms_key"]
+      }
+    ]
+  ])
   storage_vm_zone_map = {
     for idx, vm_name in resource.null_resource.generate_storage_vm_name[*].triggers.vm_name :
     vm_name => {
       zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)                                        # Consider only first 2 elements in multi-az
       subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
       disks = tomap({
-        # Dont increment from 1, it distrubs the ordering
-        for i in range(0, (var.block_devices_per_storage_instance * length(local.block_device_volume_size))) : "${vm_name}-data-${i + 1}" => {
-          size        = var.block_device_volume_size[i % length(var.block_device_volume_size)]
-          type        = var.block_device_volume_type[i % length(var.block_device_volume_type)]
-          iops        = var.block_device_iops[i % length(var.block_device_iops)]
-          throughput  = var.block_device_throughput[i % length(var.block_device_throughput)]
-          device_name = element(local.ebs_device_names, i)
+        for idx, disk in tolist(local.flatten_disks_per_vm) :
+        idx => {
+          name        = disk["name"]
+          size        = disk["size"]
+          type        = disk["type"]
+          termination = disk["termination"]
+          iops        = disk["iops"]
+          throughput  = disk["throughput"]
+          encrypted   = disk["encrypted"]
+          kms_key     = disk["kms_key"]
+          device_name = element(local.ebs_device_names, idx)
         }
       })
     }
@@ -568,28 +612,27 @@ locals {
 }
 
 module "storage_cluster_instances" {
-  for_each                               = local.storage_vm_zone_map
-  source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
-  name_prefix                            = each.key
-  ami_id                                 = var.storage_cluster_image_ref
-  instance_type                          = var.storage_cluster_instance_type
-  security_groups                        = [module.storage_cluster_security_group.sec_group_id]
-  iam_instance_profile                   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  placement_group                        = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
-  subnet_id                              = each.value["subnet"]
-  root_volume_type                       = var.storage_cluster_root_volume_type
-  user_public_key                        = var.storage_cluster_key_pair
-  meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
-  ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
-  zone                                   = each.value["zone"]
-  disks                                  = each.value["disks"]
-  ebs_block_device_delete_on_termination = var.block_device_delete_on_termination
-  ebs_block_device_encrypted             = var.block_device_encrypted
-  ebs_block_device_kms_key_id            = var.block_device_kms_key_ref
-  is_nitro_instance                      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
-  tags                                   = var.storage_cluster_tags
-  volume_tags                            = var.storage_cluster_volume_tags
+  for_each               = local.storage_vm_zone_map
+  source                 = "../../../resources/aws/compute/ec2_multiple_vol"
+  name_prefix            = each.key
+  ami_id                 = var.storage_cluster_image_ref
+  instance_type          = var.storage_cluster_instance_type
+  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  placement_group        = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
+  subnet_id              = each.value["subnet"]
+  root_volume_type       = var.storage_cluster_root_volume_type
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
+  user_public_key        = var.storage_cluster_key_pair
+  meta_private_key       = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key        = module.generate_storage_cluster_keys.public_key_content
+  ebs_optimized          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
+  is_nitro_instance      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
+  zone                   = each.value["zone"]
+  disks                  = each.value["disks"]
+  tags                   = var.storage_cluster_tags
+  volume_tags            = var.storage_cluster_volume_tags
 }
 
 /*
@@ -639,28 +682,27 @@ locals {
 }
 
 module "storage_cluster_tie_breaker_instance" {
-  for_each                               = local.storage_tie_vm_zone_map
-  source                                 = "../../../resources/aws/compute/ec2_multiple_vol"
-  name_prefix                            = each.key
-  ami_id                                 = var.storage_cluster_image_ref
-  instance_type                          = var.storage_cluster_tiebreaker_instance_type
-  security_groups                        = [module.storage_cluster_security_group.sec_group_id]
-  iam_instance_profile                   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  placement_group                        = null
-  subnet_id                              = each.value["subnet"]
-  root_volume_type                       = var.storage_cluster_root_volume_type
-  user_public_key                        = var.storage_cluster_key_pair
-  meta_private_key                       = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key                        = module.generate_storage_cluster_keys.public_key_content
-  ebs_optimized                          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
-  zone                                   = each.value["zone"]
-  disks                                  = each.value["disks"]
-  ebs_block_device_delete_on_termination = var.block_device_delete_on_termination
-  ebs_block_device_encrypted             = var.block_device_encrypted
-  ebs_block_device_kms_key_id            = var.block_device_kms_key_ref
-  is_nitro_instance                      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
-  tags                                   = var.storage_cluster_tags
-  volume_tags                            = var.storage_cluster_volume_tags
+  for_each               = local.storage_tie_vm_zone_map
+  source                 = "../../../resources/aws/compute/ec2_multiple_vol"
+  name_prefix            = each.key
+  ami_id                 = var.storage_cluster_image_ref
+  instance_type          = var.storage_cluster_tiebreaker_instance_type
+  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
+  placement_group        = null
+  subnet_id              = each.value["subnet"]
+  root_volume_type       = var.storage_cluster_root_volume_type
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
+  user_public_key        = var.storage_cluster_key_pair
+  meta_private_key       = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key        = module.generate_storage_cluster_keys.public_key_content
+  ebs_optimized          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
+  is_nitro_instance      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
+  zone                   = each.value["zone"]
+  disks                  = each.value["disks"]
+  tags                   = var.storage_cluster_tags
+  volume_tags            = var.storage_cluster_volume_tags
 }
 
 /*
@@ -706,8 +748,8 @@ module "gateway_instances" {
   placement_group        = null
   subnet_id              = each.value["subnet"]
   root_volume_type       = var.storage_cluster_root_volume_type
-  root_volume_encrypted  = var.block_device_encrypted
-  root_volume_kms_key_id = var.block_device_kms_key_ref
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
   user_public_key        = var.storage_cluster_key_pair
   meta_private_key       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = module.generate_storage_cluster_keys.public_key_content
@@ -758,8 +800,8 @@ module "protocol_instances" {
   placement_group        = null
   subnet_id              = each.value["subnet"]
   root_volume_type       = var.storage_cluster_root_volume_type
-  root_volume_encrypted  = var.block_device_encrypted
-  root_volume_kms_key_id = var.block_device_kms_key_ref
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
   user_public_key        = var.storage_cluster_key_pair
   meta_private_key       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = module.generate_storage_cluster_keys.public_key_content
@@ -792,7 +834,7 @@ module "protocol_enis" {
   security_groups   = [module.storage_cluster_security_group.sec_group_id]
   description       = each.value["description"]
 }
-
+/*
 module "prepare_ansible_configuration" {
   source     = "../../../resources/common/git_utils"
   turn_on    = (var.airgap == true) ? false : true # Disable git module in airgap mode.
@@ -1034,4 +1076,4 @@ module "remote_mount_configuration" {
   clone_complete                  = module.prepare_ansible_configuration.clone_complete
   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-}
+}*/
