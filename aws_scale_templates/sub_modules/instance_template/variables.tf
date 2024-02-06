@@ -285,13 +285,6 @@ variable "root_device_kms_key_ref" {
   description = "Amazon Resource Name (ARN) of the KMS Key to use when encrypting the root volume."
 }
 
-variable "enable_instance_store_block_device" {
-  type        = bool
-  nullable    = true
-  default     = null
-  description = "Enable instance storage block devices."
-}
-
 variable "scale_ansible_repo_clone_path" {
   type        = string
   nullable    = true
@@ -314,19 +307,18 @@ variable "operator_email" {
 
 variable "filesystem_parameters" {
   type = list(object({
-    name                   = string
-    mount_point            = string
-    filesystem_config_file = string
+    name                         = string
+    filesystem_config_file       = string
+    filesystem_encrypted         = bool
+    filesystem_kms_key_ref       = string
+    device_delete_on_termination = bool
     disk_config = list(object({
       filesystem_pool                    = string
-      block_device_delete_on_termination = bool
       block_devices_per_storage_instance = number
       block_device_volume_type           = string
       block_device_volume_size           = string
       block_device_iops                  = string
       block_device_throughput            = string
-      block_device_encrypted             = bool
-      block_device_kms_key_ref           = string
     }))
   }))
   default     = null
@@ -334,39 +326,11 @@ variable "filesystem_parameters" {
   description = "Filesystem parameters in relationship with disk parameters."
 }
 
-variable "storage_cluster_filesystem_mountpoint" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Storage cluster (owningCluster) Filesystem mount point."
-}
-
 variable "compute_cluster_filesystem_mountpoint" {
   type        = string
   nullable    = true
   default     = null
   description = "Compute cluster (accessingCluster) Filesystem mount point."
-}
-
-variable "filesystem_block_size" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Filesystem block size."
-}
-
-variable "filesystem_data_replication" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Filesystem default replication factor (-r) for data blocks."
-}
-
-variable "filesystem_metadata_replication" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Filesystem default replication factor (-m) for metadata."
 }
 
 variable "create_remote_mount_cluster" {

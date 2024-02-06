@@ -255,12 +255,8 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_compute_cluster_volume_tags"></a> [compute_cluster_volume_tags](#input_compute_cluster_volume_tags) | Additional tags for the compute cluster volume(s). | `map(string)` |
 | <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
-| <a name="input_enable_instance_store_block_device"></a> [enable_instance_store_block_device](#input_enable_instance_store_block_device) | Enable instance storage block devices. | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, a placement group will be created and all instances will be created with strategy - cluster. | `bool` |
-| <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
-| <a name="input_filesystem_data_replication"></a> [filesystem_data_replication](#input_filesystem_data_replication) | Filesystem default replication factor (-r) for data blocks. | `number` |
-| <a name="input_filesystem_metadata_replication"></a> [filesystem_metadata_replication](#input_filesystem_metadata_replication) | Filesystem default replication factor (-m) for metadata. | `number` |
-| <a name="input_filesystem_parameters"></a> [filesystem_parameters](#input_filesystem_parameters) | Filesystem parameters in relationship with disk parameters. | <pre>list(object({<br>    name                   = string<br>    mount_point            = string<br>    filesystem_config_file = string<br>    disk_config = list(object({<br>      filesystem_pool                    = string<br>      block_device_delete_on_termination = bool<br>      block_devices_per_storage_instance = number<br>      block_device_volume_type           = string<br>      block_device_volume_size           = string<br>      block_device_iops                  = string<br>      block_device_throughput            = string<br>      block_device_encrypted             = bool<br>      block_device_kms_key_ref           = string<br>    }))<br>  }))</pre> |
+| <a name="input_filesystem_parameters"></a> [filesystem_parameters](#input_filesystem_parameters) | Filesystem parameters in relationship with disk parameters. | <pre>list(object({<br>    name                         = string<br>    filesystem_config_file       = string<br>    filesystem_encrypted         = bool<br>    filesystem_kms_key_ref       = string<br>    device_delete_on_termination = bool<br>    disk_config = list(object({<br>      filesystem_pool                    = string<br>      block_devices_per_storage_instance = number<br>      block_device_volume_type           = string<br>      block_device_volume_size           = string<br>      block_device_iops                  = string<br>      block_device_throughput            = string<br>    }))<br>  }))</pre> |
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
 | <a name="input_gateway_tags"></a> [gateway_tags](#input_gateway_tags) | Additional tags for the gateway instances. | `map(string)` |
 | <a name="input_gateway_volume_tags"></a> [gateway_volume_tags](#input_gateway_volume_tags) | Additional tags for the gateway volume(s). | `map(string)` |
@@ -274,7 +270,6 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_root_device_encrypted"></a> [root_device_encrypted](#input_root_device_encrypted) | Whether to enable volume encryption for root device. | `bool` |
 | <a name="input_root_device_kms_key_ref"></a> [root_device_kms_key_ref](#input_root_device_kms_key_ref) | Amazon Resource Name (ARN) of the KMS Key to use when encrypting the root volume. | `string` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
-| <a name="input_storage_cluster_filesystem_mountpoint"></a> [storage_cluster_filesystem_mountpoint](#input_storage_cluster_filesystem_mountpoint) | Storage cluster (owningCluster) Filesystem mount point. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_image_ref"></a> [storage_cluster_image_ref](#input_storage_cluster_image_ref) | ID of AMI to use for provisioning the storage cluster instances. | `string` |
@@ -299,5 +294,30 @@ The following steps will provision AWS resources (compute and storage instances 
 
 #### Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
+| <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
+| <a name="output_ces_nic_ids"></a> [ces_nic_ids](#output_ces_nic_ids) | CES/Protocol ENI (secondary nic) ids. |
+| <a name="output_cluster_sns_arn"></a> [cluster_sns_arn](#output_cluster_sns_arn) | n/a |
+| <a name="output_compute_cluster_instance_cidrs"></a> [compute_cluster_instance_cidrs](#output_compute_cluster_instance_cidrs) | n/a |
+| <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
+| <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
+| <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
+| <a name="output_compute_instance_memory_size"></a> [compute_instance_memory_size](#output_compute_instance_memory_size) | Compute instance profile memory size. |
+| <a name="output_gateway_instance_ids"></a> [gateway_instance_ids](#output_gateway_instance_ids) | Gateway instance ids. |
+| <a name="output_gateway_instance_private_ips"></a> [gateway_instance_private_ips](#output_gateway_instance_private_ips) | Private IP address of gateway instances. |
+| <a name="output_instance_iam_profile"></a> [instance_iam_profile](#output_instance_iam_profile) | n/a |
+| <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | Placement group id. |
+| <a name="output_protocol_instance_ids"></a> [protocol_instance_ids](#output_protocol_instance_ids) | Protocol instance ids. |
+| <a name="output_protocol_instance_private_ips"></a> [protocol_instance_private_ips](#output_protocol_instance_private_ips) | Private IP address of protocol instances. |
+| <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
+| <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
+| <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
+| <a name="output_storage_cluster_instance_cidrs"></a> [storage_cluster_instance_cidrs](#output_storage_cluster_instance_cidrs) | n/a |
+| <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
+| <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
+| <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group id. |
+| <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
+| <a name="output_storage_instance_memory_size"></a> [storage_instance_memory_size](#output_storage_instance_memory_size) | Storage instance profile memory size. |
 <!-- END_TF_DOCS -->

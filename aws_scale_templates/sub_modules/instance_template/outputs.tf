@@ -1,4 +1,3 @@
-/*
 output "airgap" {
   value       = var.airgap
   description = "Air gap environment"
@@ -113,4 +112,4 @@ output "compute_cluster_instance_cidrs" {
 
 output "cluster_sns_arn" {
   value = try(module.email_notification.topic_arn[0], null)
-}*/
+}

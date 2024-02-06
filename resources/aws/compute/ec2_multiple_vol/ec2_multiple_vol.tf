@@ -125,7 +125,7 @@ resource "aws_ebs_volume" "itself" {
   kms_key_id        = each.value["kms_key"]
   tags = merge(
     {
-      "Name" = format("%s-%s", var.name_prefix, each.value["name"])
+      "Name" = format("%s-%s", var.name_prefix, each.key)
     },
     var.volume_tags,
   )

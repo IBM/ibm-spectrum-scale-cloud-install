@@ -3,8 +3,6 @@
 */
 
 variable "turn_on" {}
-variable "clone_complete" {}
-variable "write_inventory_complete" {}
 variable "create_scale_cluster" {}
 variable "clone_path" {}
 variable "inventory_path" {}
@@ -39,7 +37,7 @@ locals {
 }
 
 resource "local_file" "create_compute_tuning_parameters" {
-  count    = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  count    = tobool(var.turn_on) == true ? 1 : 0
   content  = <<EOT
 %cluster:
  numaMemoryInterleave=yes
@@ -59,14 +57,14 @@ EOT
 }
 
 resource "local_sensitive_file" "write_meta_private_key" {
-  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  count           = tobool(var.turn_on) == true ? 1 : 0
   content         = var.meta_private_key
   filename        = local.compute_private_key
   file_permission = "0600"
 }
 
 resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.compute_cluster_gui_username} --gui_password ${var.compute_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}"
@@ -78,7 +76,7 @@ resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection" {
 }
 
 resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection_encryption" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.compute_cluster_gui_username} --gui_password ${var.compute_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf} --scale_encryption_enabled ${var.scale_encryption_enabled} --scale_encryption_servers ${local.scale_encryption_servers} --scale_encryption_admin_password ${var.scale_encryption_admin_password}"
@@ -90,7 +88,7 @@ resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection_en
 }
 
 resource "null_resource" "prepare_ansible_inventory" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.compute_cluster_gui_username} --gui_password ${var.compute_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}"
@@ -102,7 +100,7 @@ resource "null_resource" "prepare_ansible_inventory" {
 }
 
 resource "null_resource" "prepare_ansible_inventory_encryption" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.compute_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.compute_cluster_gui_username} --gui_password ${var.compute_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf} --scale_encryption_enabled ${var.scale_encryption_enabled} --scale_encryption_servers ${local.scale_encryption_servers} --scale_encryption_admin_password ${var.scale_encryption_admin_password}"
@@ -114,7 +112,7 @@ resource "null_resource" "prepare_ansible_inventory_encryption" {
 }
 
 resource "null_resource" "wait_for_ssh_availability" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "python3 ${local.wait_for_ssh_script_path} --tf_inv_path ${var.inventory_path} --cluster_type compute"
@@ -126,13 +124,13 @@ resource "null_resource" "wait_for_ssh_availability" {
 }
 
 resource "time_sleep" "wait_60_seconds" {
-  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  count           = tobool(var.turn_on) == true ? 1 : 0
   create_duration = "60s"
   depends_on      = [null_resource.wait_for_ssh_availability]
 }
 
 resource "null_resource" "perform_scale_deployment" {
-  count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
+  count = (tobool(var.turn_on) == true && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -f 32 -i ${local.compute_inventory_path} ${local.compute_playbook_path} --extra-vars \"scale_version=${var.scale_version}\" --extra-vars \"scale_install_directory_pkg_path=${var.spectrumscale_rpms_path}\""

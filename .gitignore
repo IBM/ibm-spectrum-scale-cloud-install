@@ -19,4 +19,7 @@ crash.log
 # Exclude all .pkrvars files
 *.auto.pkrvars.hcl
 
+# Exclude all .conf files
+*.conf
+
 .vscode
