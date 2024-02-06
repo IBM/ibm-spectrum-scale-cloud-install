@@ -1,11 +1,10 @@
 # Configure Azure Bastion Service
 
-Azure Bastion service cannot be used as jump host for provision scale cluster as it doesn't provide SSH connectivity.
-Hence additional Non-Azure bastion host will be deployed to access VMs via SSH and for further scale deployment
+Deploys Bastion/Jump Host for IBM Storage Scale cluster.
 
-Note : To enable Azure provided Bastion host deployment then 'azure_bastion_service : true' need to set as input parameter
+Azure offers a Fully Managed RDP/SSH bastion service, which can be provisioned via azure_bastion_service variable.
 
-Below steps will provision Bastion host required for IBM Spectrum Scale cloud solution.
+Below steps will provision Bastion host required for IBM Storage Scale cloud solution.
 
 1. Change working directory to `azure_scale_templates/sub_modules/bastion_template`.
 
@@ -24,17 +23,26 @@ Below steps will provision Bastion host required for IBM Spectrum Scale cloud so
             "subscription_id": "xxx3cd6f-667b-4a89-a046-dexxxxxxxx",
             "tenant_id": "xxxx057-50c9-4ad4-98f3-xxxxxx",
             "vpc_region": "eastus",
-            "vpc_ref": "spectrum-scale-vpc",
+            "vpc_ref": "storage-scale-vpc",
             "resource_prefix": "production01",
-            "bastion_public_subnet_ids": [
-                "/subscriptions/xxx3cd6f-667b-4a89-a046-dexxxxxxxx/resourceGroups/spectrum-scale-rg/providers/Microsoft.Network/virtualNetworks/spectrum-scale-vpc/subnets/AzureBastionSubnet-0"
+            "vpc_auto_scaling_group_subnets": [
+                "/subscriptions/xxx3cd6f-667b-4a89-a046-dexxxxxxxx/resourceGroups/storage-scale-rg/providers/Microsoft.Network/virtualNetworks/storage-scale-vpc/subnets/AzureBastionSubnet-0"
             ],
-            "vpc_bastion_service_subnets_cidr_blocks": [ "10.0.5.0/24"],
-            "resource_group_name": "spectrum-scaleprvn-rg",
-            "user_public_key": "/root/.ssh/id_rsa.pub",
+            "resource_group_name": "storage-scale",
+            "bastion_ssh_key_path": "/root/.ssh/id_rsa.pub",
             "os_storage_account_type": "Standard_LRS",
-            "remote_cidr_blocks": ["0.0.0.0/0"],
-            "azure_bastion_service": false
+            "vpc_bastion_service_subnets_cidr_blocks": [
+                "10.0.5.0/24"
+            ],
+            "remote_cidr_blocks": [
+                "52.1.XX.XX/20"
+            ],
+            "azure_bastion_service": false,
+            "image_publisher": "Canonical",
+            "image_offer": "0001-com-ubuntu-server-jammy",
+            "image_sku": "22_04-lts-gen2",
+            "bastion_instance_type": "Standard_DS1_v2",
+            "bastion_login_username": "azureuser"
         }
     ```
 

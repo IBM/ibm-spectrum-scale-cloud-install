@@ -1,10 +1,10 @@
 output "bastion_instance_public_ip" {
-  value       = module.scale_bastion.instance_public_ips
+  value       = [for publicip in module.bastion_autoscaling_group.instance_public_ips : cidrhost(publicip, 0)]
   description = "Bastion instance public ip address."
 }
 
 output "bastion_instance_id" {
-  value       = module.scale_bastion.instance_ids
+  value       = module.bastion_autoscaling_group.instance_ids
   description = "Bastion instance id."
 }
 

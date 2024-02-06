@@ -51,25 +51,29 @@ variable "os_disk_caching" {
 
 variable "image_publisher" {
   type        = string
-  default     = "RedHat"
+  nullable    = true
+  default     = null
   description = "Specifies the publisher of the image used to create the storage cluster virtual machines."
 }
 
 variable "image_offer" {
   type        = string
-  default     = "RHEL"
+  nullable    = true
+  default     = null
   description = "Specifies the offer of the image used to create the storage cluster virtual machines."
 }
 
 variable "image_sku" {
   type        = string
-  default     = "8.2"
+  nullable    = true
+  default     = null
   description = "Specifies the SKU of the image used to create the storage cluster virtual machines."
 }
 
 variable "bastion_instance_type" {
   type        = string
-  default     = "Standard_A2_v2"
+  nullable    = true
+  default     = null
   description = "Instance type to use for provisioning the compute cluster instances."
 }
 
@@ -81,25 +85,30 @@ variable "image_version" {
 
 variable "bastion_login_username" {
   type        = string
-  default     = "azureuser"
+  nullable    = true
+  default     = null
   description = "Bastion default login username"
 }
 
-variable "bastion_public_subnet_ids" {
+variable "vpc_auto_scaling_group_subnets" {
   type        = list(string)
-  description = "List of IDs of bastion subnets."
+  nullable    = true
   default     = null
+  description = "List of IDs of bastion subnets."
 }
 
-variable "os_storage_account_type" {
+variable "bastion_boot_disk_type" {
   type        = string
-  default     = "Standard_LRS"
+  nullable    = true
+  default     = null
   description = "Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS)."
 }
 
-variable "user_public_key" {
+variable "bastion_key_pair" {
   type        = string
-  description = "The SSH public key to use to launch the image vm."
+  nullable    = true
+  default     = null
+  description = "The SSH keypair to use to launch the image vm."
 }
 
 variable "azure_bastion_service" {
@@ -116,9 +125,8 @@ variable "vpc_bastion_service_subnets_cidr_blocks" {
 }
 
 variable "remote_cidr_blocks" {
-  type = list(string)
-  default = [
-    "0.0.0.0/0",
-  ]
+  type        = list(string)
+  nullable    = true
+  default     = null
   description = "List of CIDRs that can access to the bastion. Default : 0.0.0.0/0"
 }
