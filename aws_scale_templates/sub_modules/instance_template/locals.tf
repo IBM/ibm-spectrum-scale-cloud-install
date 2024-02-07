@@ -247,6 +247,26 @@ locals {
       }
     ]
   ])
+  flatten_tie_disk = flatten([
+    for fs_config in var.filesystem_parameters : [
+      [for disk_config in fs_config.disk_config :
+        {
+          name        = format("%s-tie", fs_config.name)
+          fs_name     = fs_config.name
+          pool        = "system"
+          config      = fs_config.filesystem_config_file
+          encrypted   = fs_config.filesystem_encrypted
+          kms_key     = fs_config.filesystem_kms_key_ref
+          termination = fs_config.device_delete_on_termination
+          size        = "5"
+          type        = "gp2"
+          throughput  = null
+          iops        = null
+        }
+      ]
+    ]
+  ])
+
   storage_vm_zone_map = {
     for idx, vm_name in resource.null_resource.generate_storage_vm_name[*].triggers.vm_name :
     vm_name => {
@@ -278,18 +298,18 @@ locals {
     vm_ipaddr => {
       zone = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
       disks = local.is_nitro_instance ? tomap({
-        for _, disk in tolist(local.flatten_disks_per_vm) :
+        for jdx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.instance_storage_device_names, idx)
+          device_name = element(local.instance_storage_device_names, jdx)
         }
         }) : tomap({
-        for _, disk in tolist(local.flatten_disks_per_vm) :
+        for jdx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.ebs_device_names, idx)
+          device_name = element(local.ebs_device_names, jdx)
         }
       })
     }
@@ -300,17 +320,38 @@ locals {
     Generate a map using storage vm name key and values of disks list, subnet and zone.
     Ex:
         storage_vm_zone_map = {
-            "vm-1" = {
+            "vm-tie" = {
                 "zone"  = "us-east-2a"
                 "disks" = {
-                    "vm-1-tie-disk": {
-                        "size": "5",
-                        "type": "gp2"
+                    "fs1-tie": {
+                        device_name = "/dev/xvdf"
+                        encrypted   = false
+                        fs_name     = "fs1"
+                        iops        = null
+                        kms_key     = null
+                        pool        = null
+                        size        = "5"
+                        termination = true
+                        throughput  = null
+                        type        = "gp2"
                     },
-                "subnet" = "test-private-subnet-1"
+                    "fs2-tie": {
+                        device_name = "/dev/xvdg"
+                        encrypted   = false
+                        fs_name     = "fs1"
+                        iops        = null
+                        kms_key     = null
+                        pool        = null
+                        size        = "5"
+                        termination = true
+                        throughput  = null
+                        type        = "gp2"
+                    }
+                    "subnet" = "test-private-subnet-1"
+                    "zone" = "us-east-1c"
+                    }
                 }
             }
-        }
 */
 locals {
   storage_tie_vm_zone_map = {
@@ -319,12 +360,32 @@ locals {
       zone   = var.vpc_availability_zones[2]              # Consider only last element
       subnet = var.vpc_storage_cluster_private_subnets[2] # Consider only last element
       disks = tomap({
-        for i in range(1) : "${vm_name}-tie-disk" => {
-          size        = 5
-          type        = "gp2"
-          iops        = null
-          throughput  = null
-          device_name = element(local.ebs_device_names, i)
+        for idx, disk in tolist(local.flatten_tie_disk) :
+        disk["name"] => {
+          size        = disk["size"]
+          type        = disk["type"]
+          termination = disk["termination"]
+          iops        = disk["iops"]
+          throughput  = disk["throughput"]
+          encrypted   = disk["encrypted"]
+          kms_key     = disk["kms_key"]
+          fs_name     = disk["fs_name"]
+          pool        = disk["pool"]
+          device_name = element(local.ebs_device_names, idx)
+        }
+      })
+    }
+  }
+  storage_instance_desc_ip_with_disk_mapping = {
+    for idx, vm_ipaddr in local.storage_cluster_desc_private_ips :
+    vm_ipaddr => {
+      zone = var.vpc_availability_zones[2]
+      disks = tomap({
+        for jdx, disk in tolist(local.flatten_tie_disk) :
+        disk["name"] => {
+          fs_name     = disk["fs_name"]
+          pool        = disk["pool"]
+          device_name = element(local.ebs_device_names, jdx)
         }
       })
     }

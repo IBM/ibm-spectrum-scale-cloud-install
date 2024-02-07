@@ -563,11 +563,10 @@ module "prepare_ansible_configuration" {
 }
 
 locals {
-  is_nitro_instance                          = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
-  nvme_block_device_count                    = data.aws_ec2_instance_type.storage_profile[0].instance_storage_supported == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
-  storage_cluster_private_ips                = local.storage_or_combined ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
-  storage_cluster_desc_private_ips           = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
-  storage_instance_desc_ip_with_disk_mapping = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? { for ip in local.storage_cluster_desc_private_ips : ip => slice(local.ebs_device_names, 0, 1) } : {}
+  is_nitro_instance                = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
+  nvme_block_device_count          = data.aws_ec2_instance_type.storage_profile[0].instance_storage_supported == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  storage_cluster_private_ips      = local.storage_or_combined ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
+  storage_cluster_desc_private_ips = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
 }
 
 # Write the compute cluster related inventory.

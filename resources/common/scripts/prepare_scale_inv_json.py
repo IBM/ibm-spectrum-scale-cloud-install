@@ -773,40 +773,30 @@ def initialize_node_details(az_count, cls_type,
                                  is_admin_node=False)
 
 
-def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, desc_dns_map, fs_mount):
+def get_disks_list(data_disk_map, desc_disk_map):
     """ Initialize disk list. """
-    disks_list = []
 
-    # Map storage nodes to failure groups based on AZ and subnet variations
+    zones_ip_map = {}
+    # Map zones to failure groups
+    for each_ip, disk_details in data_disk_map.items():
+        zone = disk_details["zone"]
+        if zone not in zones_ip_map:
+            zones_ip_map[zone] = []
+        zones_ip_map[zone].append(each_ip)
+
     failure_group1, failure_group2 = [], []
-    if az_count == 1:
+    zones = list(zones_ip_map.keys())
+    if len(zones) == 1:
         # Single AZ, just split list equally
-        num_storage_nodes = len(list(disk_mapping))
+        num_storage_nodes = len(zones_ip_map[zones[0]])
+        print(num_storage_nodes)
         mid_index = num_storage_nodes//2
-        failure_group1 = list(disk_mapping)[:mid_index]
-        failure_group2 = list(disk_mapping)[mid_index:]
+        failure_group1 = zones_ip_map[zones[0]][:mid_index]
+        failure_group2 = zones_ip_map[zones[0]][mid_index:]
     else:
-        # Multi AZ, split based on subnet match
-        subnet_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
-        subnet1A = subnet_pattern.findall(list(disk_mapping)[0])
-        for each_ip in disk_mapping:
-            current_subnet = subnet_pattern.findall(each_ip)
-            if current_subnet[0] == subnet1A[0]:
-                failure_group1.append(each_ip)
-            else:
-                failure_group2.append(each_ip)
-
-    storage_instances = []
-    max_len = max(len(failure_group1), len(failure_group2))
-    idx = 0
-    while idx < max_len:
-        if idx < len(failure_group1):
-            storage_instances.append(failure_group1[idx])
-
-        if idx < len(failure_group2):
-            storage_instances.append(failure_group2[idx])
-
-        idx = idx + 1
+        # Multi AZ, split based on keys
+        failure_group1 = zones_ip_map[zones[0]]
+        failure_group2 = zones_ip_map[zones[1]]
 
     # Prepare dict of disks / NSD list
     # "nsd": "nsd1",
@@ -818,83 +808,61 @@ def get_disks_list(az_count, disk_mapping, storage_dns_map, desc_disk_mapping, d
     # "usage": "dataAndMetadata",
     # "pool": "system"
 
-    nsd_count = 1
-    for each_ip, disk_per_ip in disk_mapping.items():
-
+    disks_list = []
+    for each_ip, disk_details in data_disk_map.items():
         if each_ip in failure_group1:
-            for each_disk in disk_per_ip:
-
+            for _, each_disk in disk_details["disks"].items():
                 # disks_list.append({"device": each_disk,
                 #                    "failureGroup": 1, "servers": each_ip,
                 #                    "usage": "dataAndMetadata", "pool": "system"})
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk),
-                    "filesystem": pathlib.PurePath(fs_mount).name,
-                    "device": each_disk,
+                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk["device_name"]),
+                    "filesystem": each_disk["fs_name"],
+                    "device": each_disk["device_name"],
                     "failureGroup": 1,
                     "servers": each_ip,
                     "usage": "dataAndMetadata",
-                    "pool": "system"
+                    "pool": each_disk["pool"]
                 })
-                nsd_count = nsd_count + 1
 
         if each_ip in failure_group2:
-            for each_disk in disk_per_ip:
-
+            for _, each_disk in disk_details["disks"].items():
                 # disks_list.append({"device": each_disk,
                 #                    "failureGroup": 2, "servers": each_ip,
                 #                    "usage": "dataAndMetadata", "pool": "system"})
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk),
-                    "filesystem": pathlib.PurePath(fs_mount).name,
-                    "device": each_disk,
+                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk["device_name"]),
+                    "filesystem": each_disk["fs_name"],
+                    "device": each_disk["device_name"],
                     "failureGroup": 2,
                     "servers": each_ip,
                     "usage": "dataAndMetadata",
-                    "pool": "system"
+                    "pool": each_disk["pool"]
                 })
-                nsd_count = nsd_count + 1
 
     # Append "descOnly" disk details
-    if len(desc_disk_mapping.keys()):
-        ip_address = list(desc_disk_mapping.keys())[0]
-        device = list(desc_disk_mapping.values())[0][0]
-
-        # TODO: FIX Include disk "size"
-        disks_list.append({"nsd": "nsd_" + ip_address.replace(".", "_") + "_" + os.path.basename(device),
-                           "filesystem": pathlib.PurePath(fs_mount).name,
-                           "device": device,
-                           "failureGroup": 3,
-                           "servers": ip_address,
-                           "usage": "descOnly",
-                           "pool": "system"})
+    if len(desc_disk_map.keys()):
+        for each_ip, disk_details in desc_disk_map.items():
+            for _, each_disk in disk_details["disks"].items():
+                disks_list.append({
+                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk["device_name"]),
+                    "filesystem": each_disk["fs_name"],
+                    "device": each_disk["device_name"],
+                    "failureGroup": 3,
+                    "servers": each_ip,
+                    "usage": "descOnly",
+                    "pool": each_disk["pool"]
+                })
 
     return disks_list
 
 
-def initialize_scale_storage_details(az_count, fs_mount, block_size, default_data_replicas, default_metadata_replicas):
-    """ Initialize storage details.
-    :args: az_count (int), fs_mount (string), block_size (string),
-           disks_list (list)
-    """
-    storage = []
-    if default_data_replicas is None:
-        if az_count > 1:
-            default_data_replicas = 2
-        else:
-            default_data_replicas = 1
-    max_data_replicas = 2
-
-    if default_metadata_replicas is None:
-        if az_count > 1:
-            default_metadata_replicas = 2
-        else:
-            default_metadata_replicas = 2
-    max_metadata_replicas = 2
+def initialize_scale_storage_details(fs_details):
+    """ Initialize storage details."""
 
     # "scale_filesystem": [
     #    {
@@ -911,17 +879,23 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size, default_dat
     #    }
     # ]
 
-    # TODO: FIX. Add "automaticMountOption": "true"
-    storage.append({"filesystem": pathlib.PurePath(fs_mount).name,
-                    "defaultMountPoint": fs_mount,
-                    "blockSize": block_size,
-                    "defaultDataReplicas": default_data_replicas,
-                    "maxDataReplicas": max_data_replicas,
-                    "defaultMetadataReplicas": default_metadata_replicas,
-                    "maxMetadataReplicas": max_metadata_replicas,
-                    "scale_fal_enable": False,
-                    "logfileset": ".audit_log",
-                    "retention": "365"})
+    storage = []
+    for fs_name, fs_config in fs_details.items():
+        with open(fs_config, 'r') as file:
+            fs_data = json.load(file)
+            storage.append({"filesystem": fs_name,
+                            "defaultMountPoint": fs_data[fs_name]["mount_point"],
+                            "blockSize": fs_data[fs_name]["block_size"],
+                            "defaultDataReplicas": fs_data[fs_name]["data_replicas"],
+                            "maxDataReplicas": fs_data[fs_name]["max_data_replicas"],
+                            "defaultMetadataReplicas": fs_data[fs_name]["metadata_replicas"],
+                            "maxMetadataReplicas": fs_data[fs_name]["max_metadata_replicas"],
+                            "scale_fal_enable": False,
+                            "logfileset": ".audit_log",
+                            "automaticMountOption": True,
+                            "retention": "365"
+                            })
+
     return storage
 
 
@@ -1089,18 +1063,10 @@ if __name__ == "__main__":
                             quorum_count, "root", ARGUMENTS.instance_private_key)
 
     if cluster_type in ['storage', 'combined']:
-        disks_list = get_disks_list(len(TF['vpc_availability_zones']),
-                                    TF['storage_cluster_with_data_volume_mapping'],
-                                    TF['storage_cluster_instance_private_dns'],
-                                    TF['storage_cluster_desc_data_volume_mapping'],
-                                    TF['storage_cluster_desc_instance_private_dns'],
-                                    TF['storage_cluster_filesystem_mountpoint'])
-
-        scale_storage = initialize_scale_storage_details(len(TF['vpc_availability_zones']),
-                                                         TF['storage_cluster_filesystem_mountpoint'],
-                                                         TF['filesystem_block_size'],
-                                                         TF['filesystem_data_replication'],
-                                                         TF['filesystem_metadata_replication'])
+        disks_list = get_disks_list(TF['storage_cluster_with_data_volume_mapping'],
+                                    TF['storage_cluster_desc_data_volume_mapping'])
+        scale_storage = initialize_scale_storage_details(
+            TF['filesystem_details'])
 
         CLUSTER_DEFINITION_JSON.update({"scale_filesystem": scale_storage})
         CLUSTER_DEFINITION_JSON.update({"scale_disks": disks_list})
