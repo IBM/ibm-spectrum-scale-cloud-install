@@ -10,9 +10,7 @@ variable "resource_prefix" {}
 variable "vpc_region" {}
 variable "vpc_availability_zones" {}
 variable "scale_version" {}
-variable "filesystem_block_size" {}
-variable "filesystem_data_replication" {}
-variable "filesystem_metadata_replication" {}
+variable "filesystem_config_file" {}
 variable "compute_cluster_filesystem_mountpoint" {}
 variable "bastion_user" {}
 variable "bastion_instance_id" {}
@@ -21,7 +19,6 @@ variable "instances_ssh_user_name" {}
 variable "compute_cluster_instance_ids" {}
 variable "compute_cluster_instance_private_ips" {}
 variable "compute_cluster_instance_private_dns" {}
-variable "storage_cluster_filesystem_mountpoint" {}
 variable "storage_cluster_instance_ids" {}
 variable "storage_cluster_instance_private_ips" {}
 variable "storage_cluster_with_data_volume_mapping" {}
@@ -46,9 +43,7 @@ resource "local_sensitive_file" "itself" {
     "vpc_availability_zones": ${var.vpc_availability_zones},
     "scale_version": ${var.scale_version},
     "compute_cluster_filesystem_mountpoint": ${var.compute_cluster_filesystem_mountpoint},
-    "filesystem_block_size": ${var.filesystem_block_size},
-    "filesystem_data_replication": ${var.filesystem_data_replication},
-    "filesystem_metadata_replication": ${var.filesystem_metadata_replication},
+    "filesystem_config_file": ${var.filesystem_config_file},
     "bastion_user": ${var.bastion_user},
     "bastion_instance_id": ${var.bastion_instance_id},
     "bastion_instance_public_ip": ${var.bastion_instance_public_ip},
@@ -56,7 +51,6 @@ resource "local_sensitive_file" "itself" {
     "compute_cluster_instance_ids": ${var.compute_cluster_instance_ids},
     "compute_cluster_instance_private_ips": ${var.compute_cluster_instance_private_ips},
     "compute_cluster_instance_private_dns": ${var.compute_cluster_instance_private_dns},
-    "storage_cluster_filesystem_mountpoint": ${var.storage_cluster_filesystem_mountpoint},
     "storage_cluster_instance_ids": ${var.storage_cluster_instance_ids},
     "storage_cluster_instance_private_ips": ${var.storage_cluster_instance_private_ips},
     "storage_cluster_with_data_volume_mapping": ${var.storage_cluster_with_data_volume_mapping},

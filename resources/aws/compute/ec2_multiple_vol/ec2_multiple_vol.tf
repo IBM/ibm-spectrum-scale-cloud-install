@@ -16,9 +16,8 @@ variable "meta_private_key" {}
 variable "meta_public_key" {}
 variable "ebs_optimized" {}
 variable "disks" {}
-variable "ebs_block_device_delete_on_termination" {}
-variable "ebs_block_device_encrypted" {}
-variable "ebs_block_device_kms_key_id" {}
+variable "root_device_encrypted" {}
+variable "root_device_kms_key_id" {}
 variable "is_nitro_instance" {}
 variable "tags" {}
 variable "volume_tags" {}
@@ -75,8 +74,8 @@ data "template_cloudinit_config" "nvme_user_data64" {
 }
 
 data "aws_kms_key" "itself" {
-  count  = var.ebs_block_device_kms_key_id != null ? 1 : 0
-  key_id = var.ebs_block_device_kms_key_id
+  count  = var.root_device_kms_key_id != null ? 1 : 0
+  key_id = var.root_device_kms_key_id
 }
 
 # Create the EC2 instance
@@ -95,7 +94,7 @@ resource "aws_instance" "itself" {
   ebs_optimized   = tobool(var.ebs_optimized)
 
   root_block_device {
-    encrypted             = var.ebs_block_device_encrypted == false ? null : true
+    encrypted             = var.root_device_encrypted == false ? null : true
     kms_key_id            = try(data.aws_kms_key.itself[0].key_id, null)
     volume_type           = var.root_volume_type
     delete_on_termination = true
@@ -122,11 +121,11 @@ resource "aws_ebs_volume" "itself" {
   type              = each.value["type"]
   iops              = each.value["iops"]
   throughput        = each.value["throughput"]
-  encrypted         = var.ebs_block_device_encrypted
-  kms_key_id        = var.ebs_block_device_kms_key_id
+  encrypted         = each.value["encrypted"]
+  kms_key_id        = each.value["kms_key"]
   tags = merge(
     {
-      "Name" = each.key
+      "Name" = format("%s-%s", var.name_prefix, each.key)
     },
     var.volume_tags,
   )
@@ -138,7 +137,7 @@ resource "aws_volume_attachment" "itself" {
   device_name  = var.disks[each.key]["device_name"]
   volume_id    = aws_ebs_volume.itself[each.key].id
   instance_id  = aws_instance.itself.id
-  skip_destroy = var.ebs_block_device_delete_on_termination
+  skip_destroy = var.disks[each.key]["termination"]
 }
 
 output "instance_private_ips" {

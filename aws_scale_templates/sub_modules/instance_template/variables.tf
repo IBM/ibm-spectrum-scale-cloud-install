@@ -271,68 +271,18 @@ variable "enable_placement_group" {
   description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
 }
 
-variable "block_devices_per_storage_instance" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Additional EBS block devices to attach per storage cluster instance."
-}
-
-# Below parameters are only applicable if ebs_block_devices_per_storage_instance is set > 0
-variable "block_device_delete_on_termination" {
+variable "root_device_encrypted" {
   type        = bool
   nullable    = true
   default     = null
-  description = "If true, all ebs volumes will be destroyed on instance termination."
+  description = "Whether to enable volume encryption for root device."
 }
 
-variable "block_device_encrypted" {
-  type        = bool
-  nullable    = true
-  default     = null
-  description = "Whether to enable volume encryption."
-}
-
-variable "block_device_iops" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Amount of provisioned IOPS. Only valid for volume_type of io1, io2 or gp3."
-}
-
-variable "block_device_throughput" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Throughput that the volume supports, in MiB/s. Only valid for volume_type of gp3."
-}
-
-variable "block_device_kms_key_ref" {
+variable "root_device_kms_key_ref" {
   type        = string
   nullable    = true
   default     = null
-  description = "Amazon Resource Name (ARN) of the KMS Key to use when encrypting the volume."
-}
-
-variable "block_device_volume_size" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Size of the volume in gibibytes (GiB)."
-}
-
-variable "block_device_volume_type" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "EBS volume types: io1, io2, gp2, gp3."
-}
-
-variable "enable_instance_store_block_device" {
-  type        = bool
-  nullable    = true
-  default     = null
-  description = "Enable instance storage block devices."
+  description = "Amazon Resource Name (ARN) of the KMS Key to use when encrypting the root volume."
 }
 
 variable "scale_ansible_repo_clone_path" {
@@ -355,11 +305,25 @@ variable "operator_email" {
   description = "SNS notifications will be sent to provided email id."
 }
 
-variable "storage_cluster_filesystem_mountpoint" {
-  type        = string
-  nullable    = true
+variable "filesystem_parameters" {
+  type = list(object({
+    name                         = string
+    filesystem_config_file       = string
+    filesystem_encrypted         = bool
+    filesystem_kms_key_ref       = string
+    device_delete_on_termination = bool
+    disk_config = list(object({
+      filesystem_pool                    = string
+      block_devices_per_storage_instance = number
+      block_device_volume_type           = string
+      block_device_volume_size           = string
+      block_device_iops                  = string
+      block_device_throughput            = string
+    }))
+  }))
   default     = null
-  description = "Storage cluster (owningCluster) Filesystem mount point."
+  nullable    = true
+  description = "Filesystem parameters in relationship with disk parameters."
 }
 
 variable "compute_cluster_filesystem_mountpoint" {
@@ -367,27 +331,6 @@ variable "compute_cluster_filesystem_mountpoint" {
   nullable    = true
   default     = null
   description = "Compute cluster (accessingCluster) Filesystem mount point."
-}
-
-variable "filesystem_block_size" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Filesystem block size."
-}
-
-variable "filesystem_data_replication" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Filesystem default replication factor (-r) for data blocks."
-}
-
-variable "filesystem_metadata_replication" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Filesystem default replication factor (-m) for metadata."
 }
 
 variable "create_remote_mount_cluster" {
