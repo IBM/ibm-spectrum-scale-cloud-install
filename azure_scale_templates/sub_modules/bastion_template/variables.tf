@@ -25,6 +25,11 @@ variable "vpc_region" {
   description = "The location/region of the vnet to create. Examples are East US, West US, etc."
 }
 
+variable "vpc_availability_zones" {
+  type        = list(string)
+  description = "A list of availability zones ids in the region/location."
+}
+
 variable "vpc_ref" {
   type        = string
   nullable    = true
@@ -108,7 +113,14 @@ variable "bastion_key_pair" {
   type        = string
   nullable    = true
   default     = null
-  description = "The SSH keypair to use to launch the image vm."
+  description = "The SSH keypair to launch the bastion vm."
+}
+
+variable "bastion_ssh_user_name" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "The Bastion SSH username to launch bastion vm."
 }
 
 variable "azure_bastion_service" {
@@ -117,16 +129,16 @@ variable "azure_bastion_service" {
   description = "Enable Azure Bastion service"
 }
 
-variable "vpc_bastion_service_subnets_cidr_blocks" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Azure Bastion service subnet cidr block"
-}
-
 variable "remote_cidr_blocks" {
   type        = list(string)
   nullable    = true
   default     = null
-  description = "List of CIDRs that can access to the bastion. Default : 0.0.0.0/0"
+  description = "List of CIDRs that can access to the bastion."
+}
+
+variable "auto_scale_vm_count" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Auto scaling virtual machine count."
 }

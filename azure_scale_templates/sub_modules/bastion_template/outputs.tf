@@ -1,10 +1,10 @@
 output "bastion_instance_public_ip" {
-  value       = [for publicip in module.bastion_autoscaling_group.instance_public_ips : cidrhost(publicip, 0)]
+  value       = module.bastion_autoscaling_group[*].instance_public_ips
   description = "Bastion instance public ip address."
 }
 
 output "bastion_instance_id" {
-  value       = module.bastion_autoscaling_group.instance_ids
+  value       = module.bastion_autoscaling_group[*].instance_ids
   description = "Bastion instance id."
 }
 
@@ -16,4 +16,9 @@ output "bastion_service_instance_id" {
 output "bastion_service_instance_dns_name" {
   value       = module.azure_bastion_service[*].bastion_service_dns_name
   description = "Bastion instance dns name."
+}
+
+output "bastion_service_asg_id" {
+  value       = module.bastion_cluster_asg[*].asg_id
+  description = "Bastion service application security id."
 }

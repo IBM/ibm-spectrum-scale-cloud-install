@@ -31,6 +31,11 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
+variable "resource_group_name" {
+  type        = string
+  description = "The name of a new resource group in which the resources will be created."
+}
+
 variable "vpc_cidr_block" {
   type        = string
   nullable    = true
@@ -65,3 +70,11 @@ variable "vpc_tags" {
   default     = {}
   description = "The tags to associate with your network and subnets."
 }
+
+variable "create_resouce_group" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Creates resouce group."
+}
+

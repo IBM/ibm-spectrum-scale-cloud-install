@@ -6,6 +6,15 @@
 
 locals {
   tcp_port_allow_bastion = ["22"]
+  auto_scale_vm_count    = var.auto_scale_vm_count != null ? var.auto_scale_vm_count : 1
+}
+
+# Create bastion ASG
+module "bastion_cluster_asg" {
+  source              = "../../../resources/azure/security/network_application_security_group"
+  resource_prefix     = "${var.resource_prefix}-bastion"
+  location            = var.vpc_region
+  resource_group_name = var.resource_group_name
 }
 
 # Create NSG for bastion
@@ -58,15 +67,6 @@ module "associate_bastion_nsg_wth_subnet" {
   network_security_group_id = module.bastion_network_security_group.sec_group_id
 }
 
-# Public subnet for Azure Fully Managed Bastion service
-module "public_subnet_bastion_service" {
-  count               = var.azure_bastion_service != null ? var.azure_bastion_service == true ? 1 : 0 : 0
-  source              = "../../../resources/azure/network/subnet_bastion"
-  resource_group_name = var.resource_group_name
-  address_prefixes    = var.vpc_bastion_service_subnets_cidr_blocks
-  vnet_name           = var.vpc_ref
-}
-
 # Generate public ip for Azure Fully Managed Bastion service
 module "bastion_public_ip" {
   count               = var.azure_bastion_service != null ? var.azure_bastion_service == true ? 1 : 0 : 0
@@ -83,12 +83,13 @@ module "azure_bastion_service" {
   bastion_host_name   = format("%s-bastion", var.resource_prefix)
   resource_group_name = var.resource_group_name
   location            = var.vpc_region
-  subnet_id           = module.public_subnet_bastion_service[0].subnet_id
+  vpc_ref             = var.vpc_ref
   public_ip           = module.bastion_public_ip[0].id
 }
 
 # IBM Storage Scale managed jump host deployment with autoscaling group
 module "bastion_autoscaling_group" {
+  count                   = var.vpc_auto_scaling_group_subnets != null ? length(var.vpc_auto_scaling_group_subnets) : 0
   source                  = "../../../resources/azure/asg/asg_scaleset"
   vm_name_prefix          = "${var.resource_prefix}-bastion"
   image_publisher         = var.image_publisher
@@ -98,10 +99,12 @@ module "bastion_autoscaling_group" {
   resource_group_name     = var.resource_group_name
   location                = var.vpc_region
   vm_size                 = var.bastion_instance_type
-  vm_count                = 1
-  login_username          = var.bastion_login_username
+  vm_count                = local.auto_scale_vm_count
+  login_username          = var.bastion_ssh_user_name
   os_storage_account_type = var.bastion_boot_disk_type
   bastion_key_pair        = var.bastion_key_pair
   os_disk_caching         = var.os_disk_caching
-  subnet_id               = var.vpc_auto_scaling_group_subnets[0]
+  subnet_id               = var.vpc_auto_scaling_group_subnets[count.index]
+  bastion_asg_id          = [module.bastion_cluster_asg.asg_id]
+  vnet_availability_zones = var.vpc_availability_zones
 }
