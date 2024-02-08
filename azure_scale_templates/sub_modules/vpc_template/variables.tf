@@ -71,10 +71,16 @@ variable "vpc_tags" {
   description = "The tags to associate with your network and subnets."
 }
 
+variable "vpc_bastion_service_subnets_cidr_blocks" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of cidr_blocks for azure fully managed subnet."
+}
+
 variable "create_resouce_group" {
   type        = bool
   nullable    = true
   default     = null
   description = "Creates resouce group."
 }
-

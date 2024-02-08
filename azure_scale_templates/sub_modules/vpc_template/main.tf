@@ -101,11 +101,11 @@ module "nat_gw_comp_private_snet_association" {
   nat_gateway_id = module.nat_gateway.nat_gateway_id
 }
 
-# Public subnet for Azure Fully Managed Bastion service
+# Public subnet for azure fully managed Bastion service
 module "public_subnet_bastion_service" {
-  count               = var.vpc_bastion_service_subnets_cidr_blocks != null ? length(vpc_bastion_service_subnets_cidr_blocks) : 0
+  count               = var.vpc_bastion_service_subnets_cidr_blocks != null ? length(var.vpc_bastion_service_subnets_cidr_blocks) : 0
   source              = "../../../resources/azure/network/subnet_bastion"
   resource_group_name = var.resource_group_name
-  address_prefixes    = var.jumphost_subnets_cidr_block
-  vnet_name           = var.vpc_ref
+  address_prefixes    = var.vpc_bastion_service_subnets_cidr_blocks
+  vnet_name           = module.vnet.vnet_name
 }

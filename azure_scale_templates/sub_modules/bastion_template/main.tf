@@ -67,15 +67,6 @@ module "associate_bastion_nsg_wth_subnet" {
   network_security_group_id = module.bastion_network_security_group.sec_group_id
 }
 
-# Generate public ip for Azure Fully Managed Bastion service
-module "bastion_public_ip" {
-  count               = var.azure_bastion_service != null ? var.azure_bastion_service == true ? 1 : 0 : 0
-  source              = "../../../resources/azure/network/public_ip"
-  public_ip_name      = format("%s-public-ip", var.resource_prefix)
-  resource_group_name = var.resource_group_name
-  location            = var.vpc_region
-}
-
 # Azure Fully Managed Bastion service
 module "azure_bastion_service" {
   count               = var.azure_bastion_service != null ? var.azure_bastion_service == true ? 1 : 0 : 0
@@ -84,7 +75,7 @@ module "azure_bastion_service" {
   resource_group_name = var.resource_group_name
   location            = var.vpc_region
   vpc_ref             = var.vpc_ref
-  public_ip           = module.bastion_public_ip[0].id
+  resource_prefix     = var.resource_prefix
 }
 
 # IBM Storage Scale managed jump host deployment with autoscaling group
