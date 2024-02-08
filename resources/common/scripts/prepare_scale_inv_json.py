@@ -884,12 +884,12 @@ def initialize_scale_storage_details(fs_details):
         with open(fs_config, 'r') as file:
             fs_data = json.load(file)
             storage.append({"filesystem": fs_name,
-                            "defaultMountPoint": fs_data[fs_name]["mount_point"],
-                            "blockSize": fs_data[fs_name]["block_size"],
-                            "defaultDataReplicas": fs_data[fs_name]["data_replicas"],
-                            "maxDataReplicas": fs_data[fs_name]["max_data_replicas"],
-                            "defaultMetadataReplicas": fs_data[fs_name]["metadata_replicas"],
-                            "maxMetadataReplicas": fs_data[fs_name]["max_metadata_replicas"],
+                            "defaultMountPoint": fs_data["filesystem_config_params"][fs_name]["mount_point"],
+                            "blockSize": fs_data["filesystem_config_params"][fs_name]["block_size"],
+                            "defaultDataReplicas": fs_data["filesystem_config_params"][fs_name]["data_replicas"],
+                            "maxDataReplicas": fs_data["filesystem_config_params"][fs_name]["max_data_replicas"],
+                            "defaultMetadataReplicas": fs_data["filesystem_config_params"][fs_name]["metadata_replicas"],
+                            "maxMetadataReplicas": fs_data["filesystem_config_params"][fs_name]["max_metadata_replicas"],
                             "scale_fal_enable": False,
                             "logfileset": ".audit_log",
                             "automaticMountOption": True,

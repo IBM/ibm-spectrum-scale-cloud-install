@@ -564,7 +564,7 @@ module "prepare_ansible_configuration" {
 
 locals {
   is_nitro_instance                = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
-  nvme_block_device_count          = data.aws_ec2_instance_type.storage_profile[0].instance_storage_supported == true ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
+  nvme_block_device_count          = length(data.aws_ec2_instance_type.storage_profile[0].instance_disks) != 0 ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0
   storage_cluster_private_ips      = local.storage_or_combined ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
   storage_cluster_desc_private_ips = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
 }
