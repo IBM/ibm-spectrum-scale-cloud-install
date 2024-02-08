@@ -274,7 +274,7 @@ locals {
       zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
       subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
       # In case of nitro instances, the disk list to provision is empty
-      disks = local.is_nitro_instance ? {} : tomap({
+      disks = local.nvme_block_device_count > 0 ? {} : tomap({
         for idx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           size        = disk["size"]
@@ -297,12 +297,19 @@ locals {
     for idx, vm_ipaddr in local.storage_cluster_private_ips :
     vm_ipaddr => {
       zone = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
-      disks = local.is_nitro_instance ? tomap({
+      disks = local.nvme_block_device_count > 0 ? tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
           device_name = element(local.instance_storage_device_names, jdx)
+        }
+        }) : local.is_nitro_instance ? tomap({
+        for jdx, disk in tolist(local.flatten_disks_per_vm) :
+        disk["name"] => {
+          fs_name     = disk["fs_name"]
+          pool        = disk["pool"]
+          device_name = element(local.instance_storage_device_names, jdx + 1)
         }
         }) : tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
