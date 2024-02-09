@@ -211,7 +211,7 @@ locals {
 */
 locals {
   inflate_disks_per_fs_pool = flatten([
-    for fs_config in var.filesystem_parameters : [
+    for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
       for disk_details in fs_config.disk_config : {
         for i in range(local.nvme_block_device_count > 0 ? local.nvme_block_device_count : disk_details.block_devices_per_storage_instance) :
         "${fs_config.name}-${disk_details.filesystem_pool}-${i + 1}" => {
@@ -248,7 +248,7 @@ locals {
     ]
   ])
   flatten_tie_disk = flatten([
-    for fs_config in var.filesystem_parameters : [
+    for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
       [for disk_config in fs_config.disk_config :
         {
           name        = format("%s-tie", fs_config.name)
@@ -292,7 +292,7 @@ locals {
     }
   }
 
-  filesystem_details = { for fs_config in var.filesystem_parameters : fs_config.name => fs_config.filesystem_config_file }
+  filesystem_details = local.storage_or_combined ? { for fs_config in var.filesystem_parameters : fs_config.name => fs_config.filesystem_config_file } : {}
   storage_instance_ips_with_disk_mapping = {
     for idx, vm_ipaddr in local.storage_cluster_private_ips :
     vm_ipaddr => {

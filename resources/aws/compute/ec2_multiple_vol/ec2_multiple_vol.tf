@@ -119,8 +119,8 @@ resource "aws_ebs_volume" "itself" {
   availability_zone = var.zone
   size              = each.value["size"]
   type              = each.value["type"]
-  iops              = each.value["iops"]
-  throughput        = each.value["throughput"]
+  iops              = each.value["iops"] == "" ? null : each.value["iops"]
+  throughput        = each.value["throughput"] == "" ? null : each.value["throughput"]
   encrypted         = each.value["encrypted"]
   kms_key_id        = each.value["kms_key"]
   tags = merge(
