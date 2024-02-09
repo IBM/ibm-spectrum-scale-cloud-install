@@ -17,6 +17,7 @@ variable "os_disk_caching" {}
 variable "os_storage_account_type" {}
 variable "bastion_key_pair" {}
 variable "vnet_availability_zones" {}
+variable "prefix_length" {}
 
 # Gets Azure ssh keypair data
 data "azurerm_ssh_public_key" "itself" {
@@ -29,6 +30,7 @@ resource "azurerm_public_ip_prefix" "itself" {
   name                = "${var.vm_name_prefix}-pip"
   location            = var.location
   resource_group_name = var.resource_group_name
+  prefix_length       = var.prefix_length
 }
 
 # Creates azure linux virtual machine with uniform mode

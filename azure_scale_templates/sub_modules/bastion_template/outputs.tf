@@ -17,8 +17,3 @@ output "bastion_service_instance_dns_name" {
   value       = module.azure_bastion_service[*].bastion_service_dns_name
   description = "Bastion instance dns name."
 }
-
-output "bastion_service_asg_id" {
-  value       = module.bastion_cluster_asg[*].asg_id
-  description = "Bastion service application security id."
-}

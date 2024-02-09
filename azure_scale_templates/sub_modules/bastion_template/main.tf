@@ -7,6 +7,7 @@
 locals {
   tcp_port_allow_bastion = ["22"]
   auto_scale_vm_count    = var.auto_scale_vm_count != null ? var.auto_scale_vm_count : 1
+  azure_bastion_service  = var.azure_bastion_service != null ? var.azure_bastion_service : false
 }
 
 # Create NSG for bastion
@@ -89,4 +90,5 @@ module "bastion_autoscaling_group" {
   os_disk_caching         = var.os_disk_caching
   subnet_id               = var.vpc_auto_scaling_group_subnets[count.index]
   vnet_availability_zones = var.vpc_availability_zones
+  prefix_length           = 28
 }
