@@ -9,14 +9,6 @@ locals {
   auto_scale_vm_count    = var.auto_scale_vm_count != null ? var.auto_scale_vm_count : 1
 }
 
-# Create bastion ASG
-module "bastion_cluster_asg" {
-  source              = "../../../resources/azure/security/network_application_security_group"
-  resource_prefix     = "${var.resource_prefix}-bastion"
-  location            = var.vpc_region
-  resource_group_name = var.resource_group_name
-}
-
 # Create NSG for bastion
 module "bastion_network_security_group" {
   source              = "../../../resources/azure/security/network_security_group"
@@ -96,6 +88,5 @@ module "bastion_autoscaling_group" {
   bastion_key_pair        = var.bastion_key_pair
   os_disk_caching         = var.os_disk_caching
   subnet_id               = var.vpc_auto_scaling_group_subnets[count.index]
-  bastion_asg_id          = [module.bastion_cluster_asg.asg_id]
   vnet_availability_zones = var.vpc_availability_zones
 }
