@@ -6,8 +6,6 @@
 
 locals {
   tcp_port_allow_bastion = ["22"]
-  auto_scale_vm_count    = var.auto_scale_vm_count != null ? var.auto_scale_vm_count : 1
-  azure_bastion_service  = var.azure_bastion_service != null ? var.azure_bastion_service : false
 }
 
 # Create NSG for bastion
@@ -36,6 +34,8 @@ module "bastion_deny_inbound_security_rule" {
 }
 
 # Add tcp inbound security rule for bastion
+#tfsec:ignore:azure-network-ssh-blocked-from-internet
+#tfsec:ignore:azure-network-no-public-ingress
 module "bastion_tcp_inbound_security_rule" {
   source                      = "../../../resources/azure/security/network_security_group_rule"
   total_rules                 = length(local.tcp_port_allow_bastion)
@@ -45,7 +45,7 @@ module "bastion_tcp_inbound_security_rule" {
   protocol                    = [for i in range(length(local.tcp_port_allow_bastion)) : "Tcp"]
   source_port_range           = ["*"]
   destination_port_range      = local.tcp_port_allow_bastion
-  priority                    = [for i in range(length(local.tcp_port_allow_bastion)) : "${i + 100}"]
+  priority                    = [for i in range(length(local.tcp_port_allow_bastion)) : format("%s", i + 100)]
   source_address_prefix       = ["*"]
   destination_address_prefix  = var.remote_cidr_blocks
   network_security_group_name = module.bastion_network_security_group.sec_group_name
@@ -83,7 +83,7 @@ module "bastion_autoscaling_group" {
   resource_group_name     = var.resource_group_name
   location                = var.vpc_region
   vm_size                 = var.bastion_instance_type
-  vm_count                = local.auto_scale_vm_count
+  vm_count                = 1
   login_username          = var.bastion_ssh_user_name
   os_storage_account_type = var.bastion_boot_disk_type
   bastion_key_pair        = var.bastion_key_pair

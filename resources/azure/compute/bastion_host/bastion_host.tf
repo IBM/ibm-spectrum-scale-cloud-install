@@ -15,13 +15,15 @@ data "azurerm_subnet" "itself" {
 }
 
 # Generate public ip for Azure Fully Managed Bastion service
-module "bastion_public_ip" {
-  source              = "../../network/public_ip"
-  public_ip_name      = format("%s-bastion-service-public-ip", var.resource_prefix)
+resource "azurerm_public_ip" "itself" {
+  name                = format("%s-bastion-service-public-ip", var.resource_prefix)
   resource_group_name = var.resource_group_name
   location            = var.location
+  sku                 = "Standard"
+  allocation_method   = "Static"
 }
 
+# Create Azure Fully Managed Bastion service
 resource "azurerm_bastion_host" "itself" {
   name                = var.bastion_host_name
   location            = var.location
@@ -31,7 +33,7 @@ resource "azurerm_bastion_host" "itself" {
   ip_configuration {
     name                 = format("%s-config", var.bastion_host_name)
     subnet_id            = data.azurerm_subnet.itself.id
-    public_ip_address_id = module.bastion_public_ip.id
+    public_ip_address_id = azurerm_public_ip.itself.id
   }
 }
 

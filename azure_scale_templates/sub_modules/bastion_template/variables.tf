@@ -88,13 +88,6 @@ variable "image_version" {
   description = "Specifies the version of the image used to create the compute cluster virtual machines."
 }
 
-variable "bastion_login_username" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Bastion default login username"
-}
-
 variable "vpc_auto_scaling_group_subnets" {
   type        = list(string)
   nullable    = true
@@ -134,11 +127,4 @@ variable "remote_cidr_blocks" {
   nullable    = true
   default     = null
   description = "List of CIDRs that can access to the bastion."
-}
-
-variable "auto_scale_vm_count" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Auto scaling virtual machine count."
 }

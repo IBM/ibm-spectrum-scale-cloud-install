@@ -66,12 +66,10 @@ Below steps will provision Bastion host required for IBM Storage Scale cloud sol
 | <a name="input_subscription_id"></a> [subscription_id](#input_subscription_id) | The subscription ID to use. | `string` |
 | <a name="input_tenant_id"></a> [tenant_id](#input_tenant_id) | The Active Directory tenant identifier, must provide when using service principals. | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones ids in the region/location. | `list(string)` |
-| <a name="input_auto_scale_vm_count"></a> [auto_scale_vm_count](#input_auto_scale_vm_count) | Auto scaling virtual machine count. | `number` |
 | <a name="input_azure_bastion_service"></a> [azure_bastion_service](#input_azure_bastion_service) | Enable Azure Bastion service | `bool` |
 | <a name="input_bastion_boot_disk_type"></a> [bastion_boot_disk_type](#input_bastion_boot_disk_type) | Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS). | `string` |
 | <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_bastion_key_pair"></a> [bastion_key_pair](#input_bastion_key_pair) | The SSH keypair to launch the bastion vm. | `string` |
-| <a name="input_bastion_login_username"></a> [bastion_login_username](#input_bastion_login_username) | Bastion default login username | `string` |
 | <a name="input_bastion_ssh_user_name"></a> [bastion_ssh_user_name](#input_bastion_ssh_user_name) | The Bastion SSH username to launch bastion vm. | `string` |
 | <a name="input_image_offer"></a> [image_offer](#input_image_offer) | Specifies the offer of the image used to create the storage cluster virtual machines. | `string` |
 | <a name="input_image_publisher"></a> [image_publisher](#input_image_publisher) | Specifies the publisher of the image used to create the storage cluster virtual machines. | `string` |
@@ -90,7 +88,6 @@ Below steps will provision Bastion host required for IBM Storage Scale cloud sol
 |------|-------------|
 | <a name="output_bastion_instance_id"></a> [bastion_instance_id](#output_bastion_instance_id) | Bastion instance id. |
 | <a name="output_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#output_bastion_instance_public_ip) | Bastion instance public ip address. |
-| <a name="output_bastion_service_asg_id"></a> [bastion_service_asg_id](#output_bastion_service_asg_id) | Bastion service application security id. |
 | <a name="output_bastion_service_instance_dns_name"></a> [bastion_service_instance_dns_name](#output_bastion_service_instance_dns_name) | Bastion instance dns name. |
 | <a name="output_bastion_service_instance_id"></a> [bastion_service_instance_id](#output_bastion_service_instance_id) | Bastion service instance id. |
 <!-- END_TF_DOCS -->
