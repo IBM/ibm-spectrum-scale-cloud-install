@@ -134,21 +134,33 @@ variable "total_storage_cluster_instances" {
   description = "Number of instances to be launched for storage instances."
 }
 
-variable "block_devices_per_storage_instance" {
-  type        = number
+variable "filesystem_parameters" {
+  type = list(object({
+    name                         = string
+    filesystem_config_file       = string
+    filesystem_encrypted         = bool
+    filesystem_kms_key_ref       = string
+    device_delete_on_termination = bool
+    disk_config = list(object({
+      filesystem_pool                    = string
+      block_devices_per_storage_instance = number
+      block_device_volume_type           = string
+      block_device_volume_size           = string
+    }))
+  }))
+  default     = null
   nullable    = true
-  default     = 0
-  description = "Number of data disks to be attached to each storage instance."
+  description = "Filesystem parameters in relationship with disk parameters."
 }
 
-variable "block_device_kms_key_ring_ref" {
+variable "root_device_kms_key_ring_ref" {
   type        = string
   nullable    = true
   default     = null
   description = "GCP KMS Key ring reference to use when encrypting the volume."
 }
 
-variable "block_device_kms_key_ref" {
+variable "root_device_kms_key_ref" {
   type        = string
   nullable    = true
   default     = null
@@ -194,20 +206,6 @@ variable "physical_block_size_bytes" {
   type        = number
   default     = 4096
   description = "Physical block size of the persistent disk, in bytes (valid: 4096, 16384)."
-}
-
-variable "block_device_volume_type" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "GCE disk type (valid: pd-standard, pd-ssd , local-ssd)."
-}
-
-variable "block_device_volume_size" {
-  type        = list(string)
-  nullable    = true
-  default     = null
-  description = "Data disk size in gigabytes."
 }
 
 variable "service_email" {
@@ -269,34 +267,6 @@ variable "bastion_instance_ref" {
   nullable    = true
   default     = null
   description = "Bastion instance reference."
-}
-
-variable "storage_cluster_filesystem_mountpoint" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Storage cluster (owningCluster) Filesystem mount point."
-}
-
-variable "filesystem_block_size" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Filesystem block size."
-}
-
-variable "filesystem_data_replication" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Filesystem default replication factor (-r) for data blocks."
-}
-
-variable "filesystem_metadata_replication" {
-  type        = number
-  nullable    = true
-  default     = null
-  description = "Filesystem default replication factor (-m) for metadata."
 }
 
 variable "create_scale_cluster" {

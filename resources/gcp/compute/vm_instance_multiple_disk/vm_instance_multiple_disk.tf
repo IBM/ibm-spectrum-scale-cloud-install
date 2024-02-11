@@ -24,21 +24,21 @@ variable "vpc_forward_dns_zone" {}
 variable "vpc_dns_domain" {}
 variable "vpc_reverse_dns_zone" {}
 variable "vpc_reverse_dns_domain" {}
-variable "block_device_kms_key_ring_ref" {}
-variable "block_device_kms_key_ref" {}
+variable "root_device_kms_key_ring_ref" {}
+variable "root_device_kms_key_ref" {}
 variable "service_email" {}
 variable "scopes" {}
 variable "network_tags" {}
 
 data "google_kms_key_ring" "itself" {
-  count    = var.block_device_kms_key_ring_ref != null ? 1 : 0
-  name     = var.block_device_kms_key_ring_ref
+  count    = var.root_device_kms_key_ring_ref != null ? 1 : 0
+  name     = var.root_device_kms_key_ring_ref
   location = var.vpc_region
 }
 
 data "google_kms_crypto_key" "itself" {
-  count    = var.block_device_kms_key_ref != null ? 1 : 0
-  name     = var.block_device_kms_key_ref
+  count    = var.root_device_kms_key_ref != null ? 1 : 0
+  name     = var.root_device_kms_key_ref
   key_ring = data.google_kms_key_ring.itself[0].id
 }
 
