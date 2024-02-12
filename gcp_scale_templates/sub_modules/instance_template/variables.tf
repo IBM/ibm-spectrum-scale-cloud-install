@@ -1,5 +1,6 @@
 variable "project_id" {
   type        = string
+  default     = null
   description = "GCP project ID to manage resources."
 }
 
@@ -19,13 +20,14 @@ variable "vpc_ref" {
 
 variable "vpc_availability_zones" {
   type        = list(string)
+  default     = []
   nullable    = true
   description = "A list of availability zones names or ids in the region."
 }
 
 variable "resource_prefix" {
   type        = string
-  default     = "spectrum-scale"
+  default     = "ibm-storage-scale"
   description = "GCP stack name, will be used for tagging resources."
 }
 

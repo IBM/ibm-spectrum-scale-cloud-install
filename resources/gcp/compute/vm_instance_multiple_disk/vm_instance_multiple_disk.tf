@@ -152,7 +152,7 @@ resource "google_compute_attached_disk" "itself" {
   mode     = "READ_WRITE"
 }
 
-output "instance_id" {
+output "instance_ids" {
   value = google_compute_instance.itself.id
 }
 
@@ -160,11 +160,11 @@ output "instance_selflink" {
   value = google_compute_instance.itself.self_link
 }
 
-output "instance_ip" {
+output "instance_private_ips" {
   value = google_compute_instance.itself.network_interface[0].network_ip
 }
 
-output "instance_dns_name" {
+output "instance_private_dns_name" {
   # Ex: id: projects/spectrum-scale-xyz/zones/us-central1-b/instances/test-compute-2,  regex o/p: test-compute-2
   # Internal DNS format: {instance_name}.{zone}.c.{project_id}.internal
   value = var.use_clouddns ? format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.vpc_dns_domain) : format("%s.%s.c.%s.internal", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.zone, regex("projects/(.*)/zones/.*", google_compute_instance.itself.id)[0])
