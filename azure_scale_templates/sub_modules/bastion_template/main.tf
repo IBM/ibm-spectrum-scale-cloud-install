@@ -16,23 +16,6 @@ module "bastion_network_security_group" {
   resource_group_name = var.resource_group_name
 }
 
-# Add deny security rule for bastion
-module "bastion_deny_inbound_security_rule" {
-  source                      = "../../../resources/azure/security/network_security_group_rule"
-  total_rules                 = 1
-  rule_names                  = ["${var.resource_prefix}-DenyAllInBound"]
-  direction                   = ["Inbound"]
-  access                      = ["Deny"]
-  protocol                    = ["*"]
-  source_port_range           = ["*"]
-  destination_port_range      = ["*"]
-  priority                    = ["1000"]
-  source_address_prefix       = ["*"]
-  destination_address_prefix  = ["*"]
-  network_security_group_name = module.bastion_network_security_group.sec_group_name
-  resource_group_name         = var.resource_group_name
-}
-
 # Add tcp inbound security rule for bastion
 #tfsec:ignore:azure-network-ssh-blocked-from-internet
 #tfsec:ignore:azure-network-no-public-ingress
