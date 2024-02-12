@@ -18,9 +18,23 @@ variable "subscription_id" {
   description = "The subscription ID to use."
 }
 
-variable "vnet_location" {
+variable "vpc_region" {
   type        = string
+  nullable    = true
+  default     = null
   description = "The location/region of the vnet to create. Examples are East US, West US, etc."
+}
+
+variable "vpc_availability_zones" {
+  type        = list(string)
+  description = "A list of availability zones ids in the region/location."
+}
+
+variable "vpc_ref" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "VPC id to where bastion needs to deploy."
 }
 
 variable "resource_group_name" {
@@ -30,11 +44,87 @@ variable "resource_group_name" {
 
 variable "resource_prefix" {
   type        = string
-  default     = "spectrum-scale"
+  default     = "ibm-storage-scale"
   description = "Prefix is added to all resources that are created."
 }
 
-variable "vnet_public_subnet_id" {
+variable "os_disk_caching" {
   type        = string
-  description = "Public subnet id to be used for Bastion host."
+  default     = "ReadWrite"
+  description = "Specifies the caching requirements for the OS Disk (Ex: None, ReadOnly and ReadWrite)."
+}
+
+variable "image_publisher" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Specifies the publisher of the image used to create the storage cluster virtual machines."
+}
+
+variable "image_offer" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Specifies the offer of the image used to create the storage cluster virtual machines."
+}
+
+variable "image_sku" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Specifies the SKU of the image used to create the storage cluster virtual machines."
+}
+
+variable "bastion_instance_type" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Instance type to use for provisioning the compute cluster instances."
+}
+
+variable "image_version" {
+  type        = string
+  default     = "latest"
+  description = "Specifies the version of the image used to create the compute cluster virtual machines."
+}
+
+variable "vpc_auto_scaling_group_subnets" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of IDs of bastion subnets."
+}
+
+variable "bastion_boot_disk_type" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS)."
+}
+
+variable "bastion_key_pair" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "The SSH keypair to launch the bastion vm."
+}
+
+variable "bastion_ssh_user_name" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "The Bastion SSH username to launch bastion vm."
+}
+
+variable "azure_bastion_service" {
+  type        = bool
+  default     = false
+  description = "Enable Azure Bastion service"
+}
+
+variable "remote_cidr_blocks" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of CIDRs that can access to the bastion."
 }

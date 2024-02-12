@@ -3,11 +3,6 @@ output "vpc_id" {
   description = "The ID of the vpc."
 }
 
-output "resource_group_name" {
-  value       = module.resource_group.resource_group_name
-  description = "New resource group name"
-}
-
 output "vpc_public_subnets" {
   value       = module.public_subnet.subnet_id
   description = "List of IDs of public subnets."

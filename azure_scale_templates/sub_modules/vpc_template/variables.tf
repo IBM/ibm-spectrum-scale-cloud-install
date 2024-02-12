@@ -31,6 +31,11 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
+variable "resource_group_name" {
+  type        = string
+  description = "The name of a new resource group in which the resources will be created."
+}
+
 variable "vpc_cidr_block" {
   type        = string
   nullable    = true
@@ -59,23 +64,23 @@ variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
   description = "List of cidr_blocks for compute cluster private subnets."
 }
 
-variable "strg_dns_domain" {
-  type        = string
-  nullable    = true
-  default     = "strgscale.com"
-  description = "Azure DNS domain name to be used for storage cluster."
-}
-
-variable "comp_dns_domain" {
-  type        = string
-  nullable    = true
-  default     = "compscale.com"
-  description = "Azure DNS domain name to be used for compute cluster."
-}
-
 variable "vpc_tags" {
   type        = map(string)
   nullable    = true
   default     = {}
   description = "The tags to associate with your network and subnets."
+}
+
+variable "vpc_bastion_service_subnets_cidr_blocks" {
+  type        = list(string)
+  nullable    = true
+  default     = null
+  description = "List of cidr_blocks for azure fully managed subnet."
+}
+
+variable "create_resouce_group" {
+  type        = bool
+  nullable    = true
+  default     = null
+  description = "Creates resouce group."
 }

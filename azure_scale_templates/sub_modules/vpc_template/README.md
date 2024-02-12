@@ -51,12 +51,13 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 |------|-------------|------|
 | <a name="input_client_id"></a> [client_id](#input_client_id) | The Active Directory service principal associated with your account. | `string` |
 | <a name="input_client_secret"></a> [client_secret](#input_client_secret) | The password or secret for your service principal. | `string` |
+| <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | The name of a new resource group in which the resources will be created. | `string` |
 | <a name="input_subscription_id"></a> [subscription_id](#input_subscription_id) | The subscription ID to use. | `string` |
 | <a name="input_tenant_id"></a> [tenant_id](#input_tenant_id) | The Active Directory tenant identifier, must provide when using service principals. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The location/region of the vpc to create. Examples are East US, West US, etc. | `string` |
-| <a name="input_comp_dns_domain"></a> [comp_dns_domain](#input_comp_dns_domain) | Azure DNS domain name to be used for compute cluster. | `string` |
+| <a name="input_create_resouce_group"></a> [create_resouce_group](#input_create_resouce_group) | Creates resouce group. | `bool` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
-| <a name="input_strg_dns_domain"></a> [strg_dns_domain](#input_strg_dns_domain) | Azure DNS domain name to be used for storage cluster. | `string` |
+| <a name="input_vpc_bastion_service_subnets_cidr_blocks"></a> [vpc_bastion_service_subnets_cidr_blocks](#input_vpc_bastion_service_subnets_cidr_blocks) | List of cidr_blocks for azure fully managed subnet. | `list(string)` |
 | <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the vpc. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks for compute cluster private subnets. | `list(string)` |
 | <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of cidr_blocks of public subnets. | `list(string)` |
@@ -67,7 +68,6 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 
 | Name | Description |
 |------|-------------|
-| <a name="output_resource_group_name"></a> [resource_group_name](#output_resource_group_name) | New resource group name |
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | The ID of the vpc. |
 | <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
