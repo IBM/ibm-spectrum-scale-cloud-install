@@ -174,24 +174,11 @@ The following steps will provision GCP resources (compute and storage instances 
 
 | Name | Description | Type |
 |------|-------------|------|
-| <a name="input_create_clouddns"></a> [create_clouddns](#input_create_clouddns) | Indicates whether to create new cloud DNS zones or reuse existing DNS zones. | `bool` |
-| <a name="input_credential_json_path"></a> [credential_json_path](#input_credential_json_path) | The path of a GCP service account key file in JSON format. | `string` |
-| <a name="input_project_id"></a> [project_id](#input_project_id) | GCP project ID to manage resources. | `string` |
-| <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
-| <a name="input_use_clouddns"></a> [use_clouddns](#input_use_clouddns) | Indicates whether to use cloud DNS or internal DNS. | `bool` |
-| <a name="input_using_cloud_connection"></a> [using_cloud_connection](#input_using_cloud_connection) | This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
-| <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
-| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
 | <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
 | <a name="input_bastion_instance_ref"></a> [bastion_instance_ref](#input_bastion_instance_ref) | Bastion instance reference. | `string` |
 | <a name="input_bastion_security_group_ref"></a> [bastion_security_group_ref](#input_bastion_security_group_ref) | Bastion security group reference (id/self-link). | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
-| <a name="input_block_device_kms_key_ref"></a> [block_device_kms_key_ref](#input_block_device_kms_key_ref) | GCP KMS Key reference to use when encrypting the volume. | `string` |
-| <a name="input_block_device_kms_key_ring_ref"></a> [block_device_kms_key_ring_ref](#input_block_device_kms_key_ring_ref) | GCP KMS Key ring reference to use when encrypting the volume. | `string` |
-| <a name="input_block_device_volume_size"></a> [block_device_volume_size](#input_block_device_volume_size) | Data disk size in gigabytes. | `list(string)` |
-| <a name="input_block_device_volume_type"></a> [block_device_volume_type](#input_block_device_volume_type) | GCE disk type (valid: pd-standard, pd-ssd , local-ssd). | `list(string)` |
-| <a name="input_block_devices_per_storage_instance"></a> [block_devices_per_storage_instance](#input_block_devices_per_storage_instance) | Number of data disks to be attached to each storage instance. | `number` |
 | <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
 | <a name="input_compute_boot_disk_size"></a> [compute_boot_disk_size](#input_compute_boot_disk_size) | Compute instances boot disk size in gigabytes. | `string` |
 | <a name="input_compute_boot_disk_type"></a> [compute_boot_disk_type](#input_compute_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
@@ -201,24 +188,27 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_compute_cluster_image_ref"></a> [compute_cluster_image_ref](#input_compute_cluster_image_ref) | Image from which to initialize Spectrum Scale compute instances. | `string` |
 | <a name="input_compute_cluster_instance_type"></a> [compute_cluster_instance_type](#input_compute_cluster_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | SSH public key local path for compute instances. | `string` |
+| <a name="input_create_clouddns"></a> [create_clouddns](#input_create_clouddns) | Indicates whether to create new cloud DNS zones or reuse existing DNS zones. | `bool` |
 | <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
-| <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
-| <a name="input_filesystem_data_replication"></a> [filesystem_data_replication](#input_filesystem_data_replication) | Filesystem default replication factor (-r) for data blocks. | `number` |
-| <a name="input_filesystem_metadata_replication"></a> [filesystem_metadata_replication](#input_filesystem_metadata_replication) | Filesystem default replication factor (-m) for metadata. | `number` |
+| <a name="input_credential_json_path"></a> [credential_json_path](#input_credential_json_path) | The path of a GCP service account key file in JSON format. | `string` |
+| <a name="input_filesystem_parameters"></a> [filesystem_parameters](#input_filesystem_parameters) | Filesystem parameters in relationship with disk parameters. | <pre>list(object({<br>    name                         = string<br>    filesystem_config_file       = string<br>    filesystem_kms_key_ring_ref  = string<br>    filesystem_kms_key_ref       = string<br>    device_delete_on_termination = bool<br>    disk_config = list(object({<br>      filesystem_pool                    = string<br>      block_devices_per_storage_instance = number<br>      block_device_volume_type           = string<br>      block_device_volume_size           = string<br>    }))<br>  }))</pre> |
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
 | <a name="input_instances_ssh_user_name"></a> [instances_ssh_user_name](#input_instances_ssh_user_name) | Compute/Storage VM login username. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_physical_block_size_bytes"></a> [physical_block_size_bytes](#input_physical_block_size_bytes) | Physical block size of the persistent disk, in bytes (valid: 4096, 16384). | `number` |
+| <a name="input_project_id"></a> [project_id](#input_project_id) | GCP project ID to manage resources. | `string` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | GCP stack name, will be used for tagging resources. | `string` |
+| <a name="input_root_device_kms_key_ref"></a> [root_device_kms_key_ref](#input_root_device_kms_key_ref) | GCP KMS Key reference to use when encrypting the volume. | `string` |
+| <a name="input_root_device_kms_key_ring_ref"></a> [root_device_kms_key_ring_ref](#input_root_device_kms_key_ring_ref) | GCP KMS Key ring reference to use when encrypting the volume. | `string` |
+| <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
 | <a name="input_scopes"></a> [scopes](#input_scopes) | List of service scopes. | `list(string)` |
 | <a name="input_scratch_devices_per_storage_instance"></a> [scratch_devices_per_storage_instance](#input_scratch_devices_per_storage_instance) | Number of scratch disks to be attached to each storage instance. | `number` |
 | <a name="input_service_email"></a> [service_email](#input_service_email) | GCP service account e-mail address. | `string` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
 | <a name="input_storage_boot_disk_size"></a> [storage_boot_disk_size](#input_storage_boot_disk_size) | Storage instances boot disk size in gigabytes. | `number` |
 | <a name="input_storage_boot_disk_type"></a> [storage_boot_disk_type](#input_storage_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
-| <a name="input_storage_cluster_filesystem_mountpoint"></a> [storage_cluster_filesystem_mountpoint](#input_storage_cluster_filesystem_mountpoint) | Storage cluster (owningCluster) Filesystem mount point. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_image_ref"></a> [storage_cluster_image_ref](#input_storage_cluster_image_ref) | Image from which to initialize Spectrum Scale storage instances. | `string` |
@@ -228,9 +218,13 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_total_gateway_instances"></a> [total_gateway_instances](#input_total_gateway_instances) | Number of EC2 instances to be launched for gateway nodes. | `number` |
 | <a name="input_total_protocol_instances"></a> [total_protocol_instances](#input_total_protocol_instances) | Number of EC2 instances to be launched for protocol nodes. | `number` |
 | <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of instances to be launched for storage instances. | `number` |
+| <a name="input_use_clouddns"></a> [use_clouddns](#input_use_clouddns) | Indicates whether to use cloud DNS or internal DNS. | `bool` |
+| <a name="input_using_cloud_connection"></a> [using_cloud_connection](#input_using_cloud_connection) | This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_using_direct_connection"></a> [using_direct_connection](#input_using_direct_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud virtual private cloud (VPC) via a VPN or direct connection. This mode requires variable `client_ip_ranges`, as the on-premise client ip will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
+| <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
 | <a name="input_using_rest_api_remote_mount"></a> [using_rest_api_remote_mount](#input_using_rest_api_remote_mount) | If false, skips GUI initialization on compute cluster for remote mount configuration. | `string` |
+| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
 | <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | GCP Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_block"></a> [vpc_compute_cluster_private_subnets_cidr_block](#input_vpc_compute_cluster_private_subnets_cidr_block) | cidr_block of compute private subnet. | `string` |

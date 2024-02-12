@@ -4,7 +4,7 @@ output "storage_cluster_instance_ids" {
 }
 
 output "storage_cluster_instance_private_ips" {
-  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.storage_cluster_instances : instance.instance_ip] : null
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : null
   description = "Storage cluster private ips."
 }
 
@@ -14,12 +14,12 @@ output "storage_cluster_with_data_volume_mapping" {
 }
 
 output "storage_cluster_with_dns_hostname" {
-  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.storage_cluster_instances : instance.instance_dns_name] : null
+  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? [for instance in module.storage_cluster_instances : instance.instance_private_dns_name] : null
   description = "Storage cluster dns hostname mapping."
 }
 
 output "compute_cluster_with_dns_hostname" {
-  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? [for instance in module.compute_cluster_instances : instance.instance_dns_name] : null
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? [for instance in module.compute_cluster_instances : instance.instance_private_dns_name] : null
   description = "Compute cluster dns hostname mapping."
 }
 
@@ -29,7 +29,7 @@ output "compute_cluster_instance_ids" {
 }
 
 output "compute_cluster_instance_private_ips" {
-  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? [for instance in module.compute_cluster_instances : instance.instance_ip] : null
+  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? [for instance in module.compute_cluster_instances : instance.instance_private_ips] : null
   description = "Compute cluster private ips."
 }
 

@@ -14,12 +14,14 @@ locals {
   storage_and_protocol = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.total_protocol_instances != null) ? true : false
   storage_and_gateway  = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.total_gateway_instances != null) ? true : false
 
-  create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
-  ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
-  "/dev/xvdk", "/dev/xvdl", "/dev/xvdm", "/dev/xvdn", "/dev/xvdo", "/dev/xvdp", "/dev/xvdq", "/dev/xvdr", "/dev/xvds", "/dev/xvdt"]
-  instance_storage_device_names = ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"]
-  gpfs_base_rpm_path            = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
-  scale_version                 = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
+  tcp_port_scale_cluster    = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
+  udp_port_scale_cluster    = ["47443", "4739"]
+  scale_cluster_network_tag = format("%s-cluster-tag", var.resource_prefix)
+  block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
+  "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
+  ssd_device_names   = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
+  gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
+  scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
 
 /*
@@ -143,22 +145,6 @@ locals {
 }
 
 /*
-    Notes:
-    1. One additional ENI will be provisioned per protocol node
-    2. Each ENI will only have 1 secondary ip
-*/
-locals {
-  protocol_vm_ces_map = {
-    for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
-    vm_name => {
-      subnet      = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
-      private_ips = var.ces_private_ips == null ? null : element(var.ces_private_ips, idx)
-      description = format("%s-ces", vm_name)
-    }
-  }
-}
-
-/*
     Generate a map using storage vm name key and values of disks list, subnet.
     Ex:
         storage_vm_zone_map = {
@@ -169,41 +155,32 @@ locals {
                 "fs1-gold-1" = {
                     device_name = "/dev/xvdi"
                     encrypted   = false
-                    iops        = null
-                    kms_key     = null
                     size        = "500"
                     termination = true
-                    throughput  = null
                     type        = "gp2"
                 }
                 "fs1-system-1" = {
                     device_name = "/dev/xvdi"
                     encrypted   = false
-                    iops        = null
                     kms_key     = null
                     size        = "500"
                     termination = true
-                    throughput  = null
                     type        = "gp2"
                 }
                 "fs1-system-2" = {
                   device_name = "/dev/xvdi"
                   encrypted   = false
-                  iops        = null
                   kms_key     = null
                   size        = "500"
                   termination = true
-                  throughput  = null
                   type        = "gp2"
                 }
                 "fs2-system-1" = {
                   device_name = "/dev/xvdi"
                   encrypted   = false
-                  iops        = null
                   kms_key     = null
                   size        = "500"
                   termination = true
-                  throughput  = null
                   type        = "gp2"
                 }
             }
@@ -213,18 +190,16 @@ locals {
   inflate_disks_per_fs_pool = flatten([
     for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
       for disk_details in fs_config.disk_config : {
-        for i in range(local.nvme_block_device_count > 0 ? local.nvme_block_device_count : disk_details.block_devices_per_storage_instance) :
+        for i in range(var.scratch_devices_per_storage_instance > 0 ? var.scratch_devices_per_storage_instance : disk_details.block_devices_per_storage_instance) :
         "${fs_config.name}-${disk_details.filesystem_pool}-${i + 1}" => {
-          "fs_name"     = fs_config.name
-          "config_file" = fs_config.filesystem_config_file
-          "encrypted"   = fs_config.filesystem_encrypted
-          "kms_key"     = fs_config.filesystem_kms_key_ref
-          "termination" = fs_config.device_delete_on_termination
-          "pool"        = disk_details.filesystem_pool
-          "size"        = disk_details.block_device_volume_size
-          "type"        = disk_details.block_device_volume_type
-          "iops"        = disk_details.block_device_iops
-          "throughput"  = disk_details.block_device_throughput
+          "fs_name"      = fs_config.name
+          "config_file"  = fs_config.filesystem_config_file
+          "kms_key_ring" = fs_config.filesystem_kms_key_ring_ref
+          "kms_key"      = fs_config.filesystem_kms_key_ref
+          "termination"  = fs_config.device_delete_on_termination
+          "pool"         = disk_details.filesystem_pool
+          "size"         = disk_details.block_device_volume_size
+          "type"         = disk_details.block_device_volume_type
         }
       }
     ]
@@ -233,17 +208,15 @@ locals {
     for pool in local.inflate_disks_per_fs_pool :
     [for disk, properties in pool :
       {
-        name        = disk
-        fs_name     = properties["fs_name"]
-        pool        = properties["pool"]
-        config      = properties["config_file"]
-        encrypted   = properties["encrypted"]
-        kms_key     = properties["kms_key"]
-        termination = properties["termination"]
-        size        = properties["size"]
-        type        = properties["type"]
-        iops        = properties["iops"]
-        throughput  = properties["throughput"]
+        name         = disk
+        fs_name      = properties["fs_name"]
+        pool         = properties["pool"]
+        config       = properties["config_file"]
+        kms_key_ring = properties["kms_key_ring"]
+        kms_key      = properties["kms_key"]
+        termination  = properties["termination"]
+        size         = properties["size"]
+        type         = properties["type"]
       }
     ]
   ])
@@ -251,17 +224,15 @@ locals {
     for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
       [for disk_config in fs_config.disk_config :
         {
-          name        = format("%s-tie", fs_config.name)
-          fs_name     = fs_config.name
-          pool        = "system"
-          config      = fs_config.filesystem_config_file
-          encrypted   = fs_config.filesystem_encrypted
-          kms_key     = fs_config.filesystem_kms_key_ref
-          termination = fs_config.device_delete_on_termination
-          size        = "5"
-          type        = "gp2"
-          throughput  = null
-          iops        = null
+          name         = format("%s-tie", fs_config.name)
+          fs_name      = fs_config.name
+          pool         = "system"
+          config       = fs_config.filesystem_config_file
+          kms_key_ring = fs_config.filesystem_kms_key_ring_ref
+          kms_key      = fs_config.filesystem_kms_key_ref
+          termination  = fs_config.device_delete_on_termination
+          size         = "5"
+          type         = "gp2"
         }
       ]
     ]
@@ -273,20 +244,18 @@ locals {
       # Consider only first 2 elements in multi-az
       zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
       subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
-      # In case of nitro instances, the disk list to provision is empty
-      disks = local.nvme_block_device_count > 0 ? {} : tomap({
+      # In case of instance store, the disk list to provision is empty
+      disks = var.scratch_devices_per_storage_instance > 0 ? {} : tomap({
         for idx, disk in tolist(local.flatten_disks_per_vm) :
-        disk["name"] => {
-          size        = disk["size"]
-          type        = disk["type"]
-          termination = disk["termination"]
-          iops        = disk["iops"]
-          throughput  = disk["throughput"]
-          encrypted   = disk["encrypted"]
-          kms_key     = disk["kms_key"]
-          fs_name     = disk["fs_name"]
-          pool        = disk["pool"]
-          device_name = element(local.ebs_device_names, idx)
+        format("%s-%s", vm_name, disk["name"]) => {
+          size         = disk["size"]
+          type         = disk["type"]
+          termination  = disk["termination"]
+          kms_key_ring = disk["kms_key_ring"]
+          kms_key      = disk["kms_key"]
+          fs_name      = disk["fs_name"]
+          pool         = disk["pool"]
+          device_name  = element(local.block_device_names, idx)
         }
       })
     }
@@ -297,26 +266,19 @@ locals {
     for idx, vm_ipaddr in local.storage_cluster_private_ips :
     vm_ipaddr => {
       zone = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
-      disks = local.nvme_block_device_count > 0 ? tomap({
+      disks = var.scratch_devices_per_storage_instance > 0 ? tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.instance_storage_device_names, jdx)
-        }
-        }) : local.is_nitro_instance ? tomap({
-        for jdx, disk in tolist(local.flatten_disks_per_vm) :
-        disk["name"] => {
-          fs_name     = disk["fs_name"]
-          pool        = disk["pool"]
-          device_name = element(local.instance_storage_device_names, jdx + 1)
+          device_name = element(local.ssd_device_names, jdx)
         }
         }) : tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.ebs_device_names, jdx)
+          device_name = element(local.block_device_names, jdx)
         }
       })
     }
@@ -368,17 +330,15 @@ locals {
       subnet = var.vpc_storage_cluster_private_subnets[2] # Consider only last element
       disks = tomap({
         for idx, disk in tolist(local.flatten_tie_disk) :
-        disk["name"] => {
-          size        = disk["size"]
-          type        = disk["type"]
-          termination = disk["termination"]
-          iops        = disk["iops"]
-          throughput  = disk["throughput"]
-          encrypted   = disk["encrypted"]
-          kms_key     = disk["kms_key"]
-          fs_name     = disk["fs_name"]
-          pool        = disk["pool"]
-          device_name = element(local.ebs_device_names, idx)
+        format("%s-%s", vm_name, disk["name"]) => {
+          size         = disk["size"]
+          type         = disk["type"]
+          termination  = disk["termination"]
+          kms_key_ring = disk["kms_key_ring"]
+          kms_key      = disk["kms_key"]
+          fs_name      = disk["fs_name"]
+          pool         = disk["pool"]
+          device_name  = element(local.block_device_names, idx)
         }
       })
     }
@@ -392,7 +352,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.ebs_device_names, jdx)
+          device_name = element(local.block_device_names, jdx)
         }
       })
     }
