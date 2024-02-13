@@ -37,5 +37,5 @@ resource "aws_sns_topic_subscription" "itself" {
 }
 
 output "topic_arn" {
-  value = aws_sns_topic_subscription.itself[*].arn
+  value = try(aws_sns_topic_subscription.itself[*].arn, null)
 }

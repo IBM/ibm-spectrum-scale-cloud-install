@@ -241,6 +241,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_ces_private_ips"></a> [ces_private_ips](#input_ces_private_ips) | List of CES ipaddress to use (must be equal to total_protocol_instances). If null, random ips will be provisioned equal to total_protocol_instances. | `list(string)` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of gateway/client ip/cidr ranges. | `list(string)` |
 | <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
+| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_compute_cluster_boot_disk_type"></a> [compute_cluster_boot_disk_type](#input_compute_cluster_boot_disk_type) | EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1. | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for Compute cluster GUI. | `string` |
@@ -304,7 +305,6 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
-| <a name="output_compute_instance_memory_size"></a> [compute_instance_memory_size](#output_compute_instance_memory_size) | Compute instance profile memory size. |
 | <a name="output_gateway_instance_ids"></a> [gateway_instance_ids](#output_gateway_instance_ids) | Gateway instance ids. |
 | <a name="output_gateway_instance_private_ips"></a> [gateway_instance_private_ips](#output_gateway_instance_private_ips) | Private IP address of gateway instances. |
 | <a name="output_instance_iam_profile"></a> [instance_iam_profile](#output_instance_iam_profile) | n/a |
@@ -319,5 +319,4 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
 | <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group id. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
-| <a name="output_storage_instance_memory_size"></a> [storage_instance_memory_size](#output_storage_instance_memory_size) | Storage instance profile memory size. |
 <!-- END_TF_DOCS -->

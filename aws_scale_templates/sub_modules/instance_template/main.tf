@@ -8,21 +8,21 @@
 
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on = local.compute_or_combined ? true : false
 }
 
 module "generate_storage_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on = local.storage_or_combined ? true : false
 }
 
 data "aws_subnet" "vpc_storage_cluster_private_subnet_cidrs" {
-  count = (local.cluster_type == "storage" || local.cluster_type == "combined") ? length(var.vpc_storage_cluster_private_subnets) : 0
+  count = local.storage_or_combined ? length(var.vpc_storage_cluster_private_subnets) : 0
   id    = var.vpc_storage_cluster_private_subnets[count.index]
 }
 
 data "aws_subnet" "vpc_compute_cluster_private_subnet_cidrs" {
-  count = (local.cluster_type == "compute" || local.cluster_type == "combined") ? length(var.vpc_compute_cluster_private_subnets) : 0
+  count = local.compute_or_combined ? length(var.vpc_compute_cluster_private_subnets) : 0
   id    = var.vpc_compute_cluster_private_subnets[count.index]
 }
 
@@ -95,7 +95,7 @@ module "cluster_instance_iam_profile" {
 
 module "compute_cluster_security_group" {
   source                = "../../../resources/aws/security/security_group"
-  turn_on               = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on               = local.compute_or_combined ? true : false
   sec_group_name        = ["compute-sec-group-"]
   sec_group_description = ["Enable SSH access to the compute cluster hosts"]
   vpc_id                = var.vpc_ref
@@ -107,7 +107,7 @@ module "compute_cluster_security_group" {
 # 1. compute_cluster_ingress_security_rule: Only for scale traffic enablement
 module "compute_cluster_ingress_security_rule" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 13 : 0
+  total_rules       = local.compute_or_combined && var.using_direct_connection ? 13 : 0
   security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic within compute instances",
     "Allow SSH traffic within compute instances",
@@ -134,7 +134,7 @@ module "compute_cluster_ingress_security_rule" {
 # 2. compute_cluster_ingress_security_rule_using_direct_connection: For allowing ingress traffic from client_ip_ranges
 module "compute_cluster_ingress_security_rule_using_direct_connection" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 2 : 0
+  total_rules               = local.compute_or_combined && var.using_direct_connection ? 2 : 0
   security_group_id         = [module.compute_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from client cidr/ip range to compute instances", "Allow SSH traffic from client cidr/ip range to compute instances"]
   security_rule_type        = ["ingress", "ingress"]
@@ -148,7 +148,7 @@ module "compute_cluster_ingress_security_rule_using_direct_connection" {
 # Create security rules to enable scale communication within compute instances in a cloud connection method.
 module "compute_cluster_ingress_security_rule_using_cloud_connection" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_cloud_connection == true) ? 16 : 0
+  total_rules       = local.compute_or_combined && var.using_cloud_connection ? 16 : 0
   security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from cloud gateway to compute instances",
     "Allow SSH traffic from cloud gateway to compute instances",
@@ -183,7 +183,7 @@ module "compute_cluster_ingress_security_rule_using_cloud_connection" {
 # Create security rules to enable scale communication within compute instances in a jumphost connection method.
 module "compute_cluster_ingress_security_rule_using_jumphost_connection" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.using_jumphost_connection == true) ? 16 : 0
+  total_rules       = local.compute_or_combined && var.using_jumphost_connection ? 16 : 0
   security_group_id = [module.compute_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to compute instances",
     "Allow SSH traffic from bastion to compute instances",
@@ -217,9 +217,9 @@ module "compute_cluster_ingress_security_rule_using_jumphost_connection" {
 
 module "cluster_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = local.cluster_type == "combined" ? 2 : 1
-  security_group_id         = local.cluster_type == "combined" ? [module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id] : (var.total_compute_cluster_instances != null ? [module.compute_cluster_security_group.sec_group_id] : [module.storage_cluster_security_group.sec_group_id])
-  security_rule_description = local.cluster_type == "combined" ? ["Outgoing traffic from compute instances", "Outgoing traffic from storage instances"] : (var.total_compute_cluster_instances != null ? ["Outgoing traffic from compute instances"] : ["Outgoing traffic from storage instances"])
+  total_rules               = var.cluster_type == "Combined-compute-storage" ? 2 : 1
+  security_group_id         = var.cluster_type == "Combined-compute-storage" ? [module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id] : (var.total_compute_cluster_instances > 0 ? [module.compute_cluster_security_group.sec_group_id] : [module.storage_cluster_security_group.sec_group_id])
+  security_rule_description = var.cluster_type == "Combined-compute-storage" ? ["Outgoing traffic from compute instances", "Outgoing traffic from storage instances"] : (var.total_compute_cluster_instances > 0 ? ["Outgoing traffic from compute instances"] : ["Outgoing traffic from storage instances"])
   security_rule_type        = ["egress", "egress"]
   traffic_protocol          = ["-1", "-1"]
   traffic_from_port         = ["0", "0"]
@@ -230,7 +230,7 @@ module "cluster_egress_security_rule" {
 
 module "storage_cluster_security_group" {
   source                = "../../../resources/aws/security/security_group"
-  turn_on               = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on               = local.storage_or_combined ? true : false
   sec_group_name        = ["storage-sec-group-"]
   sec_group_description = ["Enable SSH access to the storage cluster hosts"]
   vpc_id                = var.vpc_ref
@@ -242,7 +242,7 @@ module "storage_cluster_security_group" {
 # 1. storage_cluster_ingress_security_rule: Only for scale storage traffic enablement
 module "storage_cluster_ingress_security_rule" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 13 : 0
+  total_rules       = local.storage_or_combined && var.using_direct_connection ? 13 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic within storage instances",
     "Allow SSH traffic within storage instances",
@@ -269,7 +269,7 @@ module "storage_cluster_ingress_security_rule" {
 # 2. storage_cluster_ingress_security_rule_using_direct_connection: For allowing ingress traffic from client_ip_ranges
 module "storage_cluster_ingress_security_rule_using_direct_connection" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_direct_connection == true) ? 2 : 0
+  total_rules               = local.storage_or_combined && var.using_direct_connection ? 2 : 0
   security_group_id         = [module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from client cidr/ip range to storage instances", "Allow SSH traffic from client cidr/ip range to storage instances"]
   security_rule_type        = ["ingress", "ingress"]
@@ -283,7 +283,7 @@ module "storage_cluster_ingress_security_rule_using_direct_connection" {
 # Create security rules to enable scale communication within storage instances in a cloud connection method.
 module "storage_cluster_ingress_security_rule_using_cloud_connection" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_cloud_connection == true) ? 16 : 0
+  total_rules       = local.storage_or_combined && var.using_cloud_connection ? 16 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from cloud gateway to storage instances",
     "Allow SSH traffic from cloud gateway to storage instances",
@@ -318,7 +318,7 @@ module "storage_cluster_ingress_security_rule_using_cloud_connection" {
 # Create security rules to enable scale communication within storage instances in a jumphost connection method.
 module "storage_cluster_ingress_security_rule_using_jumphost_connection" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.using_jumphost_connection == true) ? 16 : 0
+  total_rules       = local.storage_or_combined && var.using_jumphost_connection ? 16 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from bastion to storage instances",
     "Allow SSH traffic from bastion to storage instances",
@@ -352,7 +352,7 @@ module "storage_cluster_ingress_security_rule_using_jumphost_connection" {
 
 module "bicluster_ingress_security_rule" {
   source      = "../../../resources/aws/security/security_rule_source"
-  total_rules = local.cluster_type == "combined" ? 26 : 0
+  total_rules = var.cluster_type == "Combined-compute-storage" ? 26 : 0
   security_group_id = [module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
     module.storage_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id,
@@ -421,7 +421,7 @@ module "email_notification" {
 }
 
 data "aws_ec2_instance_type" "compute_profile" {
-  count         = (local.cluster_type == "compute" || local.cluster_type == "combined") ? 1 : 0
+  count         = local.compute_or_combined ? 1 : 0
   instance_type = var.compute_cluster_instance_type
 }
 
@@ -452,7 +452,7 @@ module "compute_cluster_instances" {
 }
 
 data "aws_ec2_instance_type" "storage_profile" {
-  count         = (local.cluster_type == "storage" || local.cluster_type == "combined") ? 1 : 0
+  count         = local.storage_or_combined ? 1 : 0
   instance_type = var.storage_cluster_instance_type
 }
 
@@ -571,7 +571,7 @@ locals {
 
 # Write the compute cluster related inventory.
 resource "local_sensitive_file" "write_compute_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.cluster_type == "compute" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && var.cluster_type == "Compute-only" ? 1 : 0
   filename = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "AWS"
@@ -601,7 +601,7 @@ resource "local_sensitive_file" "write_compute_cluster_inventory" {
 
 # Write the storage cluster related inventory.
 resource "local_sensitive_file" "write_storage_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.cluster_type == "storage" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.cluster_type == "Storage-only" ? 1 : 0
   filename = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "AWS"
@@ -630,7 +630,7 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
 
 # Write combined cluster related inventory.
 resource "local_sensitive_file" "write_combined_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && local.cluster_type == "combined" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && var.cluster_type == "Combined-compute-storage" ? 1 : 0
   filename = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "AWS"
@@ -660,7 +660,7 @@ resource "local_sensitive_file" "write_combined_inventory" {
 # Configure the compute cluster using ansible based on the create_scale_cluster input.
 module "compute_cluster_configuration" {
   source                          = "../../../resources/common/compute_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && (local.cluster_type == "compute" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && local.compute_or_combined && var.create_remote_mount_cluster ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
@@ -688,7 +688,7 @@ module "compute_cluster_configuration" {
 # Configure the storage cluster using ansible based on the create_scale_cluster input.
 module "storage_cluster_configuration" {
   source                          = "../../../resources/common/storage_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && (local.cluster_type == "storage" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && local.storage_or_combined && var.create_remote_mount_cluster ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
@@ -711,7 +711,7 @@ module "storage_cluster_configuration" {
   scale_encryption_enabled        = false
   scale_encryption_admin_password = null
   scale_encryption_servers        = null
-  max_mbps                        = (local.cluster_type == "storage" || local.cluster_type == "combined") ? data.aws_ec2_instance_type.storage_profile[0].ebs_performance_baseline_bandwidth * 0.25 : 0
+  max_mbps                        = local.storage_or_combined ? data.aws_ec2_instance_type.storage_profile[0].ebs_performance_baseline_bandwidth * 0.25 : 0
   disk_type                       = jsonencode("None")
   depends_on                      = [resource.local_sensitive_file.write_storage_cluster_inventory]
 }
@@ -719,7 +719,7 @@ module "storage_cluster_configuration" {
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
 module "combined_cluster_configuration" {
   source                          = "../../../resources/common/scale_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && local.cluster_type == "combined" ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && var.cluster_type == "Combined-compute-storage" ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
@@ -745,7 +745,7 @@ module "combined_cluster_configuration" {
 # Configure the remote mount relationship between the created compute & storage cluster.
 module "remote_mount_configuration" {
   source                          = "../../../resources/common/remote_mount_configuration"
-  turn_on                         = (local.cluster_type == "combined" && var.create_remote_mount_cluster == true) ? true : false
+  turn_on                         = var.cluster_type == "Combined-compute-storage" && var.create_remote_mount_cluster ? true : false
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
   compute_inventory_path          = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
