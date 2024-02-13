@@ -70,7 +70,7 @@ variable "compute_cluster_instance_type" {
   description = "Instance type to use for provisioning the compute cluster instances."
 }
 
-variable "compute_cluster_root_volume_type" {
+variable "compute_cluster_boot_disk_type" {
   type        = string
   nullable    = true
   description = "EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1."
@@ -192,7 +192,7 @@ variable "storage_cluster_tiebreaker_instance_type" {
   description = "Instance type to use for the tie breaker instance (will be provisioned only in Multi-AZ configuration)."
 }
 
-variable "storage_cluster_root_volume_type" {
+variable "storage_cluster_boot_disk_type" {
   type        = string
   nullable    = true
   description = "EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1."

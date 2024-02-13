@@ -114,8 +114,8 @@ resource "aws_instance" "itself" {
 }
 
 data "aws_kms_key" "data_device_kms_key" {
-  for_each = var.disks
-  key_id   = each.value["kms_key"]
+  for_each = { for disk_key, disk_config in var.disks : disk_key => disk_config["kms_key"] if disk_config["kms_key"] != null }
+  key_id   = each.value
 }
 
 # Create the specified volumes with the corresponding types and size
@@ -127,7 +127,7 @@ resource "aws_ebs_volume" "itself" {
   iops              = each.value["iops"] == "" ? null : each.value["iops"]
   throughput        = each.value["throughput"] == "" ? null : each.value["throughput"]
   encrypted         = each.value["encrypted"]
-  kms_key_id        = each.value["encrypted"] == true ? data.aws_kms_key.data_device_kms_key[each.key].arn : null
+  kms_key_id        = each.value["encrypted"] ? data.aws_kms_key.data_device_kms_key[each.key].arn : null
   tags = merge(
     {
       "Name" = format("%s-%s", var.name_prefix, each.key)
