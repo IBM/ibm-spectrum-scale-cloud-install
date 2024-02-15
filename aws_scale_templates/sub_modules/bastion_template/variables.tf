@@ -51,3 +51,9 @@ variable "vpc_auto_scaling_group_subnets" {
   nullable    = false
   description = "List of subnet were the Auto Scalling Group will deploy the instances."
 }
+
+variable "desired_instance_count" {
+  type        = number
+  nullable    = false
+  description = "Bastion instance desired count."
+}
