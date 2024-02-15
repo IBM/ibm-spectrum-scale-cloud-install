@@ -139,9 +139,9 @@ module "bastion_autoscaling_group" {
   turn_on                    = true
   asg_name_prefix            = format("%s-%s", var.resource_prefix, "bastion-asg")
   asg_launch_template_id     = module.bastion_autoscaling_launch_template.asg_launch_template_id
-  asg_max_size               = 1
-  asg_min_size               = 1
-  asg_desired_size           = 1
+  asg_max_size               = var.desired_instance_count
+  asg_min_size               = var.desired_instance_count
+  asg_desired_size           = var.desired_instance_count
   auto_scaling_group_subnets = var.vpc_auto_scaling_group_subnets
   asg_suspend_processes      = ["AZRebalance"]
   asg_tags                   = tomap({ "key" = "Name", "value" = format("%s-%s", var.resource_prefix, "bastion-asg") })
