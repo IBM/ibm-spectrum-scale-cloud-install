@@ -94,7 +94,7 @@ resource "aws_instance" "itself" {
   ebs_optimized   = tobool(var.ebs_optimized)
 
   root_block_device {
-    encrypted             = var.root_device_encrypted == false ? null : true
+    encrypted             = var.root_device_encrypted ? true : null
     kms_key_id            = try(data.aws_kms_key.itself[0].key_id, null)
     volume_type           = var.root_volume_type
     delete_on_termination = true
@@ -127,7 +127,7 @@ resource "aws_ebs_volume" "itself" {
   iops              = each.value["iops"] == "" ? null : each.value["iops"]
   throughput        = each.value["throughput"] == "" ? null : each.value["throughput"]
   encrypted         = each.value["encrypted"]
-  kms_key_id        = each.value["encrypted"] ? data.aws_kms_key.data_device_kms_key[each.key].arn : null
+  kms_key_id        = each.value["encrypted"] ? try(data.aws_kms_key.data_device_kms_key[each.key].arn, null) : null
   tags = merge(
     {
       "Name" = format("%s-%s", var.name_prefix, each.key)

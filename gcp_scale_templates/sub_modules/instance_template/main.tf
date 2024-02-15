@@ -17,7 +17,7 @@ module "generate_storage_cluster_keys" {
 # Allow scale/gpfs traffic within the scale vm(s)
 module "allow_traffic_within_scale_vms" {
   source               = "../../../resources/gcp/security/security_group_tag"
-  turn_on              = (local.cluster_type == "compute" || local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on              = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   firewall_name_prefix = format("%s-cluster-tag", var.resource_prefix)
   firewall_description = "Allow traffic within scale instances"
   vpc_ref              = var.vpc_ref
@@ -55,7 +55,7 @@ module "cluster_ingress_security_rule_using_cloud_connection" {
 
 module "compute_dns_zone" {
   source      = "../../../resources/gcp/network/cloud_dns"
-  turn_on     = (local.cluster_type == "compute" && var.use_clouddns && var.create_clouddns) ? true : false
+  turn_on     = (var.cluster_type == "Compute-only" && var.use_clouddns && var.create_clouddns) ? true : false
   zone_name   = var.resource_prefix
   dns_name    = format("%s.", var.vpc_compute_cluster_dns_domain) # Trailing dot is required.
   vpc_network = var.vpc_ref
@@ -69,7 +69,7 @@ module "reverse_dns_zone" {
   # Prepare the reverse DNS zone name using first oclet of vpc.
   # Ex: vpc cidr = 10.0.0.0/24, then dns_name = 10.in-addr.arpa.
   # Trailing dot is required
-  dns_name    = format("%s.%s", try(split(".", cidrsubnet(local.cluster_type == "compute" ? var.vpc_compute_cluster_private_subnets_cidr_block : var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
+  dns_name    = format("%s.%s", try(split(".", cidrsubnet(var.cluster_type == "Compute-only" ? var.vpc_compute_cluster_private_subnets_cidr_block : var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
   vpc_network = var.vpc_ref
   description = "Reverse Private DNS Zone for IBM Storage Scale instances DNS communication."
 }
@@ -106,7 +106,7 @@ module "compute_cluster_instances" {
 
 module "storage_dns_zone" {
   source      = "../../../resources/gcp/network/cloud_dns"
-  turn_on     = (var.use_clouddns && var.create_clouddns && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
+  turn_on     = var.use_clouddns && var.create_clouddns && local.storage_or_combined ? true : false
   zone_name   = var.resource_prefix
   dns_name    = format("%s.", var.vpc_storage_cluster_dns_domain) # Trailing dot is required.
   vpc_network = var.vpc_ref
@@ -255,7 +255,7 @@ locals {
 
 # Write the compute cluster related inventory.
 resource "local_sensitive_file" "write_compute_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.cluster_type == "compute" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster && var.cluster_type == "Compute-only" ? 1 : 0
   filename = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "GCP"
@@ -285,7 +285,7 @@ resource "local_sensitive_file" "write_compute_cluster_inventory" {
 
 # Write the storage cluster related inventory.
 resource "local_sensitive_file" "write_storage_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.cluster_type == "storage" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && var.cluster_type == "Storage-only" ? 1 : 0
   filename = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "GCP"
@@ -314,7 +314,7 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
 
 # Write combined cluster related inventory.
 resource "local_sensitive_file" "write_combined_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && local.cluster_type == "combined" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && var.cluster_type == "Combined-compute-storage" ? 1 : 0
   filename = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "GCP"
@@ -344,7 +344,7 @@ resource "local_sensitive_file" "write_combined_inventory" {
 # Configure the compute cluster using ansible based on the create_scale_cluster input.
 module "compute_cluster_configuration" {
   source                          = "../../../resources/common/compute_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && (local.cluster_type == "compute" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && local.compute_or_combined && var.create_remote_mount_cluster ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
@@ -372,7 +372,7 @@ module "compute_cluster_configuration" {
 # Configure the storage cluster using ansible based on the create_scale_cluster input.
 module "storage_cluster_configuration" {
   source                          = "../../../resources/common/storage_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && (local.cluster_type == "storage" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && local.storage_or_combined && var.create_remote_mount_cluster ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
@@ -403,7 +403,7 @@ module "storage_cluster_configuration" {
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
 module "combined_cluster_configuration" {
   source                          = "../../../resources/common/scale_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && local.cluster_type == "combined" ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && var.cluster_type == "Combined-compute-storage" ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
@@ -429,7 +429,7 @@ module "combined_cluster_configuration" {
 # Configure the remote mount relationship between the created compute & storage cluster.
 module "remote_mount_configuration" {
   source                          = "../../../resources/common/remote_mount_configuration"
-  turn_on                         = (local.cluster_type == "combined" && var.create_remote_mount_cluster == true) ? true : false
+  turn_on                         = var.cluster_type == "Combined-compute-storage" && var.create_remote_mount_cluster ? true : false
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
   compute_inventory_path          = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
