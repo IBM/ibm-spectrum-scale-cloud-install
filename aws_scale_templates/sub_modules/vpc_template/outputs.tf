@@ -1,8 +1,3 @@
-output "cluster_type" {
-  value       = local.cluster_type
-  description = "Cluster type (Ex: storage, compute, combined)"
-}
-
 output "vpc_ref" {
   value       = module.vpc.vpc_id
   description = "The ID of the VPC."
@@ -14,22 +9,22 @@ output "vpc_public_subnets" {
 }
 
 output "vpc_storage_cluster_private_subnets" {
-  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? module.storage_private_subnet.subnet_id : null
+  value       = module.storage_private_subnet.subnet_id
   description = "List of IDs of storage cluster private subnets."
 }
 
 output "vpc_compute_cluster_private_subnets" {
-  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? module.compute_private_subnet.subnet_id : null
+  value       = module.compute_private_subnet.subnet_id
   description = "List of IDs of compute cluster private subnets."
 }
 
 output "vpc_storage_nat_gateways" {
-  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? module.storage_nat_gateway.nat_gw_id : null
+  value       = module.storage_nat_gateway.nat_gw_id
   description = "List of allocation ID of Elastic IPs created for AWS NAT Gateway."
 }
 
 output "vpc_compute_nat_gateways" {
-  value       = (local.cluster_type == "compute" || local.cluster_type == "combined") ? module.compute_nat_gateway.nat_gw_id : null
+  value       = module.compute_nat_gateway.nat_gw_id
   description = "List of allocation ID of Elastic IPs created for AWS NAT Gateway."
 }
 
