@@ -3,8 +3,8 @@ output "bastion_instance_public_ip" {
   description = "Bastion instance public ip address."
 }
 
-output "bastion_instance_id" {
-  value       = module.bastion_autoscaling_group[*].instance_ids
+output "bastion_instance_autoscaling_group_ref" {
+  value       = module.bastion_autoscaling_group[0].instance_ids[0]
   description = "Bastion instance id."
 }
 

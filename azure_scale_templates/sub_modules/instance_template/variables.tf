@@ -20,29 +20,31 @@ variable "subscription_id" {
 
 variable "vpc_ref" {
   type        = string
-  nullable    = true
-  default     = null
+  nullable    = false
   description = "VPC id were to deploy the bastion."
 }
 
 variable "vpc_region" {
   type        = string
+  nullable    = false
   description = "The location/region of the vnet to create. Examples are East US, West US, etc."
 }
 
 variable "vpc_availability_zones" {
   type        = list(string)
+  nullable    = false
   description = "A list of availability zones ids in the region/location."
 }
 
-variable "resource_group_name" {
+variable "resource_group_ref" {
   type        = string
+  nullable    = false
   description = "The name of a new resource group in which the resources will be created."
 }
 
 variable "resource_prefix" {
   type        = string
-  default     = "ibm-storage-scale"
+  nullable    = false
   description = "Prefix is added to all resources that are created."
 }
 
@@ -61,22 +63,29 @@ variable "create_separate_namespaces" {
 
 variable "total_compute_cluster_instances" {
   type        = number
-  default     = 3
+  nullable    = true
+  default     = null
   description = "Number of Azure instances (vms) to be launched for compute cluster."
 }
 
-variable "compute_cluster_ssh_public_key" {
+variable "compute_cluster_key_pair" {
   type        = string
-  description = "The SSH public key to use to launch the compute cluster host."
+  nullable    = true
+  default     = null
+  description = "The SSH public key pair to use to launch the compute cluster host."
 }
 
-variable "compute_cluster_dns_zone" {
+variable "vpc_compute_cluster_dns_domain" {
   type        = string
+  nullable    = true
+  default     = null
   description = "Compute cluster DNS zone."
 }
 
-variable "storage_cluster_dns_zone" {
+variable "vpc_storage_cluster_dns_domain" {
   type        = string
+  nullable    = true
+  default     = null
   description = "Storage cluster DNS zone."
 }
 
@@ -86,9 +95,9 @@ variable "total_storage_cluster_instances" {
   description = "Number of Azure instances (vms) to be launched for storage cluster."
 }
 
-variable "storage_cluster_ssh_public_key" {
+variable "storage_cluster_key_pair" {
   type        = string
-  description = "The SSH public key to use to launch the storage cluster host."
+  description = "The SSH public key pair to use to launch the storage cluster host."
 }
 
 variable "vpc_compute_cluster_private_subnets" {
@@ -159,7 +168,7 @@ variable "storage_cluster_os_disk_caching" {
   description = "Specifies the caching requirements for the OS Disk (Ex: None, ReadOnly and ReadWrite)."
 }
 
-variable "storage_boot_disk_type" {
+variable "storage_cluster_boot_disk_type" {
   type        = string
   nullable    = true
   default     = null
@@ -172,17 +181,19 @@ variable "storage_cluster_login_username" {
   description = "The username of the local administrator used for the Virtual Machine."
 }
 
+/*
 variable "block_devices_per_storage_instance" {
   type        = number
-  default     = 1
+  nullable    = false
   description = "Additional Data disks to attach per storage cluster instance."
 }
 
 variable "block_device_volume_size" {
   type        = number
-  default     = 500
+  nullable    = false
   description = "Size of the volume in gibibytes (GB)."
 }
+*/
 
 variable "block_device_volume_type" {
   type        = string
@@ -198,19 +209,24 @@ variable "scale_ansible_repo_clone_path" {
 
 variable "spectrumscale_rpms_path" {
   type        = string
-  default     = "/opt/IBM/gpfs_cloud_rpms"
+  nullable    = true
+  default     = null
   description = "Path that contains IBM Spectrum Scale product cloud rpms."
 }
 
 variable "compute_cluster_gui_username" {
   type        = string
   sensitive   = true
+  nullable    = true
+  default     = null
   description = "GUI user to perform system management and monitoring tasks on compute cluster."
 }
 
 variable "compute_cluster_gui_password" {
   type        = string
   sensitive   = true
+  nullable    = true
+  default     = null
   description = "Password for Compute cluster GUI."
 }
 
@@ -370,4 +386,26 @@ variable "bastion_asg_id" {
   nullable    = true
   default     = null
   description = "Azure Bastion Asg id."
+}
+
+variable "filesystem_parameters" {
+  type = list(object({
+    name                         = string
+    filesystem_config_file       = string
+    filesystem_encrypted         = bool
+    filesystem_kms_key_ref       = string
+    filesystem_kms_key_ring_ref  = string
+    device_delete_on_termination = bool
+    disk_config = list(object({
+      filesystem_pool                    = string
+      block_devices_per_storage_instance = number
+      block_device_volume_type           = string
+      block_device_volume_size           = string
+      block_device_iops                  = string
+      block_device_throughput            = string
+    }))
+  }))
+  default     = null
+  nullable    = true
+  description = "Filesystem parameters in relationship with disk parameters."
 }

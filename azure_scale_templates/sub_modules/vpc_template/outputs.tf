@@ -1,4 +1,4 @@
-output "vpc_id" {
+output "vpc_ref" {
   value       = module.vnet.vnet_id
   description = "The ID of the vpc."
 }

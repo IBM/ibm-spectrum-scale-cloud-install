@@ -15,7 +15,7 @@ variable "data_disks_per_storage_instance" {}
 variable "data_disk_device_names" {}
 variable "data_disk_size" {}
 variable "data_disk_storage_account_type" {}
-variable "user_public_key" {}
+variable "user_key_pair" {}
 variable "meta_private_key" {}
 variable "meta_public_key" {}
 variable "dns_zone" {}
@@ -34,6 +34,12 @@ echo "StrictHostKeyChecking no" >> ~/.ssh/config
 echo "DOMAIN=\"${var.dns_zone}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 systemctl restart NetworkManager
 EOF
+}
+
+# Gets Azure ssh keypair data
+data "azurerm_ssh_public_key" "itself" {
+  name                = var.user_key_pair
+  resource_group_name = var.resource_group_name
 }
 
 data "template_cloudinit_config" "user_data64" {
@@ -57,6 +63,16 @@ resource "azurerm_network_interface" "itself" {
   }
 }
 
+resource "azurerm_private_dns_a_record" "itself" {
+  name                = var.vm_name
+  zone_name           = var.dns_zone
+  resource_group_name = var.resource_group_name
+  ttl                 = 300
+  records             = azurerm_network_interface.itself.private_ip_addresses
+
+  depends_on = [azurerm_network_interface.itself]
+}
+
 resource "azurerm_network_interface_application_security_group_association" "associate_asg" {
   network_interface_id          = azurerm_network_interface.itself.id
   application_security_group_id = var.application_security_group_id
@@ -74,7 +90,7 @@ resource "azurerm_linux_virtual_machine" "itself" {
 
   admin_ssh_key {
     username   = var.login_username
-    public_key = file(var.user_public_key)
+    public_key = replace(data.azurerm_ssh_public_key.itself.public_key, "\r\n", "")
   }
 
   os_disk {
@@ -130,6 +146,6 @@ output "instance_ips_with_data_mapping" {
   value = { (azurerm_linux_virtual_machine.itself.private_ip_address) = slice(var.data_disk_device_names, 0, var.data_disks_per_storage_instance) }
 }
 
-output "instance_dns_name" {
+output "instance_private_dns_name" {
   value = "${azurerm_network_interface.itself.name}.${azurerm_network_interface.itself.internal_domain_name_suffix}"
 }
