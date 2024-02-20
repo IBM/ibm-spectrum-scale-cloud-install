@@ -46,13 +46,13 @@ variable "cluster_type" {
   description = "Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage."
 }
 
-variable "compute_boot_disk_size" {
+variable "compute_cluster_boot_disk_size" {
   type        = string
   nullable    = true
   description = "Compute instances boot disk size in gigabytes."
 }
 
-variable "compute_boot_disk_type" {
+variable "compute_cluster_boot_disk_type" {
   type        = string
   nullable    = true
   description = "GCE disk type (valid: pd-standard, pd-ssd)."
@@ -222,13 +222,13 @@ variable "spectrumscale_rpms_path" {
   description = "Path that contains IBM Spectrum Scale product cloud rpms."
 }
 
-variable "storage_boot_disk_size" {
+variable "storage_cluster_boot_disk_size" {
   type        = number
   nullable    = true
   description = "Storage instances boot disk size in gigabytes."
 }
 
-variable "storage_boot_disk_type" {
+variable "storage_cluster_boot_disk_type" {
   type        = string
   nullable    = true
   description = "GCE disk type (valid: pd-standard, pd-ssd)."

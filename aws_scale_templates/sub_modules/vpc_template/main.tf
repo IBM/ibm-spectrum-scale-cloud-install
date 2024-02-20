@@ -15,13 +15,6 @@
     - Public subnets are also enabled with vpc s3 endpoint.
 */
 
-locals {
-  cluster_type = (
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks == null) ? "storage" :
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks == null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "compute" :
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "combined" : "none"
-  )
-}
 module "vpc" {
   source      = "../../../resources/aws/network/vpc"
   turn_on     = true
@@ -85,21 +78,21 @@ module "public_route_table_association" {
 module "storage_eip" {
   source     = "../../../resources/aws/network/eip"
   turn_on    = var.vpc_public_subnets_cidr_blocks != null ? true : false
-  total_eips = (local.cluster_type == "storage" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
+  total_eips = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? length(var.vpc_availability_zones) : 0
 }
 
 # One compute EIP per provided AZ.
 module "compute_eip" {
   source     = "../../../resources/aws/network/eip"
   turn_on    = var.vpc_public_subnets_cidr_blocks != null ? true : false
-  total_eips = (local.cluster_type == "compute" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
+  total_eips = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? length(var.vpc_availability_zones) : 0
 }
 
 # Storage public subnet id registred to NAT gateway.
 module "storage_nat_gateway" {
   source           = "../../../resources/aws/network/nat_gw"
   turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false
-  total_nat_gws    = (local.cluster_type == "storage" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
+  total_nat_gws    = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? length(var.vpc_availability_zones) : 0
   eip_id           = module.storage_eip.eip_id
   target_subnet_id = module.public_subnet.subnet_id
   vpc_name         = format("%s-strg-nat", var.resource_prefix)
@@ -110,7 +103,7 @@ module "storage_nat_gateway" {
 module "compute_nat_gateway" {
   source           = "../../../resources/aws/network/nat_gw"
   turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false
-  total_nat_gws    = (local.cluster_type == "compute" || local.cluster_type == "combined") ? length(var.vpc_availability_zones) : 0
+  total_nat_gws    = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? length(var.vpc_availability_zones) : 0
   eip_id           = module.compute_eip.eip_id
   target_subnet_id = module.public_subnet.subnet_id
   vpc_name         = format("%s-cmp-nat", var.resource_prefix)
@@ -149,7 +142,7 @@ module "vpc_private_endpoint" {
 # One storage private subnet per provided AZ.
 module "storage_private_subnet" {
   source       = "../../../resources/aws/network/subnet"
-  turn_on      = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on      = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   vpc_id       = module.vpc.vpc_id
   subnets_cidr = var.vpc_storage_cluster_private_subnets_cidr_blocks
   avail_zones  = var.vpc_availability_zones
@@ -160,7 +153,7 @@ module "storage_private_subnet" {
 # One compute private subnet per provided AZ.
 module "compute_private_subnet" {
   source       = "../../../resources/aws/network/subnet"
-  turn_on      = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on      = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   vpc_id       = module.vpc.vpc_id
   subnets_cidr = var.vpc_compute_cluster_private_subnets_cidr_blocks
   avail_zones  = var.vpc_availability_zones
@@ -171,7 +164,7 @@ module "compute_private_subnet" {
 # Storage private route tables equal to number of provided AZ's.
 module "storage_private_route_table" {
   source   = "../../../resources/aws/network/route_table"
-  turn_on  = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on  = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   total_rt = length(var.vpc_availability_zones)
   vpc_id   = module.vpc.vpc_id
   vpc_name = format("%s-strg-pvt", var.resource_prefix)
@@ -181,7 +174,7 @@ module "storage_private_route_table" {
 # Compute private route tables equal to number of provided AZ's.
 module "compute_private_route_table" {
   source   = "../../../resources/aws/network/route_table"
-  turn_on  = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on  = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   total_rt = length(var.vpc_availability_zones)
   vpc_id   = module.vpc.vpc_id
   vpc_name = format("%s-comp-pvt", var.resource_prefix)
@@ -192,7 +185,7 @@ module "compute_private_route_table" {
 # This is not required in a private only mode
 module "storage_private_route" {
   source          = "../../../resources/aws/network/route"
-  turn_on         = ((var.vpc_public_subnets_cidr_blocks != null) && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
+  turn_on         = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
   total_routes    = length(var.vpc_availability_zones)
   route_table_id  = module.storage_private_route_table.table_id
   dest_cidr_block = "0.0.0.0/0"
@@ -204,7 +197,7 @@ module "storage_private_route" {
 # This is not required in a private only mode
 module "compute_private_route" {
   source          = "../../../resources/aws/network/route"
-  turn_on         = ((var.vpc_public_subnets_cidr_blocks != null) && (local.cluster_type == "compute" || local.cluster_type == "combined")) ? true : false
+  turn_on         = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
   total_routes    = length(var.vpc_availability_zones)
   route_table_id  = module.compute_private_route_table.table_id
   dest_cidr_block = "0.0.0.0/0"
@@ -215,7 +208,7 @@ module "compute_private_route" {
 # s3 vpc end point association with all storage cluster private route tables.
 module "vpc_endpoint_storage_private_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
-  turn_on                 = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on                 = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   total_vpce_associations = length(var.vpc_availability_zones)
   route_table_id          = try(module.storage_private_route_table.table_id, null)
   vpce_id                 = try(module.vpc_private_endpoint.vpce_id, null)
@@ -224,7 +217,7 @@ module "vpc_endpoint_storage_private_association" {
 # s3 vpc end point association with all compute private route tables.
 module "vpc_endpoint_compute_private_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
-  turn_on                 = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on                 = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   total_vpce_associations = length(var.vpc_availability_zones)
   route_table_id          = module.compute_private_route_table.table_id
   vpce_id                 = module.vpc_private_endpoint.vpce_id
@@ -233,7 +226,7 @@ module "vpc_endpoint_compute_private_association" {
 # Associate each storage private subnet to one private route table.
 module "storage_private_route_table_association" {
   source             = "../../../resources/aws/network/route_table_association"
-  turn_on            = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on            = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   total_associations = length(var.vpc_availability_zones)
   subnet_id          = module.storage_private_subnet.subnet_id
   route_table_id     = module.storage_private_route_table.table_id
@@ -242,7 +235,7 @@ module "storage_private_route_table_association" {
 # Associate each compute private subnet to one private route table.
 module "compute_private_route_table_association" {
   source             = "../../../resources/aws/network/route_table_association"
-  turn_on            = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on            = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   total_associations = length(var.vpc_availability_zones)
   subnet_id          = module.compute_private_subnet.subnet_id
   route_table_id     = module.compute_private_route_table.table_id

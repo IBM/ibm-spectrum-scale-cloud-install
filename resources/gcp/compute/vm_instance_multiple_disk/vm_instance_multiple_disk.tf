@@ -37,7 +37,7 @@ data "google_kms_key_ring" "itself" {
 }
 
 data "google_kms_crypto_key" "itself" {
-  count    = var.root_device_kms_key_ref != null ? 1 : 0
+  count    = var.root_device_kms_key_ref != null && var.root_device_kms_key_ring_ref != null ? 1 : 0
   name     = var.root_device_kms_key_ref
   key_ring = data.google_kms_key_ring.itself[0].id
 }
@@ -128,6 +128,18 @@ resource "google_dns_record_set" "ptr_itself" {
   rrdatas      = [format("%s.%s.", google_compute_instance.itself.name, var.vpc_dns_domain)] # Trailing dot is required
 }
 
+data "google_kms_key_ring" "data_device_key_ring" {
+  for_each = { for disk_key, disk_config in var.disk : disk_key => disk_config["kms_key_ring"] if disk_config["kms_key"] != null }
+  name     = each.value
+  location = var.vpc_region
+}
+data "google_kms_crypto_key" "data_device_kms_key" {
+  for_each = { for disk_key, disk_config in var.disk : disk_key => disk_config["kms_key"] if disk_config["kms_key_ring"] != null }
+  name     = each.value
+  key_ring = data.google_kms_key_ring.data_device_key_ring[each.key].id
+}
+
+
 #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
 resource "google_compute_disk" "itself" {
   for_each                  = var.disk
@@ -138,9 +150,9 @@ resource "google_compute_disk" "itself" {
   type                      = each.value["type"]
   size                      = each.value["size"]
   dynamic "disk_encryption_key" {
-    for_each = length(data.google_kms_crypto_key.itself) > 0 ? [1] : []
+    for_each = each.value["kms_key"] != null ? [1] : []
     content {
-      kms_key_self_link = data.google_kms_crypto_key.itself[0].id
+      kms_key_self_link = data.google_kms_crypto_key.data_device_kms_key[each.key].self_link
     }
   }
 }
