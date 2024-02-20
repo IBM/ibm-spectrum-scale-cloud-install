@@ -8,14 +8,6 @@
     5.  Cloud NAT
 */
 
-locals {
-  cluster_type = (
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks == null) ? "storage" :
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks == null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "compute" :
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "combined" : "none"
-  )
-}
-
 module "vpc" {
   source           = "../../../resources/gcp/vpc"
   turn_on          = var.vpc_cidr_block != null ? true : false
@@ -36,7 +28,7 @@ module "public_subnet" {
 
 module "compute_private_subnet" {
   source                = "../../../resources/gcp/network/subnet"
-  turn_on               = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on               = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   vpc_name              = module.vpc.vpc_self_link
   subnet_name_prefix    = format("%s-%s", var.resource_prefix, "comp-pvt")
   subnet_description    = format("This private compute subnet belongs to %s", var.resource_prefix)
@@ -46,7 +38,7 @@ module "compute_private_subnet" {
 
 module "storage_private_subnet" {
   source                = "../../../resources/gcp/network/subnet"
-  turn_on               = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on               = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   vpc_name              = module.vpc.vpc_self_link
   subnet_name_prefix    = format("%s-%s", var.resource_prefix, "strg-pvt")
   subnet_description    = format("This private storage subnet belongs to %s", var.resource_prefix)
@@ -63,7 +55,7 @@ module "router" {
 
 module "compute_cloud_nat" {
   source            = "../../../resources/gcp/network/cloud_nat"
-  turn_on           = ((var.vpc_public_subnets_cidr_blocks != null) && (local.cluster_type == "compute" || local.cluster_type == "combined")) ? true : false
+  turn_on           = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
   nat_name          = format("%s-comp-pvt-%s", var.resource_prefix, "nat")
   router_name       = module.router.router_name
   private_subnet_id = module.compute_private_subnet.subnet_id
@@ -71,7 +63,7 @@ module "compute_cloud_nat" {
 
 module "storage_cloud_nat" {
   source            = "../../../resources/gcp/network/cloud_nat"
-  turn_on           = ((var.vpc_public_subnets_cidr_blocks != null) && (local.cluster_type == "storage" || local.cluster_type == "combined")) ? true : false
+  turn_on           = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
   nat_name          = format("%s-strg-pvt-%s", var.resource_prefix, "nat")
   router_name       = module.router.router_name
   private_subnet_id = module.storage_private_subnet.subnet_id
