@@ -182,8 +182,8 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
 | <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
-| <a name="input_compute_boot_disk_size"></a> [compute_boot_disk_size](#input_compute_boot_disk_size) | Compute instances boot disk size in gigabytes. | `string` |
-| <a name="input_compute_boot_disk_type"></a> [compute_boot_disk_type](#input_compute_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
+| <a name="input_compute_cluster_boot_disk_size"></a> [compute_cluster_boot_disk_size](#input_compute_cluster_boot_disk_size) | Compute instances boot disk size in gigabytes. | `string` |
+| <a name="input_compute_cluster_boot_disk_type"></a> [compute_cluster_boot_disk_type](#input_compute_cluster_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for Compute cluster GUI. | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
@@ -209,8 +209,8 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_scratch_devices_per_storage_instance"></a> [scratch_devices_per_storage_instance](#input_scratch_devices_per_storage_instance) | Number of scratch disks to be attached to each storage instance. | `number` |
 | <a name="input_service_email"></a> [service_email](#input_service_email) | GCP service account e-mail address. | `string` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
-| <a name="input_storage_boot_disk_size"></a> [storage_boot_disk_size](#input_storage_boot_disk_size) | Storage instances boot disk size in gigabytes. | `number` |
-| <a name="input_storage_boot_disk_type"></a> [storage_boot_disk_type](#input_storage_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
+| <a name="input_storage_cluster_boot_disk_size"></a> [storage_cluster_boot_disk_size](#input_storage_cluster_boot_disk_size) | Storage instances boot disk size in gigabytes. | `number` |
+| <a name="input_storage_cluster_boot_disk_type"></a> [storage_cluster_boot_disk_type](#input_storage_cluster_boot_disk_type) | GCE disk type (valid: pd-standard, pd-ssd). | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_image_ref"></a> [storage_cluster_image_ref](#input_storage_cluster_image_ref) | Image from which to initialize Spectrum Scale storage instances. | `string` |

@@ -11,7 +11,7 @@ build {
       "sudo unzip awscliv2.zip",
       "sudo ./aws/install",
       "sudo rm -rf awscliv2.zip",
-      "curl -sS http://\"${var.package_repository}\".s3-website.\"${var.vpc_region}\".amazonaws.com/\"${var.scale_version}\"/Public_Keys/                        Storage_Scale_public_key.pgp | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/scale.gpg",
+      "curl -sS http://\"${var.package_repository}\".s3-website.\"${var.vpc_region}\".amazonaws.com/\"${var.scale_version}\"/Public_Keys/Storage_Scale_public_key.pgp | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/scale.gpg",
       "sudo ua detach --assume-yes",
       "sudo rm -rf /var/log/ubuntu-advantage.log",
       "sudo cloud-init clean --machine-id",

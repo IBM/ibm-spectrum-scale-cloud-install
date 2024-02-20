@@ -84,8 +84,8 @@ module "compute_cluster_instances" {
   vpc_region                   = var.vpc_region
   is_multizone                 = length(var.vpc_availability_zones) > 1 ? true : false
   machine_type                 = var.compute_cluster_instance_type
-  boot_disk_size               = var.compute_boot_disk_size
-  boot_disk_type               = var.compute_boot_disk_type
+  boot_disk_size               = var.compute_cluster_boot_disk_size
+  boot_disk_type               = var.compute_cluster_boot_disk_type
   boot_image                   = var.compute_cluster_image_ref
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref # Root volume custom encryption
   root_device_kms_key_ref      = var.root_device_kms_key_ref      # Root volume custom encryption
@@ -131,8 +131,8 @@ module "storage_cluster_instances" {
   data_disk_description        = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
   private_key_content          = module.generate_storage_cluster_keys.private_key_content
   public_key_content           = module.generate_storage_cluster_keys.public_key_content
-  boot_disk_size               = var.storage_boot_disk_size
-  boot_disk_type               = var.storage_boot_disk_type
+  boot_disk_size               = var.storage_cluster_boot_disk_size
+  boot_disk_type               = var.storage_cluster_boot_disk_type
   boot_image                   = var.storage_cluster_image_ref
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref
   root_device_kms_key_ref      = var.root_device_kms_key_ref
@@ -165,8 +165,8 @@ module "storage_cluster_tie_breaker_instance" {
   data_disk_description        = format("This data disk is created by IBM Storage Scale and is used by %s.", var.resource_prefix)
   private_key_content          = module.generate_storage_cluster_keys.private_key_content
   public_key_content           = module.generate_storage_cluster_keys.public_key_content
-  boot_disk_size               = var.storage_boot_disk_size
-  boot_disk_type               = var.storage_boot_disk_type
+  boot_disk_size               = var.storage_cluster_boot_disk_size
+  boot_disk_type               = var.storage_cluster_boot_disk_type
   boot_image                   = var.storage_cluster_image_ref
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref
   root_device_kms_key_ref      = var.root_device_kms_key_ref
@@ -190,8 +190,8 @@ module "gateway_instances" {
   vpc_region                   = var.vpc_region
   is_multizone                 = length(var.vpc_availability_zones) > 1 ? true : false
   machine_type                 = var.gateway_instance_type
-  boot_disk_size               = var.storage_boot_disk_size
-  boot_disk_type               = var.storage_boot_disk_type
+  boot_disk_size               = var.storage_cluster_boot_disk_size
+  boot_disk_type               = var.storage_cluster_boot_disk_type
   boot_image                   = var.storage_cluster_image_ref
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref # Root volume custom encryption
   root_device_kms_key_ref      = var.root_device_kms_key_ref      # Root volume custom encryption
@@ -219,8 +219,8 @@ module "protocol_instances" {
   vpc_region                   = var.vpc_region
   is_multizone                 = length(var.vpc_availability_zones) > 1 ? true : false
   machine_type                 = var.protocol_instance_type
-  boot_disk_size               = var.storage_boot_disk_size
-  boot_disk_type               = var.storage_boot_disk_type
+  boot_disk_size               = var.storage_cluster_boot_disk_size
+  boot_disk_type               = var.storage_cluster_boot_disk_type
   boot_image                   = var.storage_cluster_image_ref
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref
   root_device_kms_key_ref      = var.root_device_kms_key_ref
