@@ -90,6 +90,7 @@ locals {
   compute_vm_subnet_map = {
     for idx, vm_name in resource.null_resource.generate_compute_vm_name[*].triggers.vm_name :
     vm_name => {
+      zone   = element(var.vpc_availability_zones, idx)
       subnet = element(var.vpc_compute_cluster_private_subnets, idx)
     }
   }
@@ -144,7 +145,7 @@ locals {
     Ex:
         storage_vm_zone_map = {
           subnet = "test-subnet-1"
-          zone   = "us-east-1a"
+          zone   = "us-central1c"
           "vm-storage-1" = {
             "disks" = {
                 "fs1-gold-1" = {
@@ -152,7 +153,7 @@ locals {
                     encrypted   = false
                     size        = "500"
                     termination = true
-                    type        = "gp2"
+                    type        = "pd-balanced"
                 }
                 "fs1-system-1" = {
                     device_name = "/dev/xvdi"
@@ -160,7 +161,7 @@ locals {
                     kms_key     = null
                     size        = "500"
                     termination = true
-                    type        = "gp2"
+                    type        = "pd-balanced"
                 }
                 "fs1-system-2" = {
                   device_name = "/dev/xvdi"
@@ -168,7 +169,7 @@ locals {
                   kms_key     = null
                   size        = "500"
                   termination = true
-                  type        = "gp2"
+                  type        = "pd-balanced"
                 }
                 "fs2-system-1" = {
                   device_name = "/dev/xvdi"
@@ -176,7 +177,7 @@ locals {
                   kms_key     = null
                   size        = "500"
                   termination = true
-                  type        = "gp2"
+                  type        = "pd-balanced"
                 }
             }
         }
@@ -227,7 +228,7 @@ locals {
           kms_key      = fs_config.filesystem_kms_key_ref
           termination  = fs_config.device_delete_on_termination
           size         = "5"
-          type         = "gp2"
+          type         = "pd-balanced"
         }
       ]
     ]
@@ -285,7 +286,7 @@ locals {
     Ex:
         storage_vm_zone_map = {
             "vm-tie" = {
-                "zone"  = "us-east-2a"
+                "zone"  = "us-central1c"
                 "disks" = {
                     "fs1-tie": {
                         device_name = "/dev/xvdf"
@@ -297,7 +298,7 @@ locals {
                         size        = "5"
                         termination = true
                         throughput  = null
-                        type        = "gp2"
+                        type        = "pd-balanced"
                     },
                     "fs2-tie": {
                         device_name = "/dev/xvdg"
@@ -309,10 +310,10 @@ locals {
                         size        = "5"
                         termination = true
                         throughput  = null
-                        type        = "gp2"
+                        type        = "pd-balanced"
                     }
                     "subnet" = "test-private-subnet-1"
-                    "zone" = "us-east-1c"
+                    "zone" = "us-central1c"
                     }
                 }
             }
