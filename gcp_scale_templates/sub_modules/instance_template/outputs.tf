@@ -34,12 +34,12 @@ output "storage_cluster_desc_instance_ids" {
 }
 
 output "storage_cluster_desc_instance_private_ips" {
-  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ip]
+  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
   description = "Private IP address of storage cluster desc instance."
 }
 
 output "storage_cluster_desc_with_dns_hostname" {
-  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_dns_name]
+  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_dns_name]
   description = "Storage cluster desc dns hostname mapping."
 }
 
