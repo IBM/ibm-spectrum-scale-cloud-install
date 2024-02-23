@@ -106,6 +106,18 @@ variable "vpc_compute_cluster_private_subnets" {
   default     = null
 }
 
+variable "vpc_compute_cluster_public_subnet" {
+  type        = list(string)
+  description = "List of IDs of compute cluster public subnets."
+  default     = null
+}
+
+variable "vpc_storage_cluster_public_subnet" {
+  type        = list(string)
+  description = "List of IDs of storage cluster public subnets."
+  default     = null
+}
+
 variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)
   description = "List of IDs of storage cluster private subnets."

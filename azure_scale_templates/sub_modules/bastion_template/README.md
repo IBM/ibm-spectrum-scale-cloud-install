@@ -86,8 +86,9 @@ Below steps will provision Bastion host required for IBM Storage Scale cloud sol
 
 | Name | Description |
 |------|-------------|
-| <a name="output_bastion_instance_id"></a> [bastion_instance_id](#output_bastion_instance_id) | Bastion instance id. |
+| <a name="output_bastion_instance_autoscaling_group_ref"></a> [bastion_instance_autoscaling_group_ref](#output_bastion_instance_autoscaling_group_ref) | Bastion instance id. |
 | <a name="output_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#output_bastion_instance_public_ip) | Bastion instance public ip address. |
+| <a name="output_bastion_security_group_ref"></a> [bastion_security_group_ref](#output_bastion_security_group_ref) | Bastion network security group name. |
 | <a name="output_bastion_service_instance_dns_name"></a> [bastion_service_instance_dns_name](#output_bastion_service_instance_dns_name) | Bastion instance dns name. |
 | <a name="output_bastion_service_instance_id"></a> [bastion_service_instance_id](#output_bastion_service_instance_id) | Bastion service instance id. |
 <!-- END_TF_DOCS -->

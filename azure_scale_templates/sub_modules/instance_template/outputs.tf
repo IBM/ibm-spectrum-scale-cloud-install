@@ -52,3 +52,13 @@ output "bastion_scale_cluster_nsg_id" {
   value       = module.bastion_scale_cluster_nsg.sec_group_id
   description = "Scale cluster bastion Asg id."
 }
+
+output "storage_cluster_security_group_id" {
+  value       = module.scale_cluster_nsg.sec_group_id
+  description = "Storage cluster security group id."
+}
+
+output "compute_cluster_security_group_id" {
+  value       = module.scale_cluster_nsg.sec_group_id
+  description = "Compute cluster security group id."
+}

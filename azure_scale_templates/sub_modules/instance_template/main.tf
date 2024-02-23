@@ -10,18 +10,18 @@
 
 module "generate_compute_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = (local.cluster_type == "compute" || local.cluster_type == "combined") ? true : false
+  turn_on = local.compute_or_combined ? true : false
 }
 
 module "generate_storage_cluster_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = (local.cluster_type == "storage" || local.cluster_type == "combined") ? true : false
+  turn_on = local.storage_or_combined ? true : false
 }
 
 # Create scale cluster ASG
 module "scale_cluster_asg" {
   source              = "../../../resources/azure/security/network_application_security_group"
-  resource_prefix     = "${var.resource_prefix}-scalecluster"
+  resource_prefix     = "${var.resource_prefix}-scale-cluster"
   location            = var.vpc_region
   resource_group_name = var.resource_group_ref
 }
@@ -34,7 +34,7 @@ module "scale_cluster_nsg" {
   resource_group_name = var.resource_group_ref
 }
 
-# Add tcp inbound security rule
+# Allow scale/gpfs tcp traffic the scale vm(s)
 module "scale_cluster_tcp_inbound_security_rule" {
   source                                     = "../../../resources/azure/security/network_security_group_asg_rule"
   total_rules                                = length(local.tcp_port_scale_cluster)
@@ -51,7 +51,7 @@ module "scale_cluster_tcp_inbound_security_rule" {
   resource_group_name                        = var.resource_group_ref
 }
 
-# Add udp inbound security rule
+# Allow scale/gpfs udp traffic the scale vm(s)
 module "scale_cluster_udp_inbound_security_rule" {
   source                                     = "../../../resources/azure/security/network_security_group_asg_rule"
   total_rules                                = length(local.udp_port_scale_cluster)
@@ -76,40 +76,51 @@ module "bastion_scale_cluster_nsg" {
   resource_group_name = var.resource_group_ref
 }
 
-# Add tcp inbound security rule to allow bastion to scale communication
+locals {
+  bastion_public_subnet = var.vpc_storage_cluster_public_subnet[0] != null ? var.vpc_storage_cluster_public_subnet[0] : (var.vpc_compute_cluster_public_subnet[0] != null ? var.vpc_compute_cluster_public_subnet[0] : null)
+}
+
+
+# Get bastion subnet cidr
+data "azurerm_subnet" "bastion" {
+  name                 = basename(local.bastion_public_subnet)
+  virtual_network_name = basename(var.vpc_ref)
+  resource_group_name  = var.resource_group_ref
+}
+
+# Allow bastion to scale cluster
 module "bastion_scale_cluster_tcp_inbound_security_rule" {
-  source                                     = "../../../resources/azure/security/network_security_group_asg_rule"
-  total_rules                                = length(local.tcp_port_bastion_scale_cluster)
-  rule_names_prefix                          = "${var.resource_prefix}-bastion"
-  direction                                  = ["Inbound"]
-  access                                     = ["Allow"]
-  protocol                                   = [for i in range(length(local.tcp_port_bastion_scale_cluster)) : "Tcp"]
-  source_port_range                          = local.tcp_port_bastion_scale_cluster
-  destination_port_range                     = local.tcp_port_bastion_scale_cluster
-  priority                                   = [for i in range(length(local.tcp_port_bastion_scale_cluster)) : "${i + 100}"]
-  source_application_security_group_ids      = [module.scale_cluster_asg.asg_id]
-  destination_application_security_group_ids = [module.scale_cluster_asg.asg_id] #TODO  [var.bastion_asg_id]
-  network_security_group_name                = module.bastion_scale_cluster_nsg.sec_group_name
-  resource_group_name                        = var.resource_group_ref
+  source                                = "../../../resources/azure/security/network_security_group_asg_with_address_rule"
+  rule_names_prefix                     = "${var.resource_prefix}-bastion"
+  direction                             = ["Inbound"]
+  access                                = ["Allow"]
+  protocol                              = [for i in range(length(local.tcp_port_bastion_scale_cluster)) : "Tcp"]
+  source_port_range                     = local.tcp_port_bastion_scale_cluster
+  destination_port_range                = local.tcp_port_bastion_scale_cluster
+  priority                              = [for i in range(length(local.tcp_port_bastion_scale_cluster)) : "${i + 110}"]
+  source_application_security_group_ids = [module.scale_cluster_asg.asg_id]
+  destination_address_prefix            = data.azurerm_subnet.bastion.address_prefix
+  network_security_group_name           = module.scale_cluster_nsg.sec_group_name
+  resource_group_name                   = var.resource_group_ref
 }
 
 module "storage_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
-  turn_on             = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
+  turn_on             = local.storage_or_combined == true ? true : false
   dns_domain_name     = format("%s.%s", var.vpc_region, var.vpc_storage_cluster_dns_domain)
   resource_group_name = var.resource_group_ref
 }
 
 module "compute_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
-  turn_on             = (local.cluster_type == "compute" || local.cluster_type == "combined") == true ? true : false
-  dns_domain_name     = format("%s.%s", var.vpc_region, var.vpc_compute_cluster_dns_domain) #todo(var.vpc_compute_cluster_dns_domain,
+  turn_on             = false #local.compute_or_combined == true ? true : false
+  dns_domain_name     = format("%s.%s", var.vpc_region, var.vpc_compute_cluster_dns_domain)
   resource_group_name = var.resource_group_ref
 }
 
 module "link_storage_dns_zone_vpc" {
   source                = "../../../resources/azure/network/private_dns_zone_vpc_link"
-  turn_on               = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
+  turn_on               = local.storage_or_combined == true ? true : false
   private_dns_zone_name = module.storage_private_dns_zone.private_dns_zone_name
   resource_group_name   = var.resource_group_ref
   vnet_id               = var.vpc_ref
@@ -118,7 +129,7 @@ module "link_storage_dns_zone_vpc" {
 
 module "link_compute_dns_zone_vpc" {
   source                = "../../../resources/azure/network/private_dns_zone_vpc_link"
-  turn_on               = (local.cluster_type == "compute" || local.cluster_type == "combined") == true ? true : false
+  turn_on               = local.compute_or_combined == true ? true : false
   private_dns_zone_name = module.compute_private_dns_zone.private_dns_zone_name
   resource_group_name   = var.resource_group_ref
   vnet_id               = var.vpc_ref
@@ -139,7 +150,7 @@ resource "time_sleep" "wait_30_seconds" {
 }
 
 module "associate_compute_nsg_wth_subnet" {
-  count                     = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) : 0
+  count                     = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) - 1 : 0 #fix me length is show wrong hence creating two times
   source                    = "../../../resources/azure/security/network_security_group_association"
   subnet_id                 = var.vpc_compute_cluster_private_subnets[count.index]
   network_security_group_id = module.scale_cluster_nsg.sec_group_id
@@ -165,6 +176,7 @@ module "compute_cluster_instances" {
   dns_zone                      = module.compute_private_dns_zone.private_dns_zone_name
   availability_zone             = each.value["zone"]
   application_security_group_id = module.scale_cluster_asg.asg_id
+  depends_on                    = [module.compute_private_dns_zone]
 }
 
 module "associate_storage_nsg_wth_subnet" {
@@ -197,7 +209,9 @@ module "storage_cluster_instances" {
   meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
   dns_zone                        = module.storage_private_dns_zone.private_dns_zone_name
   availability_zone               = each.value["zone"]
+  disks                           = each.value["disks"]
   application_security_group_id   = module.scale_cluster_asg.asg_id
+  depends_on                      = [module.storage_private_dns_zone]
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -222,7 +236,9 @@ module "storage_cluster_tie_breaker_instance" {
   meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
   dns_zone                        = var.vpc_storage_cluster_dns_domain
   availability_zone               = each.value["zone"]
+  disks                           = each.value["disks"]
   application_security_group_id   = module.scale_cluster_asg.asg_id
+  depends_on                      = [module.storage_private_dns_zone]
 }
 
 module "prepare_ansible_configuration" {
@@ -235,7 +251,7 @@ module "prepare_ansible_configuration" {
 
 # Write the compute cluster related inventory.
 resource "local_sensitive_file" "write_compute_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.cluster_type == "compute" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.compute_or_combined ? 1 : 0
   filename = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "Azure"
@@ -265,7 +281,7 @@ resource "local_sensitive_file" "write_compute_cluster_inventory" {
 
 # Write the storage cluster related inventory.
 resource "local_sensitive_file" "write_storage_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.cluster_type == "storage" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.storage_or_combined ? 1 : 0
   filename = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "Azure"
@@ -274,7 +290,6 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
     vpc_availability_zones                    = var.vpc_availability_zones
     scale_version                             = local.scale_version
     filesystem_details                        = local.filesystem_details
-    filesystem_config_file                    = local.filesystem_details.fs1
     bastion_instance_id                       = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
     bastion_user                              = var.bastion_user == null ? null : var.bastion_user
     bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
@@ -325,7 +340,7 @@ resource "local_sensitive_file" "write_combined_inventory" {
 # Configure the compute cluster using ansible based on the create_scale_cluster input.
 module "compute_cluster_configuration" {
   source                          = "../../../resources/common/compute_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && (local.cluster_type == "compute" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && local.compute_or_combined && var.create_remote_mount_cluster == true ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
@@ -354,7 +369,7 @@ module "compute_cluster_configuration" {
 # Configure the storage cluster using ansible based on the create_scale_cluster input.
 module "storage_cluster_configuration" {
   source                          = "../../../resources/common/storage_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && (local.cluster_type == "storage" || local.cluster_type == "combined") && var.create_remote_mount_cluster == true ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && local.storage_or_combined && var.create_remote_mount_cluster == true ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path

@@ -69,7 +69,7 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 | Name | Description |
 |------|-------------|
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
-| <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | The ID of the vpc. |
 | <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
+| <a name="output_vpc_ref"></a> [vpc_ref](#output_vpc_ref) | The ID of the vpc. |
 | <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |
 <!-- END_TF_DOCS -->

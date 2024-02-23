@@ -22,7 +22,7 @@ variable "dns_zone" {}
 variable "availability_zone" {}
 variable "source_image_id" {}
 variable "application_security_group_id" {}
-
+variable "disks" {}
 
 data "template_file" "user_data" {
   template = <<EOF
@@ -103,34 +103,23 @@ resource "azurerm_linux_virtual_machine" "itself" {
   custom_data = data.template_cloudinit_config.user_data64.rendered
 }
 
-
 resource "azurerm_managed_disk" "itself" {
-  for_each = {
-    for idx, count_number in range(1, (var.data_disks_per_storage_instance + 1)) : idx => {
-      disk_number = tostring(count_number)
-    }
-  }
-
-  name                 = format("%s-disk-%s", var.vm_name, each.value.disk_number)
+  for_each             = var.disks
+  name                 = each.key
   location             = var.location
   create_option        = "Empty"
-  disk_size_gb         = var.data_disk_size
+  disk_size_gb         = each.value["size"]
   resource_group_name  = var.resource_group_name
-  storage_account_type = var.data_disk_storage_account_type
+  storage_account_type = each.value["type"]
   zone                 = azurerm_linux_virtual_machine.itself.zone
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "itself" {
-  for_each = {
-    for idx, count_number in range(1, ((var.data_disks_per_storage_instance) + 1)) : idx => {
-      attach_seq_string = tostring(count_number)
-      disk_id           = azurerm_managed_disk.itself[idx].id
-    }
-  }
+  for_each = azurerm_managed_disk.itself
 
   virtual_machine_id = azurerm_linux_virtual_machine.itself.id
-  managed_disk_id    = each.value.disk_id
-  lun                = each.value.attach_seq_string
+  managed_disk_id    = azurerm_managed_disk.itself[each.key].id
+  lun                = var.disks[each.key]["lun_no"]
   caching            = "ReadWrite"
 }
 
