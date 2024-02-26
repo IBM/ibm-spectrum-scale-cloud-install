@@ -219,7 +219,7 @@ locals {
           kms_key     = disk["kms_key"]
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          lun_no      = disk["lun_no"]
+          lun_no      = idx
           device_name = element(local.block_device_names, idx)
         }
       })
