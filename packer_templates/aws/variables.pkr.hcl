@@ -1,3 +1,92 @@
+variable "image_description" {
+  type        = string
+  default     = "IBM Storeage Scale AMI"
+  description = "The description to set for the resulting AMI."
+}
+
+variable "install_protocols" {
+  type        = string
+  default     = false
+  description = "Flag to determine whether to install protocol packages or not."
+}
+
+variable "instance_type" {
+  type        = string
+  default     = null
+  description = "The EC2 instance type to use while building the AMI."
+}
+
+variable "manifest_path" {
+  type    = string
+  default = ""
+}
+
+variable "package_repository" {
+  type        = string
+  default     = null
+  description = "S3 bucket which contains IBM Spectrum Scale rpm(s)."
+}
+
+variable "resource_prefix" {
+  type        = string
+  description = "The name of the resulting AMI. To make this unique, timestamp will be appended."
+}
+
+variable "scale_version" {
+  type        = string
+  default     = null
+  description = "IBM Storage Scale version."
+}
+
+variable "source_image_reference" {
+  type        = string
+  description = "The source AMI id whose root volume will be copied and provisioned on the currently running instance."
+}
+
+variable "ssh_bastion_host" {
+  type        = string
+  description = "A bastion host to use for the SSH connection."
+}
+
+variable "ssh_bastion_port" {
+  type        = string
+  default     = "22"
+  description = "The port of the bastion host."
+}
+
+variable "ssh_bastion_private_key_file" {
+  type        = string
+  description = "Path to a private key file to use to authenticate with the bastion host."
+}
+
+variable "ssh_bastion_username" {
+  type        = string
+  description = "The username to connect to the bastion host."
+}
+
+variable "ssh_port" {
+  type        = string
+  default     = "22"
+  description = "The port to connect to instance via SSH."
+}
+
+variable "ssh_username" {
+  type        = string
+  description = "The username to connect to instance via SSH."
+}
+
+variable "volume_size" {
+  type        = string
+  default     = "200"
+  description = "The size of the volume, in GiB."
+}
+
+variable "volume_type" {
+  type        = string
+  default     = "gp2"
+  description = "The volume type. gp2 & gp3 for General Purpose (SSD) volumes."
+}
+
 variable "vpc_ref" {
   type        = string
   default     = null
@@ -21,94 +110,6 @@ variable "vpc_subnet_id" {
   type        = string
   default     = null
   description = "The subnet ID to use for the instance."
-}
-
-variable "resource_prefix" {
-  type        = string
-  description = "The name of the resulting AMI. To make this unique, timestamp will be appended."
-}
-
-variable "ssh_username" {
-  type        = string
-  default     = null
-  description = "The username to connect to instance via SSH."
-}
-
-variable "ssh_port" {
-  type        = string
-  default     = "22"
-  description = "The port to connect to instance via SSH."
-}
-
-variable "ssh_bastion_host" {
-  type        = string
-  default     = null
-  description = "A bastion host to use for the SSH connection."
-}
-
-variable "ssh_bastion_username" {
-  type        = string
-  default     = null
-  description = "The username to connect to the bastion host."
-}
-
-variable "ssh_bastion_port" {
-  type        = string
-  default     = "22"
-  description = "The port of the bastion host."
-}
-
-variable "ssh_bastion_private_key_file" {
-  type        = string
-  default     = null
-  description = "Path to a private key file to use to authenticate with the bastion host."
-}
-
-variable "image_description" {
-  type        = string
-  default     = "IBM Storeage Scale AMI"
-  description = "The description to set for the resulting AMI."
-}
-
-variable "instance_type" {
-  type        = string
-  default     = null
-  description = "The EC2 instance type to use while building the AMI."
-}
-
-variable "source_image_reference" {
-  type        = string
-  default     = null
-  description = "The source AMI id whose root volume will be copied and provisioned on the currently running instance."
-}
-
-variable "package_repository" {
-  type        = string
-  default     = null
-  description = "S3 bucket which contains IBM Spectrum Scale rpm(s)."
-}
-
-variable "scale_version" {
-  type        = string
-  default     = null
-  description = "IBM Storage Scale version."
-}
-
-variable "volume_size" {
-  type        = string
-  default     = "200"
-  description = "The size of the volume, in GiB."
-}
-
-variable "volume_type" {
-  type        = string
-  default     = "gp2"
-  description = "The volume type. gp2 & gp3 for General Purpose (SSD) volumes."
-}
-
-variable "manifest_path" {
-  type    = string
-  default = ""
 }
 
 locals {
