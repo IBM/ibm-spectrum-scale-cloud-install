@@ -20,7 +20,7 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo unzip awscliv2.zip
     sudo ./aws/install
     sudo rm -rf awscliv2.zip
-    sudo sh -c "echo '[GPFSRepository]' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo '[IBMScaleRepository]' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'name=IBM Storage Scale Repository' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/gpfs_rpms/' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
