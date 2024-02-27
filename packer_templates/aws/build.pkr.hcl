@@ -2,7 +2,7 @@ build {
   sources = ["source.amazon-ebs.itself"]
 
   provisioner "shell" {
-    script           = "./install.sh"
+    script           = "${path.root}/install.sh"
     environment_vars = ["PACKAGE_REPOSITORY=${var.package_repository}", "VPC_REGION=${var.vpc_region}", "SCALE_VERSION=${var.scale_version}", "INSTALL_PROTOCOLS=${var.install_protocols}"]
   }
 

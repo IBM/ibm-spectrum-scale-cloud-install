@@ -2,7 +2,7 @@ build {
   sources = ["source.googlecompute.itself"]
 
   provisioner "shell" {
-    script           = "./install.sh"
+    script           = "${path.root}/install.sh"
     environment_vars = ["VPC_REGION=${var.vpc_region}", "PROJECT_ID=${var.project_id}", "ARTIFACT_ID=${var.artifact_id}", "SSH_USERNAME=${var.ssh_username}"]
   }
 
