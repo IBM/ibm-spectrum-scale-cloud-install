@@ -19,7 +19,7 @@ if [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sed -i 's/PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config
     sudo sh -c "echo '[IBMScaleRepository]' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'name=IBM Storage Scale Repository' >> /etc/yum.repos.d/scale.repo"
-    sudo sh -c "echo 'baseurl=https://$vpc_region-yum.pkg.dev/projects/$PROJECT_ID/$ARTIFACT_ID' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'baseurl=https://$VPC_REGION-yum.pkg.dev/projects/$PROJECT_ID/$ARTIFACT_ID' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'repo_gpgcheck=0' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=0' >> /etc/yum.repos.d/scale.repo"
