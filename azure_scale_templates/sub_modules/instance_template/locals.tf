@@ -1,12 +1,6 @@
 locals {
-  cluster_type = (
-    (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets == null) ? "storage" :
-    (var.vpc_storage_cluster_private_subnets == null && var.vpc_compute_cluster_private_subnets != null) ? "compute" :
-    (var.vpc_storage_cluster_private_subnets != null && var.vpc_compute_cluster_private_subnets != null) ? "combined" : "none"
-  )
-
-  compute_or_combined = ((local.cluster_type == "compute" || local.cluster_type == "combined") && var.total_compute_cluster_instances != null) ? true : false
-  storage_or_combined = ((local.cluster_type == "storage" || local.cluster_type == "combined") && var.total_storage_cluster_instances != null) ? true : false
+  compute_or_combined = ((var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") && var.total_compute_cluster_instances > 0) ? true : false
+  storage_or_combined = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
 
   tcp_port_scale_cluster         = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
   udp_port_scale_cluster         = ["47443", "4739"]
@@ -22,10 +16,10 @@ locals {
 
 /*
     Generate a list of compute vm name(s).
-    Ex: vm_list = ["vm-1", "vm-2", "vm-3",]
+    Ex: vm_list = ["vm-compute-1", "vm-compute-2", "vm-compute-3",]
 */
 resource "null_resource" "generate_compute_vm_name" {
-  count = local.compute_or_combined ? (var.total_compute_cluster_instances != null) ? var.total_compute_cluster_instances : 0 : 0
+  count = local.compute_or_combined ? var.total_compute_cluster_instances : 0
   triggers = {
     vm_name = format("%s-compute-%s", var.resource_prefix, count.index + 1)
   }
@@ -155,7 +149,6 @@ locals {
           "type"        = disk_details.block_device_volume_type
           "iops"        = disk_details.block_device_iops
           "throughput"  = disk_details.block_device_throughput
-          "lun_no"      = "${i + 1}"
         }
       }
     ]
@@ -175,7 +168,6 @@ locals {
         type        = properties["type"]
         iops        = properties["iops"]
         throughput  = properties["throughput"]
-        lun_no      = properties["lun_no"]
       }
     ]
   ])

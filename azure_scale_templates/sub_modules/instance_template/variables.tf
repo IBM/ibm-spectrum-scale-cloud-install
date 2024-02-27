@@ -400,6 +400,12 @@ variable "bastion_asg_id" {
   description = "Azure Bastion Asg id."
 }
 
+variable "cluster_type" {
+  type        = string
+  nullable    = false
+  description = "Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage."
+}
+
 variable "filesystem_parameters" {
   type = list(object({
     name                         = string

@@ -19,7 +19,7 @@ output "storage_cluster_instance_private_ips" {
 }
 
 output "storage_cluster_with_data_volume_mapping" {
-  value       = (local.cluster_type == "storage" || local.cluster_type == "combined") ? local.storage_instance_ips_with_disk_mapping : null
+  value       = local.storage_instance_ips_with_disk_mapping
   description = "Mapping of storage cluster instance ip vs. device path."
 }
 
@@ -39,18 +39,13 @@ output "storage_cluster_desc_instance_private_ips" {
 }
 
 output "storage_cluster_desc_data_volume_mapping" {
-  value       = length(var.vpc_availability_zones) > 2 && local.cluster_type != "compute" ? local.storage_instance_desc_ip_with_disk_mapping : null
+  value       = local.storage_instance_desc_ip_with_disk_mapping
   description = "Mapping of storage cluster desc instance ip vs. device path."
 }
 
 output "scale_cluster_asg_id" {
   value       = module.scale_cluster_asg.asg_id
   description = "Scale cluster Asg id."
-}
-
-output "bastion_scale_cluster_nsg_id" {
-  value       = module.bastion_scale_cluster_nsg.sec_group_id
-  description = "Scale cluster bastion Asg id."
 }
 
 output "storage_cluster_security_group_id" {

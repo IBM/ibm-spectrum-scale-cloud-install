@@ -68,14 +68,6 @@ module "scale_cluster_udp_inbound_security_rule" {
   resource_group_name                        = var.resource_group_ref
 }
 
-# Create bastion-scale cluster nsg
-module "bastion_scale_cluster_nsg" {
-  source              = "../../../resources/azure/security/network_security_group"
-  security_group_name = format("%s-bastion-scale-cluster", var.resource_prefix)
-  location            = var.vpc_region
-  resource_group_name = var.resource_group_ref
-}
-
 locals {
   bastion_public_subnet = var.vpc_storage_cluster_public_subnet[0] != null ? var.vpc_storage_cluster_public_subnet[0] : (var.vpc_compute_cluster_public_subnet[0] != null ? var.vpc_compute_cluster_public_subnet[0] : null)
 }
@@ -251,7 +243,7 @@ module "prepare_ansible_configuration" {
 
 # Write the compute cluster related inventory.
 resource "local_sensitive_file" "write_compute_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.compute_or_combined ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && var.cluster_type == "Compute-only" ? 1 : 0
   filename = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "Azure"
@@ -281,7 +273,7 @@ resource "local_sensitive_file" "write_compute_cluster_inventory" {
 
 # Write the storage cluster related inventory.
 resource "local_sensitive_file" "write_storage_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && local.storage_or_combined ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.cluster_type == "Storage-only" ? 1 : 0
   filename = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "Azure"
@@ -310,7 +302,7 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
 
 # Write combined cluster related inventory.
 resource "local_sensitive_file" "write_combined_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && local.cluster_type == "combined" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && var.cluster_type == "Combined-compute-storage" ? 1 : 0
   filename = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
     cloud_platform                            = "Azure"
@@ -369,7 +361,7 @@ module "compute_cluster_configuration" {
 # Configure the storage cluster using ansible based on the create_scale_cluster input.
 module "storage_cluster_configuration" {
   source                          = "../../../resources/common/storage_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && local.storage_or_combined && var.create_remote_mount_cluster == true ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && local.storage_or_combined && var.create_remote_mount_cluster ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
@@ -400,7 +392,7 @@ module "storage_cluster_configuration" {
 # Configure the combined cluster using ansible based on the create_scale_cluster input.
 module "combined_cluster_configuration" {
   source                          = "../../../resources/common/scale_configuration"
-  turn_on                         = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && local.cluster_type == "combined" ? true : false
+  turn_on                         = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && var.cluster_type == "Combined-compute-storage" ? true : false
   inventory_format                = var.inventory_format
   create_scale_cluster            = var.create_scale_cluster
   clone_path                      = var.scale_ansible_repo_clone_path
