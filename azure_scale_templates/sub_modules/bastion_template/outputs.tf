@@ -4,7 +4,7 @@ output "bastion_instance_public_ip" {
 }
 
 output "bastion_instance_autoscaling_group_ref" {
-  value       = module.bastion_autoscaling_group[0].instance_ids[0]
+  value       = try(module.bastion_autoscaling_group[0].instance_ids[0], null)
   description = "Bastion instance id."
 }
 
