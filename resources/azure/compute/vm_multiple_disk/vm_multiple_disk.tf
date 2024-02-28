@@ -11,9 +11,7 @@ variable "login_username" {}
 variable "proximity_placement_group_id" {}
 variable "os_disk_caching" {}
 variable "os_storage_account_type" {}
-variable "data_disks_per_storage_instance" {}
 variable "data_disk_device_names" {}
-variable "data_disk_size" {}
 variable "data_disk_storage_account_type" {}
 variable "user_key_pair" {}
 variable "meta_private_key" {}
@@ -132,7 +130,7 @@ output "instance_ids" {
 }
 
 output "instance_ips_with_data_mapping" {
-  value = { (azurerm_linux_virtual_machine.itself.private_ip_address) = slice(var.data_disk_device_names, 0, var.data_disks_per_storage_instance) }
+  value = { (azurerm_linux_virtual_machine.itself.private_ip_address) = slice(var.data_disk_device_names, 0, length(var.disks)) }
 }
 
 output "instance_private_dns_name" {

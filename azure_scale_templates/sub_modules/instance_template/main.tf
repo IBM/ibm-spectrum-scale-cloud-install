@@ -82,6 +82,7 @@ data "azurerm_subnet" "bastion" {
 
 # Allow bastion to scale cluster
 module "bastion_scale_cluster_tcp_inbound_security_rule" {
+  count                                 = try(var.using_jumphost_connection ? 1 : 0, 0)
   source                                = "../../../resources/azure/security/network_security_group_asg_with_address_rule"
   rule_names_prefix                     = "${var.resource_prefix}-bastion"
   direction                             = ["Inbound"]
@@ -181,57 +182,53 @@ module "associate_storage_nsg_wth_subnet" {
 
 # Create storage scale cluster instances.
 module "storage_cluster_instances" {
-  for_each                        = local.storage_vm_zone_map
-  source                          = "../../../resources/azure/compute/vm_multiple_disk"
-  vm_name                         = each.key
-  source_image_id                 = var.storage_cluster_image_ref
-  subnet_id                       = each.value["subnet"]
-  resource_group_name             = var.resource_group_ref
-  location                        = var.vpc_region
-  vm_size                         = var.storage_cluster_instance_type
-  login_username                  = var.storage_cluster_login_username
-  proximity_placement_group_id    = local.create_placement_group == true ? module.proximity_group.proximity_group_storage_id : null
-  os_disk_caching                 = var.storage_cluster_os_disk_caching
-  os_storage_account_type         = var.storage_cluster_boot_disk_type
-  data_disks_per_storage_instance = local.block_devices_per_storage_instance
-  data_disk_device_names          = local.block_device_names
-  data_disk_size                  = local.block_device_volume_size
-  data_disk_storage_account_type  = var.block_device_volume_type
-  user_key_pair                   = var.storage_cluster_key_pair
-  meta_private_key                = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
-  dns_zone                        = module.storage_private_dns_zone.private_dns_zone_name
-  availability_zone               = each.value["zone"]
-  disks                           = each.value["disks"]
-  application_security_group_id   = module.scale_cluster_asg.asg_id
-  depends_on                      = [module.storage_private_dns_zone]
+  for_each                       = local.storage_vm_zone_map
+  source                         = "../../../resources/azure/compute/vm_multiple_disk"
+  vm_name                        = each.key
+  source_image_id                = var.storage_cluster_image_ref
+  subnet_id                      = each.value["subnet"]
+  resource_group_name            = var.resource_group_ref
+  location                       = var.vpc_region
+  vm_size                        = var.storage_cluster_instance_type
+  login_username                 = var.storage_cluster_login_username
+  proximity_placement_group_id   = local.create_placement_group == true ? module.proximity_group.proximity_group_storage_id : null
+  os_disk_caching                = var.storage_cluster_os_disk_caching
+  os_storage_account_type        = var.storage_cluster_boot_disk_type
+  data_disk_device_names         = local.block_device_names
+  data_disk_storage_account_type = var.block_device_volume_type
+  user_key_pair                  = var.storage_cluster_key_pair
+  meta_private_key               = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key                = module.generate_storage_cluster_keys.public_key_content
+  dns_zone                       = module.storage_private_dns_zone.private_dns_zone_name
+  availability_zone              = each.value["zone"]
+  disks                          = each.value["disks"]
+  application_security_group_id  = module.scale_cluster_asg.asg_id
+  depends_on                     = [module.storage_private_dns_zone]
 }
 
 module "storage_cluster_tie_breaker_instance" {
-  for_each                        = local.storage_tie_vm_zone_map
-  source                          = "../../../resources/azure/compute/vm_multiple_disk"
-  vm_name                         = format("%s-storage-tie", var.resource_prefix)
-  source_image_id                 = var.storage_cluster_image_ref
-  subnet_id                       = each.value["subnet"]
-  resource_group_name             = var.resource_group_ref
-  location                        = var.vpc_region
-  vm_size                         = var.storage_cluster_instance_type
-  login_username                  = var.storage_cluster_login_username
-  proximity_placement_group_id    = null
-  os_disk_caching                 = var.storage_cluster_os_disk_caching
-  os_storage_account_type         = var.storage_cluster_boot_disk_type
-  data_disks_per_storage_instance = 1
-  data_disk_device_names          = local.block_device_names
-  data_disk_size                  = local.block_device_volume_size
-  data_disk_storage_account_type  = var.block_device_volume_type
-  user_key_pair                   = var.storage_cluster_key_pair
-  meta_private_key                = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key                 = module.generate_storage_cluster_keys.public_key_content
-  dns_zone                        = var.vpc_storage_cluster_dns_domain
-  availability_zone               = each.value["zone"]
-  disks                           = each.value["disks"]
-  application_security_group_id   = module.scale_cluster_asg.asg_id
-  depends_on                      = [module.storage_private_dns_zone]
+  for_each                       = local.storage_tie_vm_zone_map
+  source                         = "../../../resources/azure/compute/vm_multiple_disk"
+  vm_name                        = format("%s-storage-tie", var.resource_prefix)
+  source_image_id                = var.storage_cluster_image_ref
+  subnet_id                      = each.value["subnet"]
+  resource_group_name            = var.resource_group_ref
+  location                       = var.vpc_region
+  vm_size                        = var.storage_cluster_instance_type
+  login_username                 = var.storage_cluster_login_username
+  proximity_placement_group_id   = null
+  os_disk_caching                = var.storage_cluster_os_disk_caching
+  os_storage_account_type        = var.storage_cluster_boot_disk_type
+  data_disk_device_names         = local.block_device_names
+  data_disk_storage_account_type = var.block_device_volume_type
+  user_key_pair                  = var.storage_cluster_key_pair
+  meta_private_key               = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key                = module.generate_storage_cluster_keys.public_key_content
+  dns_zone                       = var.vpc_storage_cluster_dns_domain
+  availability_zone              = each.value["zone"]
+  disks                          = each.value["disks"]
+  application_security_group_id  = module.scale_cluster_asg.asg_id
+  depends_on                     = [module.storage_private_dns_zone]
 }
 
 module "prepare_ansible_configuration" {

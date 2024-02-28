@@ -129,11 +129,9 @@ locals {
         }
 */
 locals {
-  storage_cluster_desc_private_ips   = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
-  storage_cluster_private_ips        = local.storage_or_combined ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
-  fs_param                           = var.filesystem_parameters
-  block_device_volume_size           = local.fs_param[0].disk_config[0].block_device_volume_size
-  block_devices_per_storage_instance = local.fs_param[0].disk_config[0].block_devices_per_storage_instance
+  storage_cluster_desc_private_ips = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
+  storage_cluster_private_ips      = local.storage_or_combined ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
+  fs_param                         = var.filesystem_parameters
 
   inflate_disks_per_fs_pool = flatten([
     for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
@@ -173,7 +171,7 @@ locals {
     ]
   ])
   flatten_tie_disk = flatten([
-    for fs_config in var.filesystem_parameters : [
+    for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
       [for disk_config in fs_config.disk_config :
         {
           name        = format("%s-tie", fs_config.name)
