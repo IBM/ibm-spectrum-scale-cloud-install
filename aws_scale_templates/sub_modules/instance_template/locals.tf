@@ -91,6 +91,12 @@ locals {
       subnet = element(var.vpc_compute_cluster_private_subnets, idx)
     }
   }
+  compute_vm_zone_map = {
+    for idx, vm_name in resource.null_resource.generate_compute_vm_name[*].triggers.vm_name :
+    vm_name => {
+      zone = element(var.vpc_availability_zones, idx)
+    }
+  }
 }
 
 /*
