@@ -406,6 +406,12 @@ variable "cluster_type" {
   description = "Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage."
 }
 
+variable "enable_placement_group" {
+  type        = bool
+  nullable    = true
+  description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
+}
+
 variable "filesystem_parameters" {
   type = list(object({
     name                         = string

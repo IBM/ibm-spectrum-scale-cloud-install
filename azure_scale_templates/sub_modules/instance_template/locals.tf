@@ -6,6 +6,7 @@ locals {
   udp_port_scale_cluster         = ["47443", "4739"]
   tcp_port_bastion_scale_cluster = ["22", "443"]
 
+  create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   block_device_names = ["/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
   ssd_device_names = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"] # Todo: need to re-visit

@@ -105,7 +105,7 @@ module "storage_private_dns_zone" {
 
 module "compute_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
-  turn_on             = false #local.compute_or_combined == true ? true : false
+  turn_on             = local.compute_or_combined == true ? true : false
   dns_domain_name     = format("%s.%s", var.vpc_region, var.vpc_compute_cluster_dns_domain)
   resource_group_name = var.resource_group_ref
 }
@@ -129,6 +129,7 @@ module "link_compute_dns_zone_vpc" {
 }
 
 module "proximity_group" {
+  count                   = local.create_placement_group == true ? 1 : 0
   source                  = "../../../resources/azure/compute/proximity_placement_group"
   proximity_group_name    = var.resource_prefix
   resource_group_name     = var.resource_group_ref
@@ -159,7 +160,7 @@ module "compute_cluster_instances" {
   location                      = var.vpc_region
   vm_size                       = var.compute_cluster_instance_type
   login_username                = var.compute_cluster_login_username
-  proximity_placement_group_id  = length(var.vpc_availability_zones) > 1 ? null : module.proximity_group.proximity_group_compute_id
+  proximity_placement_group_id  = null
   os_disk_caching               = var.compute_cluster_os_disk_caching
   os_storage_account_type       = var.compute_boot_disk_type
   user_key_pair                 = var.create_remote_mount_cluster == true ? var.compute_cluster_key_pair : var.storage_cluster_key_pair
@@ -189,7 +190,7 @@ module "storage_cluster_instances" {
   location                        = var.vpc_region
   vm_size                         = var.storage_cluster_instance_type
   login_username                  = var.storage_cluster_login_username
-  proximity_placement_group_id    = length(var.vpc_availability_zones) > 1 ? null : module.proximity_group.proximity_group_storage_id
+  proximity_placement_group_id    = local.create_placement_group == true ? module.proximity_group.proximity_group_storage_id : null
   os_disk_caching                 = var.storage_cluster_os_disk_caching
   os_storage_account_type         = var.storage_cluster_boot_disk_type
   data_disks_per_storage_instance = local.block_devices_per_storage_instance
@@ -216,7 +217,7 @@ module "storage_cluster_tie_breaker_instance" {
   location                        = var.vpc_region
   vm_size                         = var.storage_cluster_instance_type
   login_username                  = var.storage_cluster_login_username
-  proximity_placement_group_id    = length(var.vpc_availability_zones) > 1 ? null : module.proximity_group.proximity_group_storage_id
+  proximity_placement_group_id    = null
   os_disk_caching                 = var.storage_cluster_os_disk_caching
   os_storage_account_type         = var.storage_cluster_boot_disk_type
   data_disks_per_storage_instance = 1
