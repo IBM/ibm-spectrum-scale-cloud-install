@@ -289,11 +289,12 @@ def initialize_node_details(az_count, cls_type,
 
     elif cls_type == 'storage' and az_count == 1:
         start_quorum_assign = quorum_count - 1
-        for each_ip in storage_ips_with_zone_mapping:
+        storage_private_ips = list(storage_ips_with_zone_mapping.keys())
+        for each_ip in storage_private_ips:
 
-            if storage_ips_with_zone_mapping.index(each_ip) <= (start_quorum_assign) and \
-                    storage_ips_with_zone_mapping.index(each_ip) <= (manager_count - 1):
-                if storage_ips_with_zone_mapping.index(each_ip) == 0:
+            if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
+                    storage_private_ips.index(each_ip) <= (manager_count - 1):
+                if storage_private_ips.index(each_ip) == 0:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': True, 'is_collector': True, 'is_nsd': True,
@@ -315,7 +316,7 @@ def initialize_node_details(az_count, cls_type,
                                      is_nsd_server=True,
                                      is_admin_node=True)
 
-                elif storage_ips_with_zone_mapping.index(each_ip) == 1:
+                elif storage_private_ips.index(each_ip) == 1:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': False, 'is_collector': True, 'is_nsd': True,
@@ -353,8 +354,8 @@ def initialize_node_details(az_count, cls_type,
                                      is_nsd_server=True,
                                      is_admin_node=False)
 
-            elif storage_ips_with_zone_mapping.index(each_ip) <= (start_quorum_assign) and \
-                    storage_ips_with_zone_mapping.index(each_ip) > (manager_count - 1):
+            elif storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
+                    storage_private_ips.index(each_ip) > (manager_count - 1):
 
                 # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
