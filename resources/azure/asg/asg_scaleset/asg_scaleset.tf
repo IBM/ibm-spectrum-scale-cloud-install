@@ -18,6 +18,7 @@ variable "os_storage_account_type" {}
 variable "bastion_key_pair" {}
 variable "vnet_availability_zones" {}
 variable "prefix_length" {}
+variable "bastion_asg_id" {}
 
 # Gets Azure ssh keypair data
 data "azurerm_ssh_public_key" "itself" {
@@ -66,9 +67,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "itself" {
     primary = true
 
     ip_configuration {
-      name      = format("%s-ip-config", var.vm_name_prefix)
-      primary   = true
-      subnet_id = var.subnet_id
+      name                           = format("%s-ip-config", var.vm_name_prefix)
+      primary                        = true
+      subnet_id                      = var.subnet_id
+      application_security_group_ids = var.bastion_asg_id
 
       public_ip_address {
         name                = var.vm_name_prefix

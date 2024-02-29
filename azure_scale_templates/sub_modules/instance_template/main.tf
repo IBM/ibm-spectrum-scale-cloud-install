@@ -68,33 +68,22 @@ module "scale_cluster_udp_inbound_security_rule" {
   resource_group_name                        = var.resource_group_ref
 }
 
-locals {
-  bastion_public_subnet = var.vpc_storage_cluster_public_subnet[0] != null ? var.vpc_storage_cluster_public_subnet[0] : (var.vpc_compute_cluster_public_subnet[0] != null ? var.vpc_compute_cluster_public_subnet[0] : null)
-}
-
-
-# Get bastion subnet cidr
-data "azurerm_subnet" "bastion" {
-  name                 = basename(local.bastion_public_subnet)
-  virtual_network_name = basename(var.vpc_ref)
-  resource_group_name  = var.resource_group_ref
-}
-
 # Allow bastion to scale cluster
 module "bastion_scale_cluster_tcp_inbound_security_rule" {
-  count                                 = try(var.using_jumphost_connection ? 1 : 0, 0)
-  source                                = "../../../resources/azure/security/network_security_group_asg_with_address_rule"
-  rule_names_prefix                     = "${var.resource_prefix}-bastion"
-  direction                             = ["Inbound"]
-  access                                = ["Allow"]
-  protocol                              = [for i in range(length(local.tcp_port_bastion_scale_cluster)) : "Tcp"]
-  source_port_range                     = local.tcp_port_bastion_scale_cluster
-  destination_port_range                = local.tcp_port_bastion_scale_cluster
-  priority                              = [for i in range(length(local.tcp_port_bastion_scale_cluster)) : "${i + 110}"]
-  source_application_security_group_ids = [module.scale_cluster_asg.asg_id]
-  destination_address_prefix            = data.azurerm_subnet.bastion.address_prefix
-  network_security_group_name           = module.scale_cluster_nsg.sec_group_name
-  resource_group_name                   = var.resource_group_ref
+  count                                      = try(var.using_jumphost_connection ? 1 : 0, 0)
+  source                                     = "../../../resources/azure/security/network_security_group_asg_rule"
+  total_rules                                = length(local.tcp_port_bastion_scale_cluster)
+  rule_names_prefix                          = "${var.resource_prefix}-bastion"
+  direction                                  = ["Inbound"]
+  access                                     = ["Allow"]
+  protocol                                   = [for i in range(length(local.tcp_port_bastion_scale_cluster)) : "Tcp"]
+  source_port_range                          = local.tcp_port_bastion_scale_cluster
+  destination_port_range                     = local.tcp_port_bastion_scale_cluster
+  priority                                   = [for i in range(length(local.tcp_port_bastion_scale_cluster)) : "${i + 110}"]
+  source_application_security_group_ids      = [module.scale_cluster_asg.asg_id]
+  destination_application_security_group_ids = [var.bastion_security_group_ref]
+  network_security_group_name                = module.scale_cluster_nsg.sec_group_name
+  resource_group_name                        = var.resource_group_ref
 }
 
 module "storage_private_dns_zone" {

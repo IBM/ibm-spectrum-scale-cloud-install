@@ -412,6 +412,12 @@ variable "enable_placement_group" {
   description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
 }
 
+variable "bastion_security_group_ref" {
+  type        = string
+  nullable    = true
+  description = "Bastion security group reference (id/self-link)."
+}
+
 variable "filesystem_parameters" {
   type = list(object({
     name                         = string
