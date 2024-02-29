@@ -3,7 +3,7 @@
 */
 
 variable "total_rules" {}
-variable "rule_names" {}
+variable "rule_names_prefix" {}
 variable "priority" {}
 variable "direction" {}
 variable "access" {}
@@ -17,7 +17,7 @@ variable "network_security_group_name" {}
 
 resource "azurerm_network_security_rule" "itself" {
   count                       = var.total_rules
-  name                        = element(var.rule_names, count.index)
+  name                        = format("%s-%s%s-%s", var.rule_names_prefix, var.protocol[count.index], var.direction[0], var.destination_port_range[count.index])
   priority                    = element(var.priority, count.index)
   direction                   = element(var.direction, count.index)
   access                      = element(var.access, count.index)
