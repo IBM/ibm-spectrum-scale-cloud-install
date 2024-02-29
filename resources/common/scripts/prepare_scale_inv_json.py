@@ -149,75 +149,26 @@ def set_node_details(fqdn, ip_address, ansible_ssh_private_key_file,
     })
 
 
-def interleave_nodes_by_2_fg(node_private_ips):
-    failure_group1, failure_group2 = [], []
-
-    subnet_pattern = re.compile(r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
-    subnet1A = subnet_pattern.findall(node_private_ips[0])
-    for each_ip in node_private_ips:
-        current_subnet = subnet_pattern.findall(each_ip)
-        if current_subnet[0] == subnet1A[0]:
-            failure_group1.append(each_ip)
-        else:
-            failure_group2.append(each_ip)
-
-    storage_instances = []
-    max_len = max(len(failure_group1), len(failure_group2))
-    idx = 0
-    while idx < max_len:
-        if idx < len(failure_group1):
-            storage_instances.append(failure_group1[idx])
-
-        if idx < len(failure_group2):
-            storage_instances.append(failure_group2[idx])
-
-        idx = idx + 1
-
-    return storage_instances
-
-
-def interleave_nodes_by_3_fg(node_private_ips):
-    failure_group1, temp_group, failure_group2, failure_group3 = [], [], [], []
-    subnet_pattern = re.compile(
-        r'\d{1,3}\.\d{1,3}\.(\d{1,3})\.\d{1,3}')
-    subnet1A = subnet_pattern.findall(node_private_ips[0])
-    for each_ip in node_private_ips:
-        current_subnet = subnet_pattern.findall(each_ip)
-        if current_subnet[0] == subnet1A[0]:
-            failure_group1.append(each_ip)
-        else:
-            temp_group.append(each_ip)
-
-    subnet1A = subnet_pattern.findall(temp_group[0])
-    for each_ip in temp_group:
-        current_subnet = subnet_pattern.findall(each_ip)
-        if current_subnet[0] == subnet1A[0]:
-            failure_group2.append(each_ip)
-        else:
-            failure_group3.append(each_ip)
-
-    max_len = max(len(failure_group1), len(
-        failure_group2), len(failure_group3))
-    compute_instances = []
-    idx = 0
-    while idx < max_len:
-        if idx < len(failure_group1):
-            compute_instances.append(failure_group1[idx])
-
-        if idx < len(failure_group2):
-            compute_instances.append(failure_group2[idx])
-
-        if idx < len(failure_group3):
-            compute_instances.append(failure_group3[idx])
-
-        idx = idx + 1
-
-    return compute_instances
+def interleave_nodes_by_fg(node_ips_with_zone_mapping):
+    failure_groups = {}
+    zone_list = []
+    for ip, zone_info in node_ips_with_zone_mapping.items():
+        zone = zone_info['zone']
+        if zone not in failure_groups:
+            failure_groups[zone] = []
+            zone_list.append(zone)
+        failure_groups[zone].append(ip)
+    instances = []
+    for idx in range(len(zone_list)):
+        for nodes in failure_groups.values():
+            if idx < len(nodes):
+                instances.append(nodes[idx])
+    return instances
 
 
 def initialize_node_details(az_count, cls_type,
-                            compute_private_ips, compute_dns_map,
-                            storage_private_ips, storage_dns_map,
+                            compute_ips_with_zone_mapping, compute_dns_map,
+                            storage_ips_with_zone_mapping, storage_dns_map,
                             desc_private_ips, desc_dns_map,
                             quorum_count, user, key_file):
     """ Initialize node details for cluster definition.
@@ -231,7 +182,8 @@ def initialize_node_details(az_count, cls_type,
 
         compute_instances = []
         if az_count > 1:
-            compute_instances = interleave_nodes_by_3_fg(compute_private_ips)
+            compute_instances = interleave_nodes_by_fg(
+                compute_ips_with_zone_mapping)
         else:
             compute_instances = compute_private_ips
 
@@ -337,11 +289,11 @@ def initialize_node_details(az_count, cls_type,
 
     elif cls_type == 'storage' and az_count == 1:
         start_quorum_assign = quorum_count - 1
-        for each_ip in storage_private_ips:
+        for each_ip in storage_ips_with_zone_mapping:
 
-            if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    storage_private_ips.index(each_ip) <= (manager_count - 1):
-                if storage_private_ips.index(each_ip) == 0:
+            if storage_ips_with_zone_mapping.index(each_ip) <= (start_quorum_assign) and \
+                    storage_ips_with_zone_mapping.index(each_ip) <= (manager_count - 1):
+                if storage_ips_with_zone_mapping.index(each_ip) == 0:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': True, 'is_collector': True, 'is_nsd': True,
@@ -363,7 +315,7 @@ def initialize_node_details(az_count, cls_type,
                                      is_nsd_server=True,
                                      is_admin_node=True)
 
-                elif storage_private_ips.index(each_ip) == 1:
+                elif storage_ips_with_zone_mapping.index(each_ip) == 1:
 
                     # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                     #         'is_gui': False, 'is_collector': True, 'is_nsd': True,
@@ -401,8 +353,8 @@ def initialize_node_details(az_count, cls_type,
                                      is_nsd_server=True,
                                      is_admin_node=False)
 
-            elif storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    storage_private_ips.index(each_ip) > (manager_count - 1):
+            elif storage_ips_with_zone_mapping.index(each_ip) <= (start_quorum_assign) and \
+                    storage_ips_with_zone_mapping.index(each_ip) > (manager_count - 1):
 
                 # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
@@ -467,7 +419,8 @@ def initialize_node_details(az_count, cls_type,
             # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
             start_quorum_assign = quorum_count - 1
 
-        storage_instances = interleave_nodes_by_2_fg(storage_private_ips)
+        storage_instances = interleave_nodes_by_fg(
+            storage_ips_with_zone_mapping)
         for each_ip in storage_instances:
 
             if storage_instances.index(each_ip) <= (start_quorum_assign) and \
@@ -598,7 +551,8 @@ def initialize_node_details(az_count, cls_type,
             # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
             start_quorum_assign = quorum_count - 1
 
-        storage_instances = interleave_nodes_by_2_fg(storage_private_ips)
+        storage_instances = interleave_nodes_by_fg(
+            storage_ips_with_zone_mapping)
         for each_ip in storage_instances:
 
             if storage_instances.index(each_ip) <= (start_quorum_assign) and \
@@ -700,20 +654,23 @@ def initialize_node_details(az_count, cls_type,
                                  is_admin_node=False)
 
         if az_count > 1:
-            if len(storage_private_ips) - len(desc_private_ips) >= quorum_count:
+            if len(storage_ips_with_zone_mapping.keys()) - len(desc_private_ips) >= quorum_count:
                 quorums_left = 0
             else:
                 quorums_left = quorum_count - \
-                    len(storage_private_ips) - len(desc_private_ips)
+                    len(storage_ips_with_zone_mapping.keys()) - \
+                    len(desc_private_ips)
         else:
-            if len(storage_private_ips) > quorum_count:
+            if len(storage_ips_with_zone_mapping.keys()) > quorum_count:
                 quorums_left = 0
             else:
-                quorums_left = quorum_count - len(storage_private_ips)
+                quorums_left = quorum_count - \
+                    len(storage_ips_with_zone_mapping.keys())
 
         # Additional quorums assign to compute nodes
         if quorums_left > 0:
-            compute_instances = interleave_nodes_by_3_fg(compute_private_ips)
+            compute_instances = interleave_nodes_by_fg(
+                compute_ips_with_zone_mapping)
             for each_ip in compute_instances[0:quorums_left]:
 
                 # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
@@ -1054,9 +1011,9 @@ if __name__ == "__main__":
 
     # Step-5: Create hosts
     initialize_node_details(len(TF['vpc_availability_zones']), cluster_type,
-                            TF['compute_cluster_instance_private_ips'],
+                            TF['compute_cluster_instance_zone_mapping'],
                             TF['compute_cluster_instance_private_dns'],
-                            TF['storage_cluster_instance_private_ips'],
+                            TF['storage_cluster_with_data_volume_mapping'],
                             TF['storage_cluster_instance_private_dns'],
                             TF['storage_cluster_desc_instance_private_ips'],
                             TF['storage_cluster_desc_instance_private_dns'],

@@ -588,7 +588,7 @@ resource "local_sensitive_file" "write_compute_cluster_inventory" {
     compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
     compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
     compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
-    compute_cluster_instace_zone_mapping      = local.compute_vm_zone_map
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_instance_ids              = []
     storage_cluster_instance_private_ips      = []
     storage_cluster_with_data_volume_mapping  = {}
