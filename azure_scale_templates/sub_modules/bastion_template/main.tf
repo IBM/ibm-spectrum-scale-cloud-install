@@ -16,13 +16,21 @@ module "bastion_network_security_group" {
   resource_group_name = var.resource_group_name
 }
 
+# Create bastion ASG
+module "bastion_cluster_asg" {
+  source              = "../../../resources/azure/security/network_application_security_group"
+  resource_prefix     = "${var.resource_prefix}-bastion"
+  location            = var.vpc_region
+  resource_group_name = var.resource_group_name
+}
+
 # Add tcp inbound security rule for bastion
 #tfsec:ignore:azure-network-ssh-blocked-from-internet
 #tfsec:ignore:azure-network-no-public-ingress
 module "bastion_tcp_inbound_security_rule" {
   source                      = "../../../resources/azure/security/network_security_group_rule"
   total_rules                 = length(local.tcp_port_allow_bastion)
-  rule_names                  = ["${var.resource_prefix}-allow-ssh"]
+  rule_names_prefix           = "${var.resource_prefix}-allow-ssh"
   direction                   = ["Inbound"]
   access                      = ["Allow"]
   protocol                    = [for i in range(length(local.tcp_port_allow_bastion)) : "Tcp"]
@@ -73,5 +81,6 @@ module "bastion_autoscaling_group" {
   os_disk_caching         = var.os_disk_caching
   subnet_id               = var.vpc_auto_scaling_group_subnets[count.index]
   vnet_availability_zones = var.vpc_availability_zones
+  bastion_asg_id          = [module.bastion_cluster_asg.asg_id]
   prefix_length           = 28
 }
