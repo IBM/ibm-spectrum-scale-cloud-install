@@ -91,6 +91,12 @@ locals {
       subnet = element(var.vpc_compute_cluster_private_subnets, idx)
     }
   }
+  compute_instance_ip_with_zone_mapping = {
+    for idx, vm_ipaddr in [for instance in module.compute_cluster_instances : instance.instance_private_ips] :
+    vm_ipaddr => {
+      zone = element(var.vpc_availability_zones, idx)
+    }
+  }
 }
 
 /*
