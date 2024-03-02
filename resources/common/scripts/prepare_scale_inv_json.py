@@ -185,7 +185,7 @@ def initialize_node_details(az_count, cls_type,
             compute_instances = interleave_nodes_by_fg(
                 compute_ips_with_zone_mapping)
         else:
-            compute_instances = compute_private_ips
+            compute_instances = list(compute_ips_with_zone_mapping.keys())
 
         for each_ip in compute_instances:
 
@@ -711,7 +711,14 @@ def initialize_node_details(az_count, cls_type,
                                  is_admin_node=False)
 
         if quorums_left == 0:
-            for each_ip in compute_private_ips:
+            compute_instances = []
+            if az_count > 1:
+                compute_instances = interleave_nodes_by_fg(
+                    compute_ips_with_zone_mapping)
+            else:
+                compute_instances = list(compute_ips_with_zone_mapping.keys())
+
+            for each_ip in compute_instances:
 
                 # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                 #         'is_gui': False, 'is_collector': False, 'is_nsd': False,

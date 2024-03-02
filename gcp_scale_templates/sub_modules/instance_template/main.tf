@@ -272,6 +272,7 @@ resource "local_sensitive_file" "write_compute_cluster_inventory" {
     compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
     compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
     compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_instance_ids              = []
     storage_cluster_instance_private_ips      = []
     storage_cluster_with_data_volume_mapping  = {}
@@ -301,6 +302,7 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
     compute_cluster_instance_ids              = []
     compute_cluster_instance_private_ips      = []
     compute_cluster_instance_private_dns      = []
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
     storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
     storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
@@ -330,6 +332,7 @@ resource "local_sensitive_file" "write_combined_inventory" {
     compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
     compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
     compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
     storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
     storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping

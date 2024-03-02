@@ -605,20 +605,20 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
   count    = module.prepare_ansible_configuration.clone_complete && var.cluster_type == "Storage-only" ? 1 : 0
   filename = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
-    cloud_platform                       = "AWS"
-    resource_prefix                      = var.resource_prefix
-    vpc_region                           = var.vpc_region
-    vpc_availability_zones               = var.vpc_availability_zones
-    scale_version                        = local.scale_version
-    filesystem_details                   = local.filesystem_details
-    bastion_instance_id                  = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
-    bastion_user                         = var.bastion_user == null ? null : var.bastion_user
-    bastion_instance_public_ip           = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
-    instances_ssh_user_name              = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
-    compute_cluster_instance_ids         = []
-    compute_cluster_instance_private_ips = []
-    compute_cluster_instance_private_dns = []
-    #compute_cluster_instace_zone_mapping      = local.compute_vm_zone_map
+    cloud_platform                            = "AWS"
+    resource_prefix                           = var.resource_prefix
+    vpc_region                                = var.vpc_region
+    vpc_availability_zones                    = var.vpc_availability_zones
+    scale_version                             = local.scale_version
+    filesystem_details                        = local.filesystem_details
+    bastion_instance_id                       = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
+    bastion_user                              = var.bastion_user == null ? null : var.bastion_user
+    bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
+    instances_ssh_user_name                   = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
+    compute_cluster_instance_ids              = []
+    compute_cluster_instance_private_ips      = []
+    compute_cluster_instance_private_dns      = []
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
     storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
     storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
@@ -648,6 +648,7 @@ resource "local_sensitive_file" "write_combined_inventory" {
     compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
     compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
     compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
     storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
     storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
