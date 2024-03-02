@@ -185,7 +185,7 @@ def initialize_node_details(az_count, cls_type,
             compute_instances = interleave_nodes_by_fg(
                 compute_ips_with_zone_mapping)
         else:
-            compute_instances = compute_private_ips
+            compute_instances = list(compute_ips_with_zone_mapping.keys())
 
         for each_ip in compute_instances:
 
