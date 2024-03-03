@@ -548,12 +548,13 @@ def initialize_node_details(az_count, cls_type,
         if az_count > 1:
             # Storage/NSD nodes to be quorum nodes (quorum_count - 2 as index starts from 0)
             start_quorum_assign = quorum_count - 2
+            storage_instances = interleave_nodes_by_fg(
+                storage_ips_with_zone_mapping)
         else:
             # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
             start_quorum_assign = quorum_count - 1
+            storage_instances = list(storage_ips_with_zone_mapping.keys())
 
-        storage_instances = interleave_nodes_by_fg(
-            storage_ips_with_zone_mapping)
         for each_ip in storage_instances:
 
             if storage_instances.index(each_ip) <= (start_quorum_assign) and \
