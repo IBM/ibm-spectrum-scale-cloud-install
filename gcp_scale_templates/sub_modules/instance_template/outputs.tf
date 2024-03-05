@@ -24,7 +24,7 @@ output "compute_cluster_with_dns_hostname" {
 }
 
 output "gateway_instance_ids" {
-  value       = [for instance in module.gateway_instances : instance.instance_ids]
+  value       = [for instance in module.gateway_instances : instance.instance_selflink]
   description = "Gateway instance ids."
 }
 
@@ -34,7 +34,7 @@ output "gateway_instance_private_ips" {
 }
 
 output "protocol_instance_ids" {
-  value       = [for instance in module.protocol_instances : instance.instance_ids]
+  value       = [for instance in module.protocol_instances : instance.instance_selflink]
   description = "Protocol instance ids."
 }
 
