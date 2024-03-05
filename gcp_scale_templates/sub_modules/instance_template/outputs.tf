@@ -23,6 +23,26 @@ output "compute_cluster_with_dns_hostname" {
   description = "Compute cluster dns hostname mapping."
 }
 
+output "gateway_instance_ids" {
+  value       = [for instance in module.gateway_instances : instance.instance_ids]
+  description = "Gateway instance ids."
+}
+
+output "gateway_instance_private_ips" {
+  value       = [for instance in module.gateway_instances : instance.instance_private_ips]
+  description = "Private IP address of gateway instances."
+}
+
+output "protocol_instance_ids" {
+  value       = [for instance in module.protocol_instances : instance.instance_ids]
+  description = "Protocol instance ids."
+}
+
+output "protocol_instance_private_ips" {
+  value       = [for instance in module.protocol_instances : instance.instance_private_ips]
+  description = "Private IP address of protocol instances."
+}
+
 output "storage_cluster_desc_data_volume_mapping" {
   value       = local.storage_instance_desc_ip_with_disk_mapping
   description = "Mapping of storage cluster desc instance ip vs. device path."
