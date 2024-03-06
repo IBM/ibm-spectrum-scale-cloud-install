@@ -133,7 +133,7 @@ resource "time_sleep" "wait_30_seconds" {
 }
 
 module "associate_compute_nsg_wth_subnet" {
-  count                     = var.vpc_compute_cluster_private_subnets != null ? length(var.vpc_compute_cluster_private_subnets) - 1 : 0 #fix me length is show wrong hence creating two times
+  count                     = var.vpc_compute_cluster_private_subnets != null && local.compute_or_combined ? length(var.vpc_compute_cluster_private_subnets) : 0
   source                    = "../../../resources/azure/security/network_security_group_association"
   subnet_id                 = var.vpc_compute_cluster_private_subnets[count.index]
   network_security_group_id = module.scale_cluster_nsg.sec_group_id
@@ -163,7 +163,7 @@ module "compute_cluster_instances" {
 }
 
 module "associate_storage_nsg_wth_subnet" {
-  count                     = var.vpc_storage_cluster_private_subnets != null ? length(var.vpc_storage_cluster_private_subnets) : 0
+  count                     = var.vpc_storage_cluster_private_subnets != null && local.storage_or_combined ? length(var.vpc_storage_cluster_private_subnets) : 0
   source                    = "../../../resources/azure/security/network_security_group_association"
   subnet_id                 = var.vpc_storage_cluster_private_subnets[count.index]
   network_security_group_id = module.scale_cluster_nsg.sec_group_id
@@ -247,6 +247,7 @@ resource "local_sensitive_file" "write_compute_cluster_inventory" {
     compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
     compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
     compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_instance_ids              = []
     storage_cluster_instance_private_ips      = []
     storage_cluster_with_data_volume_mapping  = {}
@@ -276,6 +277,7 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
     compute_cluster_instance_ids              = []
     compute_cluster_instance_private_ips      = []
     compute_cluster_instance_private_dns      = []
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
     storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
     storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
@@ -309,6 +311,7 @@ resource "local_sensitive_file" "write_combined_inventory" {
     storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
     storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
     storage_cluster_instance_private_dns      = [for instance in module.storage_cluster_instances : instance.instance_private_dns_name]
+    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
     storage_cluster_desc_instance_ids         = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids]
     storage_cluster_desc_instance_private_ips = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
     storage_cluster_desc_data_volume_mapping  = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
