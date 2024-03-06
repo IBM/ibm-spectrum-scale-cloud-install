@@ -37,8 +37,8 @@ module "bastion_tcp_inbound_security_rule" {
   source_port_range           = ["*"]
   destination_port_range      = local.tcp_port_allow_bastion
   priority                    = [for i in range(length(local.tcp_port_allow_bastion)) : format("%s", i + 100)]
-  source_address_prefix       = ["*"]
-  destination_address_prefix  = var.remote_cidr_blocks
+  source_address_prefix       = var.remote_cidr_blocks
+  destination_address_prefix  = ["*"]
   network_security_group_name = module.bastion_network_security_group.sec_group_name
   resource_group_name         = var.resource_group_name
 }
