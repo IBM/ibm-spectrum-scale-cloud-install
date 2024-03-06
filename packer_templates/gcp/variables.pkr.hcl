@@ -117,6 +117,11 @@ variable "vpc_zone" {
   description = "The VPC zone you want to use for building image."
 }
 
+variable "tags" {
+  type        = list(string)
+  description = "The firewall network tags to add to the instance."
+}
+
 locals {
   manifest_path = var.manifest_path != "" ? var.manifest_path : path.root
 }

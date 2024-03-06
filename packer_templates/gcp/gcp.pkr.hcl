@@ -23,6 +23,7 @@ source "googlecompute" "itself" {
   zone                         = var.vpc_zone
   network                      = var.vpc_ref
   subnetwork                   = var.vpc_subnet_id
+  tags = var.tags
   service_account_email        = var.service_account_email
   scopes                       = ["https://www.googleapis.com/auth/cloud-platform"]
 }
