@@ -115,7 +115,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
       - gpfs.gss.pmsensors
       - gpfs.gui
       - gpfs.java
-      - gpfs.nfs-ganesha
+#      - gpfs.nfs-ganesha
   tasks:
   - name: Check if scale packages are already installed
     shell: rpm -q "{{{{ item }}}}"
