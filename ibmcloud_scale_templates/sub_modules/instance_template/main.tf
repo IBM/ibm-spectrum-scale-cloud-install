@@ -248,7 +248,7 @@ data "ibm_is_ssh_key" "ldap_ssh_key" {
 
 data "ibm_is_image" "ldap_instance_image" {
   name  = var.ldap_vsi_osimage_name
-  count = var.ldap_basedns == null && var.ldap_server != null ? 0 : 1
+  count = local.enable_ldap == true && var.ldap_server != null ? 0 : 1
 }
 
 module "ldap_instance" {
