@@ -158,10 +158,11 @@ resource "google_compute_disk" "itself" {
 }
 
 resource "google_compute_attached_disk" "itself" {
-  for_each = google_compute_disk.itself
-  disk     = each.key
-  instance = google_compute_instance.itself.id
-  mode     = "READ_WRITE"
+  for_each    = google_compute_disk.itself
+  disk        = each.key
+  device_name = each.key
+  instance    = google_compute_instance.itself.id
+  mode        = "READ_WRITE"
 }
 
 output "instance_ids" {
