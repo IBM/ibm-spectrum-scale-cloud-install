@@ -26,7 +26,7 @@ locals {
   enable_sec_interface_compute = local.scale_ces_enabled == false && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
   enable_sec_interface_storage = local.scale_ces_enabled == false && var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
-  enable_ldap                  = var.ldap_basedns != "null" ? true : false
+  enable_ldap                  = var.enable_ldap
   ldap_server                  = var.ldap_server != null ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
 }
 

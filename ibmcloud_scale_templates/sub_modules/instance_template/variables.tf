@@ -459,41 +459,44 @@ variable "client_cluster_key_pair" {
   description = "The key pair to use to launch the client cluster host."
 }
 
+# LDAP Variables
+
+variable "enable_ldap" {
+  type        = bool
+  default     = false
+  description = "Set this option to true to enable LDAP for IBM Cloud HPC, with the default value set to false."
+}
+
 variable "ldap_basedns" {
   type        = string
-  default     = null
-  description = "Base DNS of LDAP Server. If none given the LDAP feature will not be enabled."
+  default     = "hpcaas.com"
+  description = "The dns domain name is used for configuring the LDAP server. If an LDAP server is already in existence, ensure to provide the associated DNS domain name."
 }
 
 variable "ldap_server" {
   type        = string
-  default     = null
-  description = "IP of existing LDAP server. If none given a new ldap server will be created"
+  default     = "null"
+  description = "Provide the IP address for the existing LDAP server. If no address is given, a new LDAP server will be created."
 }
 
 variable "ldap_admin_password" {
   type        = string
   sensitive   = true
-  default     = null
-  description = "Password that is used for performing administrative operations for LDAP.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. "
+  default     = ""
+  description = "The LDAP administrative password should be 8 to 20 characters long, with a mix of at least three alphabetic characters, including one uppercase and one lowercase letter. It must also include two numerical digits and at least one special character from (~@_+:) are required. It is important to avoid including the username in the password for enhanced security.[This value is ignored for an existing LDAP server]."
 }
 
 variable "ldap_user_name" {
   type        = string
-  sensitive   = true
-  default     = null
-  description = "Custom LDAP User for performing cluster operations. Note: Username should be at least 4 characters, (any combination of lowercase and uppercase letters)."
-  validation {
-    condition     = var.ldap_user_name == null || (try(length(var.ldap_user_name), 0) >= 4 && try(length(var.ldap_user_name), 0) <= 32)
-    error_message = "Specified input for \"ldap_user_name\" is not valid. username should be greater or equal to 4 letters."
-  }
+  default     = ""
+  description = "Custom LDAP User for performing cluster operations. Note: Username should be between 4 to 32 characters, (any combination of lowercase and uppercase letters).[This value is ignored for an existing LDAP server]"
 }
 
 variable "ldap_user_password" {
   type        = string
   sensitive   = true
-  default     = null
-  description = "LDAP User Password that is used for performing operations on the cluster.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username."
+  default     = ""
+  description = "The LDAP user password should be 8 to 20 characters long, with a mix of at least three alphabetic characters, including one uppercase and one lowercase letter. It must also include two numerical digits and at least one special character from (~@_+:) are required.It is important to avoid including the username in the password for enhanced security.[This value is ignored for an existing LDAP server]."
 }
 
 variable "ldap_instance_key_pair" {
