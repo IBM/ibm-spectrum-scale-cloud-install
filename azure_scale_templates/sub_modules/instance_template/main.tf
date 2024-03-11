@@ -95,7 +95,7 @@ module "storage_private_dns_zone" {
 
 module "compute_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
-  turn_on             = local.compute_or_combined == true ? true : false
+  turn_on             = var.cluster_type == "Compute-only" ? true : false
   dns_domain_name     = format("%s.%s", var.vpc_region, var.vpc_compute_cluster_dns_domain)
   resource_group_name = var.resource_group_ref
 }
@@ -111,7 +111,7 @@ module "link_storage_dns_zone_vpc" {
 
 module "link_compute_dns_zone_vpc" {
   source                = "../../../resources/azure/network/private_dns_zone_vpc_link"
-  turn_on               = local.compute_or_combined == true ? true : false
+  turn_on               = var.cluster_type == "Compute-only" ? true : false
   private_dns_zone_name = module.compute_private_dns_zone.private_dns_zone_name
   resource_group_name   = var.resource_group_ref
   vnet_id               = var.vpc_ref
@@ -156,10 +156,10 @@ module "compute_cluster_instances" {
   user_key_pair                 = var.create_remote_mount_cluster == true ? var.compute_cluster_key_pair : var.storage_cluster_key_pair
   meta_private_key              = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  dns_zone                      = module.compute_private_dns_zone.private_dns_zone_name
+  dns_zone                      = format("%s.%s", var.vpc_region, var.vpc_compute_cluster_dns_domain)
   availability_zone             = each.value["zone"]
   application_security_group_id = module.scale_cluster_asg.asg_id
-  depends_on                    = [module.compute_private_dns_zone]
+  depends_on                    = [module.compute_private_dns_zone, module.storage_private_dns_zone]
 }
 
 module "associate_storage_nsg_wth_subnet" {
@@ -188,7 +188,7 @@ module "storage_cluster_instances" {
   user_key_pair                  = var.storage_cluster_key_pair
   meta_private_key               = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                = module.generate_storage_cluster_keys.public_key_content
-  dns_zone                       = module.storage_private_dns_zone.private_dns_zone_name
+  dns_zone                       = format("%s.%s", var.vpc_region, var.vpc_storage_cluster_dns_domain)
   availability_zone              = each.value["zone"]
   disks                          = each.value["disks"]
   application_security_group_id  = module.scale_cluster_asg.asg_id
@@ -213,7 +213,7 @@ module "storage_cluster_tie_breaker_instance" {
   user_key_pair                  = var.storage_cluster_key_pair
   meta_private_key               = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                = module.generate_storage_cluster_keys.public_key_content
-  dns_zone                       = var.vpc_storage_cluster_dns_domain
+  dns_zone                       = format("%s.%s", var.vpc_region, var.vpc_storage_cluster_dns_domain)
   availability_zone              = each.value["zone"]
   disks                          = each.value["disks"]
   application_security_group_id  = module.scale_cluster_asg.asg_id

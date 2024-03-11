@@ -66,7 +66,7 @@ module "azure_bastion_service" {
 module "bastion_autoscaling_group" {
   count                   = var.vpc_auto_scaling_group_subnets != null ? length(var.vpc_auto_scaling_group_subnets) : 0
   source                  = "../../../resources/azure/asg/asg_scaleset"
-  vm_name_prefix          = "${var.resource_prefix}-bastion"
+  vm_name_prefix          = "${var.resource_prefix}-bastion-${count.index}"
   image_publisher         = var.image_publisher
   image_offer             = var.image_offer
   image_sku               = var.image_sku
