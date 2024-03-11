@@ -45,6 +45,7 @@ variable "source_image_reference" {
 
 variable "ssh_bastion_host" {
   type        = string
+  default     = ""
   description = "A bastion host to use for the SSH connection."
 }
 
@@ -56,11 +57,13 @@ variable "ssh_bastion_port" {
 
 variable "ssh_bastion_private_key_file" {
   type        = string
+  default     = ""
   description = "Path to a private key file to use to authenticate with the bastion host."
 }
 
 variable "ssh_bastion_username" {
   type        = string
+  default     = ""
   description = "The username to connect to the bastion host."
 }
 
