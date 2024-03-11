@@ -133,7 +133,7 @@ resource "time_sleep" "wait_30_seconds" {
 }
 
 module "associate_compute_nsg_wth_subnet" {
-  count                     = var.vpc_compute_cluster_private_subnets != null && local.compute_or_combined && length(setintersection(toset(coalesce(var.vpc_compute_cluster_private_subnets, ["none"])), toset(coalesce(var.vpc_storage_cluster_private_subnets, ["non"])))) == 0 ? length(var.vpc_compute_cluster_private_subnets) : 0
+  count                     = var.vpc_compute_cluster_private_subnets != null && local.compute_or_combined ? length(var.vpc_compute_cluster_private_subnets) : 0
   source                    = "../../../resources/azure/security/network_security_group_association"
   subnet_id                 = var.vpc_compute_cluster_private_subnets[count.index]
   network_security_group_id = module.scale_cluster_nsg.sec_group_id
