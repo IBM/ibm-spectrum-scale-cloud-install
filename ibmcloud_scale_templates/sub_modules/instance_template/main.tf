@@ -895,7 +895,11 @@ module "client_configuration" {
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   client_meta_private_key         = module.generate_client_cluster_keys.private_key_content
   write_inventory_complete        = module.write_storage_cluster_inventory.write_inventory_complete
-  depends_on                      = [module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.routing_table_routes]
+  enable_ldap                     = local.enable_ldap
+  ldap_basedns                    = var.ldap_basedns
+  ldap_server                     = local.ldap_server
+  ldap_admin_password             = var.ldap_admin_password
+  depends_on                      = [module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.routing_table_routes, module.ldap_configuration]
 }
 
 module "remote_mount_configuration" {
