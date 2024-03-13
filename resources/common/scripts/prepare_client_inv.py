@@ -67,7 +67,7 @@ def prepare_ansible_playbook_mount_fileset_client(hosts_config):
   roles:
      - nfs_client_prepare
      - nfs_client_configure
-     - auth_configure
+     - { role: auth_configure, when: enable_ldap }
 """.format(hosts_config=hosts_config)
     return content
 
