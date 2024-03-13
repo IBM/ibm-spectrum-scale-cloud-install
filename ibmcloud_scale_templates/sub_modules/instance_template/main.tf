@@ -17,7 +17,7 @@ locals {
   storage_instance_image_id   = var.storage_vsi_osimage_id != "" ? var.storage_vsi_osimage_id : data.ibm_is_image.storage_instance_image[0].id
   storage_bare_metal_image_id = var.storage_bare_metal_osimage_id != "" ? var.storage_bare_metal_osimage_id : data.ibm_is_image.storage_bare_metal_image[0].id
   gklm_instance_image_id      = var.gklm_vsi_osimage_id != "" ? var.gklm_vsi_osimage_id : data.ibm_is_image.gklm_instance_image[0].id
-  ldap_instance_image_id      = var.enable_ldap == true ? (length(data.ibm_is_image.ldap_instance_image) > 0 ? data.ibm_is_image.ldap_instance_image[0].id : null) : null
+  ldap_instance_image_id      = var.enable_ldap == true ? data.ibm_is_image.ldap_instance_image[0].id : null
 }
 
 # Getting bandwidth of compute and storage vsi and based on that checking mrot will be enabled or not.
@@ -26,7 +26,7 @@ locals {
   enable_sec_interface_compute = local.scale_ces_enabled == false && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
   enable_sec_interface_storage = local.scale_ces_enabled == false && var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
-  ldap_server                  = var.enable_ldap == true && var.ldap_server != null ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
+  ldap_server                  = var.enable_ldap == true  && var.ldap_server != null ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
 }
 
 module "generate_compute_cluster_keys" {
