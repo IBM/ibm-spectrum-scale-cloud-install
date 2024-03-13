@@ -157,7 +157,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: nfs_ic_failover, when: enable_ces }}
      - {{ role: nfs_verify, when: enable_ces }}
      - {{ role: auth_prepare, when: enable_ces }}
-     - {{ role: auth_configure, when: "enable_ldap is true" }}
+     - {{ role: auth_configure, when: enable_ldap" }}
      - {{ role: nfs_file_share, when: enable_ces }}
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
