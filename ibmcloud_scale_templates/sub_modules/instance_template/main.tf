@@ -17,7 +17,7 @@ locals {
   storage_instance_image_id   = var.storage_vsi_osimage_id != "" ? var.storage_vsi_osimage_id : data.ibm_is_image.storage_instance_image[0].id
   storage_bare_metal_image_id = var.storage_bare_metal_osimage_id != "" ? var.storage_bare_metal_osimage_id : data.ibm_is_image.storage_bare_metal_image[0].id
   gklm_instance_image_id      = var.gklm_vsi_osimage_id != "" ? var.gklm_vsi_osimage_id : data.ibm_is_image.gklm_instance_image[0].id
-  ldap_instance_image_id      = var.enable_ldap == true ? data.ibm_is_image.ldap_instance_image[0].id : null
+  ldap_instance_image_id      = var.enable_ldap == true ? data.ibm_is_image.ldap_instance_image.id : null
 }
 
 # Getting bandwidth of compute and storage vsi and based on that checking mrot will be enabled or not.
