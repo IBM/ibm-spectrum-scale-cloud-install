@@ -72,7 +72,7 @@ def prepare_ansible_playbook_mount_fileset_client(hosts_config):
     return content
 
 
-def initialize_cluster_details(protocol_cluster_reserved_names, filesets):
+def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable_ldap, ldap_basedns, ldap_server):
     """ Initialize cluster details.
     :args: protocol_cluster_reserved_names (string), filesets (string)
     """
@@ -84,6 +84,9 @@ def initialize_cluster_details(protocol_cluster_reserved_names, filesets):
     cluster_details = {}
     cluster_details['protocol_cluster_reserved_names'] = protocol_cluster_reserved_names
     cluster_details['filesets'] = filesets_list
+    cluster_details['enable_ldap'] = enable_ldap
+    cluster_details['ldap_basedns'] = ldap_basedns
+    cluster_details['ldap_server'] = ldap_server
     return cluster_details
 
 
@@ -141,6 +144,9 @@ if __name__ == "__main__":
     )
     PARSER.add_argument("--verbose", action="store_true",
                         help="print log messages")
+    PARSER.add_argument("--enable_ldap", help="Enable LDAP",  default="false")
+    PARSER.add_argument("--ldap_basedns", help="Base domain of ldap", default="null")
+    PARSER.add_argument("--ldap_server", help="LDAP Server IP", default="null")
     ARGUMENTS = PARSER.parse_args()
 
     # Step-1: Read the inventory file
