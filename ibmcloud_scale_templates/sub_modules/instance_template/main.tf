@@ -754,220 +754,220 @@ module "write_client_cluster_inventory" {
   filesets                                         = local.scale_ces_enabled == true ? jsonencode(local.fileset_size_map) : jsonencode({})
 }
 
-module "compute_cluster_configuration" {
-  source                          = "../../../resources/common/compute_configuration"
-  turn_on                         = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  bastion_user                    = jsonencode(var.bastion_user)
-  write_inventory_complete        = module.write_compute_cluster_inventory.write_inventory_complete
-  inventory_format                = var.inventory_format
-  create_scale_cluster            = var.create_scale_cluster
-  clone_path                      = var.scale_ansible_repo_clone_path
-  inventory_path                  = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image              = var.using_packer_image
-  using_jumphost_connection       = var.using_jumphost_connection
-  using_rest_initialization       = var.using_rest_api_remote_mount
-  compute_cluster_gui_username    = var.compute_cluster_gui_username
-  compute_cluster_gui_password    = var.compute_cluster_gui_password
-  memory_size                     = data.ibm_is_instance_profile.compute_profile.memory[0].value * 1000
-  max_pagepool_gb                 = 4
-  bastion_instance_public_ip      = var.bastion_instance_public_ip
-  bastion_ssh_private_key         = var.bastion_ssh_private_key
-  meta_private_key                = module.generate_compute_cluster_keys.private_key_content
-  scale_version                   = local.scale_version
-  spectrumscale_rpms_path         = var.spectrumscale_rpms_path
-  enable_mrot_conf                = local.enable_mrot_conf ? "True" : "False"
-  enable_ces                      = "False"
-  scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
-  scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
-  enable_ldap                     = var.enable_ldap
-  ldap_basedns                    = var.ldap_basedns
-  ldap_server                     = local.ldap_server
-  ldap_admin_password             = var.ldap_admin_password
-  depends_on                      = [module.ldap_configuration]
-}
+# module "compute_cluster_configuration" {
+#   source                          = "../../../resources/common/compute_configuration"
+#   turn_on                         = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+#   clone_complete                  = module.prepare_ansible_configuration.clone_complete
+#   bastion_user                    = jsonencode(var.bastion_user)
+#   write_inventory_complete        = module.write_compute_cluster_inventory.write_inventory_complete
+#   inventory_format                = var.inventory_format
+#   create_scale_cluster            = var.create_scale_cluster
+#   clone_path                      = var.scale_ansible_repo_clone_path
+#   inventory_path                  = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+#   using_packer_image              = var.using_packer_image
+#   using_jumphost_connection       = var.using_jumphost_connection
+#   using_rest_initialization       = var.using_rest_api_remote_mount
+#   compute_cluster_gui_username    = var.compute_cluster_gui_username
+#   compute_cluster_gui_password    = var.compute_cluster_gui_password
+#   memory_size                     = data.ibm_is_instance_profile.compute_profile.memory[0].value * 1000
+#   max_pagepool_gb                 = 4
+#   bastion_instance_public_ip      = var.bastion_instance_public_ip
+#   bastion_ssh_private_key         = var.bastion_ssh_private_key
+#   meta_private_key                = module.generate_compute_cluster_keys.private_key_content
+#   scale_version                   = local.scale_version
+#   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
+#   enable_mrot_conf                = local.enable_mrot_conf ? "True" : "False"
+#   enable_ces                      = "False"
+#   scale_encryption_enabled        = var.scale_encryption_enabled
+#   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+#   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+#   enable_ldap                     = var.enable_ldap
+#   ldap_basedns                    = var.ldap_basedns
+#   ldap_server                     = local.ldap_server
+#   ldap_admin_password             = var.ldap_admin_password
+#   depends_on                      = [module.ldap_configuration]
+# }
 
-module "storage_cluster_configuration" {
-  source                          = "../../../resources/common/storage_configuration"
-  turn_on                         = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  bastion_user                    = jsonencode(var.bastion_user)
-  write_inventory_complete        = module.write_storage_cluster_inventory.write_inventory_complete
-  inventory_format                = var.inventory_format
-  create_scale_cluster            = var.create_scale_cluster
-  clone_path                      = var.scale_ansible_repo_clone_path
-  inventory_path                  = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image              = var.using_packer_image
-  using_jumphost_connection       = var.using_jumphost_connection
-  using_rest_initialization       = true
-  storage_cluster_gui_username    = var.storage_cluster_gui_username
-  storage_cluster_gui_password    = var.storage_cluster_gui_password
-  memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
-  max_pagepool_gb                 = var.storage_type == "persistent" ? 32 : 16
-  vcpu_count                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
-  max_mbps                        = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value * 0.25 : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value * 0.25
-  disk_type                       = var.storage_type == "persistent" ? "locally-attached" : "network-attached"
-  max_data_replicas               = 3
-  max_metadata_replicas           = 3
-  default_metadata_replicas       = var.storage_type == "persistent" ? 3 : 2
-  default_data_replicas           = var.storage_type == "persistent" ? 2 : 1
-  bastion_instance_public_ip      = var.bastion_instance_public_ip
-  bastion_ssh_private_key         = var.bastion_ssh_private_key
-  meta_private_key                = module.generate_storage_cluster_keys.private_key_content
-  scale_version                   = local.scale_version
-  spectrumscale_rpms_path         = var.spectrumscale_rpms_path
-  enable_mrot_conf                = local.enable_mrot_conf ? "True" : "False"
-  enable_ces                      = local.scale_ces_enabled == true ? "True" : "False"
-  scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
-  scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
-  enable_ldap                     = var.enable_ldap
-  ldap_basedns                    = var.ldap_basedns
-  ldap_server                     = local.ldap_server
-  ldap_admin_password             = var.ldap_admin_password
-  depends_on                      = [module.ldap_configuration]
-}
+# module "storage_cluster_configuration" {
+#   source                          = "../../../resources/common/storage_configuration"
+#   turn_on                         = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+#   clone_complete                  = module.prepare_ansible_configuration.clone_complete
+#   bastion_user                    = jsonencode(var.bastion_user)
+#   write_inventory_complete        = module.write_storage_cluster_inventory.write_inventory_complete
+#   inventory_format                = var.inventory_format
+#   create_scale_cluster            = var.create_scale_cluster
+#   clone_path                      = var.scale_ansible_repo_clone_path
+#   inventory_path                  = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+#   using_packer_image              = var.using_packer_image
+#   using_jumphost_connection       = var.using_jumphost_connection
+#   using_rest_initialization       = true
+#   storage_cluster_gui_username    = var.storage_cluster_gui_username
+#   storage_cluster_gui_password    = var.storage_cluster_gui_password
+#   memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
+#   max_pagepool_gb                 = var.storage_type == "persistent" ? 32 : 16
+#   vcpu_count                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+#   max_mbps                        = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value * 0.25 : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value * 0.25
+#   disk_type                       = var.storage_type == "persistent" ? "locally-attached" : "network-attached"
+#   max_data_replicas               = 3
+#   max_metadata_replicas           = 3
+#   default_metadata_replicas       = var.storage_type == "persistent" ? 3 : 2
+#   default_data_replicas           = var.storage_type == "persistent" ? 2 : 1
+#   bastion_instance_public_ip      = var.bastion_instance_public_ip
+#   bastion_ssh_private_key         = var.bastion_ssh_private_key
+#   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
+#   scale_version                   = local.scale_version
+#   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
+#   enable_mrot_conf                = local.enable_mrot_conf ? "True" : "False"
+#   enable_ces                      = local.scale_ces_enabled == true ? "True" : "False"
+#   scale_encryption_enabled        = var.scale_encryption_enabled
+#   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+#   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+#   enable_ldap                     = var.enable_ldap
+#   ldap_basedns                    = var.ldap_basedns
+#   ldap_server                     = local.ldap_server
+#   ldap_admin_password             = var.ldap_admin_password
+#   depends_on                      = [module.ldap_configuration]
+# }
 
-module "combined_cluster_configuration" {
-  source                          = "../../../resources/common/scale_configuration"
-  turn_on                         = var.create_separate_namespaces == false ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  bastion_user                    = jsonencode(var.bastion_user)
-  write_inventory_complete        = module.write_cluster_inventory.write_inventory_complete
-  inventory_format                = var.inventory_format
-  create_scale_cluster            = var.create_scale_cluster
-  clone_path                      = var.scale_ansible_repo_clone_path
-  inventory_path                  = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image              = var.using_packer_image
-  using_jumphost_connection       = var.using_jumphost_connection
-  storage_cluster_gui_username    = var.storage_cluster_gui_username
-  storage_cluster_gui_password    = var.storage_cluster_gui_password
-  memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
-  bastion_instance_public_ip      = var.bastion_instance_public_ip
-  bastion_ssh_private_key         = var.bastion_ssh_private_key
-  meta_private_key                = module.generate_storage_cluster_keys.private_key_content
-  scale_version                   = local.scale_version
-  spectrumscale_rpms_path         = var.spectrumscale_rpms_path
-  enable_mrot_conf                = false
-  scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
-  scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
-  enable_ldap                     = var.enable_ldap
-  ldap_basedns                    = var.ldap_basedns
-  ldap_server                     = local.ldap_server
-  ldap_admin_password             = var.ldap_admin_password
-  depends_on                      = [module.ldap_configuration]
-}
+# module "combined_cluster_configuration" {
+#   source                          = "../../../resources/common/scale_configuration"
+#   turn_on                         = var.create_separate_namespaces == false ? true : false
+#   clone_complete                  = module.prepare_ansible_configuration.clone_complete
+#   bastion_user                    = jsonencode(var.bastion_user)
+#   write_inventory_complete        = module.write_cluster_inventory.write_inventory_complete
+#   inventory_format                = var.inventory_format
+#   create_scale_cluster            = var.create_scale_cluster
+#   clone_path                      = var.scale_ansible_repo_clone_path
+#   inventory_path                  = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
+#   using_packer_image              = var.using_packer_image
+#   using_jumphost_connection       = var.using_jumphost_connection
+#   storage_cluster_gui_username    = var.storage_cluster_gui_username
+#   storage_cluster_gui_password    = var.storage_cluster_gui_password
+#   memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
+#   bastion_instance_public_ip      = var.bastion_instance_public_ip
+#   bastion_ssh_private_key         = var.bastion_ssh_private_key
+#   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
+#   scale_version                   = local.scale_version
+#   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
+#   enable_mrot_conf                = false
+#   scale_encryption_enabled        = var.scale_encryption_enabled
+#   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+#   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+#   enable_ldap                     = var.enable_ldap
+#   ldap_basedns                    = var.ldap_basedns
+#   ldap_server                     = local.ldap_server
+#   ldap_admin_password             = var.ldap_admin_password
+#   depends_on                      = [module.ldap_configuration]
+# }
 
-module "routing_table_routes" {
-  source                          = "../../../resources/ibmcloud/network/routing_table_routes"
-  turn_on                         = (var.create_separate_namespaces == true) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  create_scale_cluster            = var.create_scale_cluster
-  scale_ces_enabled               = local.scale_ces_enabled == true ? true : false
-  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-  total_vsis                      = var.total_protocol_cluster_instances
-  vpc_id                          = var.vpc_id
-  routing_table                   = data.ibm_is_vpc.vpc_rt_id.default_routing_table
-  zone                            = [var.vpc_availability_zones[0]]
-  action                          = "deliver"
-  next_hop                        = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
-  priority                        = 2
-  dest_ip                         = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
-  storage_admin_ip                = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map))[0] : values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))[0]
-  storage_private_key             = format("%s/storage_key/id_rsa", var.scale_ansible_repo_clone_path)
-  depends_on                      = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.compute_cluster_configuration, module.storage_cluster_configuration]
-}
+# module "routing_table_routes" {
+#   source                          = "../../../resources/ibmcloud/network/routing_table_routes"
+#   turn_on                         = (var.create_separate_namespaces == true) ? true : false
+#   clone_complete                  = module.prepare_ansible_configuration.clone_complete
+#   create_scale_cluster            = var.create_scale_cluster
+#   scale_ces_enabled               = local.scale_ces_enabled == true ? true : false
+#   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+#   total_vsis                      = var.total_protocol_cluster_instances
+#   vpc_id                          = var.vpc_id
+#   routing_table                   = data.ibm_is_vpc.vpc_rt_id.default_routing_table
+#   zone                            = [var.vpc_availability_zones[0]]
+#   action                          = "deliver"
+#   next_hop                        = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
+#   priority                        = 2
+#   dest_ip                         = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
+#   storage_admin_ip                = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map))[0] : values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))[0]
+#   storage_private_key             = format("%s/storage_key/id_rsa", var.scale_ansible_repo_clone_path)
+#   depends_on                      = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.compute_cluster_configuration, module.storage_cluster_configuration]
+# }
 
-module "client_configuration" {
-  source                          = "../../../resources/common/client_configuration"
-  turn_on                         = (var.total_client_cluster_instances > 0 && var.create_separate_namespaces == true && local.scale_ces_enabled == true) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  create_scale_cluster            = var.create_scale_cluster
-  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-  clone_path                      = var.scale_ansible_repo_clone_path
-  using_jumphost_connection       = var.using_jumphost_connection
-  client_inventory_path           = format("%s/client_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  bastion_user                    = jsonencode(var.bastion_user)
-  bastion_instance_public_ip      = var.bastion_instance_public_ip
-  bastion_ssh_private_key         = var.bastion_ssh_private_key
-  client_meta_private_key         = module.generate_client_cluster_keys.private_key_content
-  write_inventory_complete        = module.write_storage_cluster_inventory.write_inventory_complete
-  enable_ldap                     = var.enable_ldap
-  ldap_basedns                    = var.ldap_basedns
-  ldap_server                     = local.ldap_server
-  depends_on                      = [module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.routing_table_routes, module.ldap_configuration]
-}
+# module "client_configuration" {
+#   source                          = "../../../resources/common/client_configuration"
+#   turn_on                         = (var.total_client_cluster_instances > 0 && var.create_separate_namespaces == true && local.scale_ces_enabled == true) ? true : false
+#   clone_complete                  = module.prepare_ansible_configuration.clone_complete
+#   create_scale_cluster            = var.create_scale_cluster
+#   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+#   clone_path                      = var.scale_ansible_repo_clone_path
+#   using_jumphost_connection       = var.using_jumphost_connection
+#   client_inventory_path           = format("%s/client_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+#   bastion_user                    = jsonencode(var.bastion_user)
+#   bastion_instance_public_ip      = var.bastion_instance_public_ip
+#   bastion_ssh_private_key         = var.bastion_ssh_private_key
+#   client_meta_private_key         = module.generate_client_cluster_keys.private_key_content
+#   write_inventory_complete        = module.write_storage_cluster_inventory.write_inventory_complete
+#   enable_ldap                     = var.enable_ldap
+#   ldap_basedns                    = var.ldap_basedns
+#   ldap_server                     = local.ldap_server
+#   depends_on                      = [module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.routing_table_routes, module.ldap_configuration]
+# }
 
-module "remote_mount_configuration" {
-  source                          = "../../../resources/common/remote_mount_configuration"
-  turn_on                         = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0 && var.create_separate_namespaces == true) ? true : false
-  create_scale_cluster            = var.create_scale_cluster
-  bastion_user                    = jsonencode(var.bastion_user)
-  clone_path                      = var.scale_ansible_repo_clone_path
-  compute_inventory_path          = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  compute_gui_inventory_path      = format("%s/compute_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
-  storage_inventory_path          = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  storage_gui_inventory_path      = format("%s/storage_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
-  compute_cluster_gui_username    = var.compute_cluster_gui_username
-  compute_cluster_gui_password    = var.compute_cluster_gui_password
-  storage_cluster_gui_username    = var.storage_cluster_gui_username
-  storage_cluster_gui_password    = var.storage_cluster_gui_password
-  using_jumphost_connection       = var.using_jumphost_connection
-  using_rest_initialization       = var.using_rest_api_remote_mount
-  bastion_instance_public_ip      = var.bastion_instance_public_ip
-  bastion_ssh_private_key         = var.bastion_ssh_private_key
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
-  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-  depends_on                      = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration]
-}
+# module "remote_mount_configuration" {
+#   source                          = "../../../resources/common/remote_mount_configuration"
+#   turn_on                         = (var.total_compute_cluster_instances > 0 && var.total_storage_cluster_instances > 0 && var.create_separate_namespaces == true) ? true : false
+#   create_scale_cluster            = var.create_scale_cluster
+#   bastion_user                    = jsonencode(var.bastion_user)
+#   clone_path                      = var.scale_ansible_repo_clone_path
+#   compute_inventory_path          = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+#   compute_gui_inventory_path      = format("%s/compute_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
+#   storage_inventory_path          = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+#   storage_gui_inventory_path      = format("%s/storage_cluster_gui_details.json", var.scale_ansible_repo_clone_path)
+#   compute_cluster_gui_username    = var.compute_cluster_gui_username
+#   compute_cluster_gui_password    = var.compute_cluster_gui_password
+#   storage_cluster_gui_username    = var.storage_cluster_gui_username
+#   storage_cluster_gui_password    = var.storage_cluster_gui_password
+#   using_jumphost_connection       = var.using_jumphost_connection
+#   using_rest_initialization       = var.using_rest_api_remote_mount
+#   bastion_instance_public_ip      = var.bastion_instance_public_ip
+#   bastion_ssh_private_key         = var.bastion_ssh_private_key
+#   clone_complete                  = module.prepare_ansible_configuration.clone_complete
+#   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
+#   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+#   depends_on                      = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration]
+# }
 
-module "invoke_compute_network_playbook" {
-  source                          = "../../../resources/common/network_playbook"
-  turn_on                         = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  create_scale_cluster            = var.create_scale_cluster
-  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
-  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-  inventory_path                  = format("%s/%s/compute_inventory.ini", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
-  network_playbook_path           = format("%s/%s/collections/ansible_collections/ibm/spectrum_scale/samples/playbook_cloud_network_config.yaml", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
-}
+# module "invoke_compute_network_playbook" {
+#   source                          = "../../../resources/common/network_playbook"
+#   turn_on                         = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+#   clone_complete                  = module.prepare_ansible_configuration.clone_complete
+#   create_scale_cluster            = var.create_scale_cluster
+#   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
+#   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+#   inventory_path                  = format("%s/%s/compute_inventory.ini", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
+#   network_playbook_path           = format("%s/%s/collections/ansible_collections/ibm/spectrum_scale/samples/playbook_cloud_network_config.yaml", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
+# }
 
-module "invoke_storage_network_playbook" {
-  source                          = "../../../resources/common/network_playbook"
-  turn_on                         = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  create_scale_cluster            = var.create_scale_cluster
-  compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
-  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-  inventory_path                  = format("%s/%s/storage_inventory.ini", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
-  network_playbook_path           = format("%s/%s/collections/ansible_collections/ibm/spectrum_scale/samples/playbook_cloud_network_config.yaml", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
-}
+# module "invoke_storage_network_playbook" {
+#   source                          = "../../../resources/common/network_playbook"
+#   turn_on                         = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+#   clone_complete                  = module.prepare_ansible_configuration.clone_complete
+#   create_scale_cluster            = var.create_scale_cluster
+#   compute_cluster_create_complete = module.compute_cluster_configuration.compute_cluster_create_complete
+#   storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
+#   inventory_path                  = format("%s/%s/storage_inventory.ini", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
+#   network_playbook_path           = format("%s/%s/collections/ansible_collections/ibm/spectrum_scale/samples/playbook_cloud_network_config.yaml", var.scale_ansible_repo_clone_path, "ibm-spectrum-scale-install-infra")
+# }
 
-module "encryption_configuration" {
-  source                                  = "../../../resources/common/encryption_configuration"
-  turn_on                                 = var.scale_encryption_enabled == true ? true : false
-  clone_path                              = var.scale_ansible_repo_clone_path
-  clone_complete                          = module.prepare_ansible_configuration.clone_complete
-  create_scale_cluster                    = var.create_scale_cluster
-  scale_cluster_clustername               = var.resource_prefix
-  scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
-  scale_encryption_admin_password         = var.scale_encryption_admin_password
-  scale_encryption_admin_username         = var.scale_encryption_admin_username
-  scale_encryption_servers                = jsonencode(one(module.gklm_instance[*].gklm_ip_addresses))
-  scale_encryption_servers_dns            = jsonencode(one(module.gklm_instance[*].gklm_dns_names))
-  meta_private_key                        = module.generate_gklm_instance_keys.private_key_content
-  storage_cluster_encryption              = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
-  compute_cluster_encryption              = (var.create_separate_namespaces == true && var.total_compute_cluster_instances >= 0) ? true : false
-  combined_cluster_encryption             = var.create_separate_namespaces == false ? true : false
-  compute_cluster_create_complete         = module.compute_cluster_configuration.compute_cluster_create_complete
-  storage_cluster_create_complete         = module.storage_cluster_configuration.storage_cluster_create_complete
-  combined_cluster_create_complete        = module.combined_cluster_configuration.combined_cluster_create_complete
-  remote_mount_create_complete            = module.remote_mount_configuration.remote_mount_create_complete
-  depends_on                              = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
-}
+# module "encryption_configuration" {
+#   source                                  = "../../../resources/common/encryption_configuration"
+#   turn_on                                 = var.scale_encryption_enabled == true ? true : false
+#   clone_path                              = var.scale_ansible_repo_clone_path
+#   clone_complete                          = module.prepare_ansible_configuration.clone_complete
+#   create_scale_cluster                    = var.create_scale_cluster
+#   scale_cluster_clustername               = var.resource_prefix
+#   scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
+#   scale_encryption_admin_password         = var.scale_encryption_admin_password
+#   scale_encryption_admin_username         = var.scale_encryption_admin_username
+#   scale_encryption_servers                = jsonencode(one(module.gklm_instance[*].gklm_ip_addresses))
+#   scale_encryption_servers_dns            = jsonencode(one(module.gklm_instance[*].gklm_dns_names))
+#   meta_private_key                        = module.generate_gklm_instance_keys.private_key_content
+#   storage_cluster_encryption              = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+#   compute_cluster_encryption              = (var.create_separate_namespaces == true && var.total_compute_cluster_instances >= 0) ? true : false
+#   combined_cluster_encryption             = var.create_separate_namespaces == false ? true : false
+#   compute_cluster_create_complete         = module.compute_cluster_configuration.compute_cluster_create_complete
+#   storage_cluster_create_complete         = module.storage_cluster_configuration.storage_cluster_create_complete
+#   combined_cluster_create_complete        = module.combined_cluster_configuration.combined_cluster_create_complete
+#   remote_mount_create_complete            = module.remote_mount_configuration.remote_mount_create_complete
+#   depends_on                              = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
+# }
 
 module "ldap_configuration" {
   source                     = "../../../resources/common/ldap_configuration"
