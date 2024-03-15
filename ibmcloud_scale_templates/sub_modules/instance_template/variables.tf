@@ -469,7 +469,7 @@ variable "enable_ldap" {
 
 variable "ldap_basedns" {
   type        = string
-  default     = "hpcaas.com"
+  default     = "scale.com"
   description = "The dns domain name is used for configuring the LDAP server. If an LDAP server is already in existence, ensure to provide the associated DNS domain name."
 }
 
