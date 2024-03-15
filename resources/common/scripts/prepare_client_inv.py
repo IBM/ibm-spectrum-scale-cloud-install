@@ -72,7 +72,7 @@ def prepare_ansible_playbook_mount_fileset_client(hosts_config):
     return content
 
 
-def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable_ldap, ldap_basedns, ldap_server):
+def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password):
     """ Initialize cluster details.
     :args: protocol_cluster_reserved_names (string), filesets (string)
     """
@@ -87,6 +87,7 @@ def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable
     cluster_details['enable_ldap'] = enable_ldap
     cluster_details['ldap_basedns'] = ldap_basedns
     cluster_details['ldap_server'] = ldap_server
+    cluster_details['ldap_admin_password'] = ldap_admin_password
     return cluster_details
 
 
@@ -147,6 +148,7 @@ if __name__ == "__main__":
     PARSER.add_argument("--enable_ldap", help="Enable LDAP",  default="false")
     PARSER.add_argument("--ldap_basedns", help="Base domain of ldap", default="null")
     PARSER.add_argument("--ldap_server", help="LDAP Server IP", default="null")
+    PARSER.add_argument("--ldap_admin_password", help="LDAP Admin Password", default="null")
     ARGUMENTS = PARSER.parse_args()
 
     # Step-1: Read the inventory file
@@ -203,7 +205,11 @@ if __name__ == "__main__":
         configfile.write(node_template)
 
     config['all:vars'] = initialize_cluster_details(STRG_TF['protocol_cluster_reserved_names'],
-                                                    STRG_TF['filesets'])
+                                                    STRG_TF['filesets'],
+                                                    ARGUMENTS.enable_ldap,
+                                                    ARGUMENTS.ldap_basedns,
+                                                    ARGUMENTS.ldap_server,
+                                                    ARGUMENTS.ldap_admin_password)
     with open(
         "%s/%s/client_inventory.ini"
         % (ARGUMENTS.install_infra_path, "ibm-spectrum-scale-install-infra"),

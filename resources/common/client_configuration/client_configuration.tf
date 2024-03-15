@@ -57,7 +57,7 @@ resource "null_resource" "prepare_client_inventory" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.storage_cluster_create_complete) == true && tobool(var.using_jumphost_connection) == false && tobool(var.create_scale_cluster) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --client_tf_inv_path ${var.client_inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.client_private_key} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server}"
+    command     = "python3 ${local.ansible_inv_script_path} --client_tf_inv_path ${var.client_inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.client_private_key} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password}"
   }
   triggers = {
     build = timestamp()
