@@ -138,7 +138,8 @@ locals {
     for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
     vm_name => {
       # Consider only first 2 elements
-      subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
+      subnet         = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
+      ces_private_ip = element(var.ces_private_ips, idx)
     }
   }
 }

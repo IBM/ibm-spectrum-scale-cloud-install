@@ -9,6 +9,7 @@ variable "security_groups" {}
 variable "iam_instance_profile" {}
 variable "placement_group" {}
 variable "subnet_id" {}
+variable "secondary_private_ips" {}
 variable "root_volume_type" {}
 variable "root_device_encrypted" {}
 variable "root_device_kms_key_id" {}
@@ -43,11 +44,12 @@ data "aws_kms_key" "itself" {
 }
 
 resource "aws_instance" "itself" {
-  ami             = var.ami_id
-  instance_type   = var.instance_type
-  key_name        = var.user_public_key
-  security_groups = var.security_groups
-  subnet_id       = var.subnet_id
+  ami                   = var.ami_id
+  instance_type         = var.instance_type
+  key_name              = var.user_public_key
+  security_groups       = var.security_groups
+  subnet_id             = var.subnet_id
+  secondary_private_ips = length(var.secondary_private_ips) > 0 ? var.secondary_private_ips : null
 
   # Only include iam_instance_profile if var.iam_instance_profile is a non-empty string
   # otherwise, skip the parameter entirely
