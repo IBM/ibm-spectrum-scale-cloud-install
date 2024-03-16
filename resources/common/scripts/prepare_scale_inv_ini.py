@@ -135,6 +135,8 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
   collections:
      - ibm.spectrum_scale
   any_errors_fatal: true
+  vars:
+    - scale_node_update_check: false
   pre_tasks:
      - include_vars: group_vars/{cluster_config}
   roles:
