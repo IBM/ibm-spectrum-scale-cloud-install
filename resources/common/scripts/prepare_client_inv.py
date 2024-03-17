@@ -145,8 +145,8 @@ if __name__ == "__main__":
     )
     PARSER.add_argument("--verbose", action="store_true",
                         help="print log messages")
-    PARSER.add_argument("--enable_ldap", help="Enable LDAP",  default="false")
-    PARSER.add_argument("--ldap_basedns", help="Base domain of ldap", default="null")
+    PARSER.add_argument("--enable_ldap", help="Enabling the LDAP",  default="false")
+    PARSER.add_argument("--ldap_basedns", help="Base domain of LDAP", default="null")
     PARSER.add_argument("--ldap_server", help="LDAP Server IP", default="null")
     PARSER.add_argument("--ldap_admin_password", help="LDAP Admin Password", default="null")
     ARGUMENTS = PARSER.parse_args()

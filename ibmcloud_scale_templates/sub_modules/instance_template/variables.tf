@@ -459,7 +459,7 @@ variable "client_cluster_key_pair" {
   description = "The key pair to use to launch the client cluster host."
 }
 
-# LDAP Variables
+## LDAP variables
 
 variable "enable_ldap" {
   type        = bool
@@ -469,7 +469,7 @@ variable "enable_ldap" {
 
 variable "ldap_basedns" {
   type        = string
-  default     = "scale.com"
+  default     = "ldapscale.com"
   description = "The dns domain name is used for configuring the LDAP server. If an LDAP server is already in existence, ensure to provide the associated DNS domain name."
 }
 
@@ -514,5 +514,5 @@ variable "ldap_vsi_profile" {
 variable "ldap_vsi_osimage_name" {
   type        = string
   default     = "ibm-ubuntu-22-04-3-minimal-amd64-1"
-  description = "Image name to be used for provisioning the LDAP instances."
+  description = "Image name to be used for provisioning the LDAP instances. Note: Debian based OS are only supported for the LDAP feature."
 }
