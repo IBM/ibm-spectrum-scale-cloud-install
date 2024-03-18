@@ -6,7 +6,7 @@ variable "image_description" {
 
 variable "install_protocols" {
   type        = string
-  default     = false
+  default     = "*"
   description = "Flag to determine whether to install protocol packages or not."
 }
 

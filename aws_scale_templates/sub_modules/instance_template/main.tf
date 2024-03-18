@@ -441,7 +441,7 @@ module "compute_cluster_instances" {
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
   placement_group        = null
   subnet_id              = each.value["subnet"]
-  secondary_private_ips  = null
+  secondary_private_ip   = null
   root_volume_type       = var.compute_cluster_boot_disk_type
   root_device_encrypted  = var.root_device_encrypted
   root_device_kms_key_id = var.root_device_kms_key_ref
@@ -515,7 +515,7 @@ module "gateway_instances" {
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
   placement_group        = null
   subnet_id              = each.value["subnet"]
-  secondary_private_ips  = null
+  secondary_private_ip   = null
   root_volume_type       = var.storage_cluster_boot_disk_type
   root_device_encrypted  = var.root_device_encrypted
   root_device_kms_key_id = var.root_device_kms_key_ref
@@ -536,7 +536,7 @@ module "protocol_instances" {
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
   placement_group        = null
   subnet_id              = each.value["subnet"]
-  secondary_private_ips  = each.value["ces_private_ip"]
+  secondary_private_ip   = each.value["ces_private_ip"]
   root_volume_type       = var.storage_cluster_boot_disk_type
   root_device_encrypted  = var.root_device_encrypted
   root_device_kms_key_id = var.root_device_kms_key_ref
