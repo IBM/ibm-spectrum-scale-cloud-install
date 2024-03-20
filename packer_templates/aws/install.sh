@@ -46,6 +46,10 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo dnf install -y gpfs.crypto
     fi
 
+    ces_failback() {
+        sudo cp /usr/lpp/mmfs/samples/cloud/ces_middleware/mmcesExtendedIpMgmt.aws /var/mmfs/etc/mmcesExtendedIpMgmt
+    }
+
     install_nfs() {
         sudo sh -c "echo '[NFSProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'name=IBM Storage Scale NFS Protocol Repository' >> /etc/yum.repos.d/scale.repo"
@@ -93,17 +97,21 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
 
     case "$INSTALL_PROTOCOLS" in
         *)
+            ces_failback
             install_nfs
             install_smb
             install_s3
             ;;
         nfs)
+            ces_failback
             install_nfs
             ;;
         smb)
+            ces_failback
             install_smb
             ;;
         s3)
+            ces_failback
             install_s3
             ;;
     esac
