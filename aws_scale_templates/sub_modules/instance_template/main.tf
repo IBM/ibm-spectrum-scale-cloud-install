@@ -60,26 +60,29 @@ module "cluster_host_iam_policy" {
             "Resource": "*",
             "Effect": "Allow",
             "Action": [
-                "ec2:AttachVolume",
-                "ec2:AuthorizeSecurityGroupIngress",
-                "ec2:CreateSecurityGroup",
-                "ec2:CreateVolume",
-                "ec2:DeleteVolume",
                 "ec2:DetachVolume",
-                "ec2:Describe*",
-                "ec2:CreateTags*",
-                "ec2:ModifyInstanceAttribute",
+                "ec2:AttachVolume",
                 "iam:GetRole",
-                "ssm:DescribeParameters",
-                "ssm:PutParameter",
-                "ssm:GetParameter",
-                "ssm:DeleteParameters",
+                "ec2:AuthorizeSecurityGroupIngress",
                 "sns:DeleteTopic",
                 "sns:CreateTopic",
+                "ec2:CreateTags*",
                 "sns:Unsubscribe",
+                "ec2:AssignPrivateIpAddresses",
+                "ssm:GetParameter",
+                "ssm:DeleteParameters",
+                "ec2:CreateVolume",
+                "ssm:PutParameter",
+                "ec2:DeleteVolume",
+                "ec2:Describe*",
+                "sns:Publish",
+                "ssm:DescribeParameters",
+                "ec2:CreateSecurityGroup",
                 "sns:Subscribe",
-                "sns:Publish"
-            ]
+                "ec2:UnassignPrivateIpAddresses",
+                "ec2:ModifyInstanceAttribute"
+            ],
+            "Resource": "*"
         }
     ]
 }

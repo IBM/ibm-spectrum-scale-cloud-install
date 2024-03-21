@@ -63,6 +63,7 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
         sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+        sudo dnf install -y gpfs.pm-ganesha
     }
 
     install_smb() {
@@ -89,7 +90,7 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
             sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/s3_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
         fi
         sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
-        sudo sh -c "echo 'gpgcheck=0' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
         sudo dnf install -y gpfs.mms3 noobaa-core
