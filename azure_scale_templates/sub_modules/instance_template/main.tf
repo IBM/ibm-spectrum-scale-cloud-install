@@ -89,14 +89,14 @@ module "bastion_scale_cluster_tcp_inbound_security_rule" {
 module "storage_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
   turn_on             = local.storage_or_combined == true ? true : false
-  dns_domain_name     = format("%s.%s", var.vpc_region, var.vpc_storage_cluster_dns_domain)
+  dns_domain_name     = format("%s.%s-%s", var.vpc_region, basename(var.vpc_ref), var.vpc_storage_cluster_dns_domain)
   resource_group_name = var.resource_group_ref
 }
 
 module "compute_private_dns_zone" {
   source              = "../../../resources/azure/network/private_dns_zone"
   turn_on             = var.cluster_type == "Compute-only" ? true : false
-  dns_domain_name     = format("%s.%s", var.vpc_region, var.vpc_compute_cluster_dns_domain)
+  dns_domain_name     = format("%s.%s-%s", var.vpc_region, basename(var.vpc_ref), var.vpc_compute_cluster_dns_domain)
   resource_group_name = var.resource_group_ref
 }
 
@@ -156,7 +156,7 @@ module "compute_cluster_instances" {
   user_key_pair                 = var.create_remote_mount_cluster == true ? var.compute_cluster_key_pair : var.storage_cluster_key_pair
   meta_private_key              = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  dns_zone                      = format("%s.%s", var.vpc_region, var.vpc_compute_cluster_dns_domain)
+  dns_zone                      = format("%s.%s-%s", var.vpc_region, basename(var.vpc_ref), var.vpc_compute_cluster_dns_domain)
   availability_zone             = each.value["zone"]
   application_security_group_id = module.scale_cluster_asg.asg_id
   depends_on                    = [module.compute_private_dns_zone, module.storage_private_dns_zone]
@@ -188,7 +188,7 @@ module "storage_cluster_instances" {
   user_key_pair                  = var.storage_cluster_key_pair
   meta_private_key               = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                = module.generate_storage_cluster_keys.public_key_content
-  dns_zone                       = format("%s.%s", var.vpc_region, var.vpc_storage_cluster_dns_domain)
+  dns_zone                       = format("%s.%s-%s", var.vpc_region, basename(var.vpc_ref), var.vpc_storage_cluster_dns_domain)
   availability_zone              = each.value["zone"]
   disks                          = each.value["disks"]
   application_security_group_id  = module.scale_cluster_asg.asg_id
@@ -213,7 +213,7 @@ module "storage_cluster_tie_breaker_instance" {
   user_key_pair                  = var.storage_cluster_key_pair
   meta_private_key               = module.generate_storage_cluster_keys.private_key_content
   meta_public_key                = module.generate_storage_cluster_keys.public_key_content
-  dns_zone                       = format("%s.%s", var.vpc_region, var.vpc_storage_cluster_dns_domain)
+  dns_zone                       = format("%s.%s-%s", var.vpc_region, basename(var.vpc_ref), var.vpc_storage_cluster_dns_domain)
   availability_zone              = each.value["zone"]
   disks                          = each.value["disks"]
   application_security_group_id  = module.scale_cluster_asg.asg_id
