@@ -296,7 +296,7 @@ locals {
       subnet = var.vpc_storage_cluster_private_subnets[2] # Consider only last element
       disks = tomap({
         for idx, disk in tolist(local.flatten_tie_disk) :
-        disk["name"] => {
+        format("%s-%s", vm_name, disk["name"]) => {
           size        = disk["size"]
           type        = disk["type"]
           termination = disk["termination"]
