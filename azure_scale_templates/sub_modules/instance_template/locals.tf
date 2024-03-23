@@ -241,7 +241,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.block_device_names, jdx)
+          device_name = format("disk/azure/scsi1/lun%s", jdx)
         }
       })
     }
@@ -322,7 +322,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.block_device_names, jdx)
+          device_name = "disk/azure/scsi1/lun0"
         }
       })
     }
