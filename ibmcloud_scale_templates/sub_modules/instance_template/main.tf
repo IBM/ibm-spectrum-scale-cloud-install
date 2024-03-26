@@ -51,7 +51,7 @@ module "generate_gklm_instance_keys" {
 
 module "generate_ldap_instance_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = var.enable_ldap
+  turn_on = var.enable_ldap && var.ldap_server == "null"
 }
 
 module "deploy_security_group" {
@@ -127,7 +127,7 @@ module "gklm_instance_egress_security_rule" {
 
 module "ldap_instance_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
-  turn_on            = var.enable_ldap
+  turn_on            = var.enable_ldap && var.ldap_server == "null"
   security_group_ids = module.ldap_instance_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = "0.0.0.0/0"
@@ -209,7 +209,7 @@ module "gklm_instance_ingress_security_rule_wo_bastion" {
 
 module "ldap_instance_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = var.enable_ldap
+  turn_on           = var.enable_ldap && var.ldap_server == "null"
   sec_group_name    = [format("%s-ldap-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
