@@ -218,7 +218,7 @@ module "ldap_instance_security_group" {
 
 module "ldap_instance_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.enable_ldap == true && var.using_jumphost_connection == false) ? 5 : 0
+  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == false) ? 5 : 0
   security_group_id        = [module.ldap_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -226,7 +226,7 @@ module "ldap_instance_ingress_security_rule" {
 
 module "ldap_instance_ingress_security_rule_wt_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.enable_ldap == true && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null) ? 5 : 0
+  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null) ? 5 : 0
   security_group_id        = [module.ldap_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -234,14 +234,14 @@ module "ldap_instance_ingress_security_rule_wt_bastion" {
 
 module "ldap_instance_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.enable_ldap == true && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 4 : 0
+  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 4 : 0
   security_group_id        = [module.ldap_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
 }
 
 data "ibm_is_ssh_key" "ldap_ssh_key" {
-  count = var.enable_ldap == true && var.ldap_instance_key_pair != null ? length(var.ldap_instance_key_pair) : 0
+  count = var.enable_ldap == true && var.ldap_server == "null" && var.ldap_instance_key_pair != null ? length(var.ldap_instance_key_pair) : 0
   name  = var.ldap_instance_key_pair[count.index]
 }
 
@@ -261,9 +261,9 @@ module "ldap_instance" {
   vsi_profile          = var.ldap_vsi_profile
   vsi_subnet_id        = var.vpc_storage_cluster_private_subnets[0]
   vsi_security_group   = [module.ldap_instance_security_group.sec_group_id]
-  vsi_user_public_key  = var.enable_ldap == true ? data.ibm_is_ssh_key.ldap_ssh_key[*].id : []
-  vsi_meta_private_key = var.enable_ldap == true ? module.generate_ldap_instance_keys.private_key_content : 0
-  vsi_meta_public_key  = var.enable_ldap == true ? module.generate_ldap_instance_keys.public_key_content : 0
+  vsi_user_public_key  = var.enable_ldap == true && var.ldap_server == "null" ? data.ibm_is_ssh_key.ldap_ssh_key[*].id : []
+  vsi_meta_private_key = var.enable_ldap == true && var.ldap_server == "null" ? module.generate_ldap_instance_keys.private_key_content : 0
+  vsi_meta_public_key  = var.enable_ldap == true && var.ldap_server == "null" ? module.generate_ldap_instance_keys.public_key_content : 0
   depends_on           = [module.generate_ldap_instance_keys, module.ldap_instance_security_group]
   resource_tags        = var.scale_cluster_resource_tags
   ldap_admin_password  = var.ldap_admin_password
