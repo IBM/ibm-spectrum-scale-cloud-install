@@ -135,7 +135,7 @@ module "ldap_instance_egress_security_rule" {
 
 module "storage_cluster_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = var.total_storage_cluster_instances > 0 ? true : false
+  turn_on           = var.total_storage_cluster_instances > 0 && var.ldap_server == "null" ? true : false
   sec_group_name    = [format("%s-storage-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
