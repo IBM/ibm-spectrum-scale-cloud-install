@@ -972,7 +972,7 @@ module "encryption_configuration" {
 
 module "ldap_configuration" {
   source                     = "../../../resources/common/ldap_configuration"
-  turn_on                    = var.enable_ldap
+  turn_on                    = var.enable_ldap && var.ldap_server == "null"
   clone_path                 = var.scale_ansible_repo_clone_path
   clone_complete             = module.prepare_ansible_configuration.clone_complete
   create_scale_cluster       = var.create_scale_cluster
