@@ -26,7 +26,7 @@ locals {
   enable_sec_interface_compute = local.scale_ces_enabled == false && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
   enable_sec_interface_storage = local.scale_ces_enabled == false && var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
-  ldap_server                  = var.enable_ldap == true  && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
+  ldap_server                  = var.enable_ldap == true && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
 }
 
 module "generate_compute_cluster_keys" {
@@ -742,7 +742,7 @@ module "write_client_cluster_inventory" {
   scale_remote_cluster_clustername                 = jsonencode("")
   protocol_cluster_instance_names                  = jsonencode([])
   client_cluster_instance_names                    = local.scale_ces_enabled == true ? jsonencode(keys(module.client_cluster_instances.instance_name_id_map)) : jsonencode([])
-  protocol_cluster_reserved_names                  = local.scale_ces_enabled == true ? jsonencode(keys(one(module.protocol_reserved_ip[*].instance_name_ip_map))) : jsonencode([])
+  protocol_cluster_reserved_names                  = local.scale_ces_enabled == true ? jsonencode(format("%s-ces", var.resource_prefix)) : jsonencode([])
   smb                                              = false
   nfs                                              = false
   object                                           = false
@@ -810,8 +810,8 @@ module "storage_cluster_configuration" {
   disk_type                       = var.storage_type == "persistent" ? "locally-attached" : "network-attached"
   max_data_replicas               = 3
   max_metadata_replicas           = 3
-  default_metadata_replicas       = var.storage_type == "persistent" ? 3 : 2
-  default_data_replicas           = var.storage_type == "persistent" ? 2 : 1
+  default_metadata_replicas       = 2
+  default_data_replicas           = 2
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
