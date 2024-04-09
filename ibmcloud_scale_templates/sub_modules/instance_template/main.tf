@@ -742,7 +742,7 @@ module "write_client_cluster_inventory" {
   scale_remote_cluster_clustername                 = jsonencode("")
   protocol_cluster_instance_names                  = jsonencode([])
   client_cluster_instance_names                    = local.scale_ces_enabled == true ? jsonencode(keys(module.client_cluster_instances.instance_name_id_map)) : jsonencode([])
-  protocol_cluster_reserved_names                  = local.scale_ces_enabled == true ? jsonencode(format("%s-ces", var.resource_prefix)) : jsonencode([])
+  protocol_cluster_reserved_names                  = local.scale_ces_enabled == true ? jsonencode(format("%s-ces.%s", var.resource_prefix, var.vpc_protocol_cluster_dns_domain)) : jsonencode([])
   smb                                              = false
   nfs                                              = false
   object                                           = false
