@@ -1,11 +1,11 @@
-# Configure GCP VPC
+# Configure GCP cloud dns zones and associate with network
 
-The below steps will provision the GCP VPC required for the IBM Spectrum Scale cloud solution.
+The below steps will provision the GCP cloud dns required for the IBM Spectrum Scale cloud solution.
 
-1. Change the working directory to `gcp_scale_templates/sub_modules/vpc_template`.
+1. Change the working directory to `gcp_scale_templates/sub_modules/dns_template`.
 
     ```cli
-    cd ibm-spectrum-scale-cloud-install/gcp_scale_templates/sub_modules/vpc_template/
+    cd ibm-spectrum-scale-cloud-install/gcp_scale_templates/sub_modules/dns_template/
     ```
 
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
@@ -15,89 +15,21 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
     ```cli
     cat <<EOF > combined_1az.auto.tfvars.json
     {
-         "vpc_region": "us-central1",
-         "project_id": "spectrum-scale-XXXXXX",
-         "credential_json_path": "/home/gcp_data/spectrum-scale.json",
-         "vpc_cidr_block": "10.0.0.0/16",
-         "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
-         "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"],
-         "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.7.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-2:
-
-    ```cli
-    cat <<EOF > combined_3az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
+	    "cluster_type": "Combined-compute-storage",
         "project_id": "spectrum-scale-XXXXXX",
         "credential_json_path": "/home/gcp_data/spectrum-scale.json",
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
-        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"],
-        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.7.0/24", "10.0.8.0/24", "10.0.9.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-3:
-
-    ```cli
-    cat <<EOF > compute_1az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json",
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
-        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-4:
-
-    ```cli
-    cat <<EOF > compute_3az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
-        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-5:
-
-    ```cli
-    cat <<EOF > storage_1az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
-        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-6:
-
-    ```cli
-    cat <<EOF > storage_3az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
-        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+        "create_dns_zone": true,
+        "vpc_compute_cluster_dns_zone": "ibm-storage-scale-comp-zone",
+        "vpc_compute_cluster_dns_zone_description": "This zone is created by (cloudkit) for IBM Storage Scale (ibm-storage-scale) operations.",
+	    "vpc_compute_cluster_forward_dns_zone": "ibm-storage-scale.compscale.com",
+	    "vpc_ref": "ibm-storage-scale",
+    	"vpc_region": "us-central1",
+	    "vpc_reverse_dns_name": "10.in-addr.arpa",
+	    "vpc_reverse_dns_zone": "ibm-storage-scale-reverse",
+	    "vpc_reverse_dns_zone_description": "This zone is created by (cloudkit) for IBM Storage Scale (ibm-storage-scale) operations.",
+	    "vpc_storage_cluster_dns_zone": "ibm-storage-scale-strg-zone",
+	    "vpc_storage_cluster_dns_zone_description": "This zone is created by (cloudkit) for IBM Storage Scale (ibm-storage-scale) operations.",
+	    "vpc_storage_cluster_forward_dns_zone": "ibm-storage-scale.strgscale.com",
     }
     EOF
     ```
@@ -124,7 +56,7 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of compute private subnets. | `list(string)` |
 | <a name="input_vpc_description"></a> [vpc_description](#input_vpc_description) | Description of VPC. | `string` |
 | <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | Range of internal addresses. | `list(string)` |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | Region where the resources will be created. | `string` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | GCP region where the resources will be created. | `string` |
 | <a name="input_vpc_routing_mode"></a> [vpc_routing_mode](#input_vpc_routing_mode) | Network-wide routing mode to use (valid: REGIONAL, GLOBAL). | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of storage cluster private subnets. | `list(string)` |
 
