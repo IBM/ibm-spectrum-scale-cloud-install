@@ -46,18 +46,27 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo dnf install -y gpfs.crypto
     fi
 
-    if [ "$INSTALL_PROTOCOLS" = true ]; then
+    ces_failback() {
+        sudo cp /usr/lpp/mmfs/samples/cloud/ces_middleware/mmcesExtendedIpMgmt.aws /var/mmfs/etc/mmcesExtendedIpMgmt
+    }
+
+    install_nfs() {
         sudo sh -c "echo '[NFSProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'name=IBM Storage Scale NFS Protocol Repository' >> /etc/yum.repos.d/scale.repo"
         if sudo grep -q el8 /etc/os-release; then
             sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/ganesha_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
         elif sudo grep -q el9 /etc/os-release; then
-            sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+            sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/ganesha_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
         fi
         sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
+        sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+        sudo dnf install -y gpfs.pm-ganesha
+    }
+
+    install_smb() {
         sudo sh -c "echo '[SMBProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'name=IBM Storage Scale SMB Protocol Repository' >> /etc/yum.repos.d/scale.repo"
         if sudo grep -q el8 /etc/os-release; then
@@ -69,9 +78,45 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
-        sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
         sudo dnf install -y gpfs.smb
-    fi
+    }
+
+    install_s3() {
+        sudo sh -c "echo '[S3ProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'name=IBM Storage Scale S3 Protocol Repository' >> /etc/yum.repos.d/scale.repo"
+        if sudo grep -q el8 /etc/os-release; then
+            sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/s3_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
+        elif sudo grep -q el9 /etc/os-release; then
+            sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/s3_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+        fi
+        sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
+        sudo dnf install -y gpfs.mms3 noobaa-core
+    }
+
+    case "$INSTALL_PROTOCOLS" in
+        *)
+            ces_failback
+            install_nfs
+            install_smb
+            install_s3
+            ;;
+        nfs)
+            ces_failback
+            install_nfs
+            ;;
+        smb)
+            ces_failback
+            install_smb
+            ;;
+        s3)
+            ces_failback
+            install_s3
+            ;;
+    esac
+
     sudo /usr/lpp/mmfs/bin/mmbuildgpl
     sudo sh -c "echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc"
     sudo rm -rf /etc/yum.repos.d/scale.repo

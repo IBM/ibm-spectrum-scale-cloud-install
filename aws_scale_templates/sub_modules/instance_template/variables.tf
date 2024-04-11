@@ -37,7 +37,7 @@ variable "bastion_user" {
 variable "ces_private_ips" {
   type        = list(string)
   nullable    = true
-  description = "List of CES ipaddress to use (must be equal to total_protocol_instances). If null, random ips will be provisioned equal to total_protocol_instances."
+  description = "List of CES ipaddress to use (must be equal to total_protocol_instances)."
 }
 
 variable "client_ip_ranges" {

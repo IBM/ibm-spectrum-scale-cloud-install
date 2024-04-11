@@ -13,6 +13,11 @@ output "ces_nic_ids" {
   description = "CES/Protocol ENI (secondary nic) ids."
 }
 
+output "ces_private_ips" {
+  value       = local.separate_nic ? [] : var.ces_private_ips
+  description = "CES/Protocol ENI (secondary private) ips."
+}
+
 output "cluster_sns_arn" {
   value = module.email_notification.topic_arn
 }

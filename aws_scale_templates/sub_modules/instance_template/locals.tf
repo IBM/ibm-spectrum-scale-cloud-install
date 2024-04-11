@@ -138,7 +138,8 @@ locals {
     for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
     vm_name => {
       # Consider only first 2 elements
-      subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
+      subnet         = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
+      ces_private_ip = element(var.ces_private_ips, idx)
     }
   }
 }
@@ -149,14 +150,15 @@ locals {
     2. Each ENI will only have 1 secondary ip
 */
 locals {
-  protocol_vm_ces_map = {
+  separate_nic = false
+  protocol_vm_ces_map = local.separate_nic ? {
     for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
     vm_name => {
       subnet      = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
       private_ips = var.ces_private_ips == null ? null : element(var.ces_private_ips, idx)
       description = format("%s-ces", vm_name)
     }
-  }
+  } : {}
 }
 
 /*
