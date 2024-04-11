@@ -21,6 +21,6 @@ resource "google_dns_managed_zone" "itself" {
   }
 }
 
-output "dns_managed_zone_id" {
-  value = google_dns_managed_zone.itself[*].id
+output "zone_id" {
+  value = try(google_dns_managed_zone.itself[0].id, null)
 }

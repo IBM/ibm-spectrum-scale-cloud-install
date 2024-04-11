@@ -1,5 +1,5 @@
 /*
-    IBM Storage Scale cloud deployment requires one VPC with below resources.
+    IBM Storage Scale cloud deployment requires 1 VPC with below resources.
 
     1.  VPC
     2.  PublicSubnet
@@ -8,6 +8,7 @@
     5.  Cloud NAT
 */
 
+# VPC with no subnets
 module "vpc" {
   source           = "../../../resources/gcp/vpc"
   turn_on          = var.vpc_cidr_block != null ? true : false
@@ -16,6 +17,7 @@ module "vpc" {
   vpc_description  = var.vpc_description
 }
 
+# One Public subnet (as subnet is global to all zones)
 module "public_subnet" {
   source                = "../../../resources/gcp/network/subnet"
   turn_on               = var.vpc_public_subnets_cidr_blocks != null ? true : false
@@ -26,6 +28,7 @@ module "public_subnet" {
   private_google_access = false
 }
 
+# One compute private subnet
 module "compute_private_subnet" {
   source                = "../../../resources/gcp/network/subnet"
   turn_on               = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
@@ -36,6 +39,7 @@ module "compute_private_subnet" {
   private_google_access = true
 }
 
+# One storage private subnet
 module "storage_private_subnet" {
   source                = "../../../resources/gcp/network/subnet"
   turn_on               = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
@@ -46,6 +50,7 @@ module "storage_private_subnet" {
   private_google_access = true
 }
 
+# Create a router associated to vpc
 module "router" {
   source      = "../../../resources/gcp/network/router"
   turn_on     = var.vpc_cidr_block != null ? true : false
@@ -53,6 +58,7 @@ module "router" {
   vpc_name    = module.vpc.vpc_self_link
 }
 
+# Create a NAT associated to compute subnet
 module "compute_cloud_nat" {
   source            = "../../../resources/gcp/network/cloud_nat"
   turn_on           = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
@@ -61,6 +67,7 @@ module "compute_cloud_nat" {
   private_subnet_id = module.compute_private_subnet.subnet_id
 }
 
+# Create a NAT associated to storage subnet
 module "storage_cloud_nat" {
   source            = "../../../resources/gcp/network/cloud_nat"
   turn_on           = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false

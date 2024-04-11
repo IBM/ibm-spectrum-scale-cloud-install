@@ -49,7 +49,7 @@ variable "vpc_public_subnets_cidr_blocks" {
 variable "vpc_region" {
   type        = string
   nullable    = false
-  description = "GCP region where the resources will be created."
+  description = "Region where the resources will be created."
 }
 
 variable "vpc_routing_mode" {
