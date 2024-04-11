@@ -12,6 +12,10 @@ resource "aws_iam_role_policy" "itself" {
   name_prefix = var.role_policy_name_prefix
   role        = element(var.iam_role_id, count.index)
   policy      = var.iam_role_policy
+  # Admin might add/link custom IAM policies, hence avoid to overwrite it
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 output "role_name" {

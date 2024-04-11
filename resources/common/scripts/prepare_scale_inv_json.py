@@ -51,12 +51,12 @@ def read_json_file(json_path):
 
 
 def calculate_pagepool(memory_size, max_pagepool_gb):
-    """ Calculate pagepool """
+    """ Calculate pagepool (min: 4G,1/3RAM) """
     # 1 MiB = 1.048576 MB
     mem_size_mb = int(int(memory_size) * 1.048576)
     # 1 MB = 0.001 GB
     mem_size_gb = int(mem_size_mb * 0.001)
-    pagepool_gb = max(int(int(mem_size_gb)*int(25)*0.01), 1)
+    pagepool_gb = max(round(int(mem_size_gb*33.33*0.01)), 4)
     if pagepool_gb > int(max_pagepool_gb):
         pagepool = int(max_pagepool_gb)
     else:
@@ -883,7 +883,7 @@ if __name__ == "__main__":
                         help='Bastion SSH private key path')
     PARSER.add_argument('--memory_size', help='Instance memory size')
     PARSER.add_argument('--max_pagepool_gb', help='maximum pagepool size in GB',
-                        default=1)
+                        default=4)
     PARSER.add_argument('--using_packer_image', help='skips gpfs rpm copy')
     PARSER.add_argument('--using_rest_initialization',
                         help='skips gui configuration')

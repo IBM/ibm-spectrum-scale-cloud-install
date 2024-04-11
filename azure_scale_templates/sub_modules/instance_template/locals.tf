@@ -241,7 +241,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.block_device_names, jdx)
+          device_name = format("disk/azure/scsi1/lun%s", jdx)
         }
       })
     }
@@ -296,7 +296,7 @@ locals {
       subnet = var.vpc_storage_cluster_private_subnets[2] # Consider only last element
       disks = tomap({
         for idx, disk in tolist(local.flatten_tie_disk) :
-        disk["name"] => {
+        format("%s-%s", vm_name, disk["name"]) => {
           size        = disk["size"]
           type        = disk["type"]
           termination = disk["termination"]
@@ -322,7 +322,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.block_device_names, jdx)
+          device_name = "disk/azure/scsi1/lun0"
         }
       })
     }
