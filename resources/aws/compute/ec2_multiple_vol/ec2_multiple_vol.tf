@@ -2,25 +2,29 @@
      Creates specified number of AWS EC2 instance(s).
 */
 
-variable "zone" {}
-variable "name_prefix" {}
 variable "ami_id" {}
-variable "instance_type" {}
-variable "security_groups" {}
+variable "disks" {}
+variable "ebs_optimized" {}
+variable "forward_dns_zone" {}
 variable "iam_instance_profile" {}
-variable "placement_group" {}
-variable "subnet_id" {}
-variable "root_volume_type" {}
-variable "user_public_key" {}
+variable "instance_type" {}
+variable "is_nitro_instance" {}
 variable "meta_private_key" {}
 variable "meta_public_key" {}
-variable "ebs_optimized" {}
-variable "disks" {}
+variable "name_prefix" {}
+variable "placement_group" {}
+variable "reverse_dns_domain" {}
+variable "reverse_dns_zone" {}
 variable "root_device_encrypted" {}
 variable "root_device_kms_key_id" {}
-variable "is_nitro_instance" {}
+variable "root_volume_type" {}
+variable "security_groups" {}
+variable "subnet_id" {}
 variable "tags" {}
+variable "user_public_key" {}
 variable "volume_tags" {}
+variable "zone" {}
+variable "dns_domain" {}
 
 data "template_file" "user_data" {
   template = <<EOF
@@ -29,6 +33,10 @@ echo "${var.meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
+# Hostname settings
+hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
+echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 EOF
 }
 
@@ -134,6 +142,24 @@ resource "aws_ebs_volume" "itself" {
     },
     var.volume_tags,
   )
+}
+
+# Create "A" (IPv4 Address) record to map IPv4 address as hostname along with domain
+resource "aws_route53_record" "a_itself" {
+  zone_id = var.forward_dns_zone
+  type    = "A"
+  name    = var.name_prefix
+  records = [aws_instance.itself.private_ip]
+  ttl     = 360
+}
+
+# Create "PTR" (Pointer) to enables reverse DNS lookup, from an IP address to a hostname
+resource "aws_route53_record" "ptr_itself" {
+  zone_id = var.reverse_dns_zone
+  type    = "PTR"
+  name    = format("%s.%s.%s.%s", split(".", aws_instance.itself.private_ip)[3], split(".", aws_instance.itself.private_ip)[2], split(".", aws_instance.itself.private_ip)[1], var.reverse_dns_domain)
+  records = [format("%s.%s", var.name_prefix, var.dns_domain)]
+  ttl     = 360
 }
 
 # Attach the volumes to provisioned instance

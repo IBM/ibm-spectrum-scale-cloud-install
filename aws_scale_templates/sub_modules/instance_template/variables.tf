@@ -352,10 +352,22 @@ variable "vpc_availability_zones" {
   description = "A list of availability zones names or ids in the region."
 }
 
+variable "vpc_compute_cluster_dns_domain" {
+  type        = string
+  nullable    = true
+  description = "DNS domain name to be used for compute cluster."
+}
+
 variable "vpc_compute_cluster_private_subnets" {
   type        = list(string)
   nullable    = true
   description = "List of IDs of compute cluster private subnets."
+}
+
+variable "vpc_forward_dns_zone" {
+  type        = string
+  nullable    = true
+  description = "DNS zone name to be used for scale cluster (Ex: example-zone)."
 }
 
 variable "vpc_ref" {
@@ -368,6 +380,24 @@ variable "vpc_region" {
   type        = string
   nullable    = false
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
+}
+
+variable "vpc_reverse_dns_domain" {
+  type        = string
+  nullable    = true
+  description = "DNS reverse domain (Ex: 10.in-addr.arpa)."
+}
+
+variable "vpc_reverse_dns_zone" {
+  type        = string
+  nullable    = true
+  description = "DNS reverse zone lookup to be used for scale cluster (Ex: example-zone-reverse)."
+}
+
+variable "vpc_storage_cluster_dns_domain" {
+  type        = string
+  nullable    = true
+  description = "DNS domain name to be used for storage cluster."
 }
 
 variable "vpc_storage_cluster_private_subnets" {
