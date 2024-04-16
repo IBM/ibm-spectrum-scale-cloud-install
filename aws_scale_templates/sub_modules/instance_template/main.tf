@@ -60,31 +60,24 @@ module "cluster_host_iam_policy" {
             "Resource": "*",
             "Effect": "Allow",
             "Action": [
-                "ec2:DetachVolume",
-                "ec2:AttachVolume",
-                "iam:GetRole",
-                "ec2:AuthorizeSecurityGroupIngress",
-                "sns:DeleteTopic",
-                "sns:CreateTopic",
-                "ec2:CreateTags*",
-                "sns:Unsubscribe",
-                "ec2:AssignPrivateIpAddresses",
                 "ec2:CreateVolume",
                 "ec2:DeleteVolume",
+                "ec2:DetachVolume",
+                "ec2:AttachVolume",
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:AssignPrivateIpAddresses",
                 "ec2:Describe*",
-                "sns:Publish",
                 "ec2:CreateSecurityGroup",
                 "ec2:CreateTags*",
+                "ec2:UnassignPrivateIpAddresses",
                 "ec2:ModifyInstanceAttribute",
                 "iam:GetRole",
+                "sns:Publish",
                 "sns:DeleteTopic",
                 "sns:CreateTopic",
                 "sns:Unsubscribe",
-                "sns:Subscribe",
-                "ec2:UnassignPrivateIpAddresses",
-                "ec2:ModifyInstanceAttribute"
-            ],
-            "Resource": "*"
+                "sns:Subscribe"
+            ]
         }
     ]
 }
@@ -439,22 +432,26 @@ resource "aws_placement_group" "itself" {
 module "compute_cluster_instances" {
   for_each               = local.compute_vm_subnet_map
   source                 = "../../../resources/aws/compute/ec2_0_vol"
-  name_prefix            = each.key
   ami_id                 = var.compute_cluster_image_ref
-  instance_type          = var.compute_cluster_instance_type
-  security_groups        = [module.compute_cluster_security_group.sec_group_id]
+  dns_domain             = var.vpc_compute_cluster_dns_domain
+  forward_dns_zone       = var.vpc_forward_dns_zone
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  placement_group        = null
-  subnet_id              = each.value["subnet"]
-  secondary_private_ip   = null
-  root_volume_type       = var.compute_cluster_boot_disk_type
-  root_device_encrypted  = var.root_device_encrypted
-  root_device_kms_key_id = var.root_device_kms_key_ref
-  user_public_key        = var.compute_cluster_key_pair
+  instance_type          = var.compute_cluster_instance_type
   meta_private_key       = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  volume_tags            = var.compute_cluster_volume_tags
+  name_prefix            = each.key
+  placement_group        = null
+  reverse_dns_domain     = var.vpc_reverse_dns_domain
+  reverse_dns_zone       = var.vpc_reverse_dns_zone
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
+  root_volume_type       = var.compute_cluster_boot_disk_type
+  secondary_private_ip   = null
+  security_groups        = [module.compute_cluster_security_group.sec_group_id]
+  subnet_id              = each.value["subnet"]
   tags                   = var.compute_cluster_tags
+  user_public_key        = var.compute_cluster_key_pair
+  volume_tags            = var.compute_cluster_volume_tags
 }
 
 data "aws_ec2_instance_type" "storage_profile" {
@@ -465,91 +462,107 @@ data "aws_ec2_instance_type" "storage_profile" {
 module "storage_cluster_instances" {
   for_each               = local.storage_vm_zone_map
   source                 = "../../../resources/aws/compute/ec2_multiple_vol"
-  name_prefix            = each.key
   ami_id                 = var.storage_cluster_image_ref
-  instance_type          = var.storage_cluster_instance_type
-  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  disks                  = each.value["disks"]
+  dns_domain             = var.vpc_storage_cluster_dns_domain
+  ebs_optimized          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
+  forward_dns_zone       = var.vpc_forward_dns_zone
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  placement_group        = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
-  subnet_id              = each.value["subnet"]
-  root_volume_type       = var.storage_cluster_boot_disk_type
-  root_device_encrypted  = var.root_device_encrypted
-  root_device_kms_key_id = var.root_device_kms_key_ref
-  user_public_key        = var.storage_cluster_key_pair
+  instance_type          = var.storage_cluster_instance_type
+  is_nitro_instance      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
   meta_private_key       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = module.generate_storage_cluster_keys.public_key_content
-  ebs_optimized          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
-  is_nitro_instance      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
-  zone                   = each.value["zone"]
-  disks                  = each.value["disks"]
+  name_prefix            = each.key
+  placement_group        = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
+  reverse_dns_domain     = var.vpc_reverse_dns_domain
+  reverse_dns_zone       = var.vpc_reverse_dns_zone
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
+  root_volume_type       = var.storage_cluster_boot_disk_type
+  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  subnet_id              = each.value["subnet"]
   tags                   = var.storage_cluster_tags
+  user_public_key        = var.storage_cluster_key_pair
   volume_tags            = var.storage_cluster_volume_tags
+  zone                   = each.value["zone"]
 }
 
 module "storage_cluster_tie_breaker_instance" {
   for_each               = local.storage_tie_vm_zone_map
   source                 = "../../../resources/aws/compute/ec2_multiple_vol"
-  name_prefix            = each.key
   ami_id                 = var.storage_cluster_image_ref
-  instance_type          = var.storage_cluster_tiebreaker_instance_type
-  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  disks                  = each.value["disks"]
+  dns_domain             = var.vpc_storage_cluster_dns_domain
+  ebs_optimized          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
+  forward_dns_zone       = var.vpc_forward_dns_zone
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  placement_group        = null
-  subnet_id              = each.value["subnet"]
-  root_volume_type       = var.storage_cluster_boot_disk_type
-  root_device_encrypted  = var.root_device_encrypted
-  root_device_kms_key_id = var.root_device_kms_key_ref
-  user_public_key        = var.storage_cluster_key_pair
+  instance_type          = var.storage_cluster_tiebreaker_instance_type
+  is_nitro_instance      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
   meta_private_key       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = module.generate_storage_cluster_keys.public_key_content
-  ebs_optimized          = try(data.aws_ec2_instance_type.storage_profile[0].ebs_optimized_support, null) == "unsupported" ? false : true
-  is_nitro_instance      = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
-  zone                   = each.value["zone"]
-  disks                  = each.value["disks"]
+  name_prefix            = each.key
+  placement_group        = null
+  reverse_dns_domain     = var.vpc_reverse_dns_domain
+  reverse_dns_zone       = var.vpc_reverse_dns_zone
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
+  root_volume_type       = var.storage_cluster_boot_disk_type
+  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  subnet_id              = each.value["subnet"]
   tags                   = var.storage_cluster_tags
+  user_public_key        = var.storage_cluster_key_pair
   volume_tags            = var.storage_cluster_volume_tags
+  zone                   = each.value["zone"]
 }
 
 module "gateway_instances" {
   for_each               = local.gateway_vm_subnet_map
   source                 = "../../../resources/aws/compute/ec2_0_vol"
-  name_prefix            = each.key
   ami_id                 = var.storage_cluster_image_ref
-  instance_type          = var.gateway_instance_type
-  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  dns_domain             = var.vpc_compute_cluster_dns_domain
+  forward_dns_zone       = var.vpc_forward_dns_zone
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  placement_group        = null
-  subnet_id              = each.value["subnet"]
-  secondary_private_ip   = null
-  root_volume_type       = var.storage_cluster_boot_disk_type
-  root_device_encrypted  = var.root_device_encrypted
-  root_device_kms_key_id = var.root_device_kms_key_ref
-  user_public_key        = var.storage_cluster_key_pair
+  instance_type          = var.gateway_instance_type
   meta_private_key       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = module.generate_storage_cluster_keys.public_key_content
-  volume_tags            = var.gateway_volume_tags
+  name_prefix            = each.key
+  placement_group        = null
+  reverse_dns_domain     = var.vpc_reverse_dns_domain
+  reverse_dns_zone       = var.vpc_reverse_dns_zone
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
+  root_volume_type       = var.storage_cluster_boot_disk_type
+  secondary_private_ip   = null
+  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  subnet_id              = each.value["subnet"]
   tags                   = var.gateway_tags
+  user_public_key        = var.storage_cluster_key_pair
+  volume_tags            = var.gateway_volume_tags
 }
 
 module "protocol_instances" {
   for_each               = local.protocol_vm_subnet_map
   source                 = "../../../resources/aws/compute/ec2_0_vol"
-  name_prefix            = each.key
   ami_id                 = var.storage_cluster_image_ref
-  instance_type          = var.protocol_instance_type
-  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  dns_domain             = var.vpc_compute_cluster_dns_domain
+  forward_dns_zone       = var.vpc_forward_dns_zone
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-  placement_group        = null
-  subnet_id              = each.value["subnet"]
-  secondary_private_ip   = each.value["ces_private_ip"]
-  root_volume_type       = var.storage_cluster_boot_disk_type
-  root_device_encrypted  = var.root_device_encrypted
-  root_device_kms_key_id = var.root_device_kms_key_ref
-  user_public_key        = var.storage_cluster_key_pair
+  instance_type          = var.protocol_instance_type
   meta_private_key       = module.generate_storage_cluster_keys.private_key_content
   meta_public_key        = module.generate_storage_cluster_keys.public_key_content
-  volume_tags            = var.protocol_volume_tags
+  name_prefix            = each.key
+  placement_group        = null
+  reverse_dns_domain     = var.vpc_reverse_dns_domain
+  reverse_dns_zone       = var.vpc_reverse_dns_zone
+  root_device_encrypted  = var.root_device_encrypted
+  root_device_kms_key_id = var.root_device_kms_key_ref
+  root_volume_type       = var.storage_cluster_boot_disk_type
+  secondary_private_ip   = each.value["ces_private_ip"]
+  security_groups        = [module.storage_cluster_security_group.sec_group_id]
+  subnet_id              = each.value["subnet"]
   tags                   = var.protocol_tags
+  user_public_key        = var.storage_cluster_key_pair
+  volume_tags            = var.protocol_volume_tags
 }
 
 module "protocol_enis" {
