@@ -97,12 +97,6 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     }
 
     case "$INSTALL_PROTOCOLS" in
-        *)
-            ces_failback
-            install_nfs
-            install_smb
-            install_s3
-            ;;
         nfs)
             ces_failback
             install_nfs
@@ -113,6 +107,27 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
             ;;
         s3)
             ces_failback
+            install_s3
+            ;;
+        nfs-s3)
+            ces_failback
+            install_nfs
+            install_s3
+            ;;
+        nfs-smb)
+            ces_failback
+            install_nfs
+            install_smb
+            ;;
+        smb-s3)
+            ces_failback
+            install_smb
+            install_s3
+            ;;
+        *)
+            ces_failback
+            install_nfs
+            install_smb
             install_s3
             ;;
     esac

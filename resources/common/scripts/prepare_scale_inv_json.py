@@ -149,10 +149,10 @@ def set_node_details(fqdn, ip_address, ansible_ssh_private_key_file,
     })
 
 
-def interleave_nodes_by_fg(node_ips_with_zone_mapping):
+def interleave_nodes_by_fg(node_details):
     failure_groups = {}
     zone_list = []
-    for ip, zone_info in node_ips_with_zone_mapping.items():
+    for ip, zone_info in node_details.items():
         zone = zone_info['zone']
         if zone not in failure_groups:
             failure_groups[zone] = []
@@ -167,576 +167,240 @@ def interleave_nodes_by_fg(node_ips_with_zone_mapping):
 
 
 def initialize_node_details(az_count, cls_type,
-                            compute_ips_with_zone_mapping, compute_dns_map,
-                            storage_ips_with_zone_mapping, storage_dns_map,
-                            desc_private_ips, desc_dns_map,
-                            quorum_count, user, key_file):
+                            compute_cluster_details, storage_cluster_details,
+                            storage_cluster_desc_details, quorum_count, user, key_file):
     """ Initialize node details for cluster definition.
-    :args: az_count (int), cls_type (string), compute_private_ips (list),
-           storage_private_ips (list), desc_private_ips (list),
+    :args: az_count (int), cls_type (string), compute_cluster_details (dict),
+           storage_cluster_details (dict), storage_cluster_desc_details (dict),
            quorum_count (int), user (string), key_file (string)
     """
-    node_details, node = [], {}
+    node_details = []
     if cls_type == 'compute':
         start_quorum_assign = quorum_count - 1
+        compute_instances = (interleave_nodes_by_fg(compute_cluster_details)
+                             if az_count > 1
+                             else [item["private_ip"] for item in compute_cluster_details])
 
-        compute_instances = []
-        if az_count > 1:
-            compute_instances = interleave_nodes_by_fg(
-                compute_ips_with_zone_mapping)
-        else:
-            compute_instances = list(compute_ips_with_zone_mapping.keys())
-
-        for each_ip in compute_instances:
-
-            if compute_instances.index(each_ip) <= (start_quorum_assign) and \
-                    compute_instances.index(each_ip) <= (manager_count - 1):
-                if compute_instances.index(each_ip) == 0:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': True, 'is_collector': True, 'is_nsd': False,
-                    #         'is_admin': True, 'user': user, 'key_file': key_file,
-                    #         'class': "computenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "computenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=True,
-                                     is_collector_node=True,
-                                     is_nsd_server=False,
-                                     is_admin_node=True)
-
-                elif compute_instances.index(each_ip) == 1:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': False, 'is_collector': True, 'is_nsd': False,
-                    #         'is_admin': False, 'user': user, 'key_file': key_file,
-                    #         'class': "computenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "computenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=False,
-                                     is_collector_node=True,
-                                     is_nsd_server=False,
-                                     is_admin_node=False)
-
+        for index, each_ip in enumerate(compute_instances):
+            if index <= start_quorum_assign and index <= (manager_count - 1):
+                if index == 0:
+                    set_node_details(compute_cluster_details[index]["dns"],
+                                     each_ip, key_file, "computenodegrp", user,
+                                     is_quorum_node=True, is_manager_node=True,
+                                     is_gui_server=True, is_collector_node=True,
+                                     is_nsd_server=False, is_admin_node=True)
+                elif index == 1:
+                    set_node_details(compute_cluster_details[index]["dns"], each_ip,
+                                     key_file, "computenodegrp", user,
+                                     is_quorum_node=True, is_manager_node=True,
+                                     is_gui_server=False, is_collector_node=True,
+                                     is_nsd_server=False, is_admin_node=False)
                 else:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                    #         'is_admin': False, 'user': user, 'key_file': key_file,
-                    #         'class': "computenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "computenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=False,
-                                     is_collector_node=False,
-                                     is_nsd_server=False,
-                                     is_admin_node=False)
-
-            elif compute_instances.index(each_ip) <= (start_quorum_assign) and \
-                    compute_instances.index(each_ip) > (manager_count - 1):
-
-                # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                #         'is_admin': False, 'user': user, 'key_file': key_file,
-                #         'class': "computenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "computenodegrp",
-                                 user,
-                                 is_quorum_node=True,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=False,
-                                 is_admin_node=False)
-
+                    set_node_details(compute_cluster_details[index]["dns"], each_ip,
+                                     key_file, "computenodegrp", user,
+                                     is_quorum_node=True, is_manager_node=True,
+                                     is_gui_server=False, is_collector_node=False,
+                                     is_nsd_server=False, is_admin_node=False)
+            elif index <= start_quorum_assign and index > (manager_count - 1):
+                set_node_details(compute_cluster_details[index]["dns"], each_ip,
+                                 key_file, "computenodegrp", user,
+                                 is_quorum_node=True, is_manager_node=False,
+                                 is_gui_server=False, is_collector_node=False,
+                                 is_nsd_server=False, is_admin_node=False)
             else:
+                set_node_details(compute_cluster_details[index]["dns"], each_ip,
+                                 key_file, "computenodegrp", user,
+                                 is_quorum_node=False, is_manager_node=False,
+                                 is_gui_server=False, is_collector_node=False,
+                                 is_nsd_server=False, is_admin_node=False)
 
-                # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                #         'is_admin': False, 'user': user, 'key_file': key_file,
-                #         'class': "computenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "computenodegrp",
-                                 user,
-                                 is_quorum_node=False,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=False,
-                                 is_admin_node=False)
-
-    elif cls_type == 'storage' and az_count == 1:
-        start_quorum_assign = quorum_count - 1
-        storage_private_ips = list(storage_ips_with_zone_mapping.keys())
-        for each_ip in storage_private_ips:
-
-            if storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    storage_private_ips.index(each_ip) <= (manager_count - 1):
-                if storage_private_ips.index(each_ip) == 0:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': True, 'is_collector': True, 'is_nsd': True,
-                    #         'is_admin': True, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-                    # write_json_file({'storage_cluster_gui_ip_address': each_ip},
-                    #                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                    #                           "storage_cluster_gui_details.json"))
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=True,
-                                     is_collector_node=True,
-                                     is_nsd_server=True,
-                                     is_admin_node=True)
-
-                elif storage_private_ips.index(each_ip) == 1:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': False, 'is_collector': True, 'is_nsd': True,
-                    #         'is_admin': False, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=False,
-                                     is_collector_node=True,
-                                     is_nsd_server=True,
-                                     is_admin_node=False)
-
-                else:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                    #         'is_gui': False, 'is_collector': True, 'is_nsd': True,
-                    #         'is_admin': False, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=False,
-                                     is_gui_server=False,
-                                     is_collector_node=True,
-                                     is_nsd_server=True,
-                                     is_admin_node=False)
-
-            elif storage_private_ips.index(each_ip) <= (start_quorum_assign) and \
-                    storage_private_ips.index(each_ip) > (manager_count - 1):
-
-                # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                #         'is_admin': False, 'user': user, 'key_file': key_file,
-                #         'class': "storagenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "storagenodegrp",
-                                 user,
-                                 is_quorum_node=True,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=True,
-                                 is_admin_node=False)
-
-            else:
-
-                # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                #         'is_admin': False, 'user': user, 'key_file': key_file,
-                #         'class': "storagenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "storagenodegrp",
-                                 user,
-                                 is_quorum_node=False,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=True,
-                                 is_admin_node=False)
-
-    elif cls_type == 'storage' and az_count > 1:
-        for each_ip in desc_private_ips:
-
-            # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-            #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-            #         'is_admin': False, 'user': user, 'key_file': key_file,
-            #         'class': "computedescnodegrp"}
-
-            set_node_details(each_ip,
-                             each_ip,
-                             key_file,
-                             "computedescnodegrp",
-                             user,
-                             is_quorum_node=True,
-                             is_manager_node=False,
-                             is_gui_server=False,
-                             is_collector_node=False,
-                             is_nsd_server=True,
-                             is_admin_node=False)
-
-        if az_count > 1:
-            # Storage/NSD nodes to be quorum nodes (quorum_count - 2 as index starts from 0)
-            start_quorum_assign = quorum_count - 2
-        else:
+    elif cls_type == 'storage':
+        if az_count == 1:
             # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
             start_quorum_assign = quorum_count - 1
-
-        storage_instances = interleave_nodes_by_fg(
-            storage_ips_with_zone_mapping)
-        for each_ip in storage_instances:
-
-            if storage_instances.index(each_ip) <= (start_quorum_assign) and \
-                    storage_instances.index(each_ip) <= (manager_count - 1):
-                if storage_instances.index(each_ip) == 0:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': True, 'is_collector': True, 'is_nsd': True,
-                    #         'is_admin': True, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=True,
-                                     is_collector_node=True,
-                                     is_nsd_server=True,
-                                     is_admin_node=True)
-
-                    # write_json_file({'storage_cluster_gui_ip_address': each_ip},
-                    #                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                    #                            "storage_cluster_gui_details.json"))
-                elif storage_instances.index(each_ip) == 1:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': False, 'is_collector': True, 'is_nsd': True,
-                    #         'is_admin': True, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=False,
-                                     is_collector_node=True,
-                                     is_nsd_server=True,
-                                     is_admin_node=True)
-
+            storage_instances = [item["private_ip"]
+                                 for item in storage_cluster_details]
+            for index, each_ip in enumerate(storage_instances):
+                if index <= start_quorum_assign and index <= (manager_count - 1):
+                    if index == 0:
+                        set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                         key_file, "storagenodegrp", user,
+                                         is_quorum_node=True, is_manager_node=True,
+                                         is_gui_server=True, is_collector_node=True,
+                                         is_nsd_server=True, is_admin_node=True)
+                    elif index == 1:
+                        set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                         key_file, "storagenodegrp", user,
+                                         is_quorum_node=True, is_manager_node=True,
+                                         is_gui_server=False, is_collector_node=True,
+                                         is_nsd_server=True, is_admin_node=False)
+                    else:
+                        set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                         key_file, "storagenodegrp", user,
+                                         is_quorum_node=True, is_manager_node=False,
+                                         is_gui_server=False, is_collector_node=False,
+                                         is_nsd_server=True, is_admin_node=False)
+                elif index <= start_quorum_assign and index > (manager_count - 1):
+                    set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                     key_file, "storagenodegrp", user,
+                                     is_quorum_node=True, is_manager_node=False,
+                                     is_gui_server=False, is_collector_node=False,
+                                     is_nsd_server=True, is_admin_node=False)
                 else:
+                    set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                     key_file, "storagenodegrp", user,
+                                     is_quorum_node=False, is_manager_node=False,
+                                     is_gui_server=False, is_collector_node=False,
+                                     is_nsd_server=True, is_admin_node=False)
+        elif az_count > 1:
+            # Storage/NSD nodes to be quorum nodes (quorum_count - 2 as index starts from 0)
+            start_quorum_assign = quorum_count - 2
+            storage_desc_instances = [item["private_ip"]
+                                      for item in storage_cluster_desc_details]
+            for index, each_ip in enumerate(storage_cluster_desc_details):
+                set_node_details(storage_desc_instances[index]["dns"], each_ip,
+                                 key_file, "computedescnodegrp", user,
+                                 is_quorum_node=True, is_manager_node=False,
+                                 is_gui_server=False, is_collector_node=False,
+                                 is_nsd_server=True, is_admin_node=False)
 
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                    #         'is_admin': True, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=False,
-                                     is_collector_node=False,
-                                     is_nsd_server=True,
-                                     is_admin_node=True)
-
-            elif storage_instances.index(each_ip) <= (start_quorum_assign) and \
-                    storage_instances.index(each_ip) > (manager_count - 1):
-
-                # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                #         'is_admin': True, 'user': user, 'key_file': key_file,
-                #         'class': "storagenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "storagenodegrp",
-                                 user,
-                                 is_quorum_node=True,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=True,
-                                 is_admin_node=True)
-
-            else:
-
-                # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                #         'is_admin': False, 'user': user, 'key_file': key_file,
-                #         'class': "storagenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "storagenodegrp",
-                                 user,
-                                 is_quorum_node=False,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=True,
-                                 is_admin_node=False)
+            storage_instances = interleave_nodes_by_fg(
+                storage_cluster_desc_details)
+            for index, each_ip in enumerate(storage_instances):
+                if index <= start_quorum_assign and index <= (manager_count - 1):
+                    if index == 0:
+                        set_node_details(storage_instances[index]["dns"], each_ip,
+                                         key_file, "storagenodegrp", user,
+                                         is_quorum_node=True, is_manager_node=True,
+                                         is_gui_server=True, is_collector_node=True,
+                                         is_nsd_server=True, is_admin_node=True)
+                    elif index == 1:
+                        set_node_details(storage_instances[index]["dns"], each_ip,
+                                         key_file, "storagenodegrp", user,
+                                         is_quorum_node=True, is_manager_node=True,
+                                         is_gui_server=False, is_collector_node=True,
+                                         is_nsd_server=True, is_admin_node=True)
+                    else:
+                        set_node_details(storage_instances[index]["dns"], each_ip,
+                                         key_file, "storagenodegrp", user,
+                                         is_quorum_node=True, is_manager_node=True,
+                                         is_gui_server=False, is_collector_node=False,
+                                         is_nsd_server=True, is_admin_node=True)
+                elif index <= start_quorum_assign and index > (manager_count - 1):
+                    set_node_details(storage_instances[index]["dns"], each_ip,
+                                     key_file, "storagenodegrp", user,
+                                     is_quorum_node=True, is_manager_node=False,
+                                     is_gui_server=False, is_collector_node=False,
+                                     is_nsd_server=True, is_admin_node=True)
+                else:
+                    set_node_details(storage_instances[index]["dns"], each_ip,
+                                     key_file, "storagenodegrp", user,
+                                     is_quorum_node=False, is_manager_node=False,
+                                     is_gui_server=False, is_collector_node=False,
+                                     is_nsd_server=True, is_admin_node=False)
 
     elif cls_type == 'combined':
-        for each_ip in desc_private_ips:
-
-            # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-            #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-            #         'is_admin': False, 'user': user, 'key_file': key_file,
-            #         'class': "computedescnodegrp"}
-
-            set_node_details(each_ip,
-                             each_ip,
-                             key_file,
-                             "computedescnodegrp",
-                             user,
-                             is_quorum_node=True,
-                             is_manager_node=False,
-                             is_gui_server=False,
-                             is_collector_node=False,
-                             is_nsd_server=True,
-                             is_admin_node=False)
+        storage_desc_instances = [item["private_ip"]
+                                  for item in storage_cluster_desc_details]
+        for index, each_ip in enumerate(storage_cluster_desc_details):
+            set_node_details(storage_desc_instances[index]["dns"], each_ip,
+                             key_file, "computedescnodegrp", user,
+                             is_quorum_node=True, is_manager_node=False,
+                             is_gui_server=False, is_collector_node=False,
+                             is_nsd_server=True, is_admin_node=False)
 
         if az_count > 1:
             # Storage/NSD nodes to be quorum nodes (quorum_count - 2 as index starts from 0)
             start_quorum_assign = quorum_count - 2
-            storage_instances = interleave_nodes_by_fg(
-                storage_ips_with_zone_mapping)
+            storage_instances = interleave_nodes_by_fg(storage_cluster_details)
         else:
             # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
             start_quorum_assign = quorum_count - 1
-            storage_instances = list(storage_ips_with_zone_mapping.keys())
+            storage_instances = [item["private_ip"]
+                                 for item in storage_cluster_details]
 
-        for each_ip in storage_instances:
-
-            if storage_instances.index(each_ip) <= (start_quorum_assign) and \
-                    storage_instances.index(each_ip) <= (manager_count - 1):
-                if storage_instances.index(each_ip) == 0:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': True, 'is_collector': True, 'is_nsd': True,
-                    #         'is_admin': True, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=True,
-                                     is_collector_node=True,
-                                     is_nsd_server=True,
-                                     is_admin_node=True)
-
-                elif storage_instances.index(each_ip) == 1:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': False, 'is_collector': True, 'is_nsd': True,
-                    #         'is_admin': True, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=False,
-                                     is_collector_node=True,
-                                     is_nsd_server=True,
-                                     is_admin_node=True)
-
+        for index, each_ip in enumerate(storage_instances):
+            if index <= start_quorum_assign and index <= (manager_count - 1):
+                if index == 0:
+                    set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                     key_file, "storagenodegrp", user,
+                                     is_quorum_node=True, is_manager_node=True,
+                                     is_gui_server=True, is_collector_node=True,
+                                     is_nsd_server=True, is_admin_node=True)
+                elif index == 1:
+                    set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                     key_file, "storagenodegrp", user,
+                                     is_quorum_node=True, is_manager_node=True,
+                                     is_gui_server=False, is_collector_node=True,
+                                     is_nsd_server=True, is_admin_node=True)
                 else:
-
-                    # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                    #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                    #         'is_admin': True, 'user': user, 'key_file': key_file,
-                    #         'class': "storagenodegrp"}
-
-                    set_node_details(each_ip,
-                                     each_ip,
-                                     key_file,
-                                     "storagenodegrp",
-                                     user,
-                                     is_quorum_node=True,
-                                     is_manager_node=True,
-                                     is_gui_server=False,
-                                     is_collector_node=False,
-                                     is_nsd_server=True,
-                                     is_admin_node=True)
-
-            elif storage_instances.index(each_ip) <= (start_quorum_assign) and \
-                    storage_instances.index(each_ip) > (manager_count - 1):
-
-                # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                #         'is_admin': True, 'user': user, 'key_file': key_file,
-                #         'class': "storagenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "storagenodegrp",
-                                 user,
-                                 is_quorum_node=True,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=True,
-                                 is_admin_node=True)
-
+                    set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                     key_file, "storagenodegrp", user,
+                                     is_quorum_node=True, is_manager_node=True,
+                                     is_gui_server=False, is_collector_node=False,
+                                     is_nsd_server=True, is_admin_node=True)
+            elif index <= start_quorum_assign and index > (manager_count - 1):
+                set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                 key_file, "storagenodegrp", user,
+                                 is_quorum_node=True, is_manager_node=False,
+                                 is_gui_server=False, is_collector_node=False,
+                                 is_nsd_server=True, is_admin_node=True)
             else:
-
-                # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                #         'is_admin': False, 'user': user, 'key_file': key_file,
-                #         'class': "storagenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "storagenodegrp",
-                                 user,
-                                 is_quorum_node=False,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=True,
-                                 is_admin_node=False)
+                set_node_details(storage_cluster_details[index]["dns"], each_ip,
+                                 key_file, "storagenodegrp", user,
+                                 is_quorum_node=False, is_manager_node=False,
+                                 is_gui_server=False, is_collector_node=False,
+                                 is_nsd_server=True, is_admin_node=False)
 
         if az_count > 1:
-            if len(storage_ips_with_zone_mapping.keys()) - len(desc_private_ips) >= quorum_count:
+            if len([item["private_ip"] for item in storage_cluster_details]) - len([item["private_ip"] for item in storage_cluster_desc_details]) >= quorum_count:
                 quorums_left = 0
             else:
                 quorums_left = quorum_count - \
-                    len(storage_ips_with_zone_mapping.keys()) - \
-                    len(desc_private_ips)
+                    len([item["private_ip"] for item in storage_cluster_details]) - \
+                    len([item["private_ip"]
+                        for item in storage_cluster_desc_details])
         else:
-            if len(storage_ips_with_zone_mapping.keys()) > quorum_count:
+            if len([item["private_ip"] for item in storage_cluster_details]) > quorum_count:
                 quorums_left = 0
             else:
                 quorums_left = quorum_count - \
-                    len(storage_ips_with_zone_mapping.keys())
+                    len([item["private_ip"]
+                        for item in storage_cluster_details])
 
         # Additional quorums assign to compute nodes
         if quorums_left > 0:
-            compute_instances = interleave_nodes_by_fg(
-                compute_ips_with_zone_mapping)
-            for each_ip in compute_instances[0:quorums_left]:
+            compute_instances = interleave_nodes_by_fg(compute_cluster_details)
+            for each_instance in compute_instances[0:quorums_left]:
+                set_node_details(each_instance["dns"], each_instance["private_ip"],
+                                 key_file, "computenodegrp", user,
+                                 is_quorum_node=True, is_manager_node=False,
+                                 is_gui_server=False, is_collector_node=False,
+                                 is_nsd_server=False, is_admin_node=True)
 
-                # node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                #         'is_admin': True, 'user': user, 'key_file': key_file,
-                #         'class': "computenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "computenodegrp",
-                                 user,
-                                 is_quorum_node=True,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=False,
-                                 is_admin_node=True)
-
-            for each_ip in compute_instances[quorums_left:]:
-
-                # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                #         'is_admin': False, 'user': user, 'key_file': key_file,
-                #         'class': "computenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "computenodegrp",
-                                 user,
-                                 is_quorum_node=False,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=False,
-                                 is_admin_node=False)
+            for each_instance in compute_instances[quorums_left:]:
+                set_node_details(each_instance["dns"], each_instance["private_ip"],
+                                 key_file, "computenodegrp", user,
+                                 is_quorum_node=False, is_manager_node=False,
+                                 is_gui_server=False, is_collector_node=False,
+                                 is_nsd_server=False, is_admin_node=False)
 
         if quorums_left == 0:
             compute_instances = []
             if az_count > 1:
                 compute_instances = interleave_nodes_by_fg(
-                    compute_ips_with_zone_mapping)
+                    compute_cluster_details)
             else:
-                compute_instances = list(compute_ips_with_zone_mapping.keys())
+                compute_instances = [item["private_ip"]
+                                     for item in compute_cluster_details]
 
-            for each_ip in compute_instances:
-
-                # node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
-                #         'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                #         'is_admin': False, 'user': user, 'key_file': key_file,
-                #         'class': "computenodegrp"}
-
-                set_node_details(each_ip,
-                                 each_ip,
-                                 key_file,
-                                 "computenodegrp",
-                                 user,
-                                 is_quorum_node=False,
-                                 is_manager_node=False,
-                                 is_gui_server=False,
-                                 is_collector_node=False,
-                                 is_nsd_server=False,
-                                 is_admin_node=False)
+            for each_instance in compute_instances:
+                set_node_details(each_instance["dns"], each_instance["private_ip"],
+                                 key_file, "computenodegrp", user,
+                                 is_quorum_node=False, is_manager_node=False,
+                                 is_gui_server=False, is_collector_node=False,
+                                 is_nsd_server=False, is_admin_node=False)
+    return node_details
 
 
 def get_disks_list(data_disk_map, desc_disk_map):
@@ -905,8 +569,8 @@ if __name__ == "__main__":
         print("Parsed terraform output: %s" % json.dumps(TF, indent=4))
 
     # Step-2: Identify the cluster type
-    if len(TF['storage_cluster_instance_private_ips']) == 0 and \
-       len(TF['compute_cluster_instance_private_ips']) > 0:
+    if len([item["private_ip"] for item in TF['storage_cluster_details']]) == 0 and \
+       len([item["private_ip"] for item in TF['compute_cluster_details']]) > 0:
         cluster_type = "compute"
         gui_username = ARGUMENTS.gui_username
         gui_password = ARGUMENTS.gui_password
@@ -917,8 +581,8 @@ if __name__ == "__main__":
         scale_config = initialize_scale_config_details("computenodegrp",
                                                        "pagepool",
                                                        pagepool_size)
-    elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
-            len(TF['storage_cluster_instance_private_ips']) > 0 and \
+    elif len([item["private_ip"] for item in TF['compute_cluster_details']]) == 0 and \
+            len([item["private_ip"] for item in TF['storage_cluster_details']]) > 0 and \
             len(TF['vpc_availability_zones']) == 1:
         # single az storage cluster
         cluster_type = "storage"
@@ -931,10 +595,10 @@ if __name__ == "__main__":
         scale_config = initialize_scale_config_details("storagenodegrp",
                                                        "pagepool",
                                                        pagepool_size)
-    elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
-            len(TF['storage_cluster_instance_private_ips']) > 0 and \
+    elif len([item["private_ip"] for item in TF['compute_cluster_details']]) == 0 and \
+            len([item["private_ip"] for item in TF['storage_cluster_details']]) > 0 and \
             len(TF['vpc_availability_zones']) > 1 and \
-            len(TF['storage_cluster_desc_instance_private_ips']) > 0:
+            len([item["private_ip"] for item in TF['storage_cluster_desc_details']]) > 0:
         # multi az storage cluster
         cluster_type = "storage"
         gui_username = ARGUMENTS.gui_username
@@ -974,12 +638,13 @@ if __name__ == "__main__":
 
     # Step-3: Identify if tie breaker needs to be counted for storage
     if len(TF['vpc_availability_zones']) > 1:
-        total_node_count = len(TF['compute_cluster_instance_private_ips']) + \
-            len(TF['storage_cluster_desc_instance_private_ips']) + \
-            len(TF['storage_cluster_instance_private_ips'])
+        total_node_count = len([item["private_ip"] for item in TF['compute_cluster_details']]) + \
+            len([item["private_ip"] for item in TF['storage_cluster_details']]) + \
+            len([item["private_ip"]
+                for item in TF['storage_cluster_desc_details']])
     else:
-        total_node_count = len(TF['compute_cluster_instance_private_ips']) + \
-            len(TF['storage_cluster_instance_private_ips'])
+        total_node_count = len([item["private_ip"] for item in TF['compute_cluster_details']]) + \
+            len([item["private_ip"] for item in TF['storage_cluster_details']])
 
     if ARGUMENTS.verbose:
         print("Total node count: ", total_node_count)
@@ -1020,12 +685,9 @@ if __name__ == "__main__":
 
     # Step-5: Create hosts
     initialize_node_details(len(TF['vpc_availability_zones']), cluster_type,
-                            TF['compute_cluster_instance_zone_mapping'],
-                            TF['compute_cluster_instance_private_dns'],
-                            TF['storage_cluster_with_data_volume_mapping'],
-                            TF['storage_cluster_instance_private_dns'],
-                            TF['storage_cluster_desc_instance_private_ips'],
-                            TF['storage_cluster_desc_instance_private_dns'],
+                            TF['compute_cluster_details'],
+                            TF['storage_cluster_details'],
+                            TF['storage_cluster_desc_details'],
                             quorum_count, "root", ARGUMENTS.instance_private_key)
 
     if cluster_type in ['storage', 'combined']:
