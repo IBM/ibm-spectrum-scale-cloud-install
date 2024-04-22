@@ -60,8 +60,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 
 | Name | Description | Type |
 |------|-------------|------|
-| <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
-| <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
@@ -90,6 +88,8 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_client_vsi_osimage_name"></a> [client_vsi_osimage_name](#input_client_vsi_osimage_name) | Name of the image that you would like to use to create the client cluster nodes for the IBM Storage Scale cluster. The solution supports only stock images that use RHEL8.8 version. | `string` |
 | <a name="input_client_vsi_profile"></a> [client_vsi_profile](#input_client_vsi_profile) | Client nodes vis profile | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
+| <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
+| <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
 | <a name="input_compute_cluster_key_pair"></a> [compute_cluster_key_pair](#input_compute_cluster_key_pair) | The key pair to use to launch the compute cluster host. | `list(string)` |
 | <a name="input_compute_vsi_osimage_id"></a> [compute_vsi_osimage_id](#input_compute_vsi_osimage_id) | Image id to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_vsi_osimage_name"></a> [compute_vsi_osimage_name](#input_compute_vsi_osimage_name) | Image name to use for provisioning the compute cluster instances. | `string` |

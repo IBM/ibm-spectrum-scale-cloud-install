@@ -67,12 +67,14 @@ variable "using_rest_api_remote_mount" {
 variable "compute_cluster_gui_username" {
   type        = string
   sensitive   = true
+  default     = ""
   description = "GUI user to perform system management and monitoring tasks on compute cluster."
 }
 
 variable "compute_cluster_gui_password" {
   type        = string
   sensitive   = true
+  default     = ""
   description = "Password for compute cluster GUI"
 }
 
