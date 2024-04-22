@@ -115,14 +115,21 @@ resource "aws_route53_record" "ptr_itself" {
   ttl     = 360
 }
 
-output "instance_private_ips" {
-  value = aws_instance.itself.private_ip
+# Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
+resource "aws_route53_record" "ces_a_itself" {
+  count   = var.secondary_private_ip != null ? 1 : 0
+  zone_id = var.forward_dns_zone
+  type    = "A"
+  name    = format("%s-ces", var.name_prefix)
+  records = [var.secondary_private_ip]
+  ttl     = 360
 }
 
-output "instance_ids" {
-  value = aws_instance.itself.id
-}
-
-output "instance_private_dns_name" {
-  value = aws_instance.itself.private_dns
+output "instance_details" {
+  value = {
+    private_ip = aws_instance.itself.private_ip
+    id         = aws_instance.itself.id
+    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
+    zone       = aws_instance.itself.availability_zone
+  }
 }

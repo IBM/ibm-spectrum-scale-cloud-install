@@ -584,10 +584,8 @@ module "prepare_ansible_configuration" {
 }
 
 locals {
-  is_nitro_instance                = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
-  nvme_block_device_count          = local.storage_or_combined ? (length(data.aws_ec2_instance_type.storage_profile[0].instance_disks) != 0 ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0) : 0
-  storage_cluster_private_ips      = local.storage_or_combined ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
-  storage_cluster_desc_private_ips = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
+  is_nitro_instance       = try(data.aws_ec2_instance_type.storage_profile[0].hypervisor, null) == "nitro" ? true : false
+  nvme_block_device_count = local.storage_or_combined ? (length(data.aws_ec2_instance_type.storage_profile[0].instance_disks) != 0 ? tolist(try(data.aws_ec2_instance_type.storage_profile[0].instance_disks, null))[0].count : 0) : 0
 }
 
 # Write the compute cluster related inventory.
@@ -595,29 +593,22 @@ resource "local_sensitive_file" "write_compute_cluster_inventory" {
   count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && var.cluster_type == "Compute-only" ? 1 : 0
   filename = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
-    cloud_platform                            = "AWS"
-    resource_prefix                           = var.resource_prefix
-    vpc_region                                = var.vpc_region
-    vpc_availability_zones                    = var.vpc_availability_zones
-    scale_version                             = local.scale_version
-    filesystem_details                        = local.filesystem_details
-    compute_cluster_filesystem_mountpoint     = var.compute_cluster_filesystem_mountpoint
-    bastion_instance_id                       = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
-    bastion_user                              = var.bastion_user == null ? null : var.bastion_user
-    bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
-    instances_ssh_user_name                   = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
-    compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
-    compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
-    compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
-    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
-    storage_cluster_instance_ids              = []
-    storage_cluster_instance_private_ips      = []
-    storage_cluster_with_data_volume_mapping  = {}
-    storage_cluster_instance_private_dns      = []
-    storage_cluster_desc_instance_ids         = []
-    storage_cluster_desc_instance_private_ips = []
-    storage_cluster_desc_data_volume_mapping  = {}
-    storage_cluster_desc_instance_private_dns = []
+    cloud_platform                           = "AWS"
+    resource_prefix                          = var.resource_prefix
+    vpc_region                               = var.vpc_region
+    vpc_availability_zones                   = var.vpc_availability_zones
+    scale_version                            = local.scale_version
+    filesystem_details                       = local.filesystem_details
+    compute_cluster_filesystem_mountpoint    = var.compute_cluster_filesystem_mountpoint
+    bastion_instance_id                      = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
+    bastion_user                             = var.bastion_user == null ? null : var.bastion_user
+    bastion_instance_public_ip               = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
+    instances_ssh_user_name                  = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
+    compute_cluster_details                  = [for instance in module.compute_cluster_instances : instance.instance_details]
+    storage_cluster_details                  = []
+    storage_cluster_with_data_volume_mapping = {}
+    storage_cluster_desc_details             = []
+    storage_cluster_desc_data_volume_mapping = {}
   })
 }
 
@@ -626,28 +617,21 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
   count    = module.prepare_ansible_configuration.clone_complete && var.cluster_type == "Storage-only" ? 1 : 0
   filename = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
-    cloud_platform                            = "AWS"
-    resource_prefix                           = var.resource_prefix
-    vpc_region                                = var.vpc_region
-    vpc_availability_zones                    = var.vpc_availability_zones
-    scale_version                             = local.scale_version
-    filesystem_details                        = local.filesystem_details
-    bastion_instance_id                       = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
-    bastion_user                              = var.bastion_user == null ? null : var.bastion_user
-    bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
-    instances_ssh_user_name                   = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
-    compute_cluster_instance_ids              = []
-    compute_cluster_instance_private_ips      = []
-    compute_cluster_instance_private_dns      = []
-    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
-    storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
-    storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
-    storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
-    storage_cluster_instance_private_dns      = [for instance in module.storage_cluster_instances : instance.instance_private_dns_name]
-    storage_cluster_desc_instance_ids         = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids]
-    storage_cluster_desc_instance_private_ips = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
-    storage_cluster_desc_data_volume_mapping  = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
-    storage_cluster_desc_instance_private_dns = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_dns_name]
+    cloud_platform                           = "AWS"
+    resource_prefix                          = var.resource_prefix
+    vpc_region                               = var.vpc_region
+    vpc_availability_zones                   = var.vpc_availability_zones
+    scale_version                            = local.scale_version
+    filesystem_details                       = local.filesystem_details
+    bastion_instance_id                      = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
+    bastion_user                             = var.bastion_user == null ? null : var.bastion_user
+    bastion_instance_public_ip               = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
+    instances_ssh_user_name                  = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
+    compute_cluster_details                  = []
+    storage_cluster_details                  = [for instance in module.storage_cluster_instances : instance.instance_details]
+    storage_cluster_with_data_volume_mapping = local.storage_instance_ips_with_disk_mapping
+    storage_cluster_desc_details             = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details]
+    storage_cluster_desc_data_volume_mapping = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
   })
 }
 
@@ -656,28 +640,21 @@ resource "local_sensitive_file" "write_combined_inventory" {
   count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && var.cluster_type == "Combined-compute-storage" ? 1 : 0
   filename = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
-    cloud_platform                            = "AWS"
-    resource_prefix                           = var.resource_prefix
-    vpc_region                                = var.vpc_region
-    vpc_availability_zones                    = var.vpc_availability_zones
-    scale_version                             = local.scale_version
-    filesystem_details                        = local.filesystem_details
-    bastion_instance_id                       = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
-    bastion_user                              = var.bastion_user == null ? null : var.bastion_user
-    bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
-    instances_ssh_user_name                   = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
-    compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
-    compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
-    compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
-    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
-    storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
-    storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
-    storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
-    storage_cluster_instance_private_dns      = [for instance in module.storage_cluster_instances : instance.instance_private_dns_name]
-    storage_cluster_desc_instance_ids         = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids]
-    storage_cluster_desc_instance_private_ips = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
-    storage_cluster_desc_data_volume_mapping  = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
-    storage_cluster_desc_instance_private_dns = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_dns_name]
+    cloud_platform                           = "AWS"
+    resource_prefix                          = var.resource_prefix
+    vpc_region                               = var.vpc_region
+    vpc_availability_zones                   = var.vpc_availability_zones
+    scale_version                            = local.scale_version
+    filesystem_details                       = local.filesystem_details
+    bastion_instance_id                      = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
+    bastion_user                             = var.bastion_user == null ? null : var.bastion_user
+    bastion_instance_public_ip               = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
+    instances_ssh_user_name                  = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
+    compute_cluster_details                  = [for instance in module.compute_cluster_instances : instance.instance_details]
+    storage_cluster_details                  = [for instance in module.storage_cluster_instances : instance.instance_details]
+    storage_cluster_with_data_volume_mapping = local.storage_instance_ips_with_disk_mapping
+    storage_cluster_desc_details             = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details]
+    storage_cluster_desc_data_volume_mapping = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
   })
 }
 

@@ -171,14 +171,11 @@ resource "aws_volume_attachment" "itself" {
   skip_destroy = var.disks[each.key]["termination"]
 }
 
-output "instance_private_ips" {
-  value = aws_instance.itself.private_ip
-}
-
-output "instance_ids" {
-  value = aws_instance.itself.id
-}
-
-output "instance_private_dns_name" {
-  value = aws_instance.itself.private_dns
+output "instance_details" {
+  value = {
+    private_ip = aws_instance.itself.private_ip
+    id         = aws_instance.itself.id
+    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
+    zone       = aws_instance.itself.availability_zone
+  }
 }

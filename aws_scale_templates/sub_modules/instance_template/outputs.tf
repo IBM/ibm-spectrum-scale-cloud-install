@@ -27,12 +27,12 @@ output "compute_cluster_instance_cidrs" {
 }
 
 output "compute_cluster_instance_ids" {
-  value       = [for instance in module.compute_cluster_instances : instance.instance_ids]
+  value       = [for instance in module.compute_cluster_instances : instance.instance_details["id"]]
   description = "Compute cluster instance ids."
 }
 
 output "compute_cluster_instance_private_ips" {
-  value       = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
+  value       = [for instance in module.compute_cluster_instances : instance.instance_details["private_ip"]]
   description = "Private IP address of compute cluster instances."
 }
 
@@ -42,12 +42,12 @@ output "compute_cluster_security_group_id" {
 }
 
 output "gateway_instance_ids" {
-  value       = [for instance in module.gateway_instances : instance.instance_ids]
+  value       = [for instance in module.gateway_instances : instance.instance_details["id"]]
   description = "Gateway instance ids."
 }
 
 output "gateway_instance_private_ips" {
-  value       = [for instance in module.gateway_instances : instance.instance_private_ips]
+  value       = [for instance in module.gateway_instances : instance.instance_details["private_ip"]]
   description = "Private IP address of gateway instances."
 }
 
@@ -61,12 +61,12 @@ output "placement_group_id" {
 }
 
 output "protocol_instance_ids" {
-  value       = [for instance in module.protocol_instances : instance.instance_ids]
+  value       = [for instance in module.protocol_instances : instance.instance_details["id"]]
   description = "Protocol instance ids."
 }
 
 output "protocol_instance_private_ips" {
-  value       = [for instance in module.protocol_instances : instance.instance_private_ips]
+  value       = [for instance in module.protocol_instances : instance.instance_details["private_ip"]]
   description = "Private IP address of protocol instances."
 }
 
@@ -76,12 +76,12 @@ output "storage_cluster_desc_data_volume_mapping" {
 }
 
 output "storage_cluster_desc_instance_ids" {
-  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids]
+  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details["id"]]
   description = "Storage cluster desc instance id."
 }
 
 output "storage_cluster_desc_instance_private_ips" {
-  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
+  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details["private_ip"]]
   description = "Private IP address of storage cluster desc instance."
 }
 
@@ -90,12 +90,12 @@ output "storage_cluster_instance_cidrs" {
 }
 
 output "storage_cluster_instance_ids" {
-  value       = [for instance in module.storage_cluster_instances : instance.instance_ids]
+  value       = [for instance in module.storage_cluster_instances : instance.instance_details["id"]]
   description = "Storage cluster instance ids."
 }
 
 output "storage_cluster_instance_private_ips" {
-  value       = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
+  value       = [for instance in module.storage_cluster_instances : instance.instance_details["private_ip"]]
   description = "Private IP address of storage cluster instances."
 }
 

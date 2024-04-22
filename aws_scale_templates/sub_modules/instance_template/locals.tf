@@ -91,12 +91,6 @@ locals {
       subnet = element(var.vpc_compute_cluster_private_subnets, idx)
     }
   }
-  compute_instance_ip_with_zone_mapping = {
-    for idx, vm_ipaddr in [for instance in module.compute_cluster_instances : instance.instance_private_ips] :
-    vm_ipaddr => {
-      zone = element(var.vpc_availability_zones, idx)
-    }
-  }
 }
 
 /*
@@ -297,7 +291,7 @@ locals {
 
   filesystem_details = local.storage_or_combined ? { for fs_config in var.filesystem_parameters : fs_config.name => fs_config.filesystem_config_file } : {}
   storage_instance_ips_with_disk_mapping = {
-    for idx, vm_ipaddr in local.storage_cluster_private_ips :
+    for idx, vm_ipaddr in [for instance in module.storage_cluster_instances : instance.instance_details["private_ip"]] :
     vm_ipaddr => {
       zone = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
       disks = local.nvme_block_device_count > 0 ? tomap({
@@ -387,7 +381,7 @@ locals {
     }
   }
   storage_instance_desc_ip_with_disk_mapping = {
-    for idx, vm_ipaddr in local.storage_cluster_desc_private_ips :
+    for idx, vm_ipaddr in [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details["private_ip"]] :
     vm_ipaddr => {
       zone = var.vpc_availability_zones[2]
       disks = tomap({
