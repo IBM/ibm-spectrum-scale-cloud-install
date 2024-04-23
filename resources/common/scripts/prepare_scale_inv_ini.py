@@ -297,7 +297,8 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
 
 def get_host_format(node):
     """ Return host entries """
-    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']}  scale_protocol_node={node['scale_protocol_node']}"
+    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={
+        node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']}  scale_protocol_node={node['scale_protocol_node']}"
     return host_format
 
 
@@ -626,7 +627,7 @@ def initialize_scale_storage_details(az_count, fs_mount, block_size, disk_detail
     return storage
 
 
-def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, mountpoint, filesets, enable_ces):
+def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, mountpoint, filesets, protocol_cluster_instance_names, enable_ces):
     """ Initialize ces details.
     :args: smb (bool), nfs (bool), object (bool),
            export_ip_pool (list), filesystem (string), mountpoint (string)
@@ -637,12 +638,16 @@ def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, m
             key.split('/')[-1]: value for key, value in filesets.items()}
         exports = list(filesets_name_size.keys())
 
+        # Creating map of CES nodes and it Ips
+        export_node_ip_map = [{protocol_cluster_instance_name.split(
+            '.')[0]: ip} for protocol_cluster_instance_name, ip in zip(protocol_cluster_instance_names, export_ip_pool)]
+
     ces = {
         "scale_protocols": {
             "nfs": nfs,
             "object": object,
             "smb": smb,
-            "export_ip_pool": export_ip_pool,
+            "export_node_ip_map": export_node_ip_map,
             "filesystem": filesystem,
             "mountpoint": mountpoint,
             "exports": exports
@@ -898,7 +903,8 @@ if __name__ == "__main__":
             each_entry = each_entry + " " + "ansible_ssh_common_args="""
             node_template = node_template + each_entry + "\n"
         else:
-            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
+            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {
+                ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
             each_entry = each_entry + " " + \
                 "ansible_ssh_common_args='-o ControlMaster=auto -o ControlPersist=30m -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"" + proxy_command + "\"'"
             node_template = node_template + each_entry + "\n"
@@ -979,6 +985,7 @@ if __name__ == "__main__":
                                                        TF['filesystem'],
                                                        TF['mountpoint'],
                                                        TF['filesets'],
+                                                       TF['protocol_cluster_instance_names'],
                                                        ARGUMENTS.enable_ces)
         scale_storage_cluster = {
             'scale_protocols': scale_protocols['scale_protocols'],
