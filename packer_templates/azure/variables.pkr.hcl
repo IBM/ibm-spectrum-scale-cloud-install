@@ -18,60 +18,44 @@ variable "subscription_id" {
   description = "The subscription ID to use."
 }
 
-variable "location" {
+variable "vpc_region" {
   type        = string
   description = "The location in which the resources will be created. Examples are East US, West US, etc."
 }
 
 variable "image_publisher" {
   type        = string
-  default     = null
   description = "Name of the publisher to use for your base image (Azure Marketplace Images only)."
 }
 
 variable "image_offer" {
   type        = string
-  default     = null
   description = "Name of the publisher's offer to use for your base image (Azure Marketplace Images only)."
 }
 
 variable "image_sku" {
   type        = string
-  default     = null
   description = "SKU of the image offer to use for your base image (Azure Marketplace Images only)."
 }
 
 variable "image_version" {
   type        = string
-  default     = null
-  description = " "
+  default     = "latest"
+  description = "The image version to use for your base image"
 }
 
-variable "image_url" {
+variable "resource_prefix" {
   type        = string
-  default     = null
-  description = "URL to a custom VHD to use for your base image. If this value is set, image_publisher, image_offer, image_sku should not be set."
-}
-
-variable "user_assigned_managed_identities" {
-  type        = list(string)
-  description = "A list of one or more fully-qualified resource IDs of user assigned managed identities to be configured on the VM."
-}
-
-variable "managed_image_name" {
-  type        = string
-  default     = "scale-image"
   description = "Specify the managed image name where the result of the Packer build will be saved."
 }
 
-variable "managed_image_resource_group_name" {
+variable "resource_group_name" {
   type        = string
   description = "The name of the resource group in which the resources will be created."
 }
 
-variable "vm_size" {
+variable "instance_type" {
   type        = string
-  default     = "Standard_A2_v2"
   description = "Size of the VM used for building."
 }
 
@@ -80,19 +64,37 @@ variable "storage_accountname" {
   description = "Azure storage account that contains container with IBM Spectrum Scale rpm(s)."
 }
 
-variable "spectrumscale_container" {
+variable "package_repository" {
   type        = string
   description = "Data storage container which contains IBM Spectrum Scale rpm(s)."
 }
 
-variable "os_disk_size_gb" {
+variable "volume_size" {
   type        = string
-  default     = "100"
   description = "The size of the OS disk, in GB."
 }
 
 variable "ssh_username" {
   type        = string
-  default     = "azureuser"
   description = "The username to connect to SSH with."
+}
+
+variable "vpc_ref" {
+  type        = string
+  description = "The vnet name to use for deploy packer instances."
+}
+
+variable "scale_version" {
+  type        = string
+  description = "The username to connect to SSH with."
+}
+
+variable "vpc_subnet_id" {
+  type        = string
+  description = "The vnet subnet to use for deploy packer instances."
+}
+
+variable "manifest_path" {
+  type        = string
+  description = "The manifest path."
 }
