@@ -17,11 +17,11 @@ variable "zone" {}
 variable "action" {}
 variable "next_hop" {}
 variable "priority" {}
-variable "total_client_cluster_instances" {}
+variable "scale_ces_enabled" {}
 variable "dest_ip" {}
 
 resource "ibm_is_vpc_routing_table_route" "itself" {
-  for_each = var.total_client_cluster_instances == 0 ? {} : {
+  for_each = var.scale_ces_enabled == false ? {} : {
     # This assigns a subnet-id to each of the instance
     # iteration.
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {

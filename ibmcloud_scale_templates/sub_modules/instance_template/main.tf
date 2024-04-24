@@ -417,17 +417,17 @@ module "protocol_reserved_ip" {
 }
 
 module "routing_table_routes" {
-  source                         = "../../../resources/ibmcloud/network/routing_table_routes"
-  total_client_cluster_instances = var.total_client_cluster_instances
-  total_vsis                     = var.total_protocol_cluster_instances
-  vpc_id                         = var.vpc_id
-  routing_table                  = data.ibm_is_vpc.vpc_rt_id.default_routing_table
-  zone                           = [var.vpc_availability_zones[0]]
-  action                         = "deliver"
-  next_hop                       = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
-  priority                       = 2
-  dest_ip                        = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
-  depends_on                     = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.client_cluster_instances]
+  source            = "../../../resources/ibmcloud/network/routing_table_routes"
+  scale_ces_enabled = local.scale_ces_enabled
+  total_vsis        = var.total_protocol_cluster_instances
+  vpc_id            = var.vpc_id
+  routing_table     = data.ibm_is_vpc.vpc_rt_id.default_routing_table
+  zone              = [var.vpc_availability_zones[0]]
+  action            = "deliver"
+  next_hop          = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
+  priority          = 2
+  dest_ip           = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
+  depends_on        = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.client_cluster_instances]
 }
 
 module "storage_cluster_instances" {
