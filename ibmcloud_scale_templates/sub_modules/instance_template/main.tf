@@ -416,6 +416,20 @@ module "protocol_reserved_ip" {
   protocol_dns_zone_id    = var.vpc_protocol_cluster_dns_zone_id
 }
 
+module "routing_table_routes" {
+  source            = "../../../resources/ibmcloud/network/routing_table_routes"
+  scale_ces_enabled = local.scale_ces_enabled
+  total_vsis        = var.total_protocol_cluster_instances
+  vpc_id            = var.vpc_id
+  routing_table     = data.ibm_is_vpc.vpc_rt_id.default_routing_table
+  zone              = [var.vpc_availability_zones[0]]
+  action            = "deliver"
+  next_hop          = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
+  priority          = 2
+  dest_ip           = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
+  depends_on        = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.client_cluster_instances]
+}
+
 module "storage_cluster_instances" {
   count                        = var.storage_type != "persistent" ? 1 : 0
   source                       = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
@@ -858,26 +872,6 @@ module "combined_cluster_configuration" {
   ldap_server                     = local.ldap_server
   ldap_admin_password             = var.ldap_admin_password
   depends_on                      = [module.ldap_configuration]
-}
-
-module "routing_table_routes" {
-  source                          = "../../../resources/ibmcloud/network/routing_table_routes"
-  turn_on                         = (var.create_separate_namespaces == true) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  create_scale_cluster            = var.create_scale_cluster
-  scale_ces_enabled               = local.scale_ces_enabled == true ? true : false
-  storage_cluster_create_complete = module.storage_cluster_configuration.storage_cluster_create_complete
-  total_vsis                      = var.total_protocol_cluster_instances
-  vpc_id                          = var.vpc_id
-  routing_table                   = data.ibm_is_vpc.vpc_rt_id.default_routing_table
-  zone                            = [var.vpc_availability_zones[0]]
-  action                          = "deliver"
-  next_hop                        = values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map))
-  priority                        = 2
-  dest_ip                         = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
-  storage_admin_ip                = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map))[0] : values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))[0]
-  storage_private_key             = format("%s/storage_key/id_rsa", var.scale_ansible_repo_clone_path)
-  depends_on                      = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.compute_cluster_configuration, module.storage_cluster_configuration]
 }
 
 module "client_configuration" {
