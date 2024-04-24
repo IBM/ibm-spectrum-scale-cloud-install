@@ -632,14 +632,14 @@ def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, m
            export_ip_pool (list), filesystem (string), mountpoint (string)
     """
     exports = []
+    export_node_ip_map = []
     if enable_ces == "True":
         filesets_name_size = {
             key.split('/')[-1]: value for key, value in filesets.items()}
         exports = list(filesets_name_size.keys())
 
         # Creating map of CES nodes and it Ips
-        export_node_ip_map = [{protocol_cluster_instance_name.split(
-            '.')[0]: ip} for protocol_cluster_instance_name, ip in zip(protocol_cluster_instance_names, export_ip_pool)]
+        export_node_ip_map = [{protocol_cluster_instance_name.split('.')[0]: ip} for protocol_cluster_instance_name, ip in zip(protocol_cluster_instance_names, export_ip_pool)]
 
     ces = {
         "scale_protocols": {
