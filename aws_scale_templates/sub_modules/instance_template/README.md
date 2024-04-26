@@ -308,21 +308,16 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="output_ces_private_ips"></a> [ces_private_ips](#output_ces_private_ips) | CES/Protocol ENI (secondary private) ips. |
 | <a name="output_cluster_sns_arn"></a> [cluster_sns_arn](#output_cluster_sns_arn) | n/a |
 | <a name="output_compute_cluster_instance_cidrs"></a> [compute_cluster_instance_cidrs](#output_compute_cluster_instance_cidrs) | n/a |
-| <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
-| <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
+| <a name="output_compute_cluster_instance_details"></a> [compute_cluster_instance_details](#output_compute_cluster_instance_details) | Compute cluster instance details (map of id, private_ip, dns) |
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
-| <a name="output_gateway_instance_ids"></a> [gateway_instance_ids](#output_gateway_instance_ids) | Gateway instance ids. |
-| <a name="output_gateway_instance_private_ips"></a> [gateway_instance_private_ips](#output_gateway_instance_private_ips) | Private IP address of gateway instances. |
+| <a name="output_gateway_instance_details"></a> [gateway_instance_details](#output_gateway_instance_details) | Gateway instance details (map of id, private_ip, dns) |
 | <a name="output_instance_iam_profile"></a> [instance_iam_profile](#output_instance_iam_profile) | n/a |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | Placement group id. |
-| <a name="output_protocol_instance_ids"></a> [protocol_instance_ids](#output_protocol_instance_ids) | Protocol instance ids. |
-| <a name="output_protocol_instance_private_ips"></a> [protocol_instance_private_ips](#output_protocol_instance_private_ips) | Private IP address of protocol instances. |
+| <a name="output_protocol_instance_details"></a> [protocol_instance_details](#output_protocol_instance_details) | Protocol instance details (map of id, private_ip, dns) |
+| <a name="output_storage_cluster_dec_instance_details"></a> [storage_cluster_dec_instance_details](#output_storage_cluster_dec_instance_details) | Storage cluster desc instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
-| <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
-| <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
 | <a name="output_storage_cluster_instance_cidrs"></a> [storage_cluster_instance_cidrs](#output_storage_cluster_instance_cidrs) | n/a |
-| <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
-| <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
+| <a name="output_storage_cluster_instance_details"></a> [storage_cluster_instance_details](#output_storage_cluster_instance_details) | Protocol instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group id. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
 <!-- END_TF_DOCS -->
