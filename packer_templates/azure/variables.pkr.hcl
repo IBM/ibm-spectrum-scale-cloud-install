@@ -56,17 +56,6 @@ variable "instance_type" {
   description = "Size of the VM used for building."
 }
 
-variable "managed_image_name" {
-  type        = string
-  default     = "ibm-storage-scale"
-  description = "Specify the managed image name where the result of the Packer build will be saved."
-}
-
-variable "managed_image_resource_group_name" {
-  type        = string
-  description = "The name of the resource group in which the resources will be created."
-}
-
 variable "manifest_path" {
   type    = string
   default = ""
@@ -74,6 +63,17 @@ variable "manifest_path" {
 
 locals {
   manifest_path = var.manifest_path != "" ? var.manifest_path : path.root
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "The name of the resource group in which the resources will be created."
+}
+
+variable "resource_prefix" {
+  type        = string
+  default     = "ibm-storage-scale"
+  description = "Specify the managed image name where the result of the Packer build will be saved."
 }
 
 variable "scale_version" {

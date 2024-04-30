@@ -2,7 +2,7 @@ source "azure-arm" "itself" {
   azure_tags = {
     Name = var.image_description
   }
-  build_resource_group_name              = var.managed_image_resource_group_name
+  build_resource_group_name              = var.resource_group_name
   client_id                              = var.client_id
   client_secret                          = var.client_secret
   communicator                           = "ssh"
@@ -10,8 +10,8 @@ source "azure-arm" "itself" {
   image_publisher                        = var.image_publisher
   image_sku                              = var.image_sku
   image_version                          = var.image_version
-  managed_image_name                     = "${var.managed_image_name}-{{timestamp}}"
-  managed_image_resource_group_name      = var.managed_image_resource_group_name
+  managed_image_name                     = "${var.resource_prefix}-{{timestamp}}"
+  managed_image_resource_group_name      = var.resource_group_name
   managed_image_storage_account_type     = var.volume_type
   os_disk_size_gb                        = var.volume_size
   os_type                                = "Linux"
@@ -27,7 +27,7 @@ source "azure-arm" "itself" {
   subscription_id                        = var.subscription_id
   tenant_id                              = var.tenant_id
   virtual_network_name                   = var.vpc_ref
-  virtual_network_resource_group_name    = var.managed_image_resource_group_name
+  virtual_network_resource_group_name    = var.resource_group_name
   virtual_network_subnet_name            = var.vpc_subnet_id
   vm_size                                = var.instance_type
 }
