@@ -60,6 +60,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 
 | Name | Description | Type |
 |------|-------------|------|
+| <a name="input_colocate_protocol_cluster_instances"></a> [colocate_protocol_cluster_instances](#input_colocate_protocol_cluster_instances) | Enable it to use storage instances as protocol instances | `bool` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |

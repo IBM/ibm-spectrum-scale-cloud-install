@@ -43,7 +43,11 @@ if grep -q "Red Hat" /etc/os-release
 then
     USER=vpcuser
     REQ_PKG_INSTALLED=0
-    if grep -q "platform:el8" /etc/os-release
+    if grep -q "platform:el9" /etc/os-release
+    then
+        PACKAGE_MGR=dnf
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables-nft nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
+    elif grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
         package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"

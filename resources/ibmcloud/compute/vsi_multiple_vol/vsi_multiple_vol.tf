@@ -27,6 +27,11 @@ variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
 variable "enable_sec_interface_storage" {}
+variable "protocol_domain" {}
+variable "protocol_subnet_id" {}
+variable "enable_colocation" {}
+variable "vpc_region" {}
+variable "vpc_rt_id" {}
 
 data "ibm_is_instance_profile" "itself" {
   name = var.vsi_profile
@@ -129,6 +134,20 @@ firewall-offline-cmd --zone=public --add-port=9084/tcp
 firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
+if [ "${var.enable_colocation}" == true ]; then
+    firewall-offline-cmd --zone=public --add-port=2049/tcp
+    firewall-offline-cmd --zone=public --add-port=2049/udp
+    firewall-offline-cmd --zone=public --add-port=111/tcp
+    firewall-offline-cmd --zone=public --add-port=111/udp
+    firewall-offline-cmd --zone=public --add-port=32765/tcp
+    firewall-offline-cmd --zone=public --add-port=32765/udp
+    firewall-offline-cmd --zone=public --add-port=32767/tcp
+    firewall-offline-cmd --zone=public --add-port=32767/udp
+    firewall-offline-cmd --zone=public --add-port=32768/tcp
+    firewall-offline-cmd --zone=public --add-port=32768/udp
+    firewall-offline-cmd --zone=public --add-port=32769/tcp
+    firewall-offline-cmd --zone=public --add-port=32769/udp
+fi
 systemctl start firewalld
 systemctl enable firewalld
 
@@ -140,6 +159,21 @@ if [ "${var.enable_sec_interface_storage}" == true ]; then
     echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
     systemctl restart NetworkManager
 fi
+
+if [ "${var.enable_colocation}" == true ]; then
+    sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
+    nmcli conn del "$sec_interface"
+    nmcli con add type ethernet con-name eth1 ifname eth1
+    echo "DOMAIN=\"${var.protocol_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
+    echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
+    systemctl restart NetworkManager
+    ###### TODO: Fix Me ######
+    echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
+    echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
+    echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
+    echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
+    echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
+fi
 EOF
 }
 
@@ -148,9 +182,10 @@ resource "ibm_is_instance" "itself" {
     # This assigns a subnet-id to each of the instance
     # iteration.
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      sequence_string = tostring(count_number)
-      subnet_id       = element(var.vsi_subnet_id, idx)
-      zone            = element(var.zones, idx)
+      sequence_string    = tostring(count_number)
+      subnet_id          = element(var.vsi_subnet_id, idx)
+      protocol_subnet_id = var.enable_colocation == true ? element(var.protocol_subnet_id, idx) : ""
+      zone               = element(var.zones, idx)
     }
   }
 
@@ -166,11 +201,12 @@ resource "ibm_is_instance" "itself" {
   }
 
   dynamic "network_interfaces" {
-    for_each = var.enable_sec_interface_storage ? [1] : []
+    for_each = var.enable_sec_interface_storage == true || var.enable_colocation == true ? [1] : []
     content {
-      name            = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
-      subnet          = each.value.subnet_id
-      security_groups = var.vsi_security_group
+      name              = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
+      subnet            = var.enable_sec_interface_storage ? each.value.subnet_id : each.value.protocol_subnet_id
+      allow_ip_spoofing = var.enable_colocation == true ? true : false
+      security_groups   = var.vsi_security_group
     }
   }
 
@@ -293,5 +329,10 @@ output "instance_name_id_map" {
 
 output "instance_name_ip_map" {
   value      = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+}
+
+output "secondary_interface_name_ip_map" {
+  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
