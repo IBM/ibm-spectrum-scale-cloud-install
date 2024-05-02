@@ -84,6 +84,9 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     }
 
     case "$INSTALL_PROTOCOLS" in
+        None)
+            echo "skipping protocol rpm installation"
+            ;;
         nfs)
             install_nfs
             ;;
