@@ -28,7 +28,7 @@ variable "resource_group_id" {}
 variable "resource_tags" {}
 variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
-variable "enable_colocation" {}
+variable "enable_protocol" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
 
@@ -80,7 +80,7 @@ firewall-offline-cmd --zone=public --add-port=9084/tcp
 firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
-if [ "${var.enable_colocation}" == true ]; then
+if [ "${var.enable_protocol}" == true ]; then
     firewall-offline-cmd --zone=public --add-port=2049/tcp
     firewall-offline-cmd --zone=public --add-port=2049/udp
     firewall-offline-cmd --zone=public --add-port=111/tcp
@@ -101,7 +101,7 @@ if grep -q "platform:el9" /etc/os-release
 then
     subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-eus-rpms
 fi
-if [ "${var.enable_colocation}" == true ]; then
+if [ "${var.enable_protocol}" == true ]; then
     sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
     nmcli conn del "$sec_interface"
     nmcli con add type ethernet con-name eth1 ifname eth1
@@ -125,7 +125,7 @@ resource "ibm_is_bare_metal_server" "itself" {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       sequence_string    = tostring(count_number)
       subnet_id          = element(var.vsi_subnet_id, idx)
-      protocol_subnet_id = var.enable_colocation == true ? element(var.protocol_subnet_id, idx) : ""
+      protocol_subnet_id = var.enable_protocol == true ? element(var.protocol_subnet_id, idx) : ""
       zone               = element(var.zones, idx)
     }
   }
@@ -143,11 +143,11 @@ resource "ibm_is_bare_metal_server" "itself" {
   }
 
   dynamic "network_interfaces" {
-    for_each = var.enable_colocation == true ? [1] : []
+    for_each = var.enable_protocol == true ? [1] : []
     content {
       name              = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
       subnet            = each.value.protocol_subnet_id
-      allow_ip_spoofing = false #var.enable_colocation == true ? true : false
+      allow_ip_spoofing = false #var.enable_protocol == true ? true : false
       security_groups   = var.vsi_security_group
       allowed_vlans     = [101, 102]
     }

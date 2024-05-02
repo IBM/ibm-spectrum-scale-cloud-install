@@ -29,7 +29,7 @@ variable "resource_tags" {}
 variable "enable_sec_interface_storage" {}
 variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
-variable "enable_colocation" {}
+variable "enable_protocol" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
 
@@ -46,7 +46,11 @@ if grep -q "Red Hat" /etc/os-release
 then
     USER=vpcuser
     REQ_PKG_INSTALLED=0
-    if grep -q "platform:el8" /etc/os-release
+    if grep -q "platform:el9" /etc/os-release
+    then
+        PACKAGE_MGR=dnf
+        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables-nft nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
+    elif grep -q "platform:el8" /etc/os-release
     then
         PACKAGE_MGR=dnf
         package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
@@ -134,7 +138,7 @@ firewall-offline-cmd --zone=public --add-port=9084/tcp
 firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
-if [ "${var.enable_colocation}" == true ]; then
+if [ "${var.enable_protocol}" == true ]; then
     firewall-offline-cmd --zone=public --add-port=2049/tcp
     firewall-offline-cmd --zone=public --add-port=2049/udp
     firewall-offline-cmd --zone=public --add-port=111/tcp
@@ -160,7 +164,7 @@ if [ "${var.enable_sec_interface_storage}" == true ]; then
     systemctl restart NetworkManager
 fi
 
-if [ "${var.enable_colocation}" == true ]; then
+if [ "${var.enable_protocol}" == true ]; then
     sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
     nmcli conn del "$sec_interface"
     nmcli con add type ethernet con-name eth1 ifname eth1
@@ -184,7 +188,7 @@ resource "ibm_is_instance" "itself" {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       sequence_string    = tostring(count_number)
       subnet_id          = element(var.vsi_subnet_id, idx)
-      protocol_subnet_id = var.enable_colocation == true ? element(var.protocol_subnet_id, idx) : ""
+      protocol_subnet_id = var.enable_protocol == true ? element(var.protocol_subnet_id, idx) : ""
       zone               = element(var.zones, idx)
     }
   }
@@ -201,11 +205,11 @@ resource "ibm_is_instance" "itself" {
   }
 
   dynamic "network_interfaces" {
-    for_each = var.enable_sec_interface_storage == true || var.enable_colocation == true ? [1] : []
+    for_each = var.enable_sec_interface_storage == true || var.enable_protocol == true ? [1] : []
     content {
       name              = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
       subnet            = var.enable_sec_interface_storage ? each.value.subnet_id : each.value.protocol_subnet_id
-      allow_ip_spoofing = var.enable_colocation == true ? true : false
+      allow_ip_spoofing = var.enable_protocol == true ? true : false
       security_groups   = var.vsi_security_group
     }
   }
