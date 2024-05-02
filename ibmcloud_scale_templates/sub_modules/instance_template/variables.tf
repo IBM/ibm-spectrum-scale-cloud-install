@@ -406,6 +406,7 @@ variable "protocol_vsi_profile" {
 
 variable "colocate_protocol_cluster_instances" {
   type        = bool
+  default     = true
   description = "Enable it to use storage instances as protocol instances"
 }
 
