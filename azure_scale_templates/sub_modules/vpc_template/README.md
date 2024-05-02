@@ -51,16 +51,17 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 |------|-------------|------|
 | <a name="input_client_id"></a> [client_id](#input_client_id) | The Active Directory service principal associated with your account. | `string` |
 | <a name="input_client_secret"></a> [client_secret](#input_client_secret) | The password or secret for your service principal. | `string` |
+| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
+| <a name="input_create_resouce_group"></a> [create_resouce_group](#input_create_resouce_group) | Creates resouce group. | `bool` |
 | <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | The name of a new resource group in which the resources will be created. | `string` |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. Example: ibm-storage-scale | `string` |
 | <a name="input_subscription_id"></a> [subscription_id](#input_subscription_id) | The subscription ID to use. | `string` |
 | <a name="input_tenant_id"></a> [tenant_id](#input_tenant_id) | The Active Directory tenant identifier, must provide when using service principals. | `string` |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The location/region of the vpc to create. Examples are East US, West US, etc. | `string` |
-| <a name="input_create_resouce_group"></a> [create_resouce_group](#input_create_resouce_group) | Creates resouce group. | `bool` |
-| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
-| <a name="input_vpc_bastion_service_subnets_cidr_blocks"></a> [vpc_bastion_service_subnets_cidr_blocks](#input_vpc_bastion_service_subnets_cidr_blocks) | List of cidr_blocks for azure fully managed subnet. | `list(string)` |
+| <a name="input_vpc_bastion_service_subnets_cidr_blocks"></a> [vpc_bastion_service_subnets_cidr_blocks](#input_vpc_bastion_service_subnets_cidr_blocks) | List of CIDR blocks for azure fully managed bastion subnet. | `list(string)` |
 | <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the vpc. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks for compute cluster private subnets. | `list(string)` |
 | <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of cidr_blocks of public subnets. | `list(string)` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The location/region of the vpc to create. Examples are East US, West US, etc. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks for storage cluster private subnets. | `list(string)` |
 | <a name="input_vpc_tags"></a> [vpc_tags](#input_vpc_tags) | The tags to associate with your network and subnets. | `map(string)` |
 

@@ -1,6 +1,6 @@
 variable "image_description" {
   type        = string
-  default     = "IBM Storeage Scale AMI"
+  default     = "IBM Storage Scale AMI"
   description = "The description to set for the resulting AMI."
 }
 

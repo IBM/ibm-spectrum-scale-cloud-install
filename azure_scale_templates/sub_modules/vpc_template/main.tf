@@ -8,14 +8,6 @@
     5. Storage and compute PrivateSubnets
 */
 
-locals {
-  cluster_type = (
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks == null) ? "storage" :
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks == null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "compute" :
-    (var.vpc_storage_cluster_private_subnets_cidr_blocks != null && var.vpc_compute_cluster_private_subnets_cidr_blocks != null) ? "combined" : "none"
-  )
-}
-
 # Create resource group
 module "resource_group" {
   count               = var.create_resouce_group != null ? 1 : 0
@@ -27,7 +19,7 @@ module "resource_group" {
 # Create virtual network
 module "vnet" {
   source              = "../../../resources/azure/network/vpc"
-  vnet_name           = format("%s-vpc", var.resource_prefix)
+  vnet_name           = var.resource_prefix
   vnet_location       = var.vpc_region
   resource_group_name = var.resource_group_name
   vnet_address_space  = [var.vpc_cidr_block]
@@ -70,7 +62,7 @@ module "nat_gw_public_pip_association" {
 # Create storage private subnet
 module "vnet_strg_private_subnet" {
   source              = "../../../resources/azure/network/subnet"
-  turn_on             = (local.cluster_type == "storage" || local.cluster_type == "combined") == true ? true : false
+  turn_on             = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   subnet_name         = format("%s-strg-pvt", var.resource_prefix)
   resource_group_name = var.resource_group_name
   vnet_name           = module.vnet.vnet_name
@@ -87,7 +79,7 @@ module "nat_gw_strg_private_snet_association" {
 # Create compute private subnet
 module "vnet_comp_private_subnet" {
   source              = "../../../resources/azure/network/subnet"
-  turn_on             = (local.cluster_type == "compute" || local.cluster_type == "combined") == true ? true : false
+  turn_on             = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   subnet_name         = format("%s-comp-pvt", var.resource_prefix)
   resource_group_name = var.resource_group_name
   vnet_name           = module.vnet.vnet_name
