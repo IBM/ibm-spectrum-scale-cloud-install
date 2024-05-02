@@ -145,11 +145,12 @@ resource "ibm_is_bare_metal_server" "itself" {
   dynamic "network_interfaces" {
     for_each = var.enable_protocol == true ? [1] : []
     content {
-      name              = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
-      subnet            = each.value.protocol_subnet_id
-      allow_ip_spoofing = false #var.enable_protocol == true ? true : false
-      security_groups   = var.vsi_security_group
-      allowed_vlans     = [101, 102]
+      name                      = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
+      subnet                    = each.value.protocol_subnet_id
+      enable_infrastructure_nat = true
+      allow_ip_spoofing         = true
+      security_groups           = var.vsi_security_group
+      # allowed_vlans     = [101, 102]
     }
   }
 
