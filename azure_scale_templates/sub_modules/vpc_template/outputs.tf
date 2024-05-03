@@ -9,12 +9,20 @@ output "vpc_public_subnets" {
 }
 
 output "vpc_storage_cluster_private_subnets" {
-  value       = module.vnet_strg_private_subnet.subnet_id
+  value       = module.storage_private_subnet.subnet_id
   description = "List of IDs of storage cluster private subnets."
 }
 
+output "vpc_storage_nat_gateways" {
+  value       = module.storage_nat_gateway.nat_gateway_id
+  description = "List of IDs of storage cluster nat gateway."
+}
 output "vpc_compute_cluster_private_subnets" {
-  value       = module.vnet_comp_private_subnet.subnet_id
+  value       = module.compute_private_subnet.subnet_id
   description = "List of IDs of compute cluster private subnets."
 }
 
+output "vpc_compute_nat_gateways" {
+  value       = module.compute_nat_gateway.nat_gateway_id
+  description = "List of IDs of compute cluster nat gateway."
+}
