@@ -77,6 +77,11 @@ firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
 systemctl start firewalld
 systemctl enable firewalld
+
+if grep -q "platform:el9" /etc/os-release
+then
+    subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-eus-rpms
+fi
 EOF
 }
 
