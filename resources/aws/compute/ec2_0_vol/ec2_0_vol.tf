@@ -130,7 +130,7 @@ resource "aws_route53_record" "ces_ptr_itself" {
   zone_id = var.reverse_dns_zone
   type    = "PTR"
   name    = format("%s.%s.%s.%s", split(".", var.secondary_private_ip)[3], split(".", var.secondary_private_ip)[2], split(".", var.secondary_private_ip)[1], var.reverse_dns_domain)
-  records = [format("%s-ces", var.name_prefix)]
+  records = [format("%s-ces.%s", var.name_prefix, var.dns_domain)]
   ttl     = 360
 }
 
