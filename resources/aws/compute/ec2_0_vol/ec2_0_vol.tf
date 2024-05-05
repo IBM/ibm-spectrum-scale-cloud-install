@@ -125,6 +125,15 @@ resource "aws_route53_record" "ces_a_itself" {
   ttl     = 360
 }
 
+# Create "PTR" (Pointer) to enables reverse DNS lookup, from an IP address to a hostname for CES node
+resource "aws_route53_record" "ces_ptr_itself" {
+  zone_id = var.reverse_dns_zone
+  type    = "PTR"
+  name    = format("%s.%s.%s.%s", split(".", var.secondary_private_ip)[3], split(".", var.secondary_private_ip)[2], split(".", var.secondary_private_ip)[1], var.reverse_dns_domain)
+  records = [format("%s-ces", var.name_prefix)]
+  ttl     = 360
+}
+
 output "instance_details" {
   value = {
     private_ip = aws_instance.itself.private_ip
