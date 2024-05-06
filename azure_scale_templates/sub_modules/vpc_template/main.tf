@@ -126,7 +126,6 @@ module "nat_strg_private_snet_association" {
   nat_gateway_id = module.storage_nat_gateway.nat_gateway_id
 }
 
-
 # Public subnet for azure fully managed Bastion service
 module "public_subnet_bastion_service" {
   count               = var.vpc_bastion_service_subnets_cidr_blocks != null ? length(var.vpc_bastion_service_subnets_cidr_blocks) : 0

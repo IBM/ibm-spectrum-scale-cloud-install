@@ -1,44 +1,92 @@
+variable "azure_bastion_service" {
+  type        = bool
+  nullable    = true
+  description = "Enable Azure Bastion service"
+}
+
+variable "bastion_boot_disk_type" {
+  type        = string
+  nullable    = false
+  description = "Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS)."
+}
+
+variable "bastion_instance_type" {
+  type        = string
+  nullable    = false
+  description = "Instance type to use for provisioning the compute cluster instances."
+}
+
+variable "bastion_key_pair" {
+  type        = string
+  nullable    = false
+  description = "The SSH keypair to launch the bastion vm."
+}
+
+variable "bastion_ssh_user_name" {
+  type        = string
+  nullable    = false
+  description = "The Bastion SSH username to launch bastion vm."
+}
+
 variable "client_id" {
   type        = string
+  nullable    = false
+  sensitive   = true
   description = "The Active Directory service principal associated with your account."
 }
 
 variable "client_secret" {
   type        = string
+  nullable    = false
+  sensitive   = true
   description = "The password or secret for your service principal."
 }
 
-variable "tenant_id" {
+variable "image_offer" {
   type        = string
-  description = "The Active Directory tenant identifier, must provide when using service principals."
+  nullable    = false
+  description = "Specifies the offer of the image used to create the storage cluster virtual machines."
 }
 
-variable "subscription_id" {
+variable "image_publisher" {
   type        = string
-  description = "The subscription ID to use."
+  nullable    = false
+  description = "Specifies the publisher of the image used to create the storage cluster virtual machines."
 }
 
-variable "vpc_region" {
+variable "image_sku" {
   type        = string
-  nullable    = true
-  default     = null
-  description = "The location/region of the vnet to create. Examples are East US, West US, etc."
+  nullable    = false
+  description = "Specifies the SKU of the image used to create the storage cluster virtual machines."
 }
 
-variable "vpc_availability_zones" {
+variable "image_version" {
+  type        = string
+  nullable    = false
+  description = "Specifies the version of the image used to create the compute cluster virtual machines."
+}
+
+variable "nsg_rule_start_index" {
+  type        = number
+  default     = 100
+  description = "Specifies the network security group rule priority start index."
+}
+
+variable "os_disk_caching" {
+  type        = string
+  default     = "ReadWrite"
+  description = "Specifies the caching requirements for the OS Disk (Ex: None, ReadOnly and ReadWrite)."
+}
+
+variable "remote_cidr_blocks" {
   type        = list(string)
-  description = "A list of availability zones ids in the region/location."
-}
-
-variable "vpc_ref" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "VPC id to where bastion needs to deploy."
+  nullable    = false
+  description = "List of CIDRs that can access to the bastion."
 }
 
 variable "resource_group_name" {
   type        = string
+  nullable    = false
   description = "The name of a new resource group in which the resources will be created."
 }
 
@@ -48,83 +96,46 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
-variable "os_disk_caching" {
+variable "subscription_id" {
   type        = string
-  default     = "ReadWrite"
-  description = "Specifies the caching requirements for the OS Disk (Ex: None, ReadOnly and ReadWrite)."
+  nullable    = false
+  sensitive   = true
+  description = "The subscription ID to use."
 }
 
-variable "image_publisher" {
+variable "tenant_id" {
   type        = string
-  nullable    = true
-  default     = null
-  description = "Specifies the publisher of the image used to create the storage cluster virtual machines."
-}
-
-variable "image_offer" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Specifies the offer of the image used to create the storage cluster virtual machines."
-}
-
-variable "image_sku" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Specifies the SKU of the image used to create the storage cluster virtual machines."
-}
-
-variable "bastion_instance_type" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Instance type to use for provisioning the compute cluster instances."
-}
-
-variable "image_version" {
-  type        = string
-  default     = "latest"
-  description = "Specifies the version of the image used to create the compute cluster virtual machines."
+  nullable    = false
+  sensitive   = true
+  description = "The Active Directory tenant identifier, must provide when using service principals."
 }
 
 variable "vpc_auto_scaling_group_subnets" {
   type        = list(string)
-  nullable    = true
-  default     = null
+  nullable    = false
   description = "List of IDs of bastion subnets."
 }
 
-variable "bastion_boot_disk_type" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS)."
-}
-
-variable "bastion_key_pair" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "The SSH keypair to launch the bastion vm."
-}
-
-variable "bastion_ssh_user_name" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "The Bastion SSH username to launch bastion vm."
-}
-
-variable "azure_bastion_service" {
-  type        = bool
-  default     = false
-  description = "Enable Azure Bastion service"
-}
-
-variable "remote_cidr_blocks" {
+variable "vpc_availability_zones" {
   type        = list(string)
-  nullable    = true
-  default     = null
-  description = "List of CIDRs that can access to the bastion."
+  nullable    = false
+  description = "A list of availability zones ids in the region/location."
+}
+
+variable "vpc_network_security_group_ref" {
+  type        = string
+  nullable    = false
+  description = "VNet network security group id/reference."
+}
+
+variable "vpc_ref" {
+  type        = string
+  nullable    = false
+  description = "VPC id to where bastion needs to deploy."
+}
+
+variable "vpc_region" {
+  type        = string
+  nullable    = false
+  description = "The location/region of the vnet to create. Examples are East US, West US, etc."
 }
