@@ -5,20 +5,13 @@
 */
 
 locals {
-  tcp_port_allow_bastion = ["22"]
+  allow_protocol         = ["Tcp", "Icmp"]
+  tcp_port_allow_bastion = ["22", "*"]
 }
 
-# Create NSG for bastion
-module "bastion_network_security_group" {
-  source              = "../../../resources/azure/security/network_security_group"
-  security_group_name = format("%s-bastion", var.resource_prefix)
-  location            = var.vpc_region
-  resource_group_name = var.resource_group_name
-}
-
-# Create bastion ASG
-module "bastion_cluster_asg" {
-  source              = "../../../resources/azure/security/network_application_security_group"
+# Create bastion/jumphost Application Security Group (ASG)
+module "bastion_app_security_grp" {
+  source              = "../../../resources/azure/security/application_security_group"
   resource_prefix     = "${var.resource_prefix}-bastion"
   location            = var.vpc_region
   resource_group_name = var.resource_group_name
@@ -28,27 +21,19 @@ module "bastion_cluster_asg" {
 #tfsec:ignore:azure-network-ssh-blocked-from-internet
 #tfsec:ignore:azure-network-no-public-ingress
 module "bastion_tcp_inbound_security_rule" {
-  source                      = "../../../resources/azure/security/network_security_group_rule"
-  total_rules                 = length(local.tcp_port_allow_bastion)
-  rule_names_prefix           = "${var.resource_prefix}-allow-ssh"
-  direction                   = ["Inbound"]
-  access                      = ["Allow"]
-  protocol                    = [for i in range(length(local.tcp_port_allow_bastion)) : "Tcp"]
-  source_port_range           = ["*"]
-  destination_port_range      = local.tcp_port_allow_bastion
-  priority                    = [for i in range(length(local.tcp_port_allow_bastion)) : format("%s", i + 100)]
-  source_address_prefix       = var.remote_cidr_blocks
-  destination_address_prefix  = ["*"]
-  network_security_group_name = module.bastion_network_security_group.sec_group_name
-  resource_group_name         = var.resource_group_name
-}
-
-# Associates NSG with public bastion designated subnet
-module "associate_bastion_nsg_wth_subnet" {
-  count                     = length(var.vpc_auto_scaling_group_subnets)
-  source                    = "../../../resources/azure/security/network_security_group_association"
-  subnet_id                 = var.vpc_auto_scaling_group_subnets[count.index]
-  network_security_group_id = module.bastion_network_security_group.sec_group_id
+  source                                     = "../../../resources/azure/security/nsg_destination_app_sec_grp"
+  total_rules                                = length(local.tcp_port_allow_bastion)
+  rule_names_prefix                          = "${var.resource_prefix}-allow"
+  direction                                  = ["Inbound"]
+  access                                     = ["Allow"]
+  protocol                                   = local.allow_protocol
+  source_port_range                          = ["*"]
+  destination_port_range                     = local.tcp_port_allow_bastion
+  priority                                   = [for i in range(length(local.tcp_port_allow_bastion)) : format("%s", i + var.nsg_rule_start_index)]
+  source_address_prefix                      = var.remote_cidr_blocks
+  destination_application_security_group_ids = [module.bastion_app_security_grp.asg_id]
+  network_security_group_name                = var.vpc_network_security_group_ref
+  resource_group_name                        = var.resource_group_name
 }
 
 # Azure Fully Managed Bastion service
@@ -81,6 +66,6 @@ module "bastion_autoscaling_group" {
   os_disk_caching         = var.os_disk_caching
   subnet_id               = var.vpc_auto_scaling_group_subnets[count.index]
   vnet_availability_zones = var.vpc_availability_zones
-  bastion_asg_id          = [module.bastion_cluster_asg.asg_id]
+  bastion_asg_id          = [module.bastion_app_security_grp.asg_id]
   prefix_length           = 28
 }

@@ -117,6 +117,8 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
 
     sudo /usr/lpp/mmfs/bin/mmbuildgpl
     sudo sh -c "echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc"
+    sudo systemctl stop firewalld
+    sudo systemctl disable firewalld
     sudo rm -rf /etc/yum.repos.d/scale.repo
     sudo dnf clean all
     sudo rm -rf /var/cache/dnf

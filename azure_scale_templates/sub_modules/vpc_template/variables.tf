@@ -18,10 +18,10 @@ variable "cluster_type" {
   description = "Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage."
 }
 
-variable "create_resouce_group" {
+variable "create_resource_group" {
   type        = bool
   nullable    = true
-  description = "Creates resouce group."
+  description = "Create resource group."
 }
 
 variable "resource_group_name" {

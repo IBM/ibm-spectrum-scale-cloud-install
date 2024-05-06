@@ -19,6 +19,6 @@ output "bastion_service_instance_dns_name" {
 }
 
 output "bastion_security_group_ref" {
-  value       = module.bastion_cluster_asg.asg_id
+  value       = module.bastion_app_security_grp.asg_id
   description = "Bastion network security group name."
 }
