@@ -91,8 +91,7 @@ then
 fi
 
 yum update --security -y
-yum versionlock add python38 kernel-devel-`uname -r` kernel-headers-`uname -r`
-yum versionlock add make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel
+yum versionlock add $package_list
 yum versionlock list
 echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
 
