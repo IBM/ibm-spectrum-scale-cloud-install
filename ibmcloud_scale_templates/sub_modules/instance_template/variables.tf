@@ -198,6 +198,24 @@ variable "create_separate_namespaces" {
   description = "Flag to select if separate namespace needs to be created for compute instances."
 }
 
+variable "management_node_ip" {
+  type        = list(string)
+  default     = []
+  description = "Management node inastance ip address."
+}
+
+variable "management_node_name" {
+  type        = list(string)
+  default     = []
+  description = "Management node inastance name."
+}
+
+variable "management_node_id" {
+  type        = list(string)
+  default     = []
+  description = "Management node instance id."
+}
+
 variable "bastion_instance_public_ip" {
   type        = string
   default     = null

@@ -116,6 +116,9 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_ldap_user_password"></a> [ldap_user_password](#input_ldap_user_password) | The LDAP user password should be 8 to 20 characters long, with a mix of at least three alphabetic characters, including one uppercase and one lowercase letter. It must also include two numerical digits and at least one special character from (~@_+:) are required.It is important to avoid including the username in the password for enhanced security.[This value is ignored for an existing LDAP server]. | `string` |
 | <a name="input_ldap_vsi_osimage_name"></a> [ldap_vsi_osimage_name](#input_ldap_vsi_osimage_name) | Image name to be used for provisioning the LDAP instances. Note: Debian based OS are only supported for the LDAP feature. | `string` |
 | <a name="input_ldap_vsi_profile"></a> [ldap_vsi_profile](#input_ldap_vsi_profile) | Profile to be used for LDAP virtual server instance. | `string` |
+| <a name="input_management_node_id"></a> [management_node_id](#input_management_node_id) | Management node instance id. | `list(string)` |
+| <a name="input_management_node_ip"></a> [management_node_ip](#input_management_node_ip) | Management node inastance ip address. | `list(string)` |
+| <a name="input_management_node_name"></a> [management_node_name](#input_management_node_name) | Management node inastance name. | `list(string)` |
 | <a name="input_protocol_vsi_profile"></a> [protocol_vsi_profile](#input_protocol_vsi_profile) | Profile to be used for compute cluster virtual server instance. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
