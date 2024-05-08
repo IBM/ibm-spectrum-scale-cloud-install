@@ -21,6 +21,7 @@ variable "bastion_user" {}
 variable "bastion_instance_public_ip" {}
 variable "bastion_ssh_private_key" {}
 variable "meta_private_key" {}
+variable "vsi_meta_public_key" {}
 variable "scale_version" {}
 variable "spectrumscale_rpms_path" {}
 variable "enable_mrot_conf" {}
@@ -84,6 +85,13 @@ resource "local_sensitive_file" "write_meta_private_key" {
   count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
   content         = var.meta_private_key
   filename        = local.storage_private_key
+  file_permission = "0600"
+}
+
+resource "local_sensitive_file" "write_meta_private_ke_management_node" {
+  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  content         = var.vsi_meta_public_key
+  filename        = "/root/.ssh/authorized_keys"
   file_permission = "0600"
 }
 
