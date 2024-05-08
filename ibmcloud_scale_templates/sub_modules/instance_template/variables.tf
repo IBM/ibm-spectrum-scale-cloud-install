@@ -200,20 +200,22 @@ variable "create_separate_namespaces" {
 
 variable "management_node_ip" {
   type        = list(string)
-  default     = []
   description = "Management node inastance ip address."
 }
 
 variable "management_node_name" {
   type        = list(string)
-  default     = []
   description = "Management node inastance name."
 }
 
 variable "management_node_id" {
   type        = list(string)
-  default     = []
   description = "Management node instance id."
+}
+
+variable "management_node_with_vol_mapping" {
+  type        = map(list(string))
+  description = "Management node name and volume map."
 }
 
 variable "bastion_instance_public_ip" {
