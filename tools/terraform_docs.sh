@@ -7,6 +7,7 @@ awsDocModules=(
     "$root_dir/aws_scale_templates/prepare_tf_s3_backend"
     "$root_dir/aws_scale_templates/sub_modules/vpc_template"
     "$root_dir/aws_scale_templates/sub_modules/bastion_template"
+    "$root_dir/aws_scale_templates/sub_modules/dns_template"
     "$root_dir/aws_scale_templates/sub_modules/instance_template"
 )
 
@@ -14,8 +15,8 @@ azureDocModules=(
     "$root_dir/azure_scale_templates/azure_new_vnet_scale"
     "$root_dir/azure_scale_templates/sub_modules/vpc_template"
     "$root_dir/azure_scale_templates/sub_modules/bastion_template"
+    "$root_dir/azure_scale_templates/sub_modules/dns_template"
     "$root_dir/azure_scale_templates/sub_modules/instance_template"
-    "$root_dir/azure_scale_templates/sub_modules/ansible_jump_host"
 )
 
 ibmDocModules=(

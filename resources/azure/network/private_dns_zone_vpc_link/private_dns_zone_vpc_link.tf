@@ -14,9 +14,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "itself" {
   resource_group_name   = var.resource_group_name
   private_dns_zone_name = var.private_dns_zone_name
   virtual_network_id    = var.vnet_id
-  registration_enabled  = false # Note: Auto registration is intentionally disabled.
 }
 
-output "private_dns_zone_vnet_link_id" {
-  value = try(azurerm_private_dns_zone_virtual_network_link.itself[0].id, " ")
+output "association_id" {
+  value = try(azurerm_private_dns_zone_virtual_network_link.itself[0].id, null)
 }
