@@ -44,26 +44,25 @@ The below steps will provision the AWS route53 zones required for the IBM Spectr
 | Name | Description | Type |
 |------|-------------|------|
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
-| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. Example: ibm-storage-scale | `string` |
-| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
-| <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the VPC. Example: 10.0.0.0/16 | `string` |
-| <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of compute private subnets. | `list(string)` |
-| <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of cidr_blocks of public subnets. | `list(string)` |
+| <a name="input_create_dns_zone"></a> [create_dns_zone](#input_create_dns_zone) | Flag to represent if a new private DNS zone needs to be created or reused. | `bool` |
+| <a name="input_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#input_vpc_compute_cluster_dns_zone) | Route53 DNS zone name/id (incase of new creation use name, incase of association use id). | `string` |
+| <a name="input_vpc_compute_cluster_dns_zone_description"></a> [vpc_compute_cluster_dns_zone_description](#input_vpc_compute_cluster_dns_zone_description) | DNS zone description | `string` |
+| <a name="input_vpc_dns_tags"></a> [vpc_dns_tags](#input_vpc_dns_tags) | Additional tags for the DNS zone | `map(string)` |
+| <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id to be associated with the DNS zone. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc. | `string` |
-| <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of storage cluster private subnets. | `list(string)` |
-| <a name="input_vpc_tags"></a> [vpc_tags](#input_vpc_tags) | Additional tags for the VPC | `map(string)` |
+| <a name="input_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#input_vpc_reverse_dns_zone) | Route53 DNS zone/id (incase of new creation use name, incase of association use id). | `string` |
+| <a name="input_vpc_reverse_dns_zone_description"></a> [vpc_reverse_dns_zone_description](#input_vpc_reverse_dns_zone_description) | Route53 DNS zone description. | `string` |
+| <a name="input_vpc_storage_cluster_dns_zone"></a> [vpc_storage_cluster_dns_zone](#input_vpc_storage_cluster_dns_zone) | Route53 DNS zone name/id (incase of new creation use name, incase of association use id). | `string` |
+| <a name="input_vpc_storage_cluster_dns_zone_description"></a> [vpc_storage_cluster_dns_zone_description](#input_vpc_storage_cluster_dns_zone_description) | DNS zone description | `string` |
 
 #### Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
-| <a name="output_vpc_compute_nat_gateways"></a> [vpc_compute_nat_gateways](#output_vpc_compute_nat_gateways) | List of allocation ID of Elastic IPs created for AWS NAT Gateway. |
-| <a name="output_vpc_internet_gateway"></a> [vpc_internet_gateway](#output_vpc_internet_gateway) | The ID of the Internet Gateway. |
-| <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
-| <a name="output_vpc_ref"></a> [vpc_ref](#output_vpc_ref) | The ID of the VPC. |
-| <a name="output_vpc_s3_private_endpoint"></a> [vpc_s3_private_endpoint](#output_vpc_s3_private_endpoint) | The ID of the vpc s3 endpoint associated with private subnets. |
-| <a name="output_vpc_s3_public_endpoint"></a> [vpc_s3_public_endpoint](#output_vpc_s3_public_endpoint) | The ID of the vpc s3 endpoint associated with public subnets. |
-| <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |
-| <a name="output_vpc_storage_nat_gateways"></a> [vpc_storage_nat_gateways](#output_vpc_storage_nat_gateways) | List of allocation ID of Elastic IPs created for AWS NAT Gateway. |
+| <a name="output_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#output_vpc_compute_cluster_dns_zone) | Route53 DNS zone name/id. |
+| <a name="output_vpc_compute_dns_zone_id"></a> [vpc_compute_dns_zone_id](#output_vpc_compute_dns_zone_id) | Route53 zone id. |
+| <a name="output_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#output_vpc_reverse_dns_zone) | Route53 DNS zone name/id. |
+| <a name="output_vpc_reverse_dns_zone_id"></a> [vpc_reverse_dns_zone_id](#output_vpc_reverse_dns_zone_id) | Route53 zone id. |
+| <a name="output_vpc_storage_cluster_dns_zone"></a> [vpc_storage_cluster_dns_zone](#output_vpc_storage_cluster_dns_zone) | Route53 DNS zone name/id. |
+| <a name="output_vpc_storage_dns_zone_id"></a> [vpc_storage_dns_zone_id](#output_vpc_storage_dns_zone_id) | Route53 zone id. |
 <!-- END_TF_DOCS -->
