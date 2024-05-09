@@ -191,7 +191,7 @@ resource "ibm_is_bare_metal_server" "itself" {
       enable_infrastructure_nat = true
       allow_ip_spoofing         = true
       security_groups           = var.vsi_security_group
-      # allowed_vlans     = [101, 102]
+      allowed_vlans             = [101]
     }
   }
 
