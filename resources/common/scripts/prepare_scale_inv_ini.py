@@ -355,8 +355,8 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
             if storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
                     storage_cluster_instance_names.index(each_ip) <= (manager_count - 1):
                 if storage_cluster_instance_names.index(each_ip) == 0:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': True, 'is_collector': True, 'is_nsd': is_nsd,
+                    node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
+                            'is_gui': True, 'is_collector': True, 'is_nsd': False,
                             'is_admin': True, 'user': user, 'key_file': key_file,
                             'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
                     write_json_file({'storage_cluster_gui_ip_address': each_ip},
@@ -364,7 +364,12 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                                                "storage_cluster_gui_details.json"))
                 elif storage_cluster_instance_names.index(each_ip) == 1:
                     node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': False, 'is_collector': True, 'is_nsd': is_nsd,
+                            'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
+                            'is_admin': False, 'user': user, 'key_file': key_file,
+                            'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
+                elif storage_cluster_instance_names.index(each_ip) == 2:
+                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
+                            'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
                             'is_admin': False, 'user': user, 'key_file': key_file,
                             'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
                 else:
