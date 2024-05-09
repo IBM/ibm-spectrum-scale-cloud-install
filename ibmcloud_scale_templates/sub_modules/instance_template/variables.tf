@@ -404,6 +404,12 @@ variable "protocol_vsi_profile" {
   description = "Profile to be used for compute cluster virtual server instance."
 }
 
+variable "colocate_protocol_cluster_instances" {
+  type        = bool
+  default     = true
+  description = "Enable it to use storage instances as protocol instances"
+}
+
 variable "total_protocol_cluster_instances" {
   type        = number
   default     = 2
