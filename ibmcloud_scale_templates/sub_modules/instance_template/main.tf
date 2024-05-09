@@ -424,7 +424,7 @@ module "routing_table_routes" {
   routing_table     = data.ibm_is_vpc.vpc_rt_id.default_routing_table
   zone              = [var.vpc_availability_zones[0]]
   action            = "deliver"
-  next_hop          = local.scale_ces_enabled == true ? var.colocate_protocol_cluster_instances == false ? values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map)) : (var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].secondary_interface_name_ip_map)) : values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map))) : []
+  next_hop          = var.colocate_protocol_cluster_instances == false ? values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map)) : (var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].secondary_interface_name_ip_map)) : values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map)))
   priority          = 2
   dest_ip           = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
   depends_on        = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.client_cluster_instances]
