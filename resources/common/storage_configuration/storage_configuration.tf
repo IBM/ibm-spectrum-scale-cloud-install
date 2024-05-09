@@ -88,19 +88,19 @@ resource "local_sensitive_file" "write_meta_private_key" {
   file_permission = "0600"
 }
 
-resource "null_resource" "write_meta_private_ke_management_node" {
+resource "local_sensitive_file" "write_meta_private_key_management_node" {
+  count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
+  content         = var.meta_private_key
+  filename        = "/root/.ssh/id_rsa"
+  file_permission = "0600"
+}
+
+resource "null_resource" "write_meta_public_key_management_node" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
   provisioner "local-exec" {
     command = "echo '\n${var.vsi_meta_public_key}' >> /root/.ssh/authorized_keys"
   }
 }
-
-# resource "local_sensitive_file" "write_meta_private_ke_management_node" {
-#   count           = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true) ? 1 : 0
-#   content         = var.vsi_meta_public_key
-#   filename        = "/root/.ssh/authorized_keys"
-#   file_permission = "0600"
-# }
 
 resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == false) && var.bastion_instance_public_ip != null && var.bastion_ssh_private_key != null ? 1 : 0
