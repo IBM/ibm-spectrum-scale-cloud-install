@@ -593,6 +593,8 @@ locals {
 
   protocol_reserved_name_ips_map = try({ for details in data.ibm_is_subnet_reserved_ips.protocol_subnet_reserved_ips[0].reserved_ips : details.name => details.address }, {})
   protocol_subnet_gateway_ip     = local.scale_ces_enabled == true ? local.protocol_reserved_name_ips_map.ibm-default-gateway : ""
+
+  protocol_cluster_instance_names = slice((concat(keys(one(module.protocol_cluster_instances[*].instance_name_id_map)), (var.storage_type == "persistent" ? keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : keys(one(module.storage_cluster_instances[*].instance_name_id_map))))), 0, var.total_protocol_cluster_instances)
 }
 
 data "ibm_is_vpc" "vpc_rt_id" {
@@ -677,7 +679,7 @@ module "write_storage_cluster_inventory" {
   storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   compute_subnet_cidr                              = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   scale_remote_cluster_clustername                 = local.enable_mrot_conf ? jsonencode(format("%s.%s", var.resource_prefix, var.vpc_compute_cluster_dns_domain)) : jsonencode("")
-  protocol_cluster_instance_names                  = local.scale_ces_enabled == true ? var.colocate_protocol_cluster_instances == false ? jsonencode(keys(one(module.protocol_cluster_instances[*].instance_name_id_map))) : (var.storage_type == "persistent" ? jsonencode(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map))) : jsonencode(keys(one(module.storage_cluster_instances[*].instance_name_id_map)))) : jsonencode([])
+  protocol_cluster_instance_names                  = local.scale_ces_enabled == true ? jsonencode(local.protocol_cluster_instance_names) : jsonencode([])
   client_cluster_instance_names                    = jsonencode([])
   protocol_cluster_reserved_names                  = jsonencode([])
   smb                                              = false
