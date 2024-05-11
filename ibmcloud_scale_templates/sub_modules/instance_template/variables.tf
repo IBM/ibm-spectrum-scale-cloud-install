@@ -40,6 +40,12 @@ variable "total_compute_cluster_instances" {
   description = "Number of instances to be launched for compute cluster."
 }
 
+variable "management_vsi_profile" {
+  type        = string
+  default     = "bx2-8x32"
+  description = "Profile to be used for management instance."
+}
+
 variable "compute_cluster_key_pair" {
   type        = list(string)
   default     = null
@@ -280,6 +286,12 @@ variable "storage_bare_metal_osimage_id" {
   type        = string
   default     = ""
   description = "Image Id to use for provisioning the storage Baremetal cluster instances."
+}
+
+variable "bms_boot_drive_encryption" {
+  type        = bool
+  default     = false
+  description = "To enable the encryption for the boot drive of bare metal server. Select true or false"
 }
 
 variable "storage_type" {

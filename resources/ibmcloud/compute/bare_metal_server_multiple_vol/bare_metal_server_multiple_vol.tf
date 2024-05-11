@@ -20,6 +20,7 @@ variable "dns_domain" {}
 variable "vsi_subnet_id" {}
 variable "vsi_security_group" {}
 variable "vsi_profile" {}
+variable "bms_boot_drive_encryption" {}
 variable "vsi_image_id" {}
 variable "vsi_user_public_key" {}
 variable "vsi_meta_private_key" {}
@@ -195,9 +196,10 @@ resource "ibm_is_bare_metal_server" "itself" {
     }
   }
 
-  vpc            = var.vpc_id
-  resource_group = var.resource_group_id
-  user_data      = data.template_file.metadata_startup_script.rendered
+  vpc                = var.vpc_id
+  resource_group     = var.resource_group_id
+  user_data          = data.template_file.metadata_startup_script.rendered
+  enable_secure_boot = var.bms_boot_drive_encryption
   timeouts {
     create = "90m"
   }

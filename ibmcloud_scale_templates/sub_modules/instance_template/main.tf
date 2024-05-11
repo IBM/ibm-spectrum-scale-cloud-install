@@ -459,30 +459,59 @@ module "storage_cluster_instances" {
 }
 
 module "storage_cluster_bare_metal_server" {
-  count                = var.storage_type == "persistent" ? 1 : 0
-  source               = "../../../resources/ibmcloud/compute/bare_metal_server_multiple_vol"
-  total_vsis           = var.total_storage_cluster_instances
-  vsi_name_prefix      = format("%s-strg", var.resource_prefix)
-  vpc_id               = var.vpc_id
-  resource_group_id    = var.resource_group_id
-  zones                = [var.vpc_availability_zones[0]]
-  vsi_image_id         = local.storage_bare_metal_image_id
-  vsi_profile          = var.storage_bare_metal_server_profile
-  dns_domain           = var.vpc_storage_cluster_dns_domain
-  dns_service_id       = var.vpc_storage_cluster_dns_service_id
-  dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
-  vsi_subnet_id        = var.vpc_storage_cluster_private_subnets
-  vsi_security_group   = [module.storage_cluster_security_group.sec_group_id]
-  vsi_user_public_key  = data.ibm_is_ssh_key.storage_ssh_key[*].id
-  vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
-  vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  enable_protocol      = var.colocate_protocol_cluster_instances
-  vpc_region           = var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
-  vpc_rt_id            = var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
-  protocol_domain      = var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
-  protocol_subnet_id   = var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
-  resource_tags        = var.scale_cluster_resource_tags
-  depends_on           = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
+  count                     = var.storage_type == "persistent" ? 1 : 0
+  source                    = "../../../resources/ibmcloud/compute/bare_metal_server_multiple_vol"
+  total_vsis                = var.total_storage_cluster_instances
+  vsi_name_prefix           = format("%s-strg", var.resource_prefix)
+  vpc_id                    = var.vpc_id
+  resource_group_id         = var.resource_group_id
+  zones                     = [var.vpc_availability_zones[0]]
+  vsi_image_id              = local.storage_bare_metal_image_id
+  vsi_profile               = var.storage_bare_metal_server_profile
+  bms_boot_drive_encryption = var.bms_boot_drive_encryption
+  dns_domain                = var.vpc_storage_cluster_dns_domain
+  dns_service_id            = var.vpc_storage_cluster_dns_service_id
+  dns_zone_id               = var.vpc_storage_cluster_dns_zone_id
+  vsi_subnet_id             = var.vpc_storage_cluster_private_subnets
+  vsi_security_group        = [module.storage_cluster_security_group.sec_group_id]
+  vsi_user_public_key       = data.ibm_is_ssh_key.storage_ssh_key[*].id
+  vsi_meta_private_key      = module.generate_storage_cluster_keys.private_key_content
+  vsi_meta_public_key       = module.generate_storage_cluster_keys.public_key_content
+  enable_protocol           = var.colocate_protocol_cluster_instances
+  vpc_region                = var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
+  vpc_rt_id                 = var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
+  protocol_domain           = var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
+  protocol_subnet_id        = var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
+  resource_tags             = var.scale_cluster_resource_tags
+  depends_on                = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
+}
+
+module "storage_cluster_management_instance" {
+  source                       = "../../../resources/ibmcloud/compute/vsi_0_vol"
+  total_vsis                   = 1
+  vsi_name_prefix              = format("%s-mgmt", var.resource_prefix)
+  vpc_id                       = var.vpc_id
+  resource_group_id            = var.resource_group_id
+  zones                        = [var.vpc_availability_zones[0]]
+  vsi_image_id                 = local.storage_instance_image_id
+  vsi_profile                  = var.management_vsi_profile
+  dns_domain                   = var.vpc_storage_cluster_dns_domain
+  dns_service_id               = var.vpc_storage_cluster_dns_service_id
+  dns_zone_id                  = var.vpc_storage_cluster_dns_zone_id
+  vsi_subnet_id                = var.vpc_storage_cluster_private_subnets
+  vsi_security_group           = [module.storage_cluster_security_group.sec_group_id]
+  vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
+  vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
+  vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
+  storage_domain_name          = var.vpc_storage_cluster_dns_domain
+  storage_dns_service_id       = var.vpc_storage_cluster_dns_service_id
+  storage_dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
+  storage_subnet_id            = var.vpc_storage_cluster_private_subnets
+  storage_sec_group            = [module.storage_cluster_security_group.sec_group_id]
+  enable_sec_interface_compute = local.enable_sec_interface_storage
+  scale_firewall_rules_enabled = false
+  resource_tags                = var.scale_cluster_resource_tags
+  depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -595,6 +624,9 @@ locals {
   protocol_subnet_gateway_ip     = local.scale_ces_enabled == true ? local.protocol_reserved_name_ips_map.ibm-default-gateway : ""
 
   protocol_cluster_instance_names = slice((concat(keys(one(module.protocol_cluster_instances[*].instance_name_id_map)), (var.storage_type == "persistent" ? keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : keys(one(module.storage_cluster_instances[*].instance_name_id_map))))), 0, var.total_protocol_cluster_instances)
+  management_node_id              = local.enable_sec_interface_storage ? values(module.storage_cluster_management_instance.secondary_interface_name_id_map) : values(module.storage_cluster_management_instance.instance_name_id_map)
+  management_node_ip              = local.enable_sec_interface_storage ? values(module.storage_cluster_management_instance.secondary_interface_name_ip_map) : values(module.storage_cluster_management_instance.instance_name_ip_map)
+  management_node_name            = local.enable_sec_interface_storage ? keys(module.storage_cluster_management_instance.secondary_interface_name_id_map) : keys(module.storage_cluster_management_instance.instance_name_id_map)
 }
 
 data "ibm_is_vpc" "vpc_rt_id" {
@@ -666,15 +698,15 @@ module "write_storage_cluster_inventory" {
   compute_cluster_instance_private_ips             = jsonencode([])
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
   storage_cluster_filesystem_mountpoint            = jsonencode(var.storage_cluster_filesystem_mountpoint)
-  storage_cluster_instance_ids                     = var.storage_type == "persistent" ? jsonencode(concat(local.baremetal_cluster_instance_ids, tolist(module.storage_cluster_tie_breaker_instance.instance_ids))) : jsonencode(concat(local.storage_cluster_instance_ids, tolist(module.storage_cluster_tie_breaker_instance.instance_ids)))
-  storage_cluster_instance_private_ips             = var.storage_type == "persistent" ? jsonencode(concat(local.baremetal_cluster_instance_private_ips, tolist(module.storage_cluster_tie_breaker_instance.instance_private_ips))) : jsonencode(concat(local.storage_cluster_instance_private_ips, tolist(module.storage_cluster_tie_breaker_instance.instance_private_ips)))
+  storage_cluster_instance_ids                     = var.storage_type == "persistent" ? jsonencode(concat(local.baremetal_cluster_instance_ids, local.management_node_id, tolist(module.storage_cluster_tie_breaker_instance.instance_ids))) : jsonencode(concat(local.storage_cluster_instance_ids, local.management_node_id, tolist(module.storage_cluster_tie_breaker_instance.instance_ids)))
+  storage_cluster_instance_private_ips             = var.storage_type == "persistent" ? jsonencode(concat(local.baremetal_cluster_instance_private_ips, local.management_node_ip, tolist(module.storage_cluster_tie_breaker_instance.instance_private_ips))) : jsonencode(concat(local.storage_cluster_instance_private_ips, local.management_node_ip, tolist(module.storage_cluster_tie_breaker_instance.instance_private_ips)))
   storage_cluster_with_data_volume_mapping         = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_instances[*].instance_ips_with_vol_mapping))
   storage_cluster_instance_private_dns_ip_map      = var.storage_type == "persistent" ? jsonencode(local.baremetal_cluster_instance_private_dns_ip_map) : jsonencode(local.storage_cluster_instance_private_dns_ip_map)
   storage_cluster_desc_instance_ids                = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ids)
   storage_cluster_desc_instance_private_ips        = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_ips)
   storage_cluster_desc_data_volume_mapping         = jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map)
-  storage_cluster_instance_names                   = var.storage_type == "persistent" ? jsonencode(concat(local.baremetal_cluster_instance_names, keys(one(module.storage_cluster_tie_breaker_instance[*].instance_name_id_map)))) : jsonencode(concat(local.storage_cluster_instance_names, keys(one(module.storage_cluster_tie_breaker_instance[*].instance_name_id_map))))
+  storage_cluster_instance_names                   = var.storage_type == "persistent" ? jsonencode(concat(local.baremetal_cluster_instance_names, local.management_node_name, keys(one(module.storage_cluster_tie_breaker_instance[*].instance_name_id_map)))) : jsonencode(concat(local.storage_cluster_instance_names, local.management_node_name, keys(one(module.storage_cluster_tie_breaker_instance[*].instance_name_id_map))))
   compute_cluster_instance_names                   = jsonencode([])
   storage_subnet_cidr                              = local.enable_mrot_conf ? jsonencode(data.ibm_is_subnet.storage_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
   compute_subnet_cidr                              = local.enable_mrot_conf || local.scale_ces_enabled == true ? jsonencode(data.ibm_is_subnet.compute_cluster_private_subnets_cidr.ipv4_cidr_block) : jsonencode("")
