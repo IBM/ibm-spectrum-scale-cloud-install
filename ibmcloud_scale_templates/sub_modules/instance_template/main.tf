@@ -327,7 +327,7 @@ module "compute_cluster_instances" {
 
 module "compute_cluster_management_instance" {
   source                       = "../../../resources/ibmcloud/compute/vsi_0_vol"
-  total_vsis                   = 1
+  total_vsis                   = var.total_compute_cluster_instances == 0 ? 0 : 1
   vsi_name_prefix              = format("%s-comp-mgmt", var.resource_prefix)
   vpc_id                       = var.vpc_id
   resource_group_id            = var.resource_group_id
