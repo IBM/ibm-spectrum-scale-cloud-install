@@ -7,8 +7,7 @@
 locals {
   allow_protocol         = ["Tcp", "Icmp"]
   tcp_port_allow_bastion = ["22", "*"]
-
-  nsg_rule_description = ["Allow SSH traffic from external cidr to bastion instances", "Allow ICMP traffic from external cidr to bastion instances"]
+  nsg_rule_description   = ["Allow SSH traffic from external cidr to bastion instances", "Allow ICMP traffic from external cidr to bastion instances"]
 }
 
 # Create bastion/jumphost Application Security Group (ASG)
