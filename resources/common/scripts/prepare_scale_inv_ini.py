@@ -353,7 +353,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
             elif storage_cluster_instance_names.index(each_ip) == total_storage_node - 1:
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                        'is_admin': True, 'user': user, 'key_file': key_file,
+                        'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "computedescnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
             # Scale Management node defination
             elif storage_cluster_instance_names.index(each_ip) == total_storage_node - 2:
