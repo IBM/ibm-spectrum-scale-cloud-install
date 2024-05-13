@@ -149,3 +149,22 @@ module "associate_nsg_wth_subnet" {
   subnet_ids                = concat(module.public_subnet.subnet_id, module.storage_private_subnet.subnet_id, module.compute_private_subnet.subnet_id)
   network_security_group_id = module.vnet_network_security_group.sec_group_id
 }
+
+# The default NSG rule (65000 - AllowVnetInBound) allows vm's within the virtual network to communicate each other.
+# This rule cannot be deleted, hence adding a new rule to deny all traffic within the virtual network
+module "deny_all_traffic" {
+  source                      = "../../../resources/azure/security/nsg_source_address_prefix"
+  total_rules                 = 1
+  rule_names_prefix           = "${var.resource_prefix}-DenyAnyVNet"
+  direction                   = ["Inbound"]
+  access                      = ["Deny"]
+  protocol                    = ["*"]
+  source_port_range           = ["*"]
+  destination_port_range      = ["*"]
+  priority                    = [4096]
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  network_security_group_name = module.vnet_network_security_group.sec_group_name
+  resource_group_name         = var.resource_group_name
+  description                 = "Deny traffic within the VNet"
+}

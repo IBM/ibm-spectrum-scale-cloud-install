@@ -106,7 +106,7 @@ resource "aws_route53_record" "a_itself" {
   ttl     = 360
 }
 
-# Create "PTR" (Pointer) to enables reverse DNS lookup, from an IP address to a hostname
+# Create "PTR" (Pointer) to enable reverse DNS lookup, from an IP address to a hostname
 resource "aws_route53_record" "ptr_itself" {
   zone_id = var.reverse_dns_zone
   type    = "PTR"
@@ -125,7 +125,7 @@ resource "aws_route53_record" "ces_a_itself" {
   ttl     = 360
 }
 
-# Create "PTR" (Pointer) to enables reverse DNS lookup, from an IP address to a hostname for CES ip address
+# Create "PTR" (Pointer) to enable reverse DNS lookup, from an IP address to a hostname for CES ip address
 resource "aws_route53_record" "ces_ptr_itself" {
   count   = var.secondary_private_ip != null ? 1 : 0
   zone_id = var.reverse_dns_zone

@@ -1,6 +1,7 @@
 locals {
   compute_or_combined = ((var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") && var.total_compute_cluster_instances > 0) ? true : false
   storage_or_combined = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
+  storage_and_gateway = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
 
   tcp_port_scale_cluster         = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
   udp_port_scale_cluster         = ["47443", "4739"]
@@ -9,7 +10,7 @@ locals {
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
-  ssd_device_names = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"] # Todo: need to re-visit
+  instance_storage_device_names = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
 
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
@@ -70,14 +71,41 @@ locals {
       subnet = element(var.vpc_compute_cluster_private_subnets, idx)
     }
   }
+}
 
-  compute_instance_ip_with_zone_mapping = {
-    for idx, vm_ipaddr in [for instance in module.compute_cluster_instances : instance.instance_private_ips] :
-    vm_ipaddr => {
-      zone = element(var.vpc_availability_zones, idx)
+/*
+    Generate a list of gateway vm name(s).
+    Ex: vm_list = ["vm-gateway-1", "vm-gateway-2",]
+*/
+resource "null_resource" "generate_gateway_vm_name" {
+  count = local.storage_and_gateway ? var.total_gateway_instances : 0
+  triggers = {
+    vm_name = format("%s-gateway-%s", var.resource_prefix, count.index + 1)
+  }
+}
+
+/*
+    Generate a map using gateway vm name key and values of subnet.
+    Ex:
+        gateway_vm_subnet_map = {
+            "vm-gateway-1" = {
+                "subnet" = "test-private-subnet-1"
+            }
+            "vm-gateway-2" = {
+                "subnet" = "test-public-subnet-2"
+            }
+        }
+*/
+locals {
+  gateway_vm_subnet_map = {
+    for idx, vm_name in resource.null_resource.generate_gateway_vm_name[*].triggers.vm_name :
+    vm_name => {
+      # Consider only first 2 elements
+      subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
     }
   }
 }
+
 
 /*
     Generate a map using storage vm name key and values of disks list, subnet.
@@ -136,10 +164,6 @@ locals {
         }
 */
 locals {
-  storage_cluster_desc_private_ips = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
-  storage_cluster_private_ips      = local.storage_or_combined ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
-  fs_param                         = var.filesystem_parameters
-
   inflate_disks_per_fs_pool = flatten([
     for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
       for disk_details in fs_config.disk_config : {
@@ -226,7 +250,7 @@ locals {
 
   filesystem_details = local.storage_or_combined ? { for fs_config in var.filesystem_parameters : fs_config.name => fs_config.filesystem_config_file } : {}
   storage_instance_ips_with_disk_mapping = {
-    for idx, vm_ipaddr in local.storage_cluster_private_ips :
+    for idx, vm_ipaddr in [for instance in module.storage_cluster_instances : instance.instance_details["private_ip"]] :
     vm_ipaddr => {
       zone = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
       disks = var.scratch_devices_per_storage_instance > 0 ? tomap({
@@ -234,7 +258,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.ssd_device_names, jdx)
+          device_name = element(local.instance_storage_device_names, jdx)
         }
         }) : tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
@@ -314,7 +338,7 @@ locals {
   }
 
   storage_instance_desc_ip_with_disk_mapping = {
-    for idx, vm_ipaddr in local.storage_cluster_desc_private_ips :
+    for idx, vm_ipaddr in [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details["private_ip"]] :
     vm_ipaddr => {
       zone = var.vpc_availability_zones[2]
       disks = tomap({

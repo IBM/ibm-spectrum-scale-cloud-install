@@ -2,22 +2,24 @@
     Creates Azure Linux Virtual Machine with no data disks.
 */
 
-variable "vm_name" {}
-variable "resource_group_name" {}
+variable "application_security_group_id" {}
+variable "availability_zone" {}
+variable "dns_domain" {}
+variable "forward_dns_zone" {}
 variable "location" {}
-variable "vm_size" {}
-variable "subnet_id" {}
 variable "login_username" {}
-variable "proximity_placement_group_id" {}
-variable "os_disk_caching" {}
-variable "os_storage_account_type" {}
-variable "user_key_pair" {}
 variable "meta_private_key" {}
 variable "meta_public_key" {}
-variable "dns_zone" {}
-variable "availability_zone" {}
+variable "os_disk_caching" {}
+variable "os_storage_account_type" {}
+variable "proximity_placement_group_id" {}
+variable "resource_group_name" {}
+variable "reverse_dns_zone" {}
 variable "source_image_id" {}
-variable "application_security_group_id" {}
+variable "subnet_id" {}
+variable "user_key_pair" {}
+variable "name_prefix" {}
+variable "vm_size" {}
 
 data "template_file" "user_data" {
   template = <<EOF
@@ -26,7 +28,9 @@ echo "${var.meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
-echo "DOMAIN=\"${var.dns_zone}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+# Hostname settings
+hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 systemctl restart NetworkManager
 EOF
 }
@@ -47,25 +51,35 @@ data "template_cloudinit_config" "user_data64" {
 }
 
 resource "azurerm_network_interface" "itself" {
-  name                = var.vm_name
+  name                = var.name_prefix
   location            = var.location
   resource_group_name = var.resource_group_name
-
   ip_configuration {
-    name                          = var.vm_name
+    name                          = var.name_prefix
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
+# Create "A" (IPv4 Address) record to map IPv4 address as hostname along with domain
 resource "azurerm_private_dns_a_record" "itself" {
-  name                = var.vm_name
-  zone_name           = var.dns_zone
+  name                = var.name_prefix
+  zone_name           = var.forward_dns_zone
   resource_group_name = var.resource_group_name
   ttl                 = 300
   records             = azurerm_network_interface.itself.private_ip_addresses
+  depends_on          = [azurerm_network_interface.itself]
+}
 
-  depends_on = [azurerm_network_interface.itself]
+# Create "PTR" (Pointer) to enable reverse DNS lookup, from an IP address to a hostname
+resource "azurerm_private_dns_ptr_record" "itself" {
+  # Considering only the first NIC private ip address
+  name                = format("%s.%s.%s", split(".", azurerm_network_interface.itself.private_ip_addresses[0])[3], split(".", azurerm_network_interface.itself.private_ip_addresses[0])[2], split(".", azurerm_network_interface.itself.private_ip_addresses[0])[1])
+  zone_name           = var.reverse_dns_zone
+  resource_group_name = var.resource_group_name
+  ttl                 = 300
+  records             = [format("%s.%s", var.name_prefix, var.dns_domain)]
+  depends_on          = [azurerm_network_interface.itself]
 }
 
 resource "azurerm_network_interface_application_security_group_association" "associate_asg" {
@@ -74,7 +88,7 @@ resource "azurerm_network_interface_application_security_group_association" "ass
 }
 
 resource "azurerm_linux_virtual_machine" "itself" {
-  name                         = var.vm_name
+  name                         = var.name_prefix
   resource_group_name          = var.resource_group_name
   location                     = var.location
   size                         = var.vm_size
@@ -82,30 +96,23 @@ resource "azurerm_linux_virtual_machine" "itself" {
   network_interface_ids        = [azurerm_network_interface.itself.id]
   proximity_placement_group_id = var.proximity_placement_group_id
   zone                         = var.availability_zone
-
   admin_ssh_key {
     username   = var.login_username
     public_key = replace(data.azurerm_ssh_public_key.itself.public_key, "\r\n", "")
   }
-
   os_disk {
     caching              = var.os_disk_caching
     storage_account_type = var.os_storage_account_type
   }
-
   source_image_id = var.source_image_id
-
-  custom_data = data.template_cloudinit_config.user_data64.rendered
+  custom_data     = data.template_cloudinit_config.user_data64.rendered
 }
 
-output "instance_private_ips" {
-  value = azurerm_linux_virtual_machine.itself.private_ip_address
-}
-
-output "instance_ids" {
-  value = azurerm_linux_virtual_machine.itself.id
-}
-
-output "instance_private_dns_name" {
-  value = "${azurerm_network_interface.itself.name}.${azurerm_network_interface.itself.internal_domain_name_suffix}"
+output "instance_details" {
+  value = {
+    private_ip = azurerm_linux_virtual_machine.itself.private_ip_address
+    id         = azurerm_linux_virtual_machine.itself.id
+    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
+    zone       = var.availability_zone
+  }
 }
