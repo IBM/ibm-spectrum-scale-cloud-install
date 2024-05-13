@@ -7,12 +7,13 @@
 locals {
   allow_protocol         = ["Tcp", "Icmp"]
   tcp_port_allow_bastion = ["22", "*"]
+  nsg_rule_description   = ["Allow SSH traffic from external cidr to bastion instances", "Allow ICMP traffic from external cidr to bastion instances"]
 }
 
 # Create bastion/jumphost Application Security Group (ASG)
 module "bastion_app_security_grp" {
   source              = "../../../resources/azure/security/application_security_group"
-  resource_prefix     = "${var.resource_prefix}-bastion"
+  resource_prefix     = "${var.resource_prefix}-bastion-sec-group"
   location            = var.vpc_region
   resource_group_name = var.resource_group_name
 }
@@ -23,17 +24,18 @@ module "bastion_app_security_grp" {
 module "bastion_tcp_inbound_security_rule" {
   source                                     = "../../../resources/azure/security/nsg_destination_app_sec_grp"
   total_rules                                = length(local.tcp_port_allow_bastion)
-  rule_names_prefix                          = "${var.resource_prefix}-allow"
+  rule_names_prefix                          = "${var.resource_prefix}-bastion-allow"
   direction                                  = ["Inbound"]
   access                                     = ["Allow"]
   protocol                                   = local.allow_protocol
-  source_port_range                          = ["*"]
+  source_port_range                          = ["*"] # The recommended value for source port ranges is * (Any). Port filtering is mainly used with destination port.
   destination_port_range                     = local.tcp_port_allow_bastion
   priority                                   = [for i in range(length(local.tcp_port_allow_bastion)) : format("%s", i + var.nsg_rule_start_index)]
   source_address_prefix                      = var.remote_cidr_blocks
   destination_application_security_group_ids = [module.bastion_app_security_grp.asg_id]
   network_security_group_name                = var.vpc_network_security_group_ref
   resource_group_name                        = var.resource_group_name
+  description                                = local.nsg_rule_description
 }
 
 # Azure Fully Managed Bastion service

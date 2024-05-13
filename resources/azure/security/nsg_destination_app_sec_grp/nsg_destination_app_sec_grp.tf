@@ -2,18 +2,19 @@
     Manages a network security rule.
 */
 
-variable "total_rules" {}
-variable "rule_names_prefix" {}
-variable "priority" {}
-variable "direction" {}
 variable "access" {}
-variable "protocol" {}
-variable "source_port_range" {}
-variable "source_address_prefix" {}
-variable "destination_port_range" {}
+variable "description" {}
 variable "destination_application_security_group_ids" {}
-variable "resource_group_name" {}
+variable "destination_port_range" {}
+variable "direction" {}
 variable "network_security_group_name" {}
+variable "priority" {}
+variable "protocol" {}
+variable "resource_group_name" {}
+variable "rule_names_prefix" {}
+variable "source_address_prefix" {}
+variable "source_port_range" {}
+variable "total_rules" {}
 
 resource "azurerm_network_security_rule" "itself" {
   count                                      = var.total_rules
@@ -28,6 +29,7 @@ resource "azurerm_network_security_rule" "itself" {
   destination_application_security_group_ids = var.destination_application_security_group_ids
   resource_group_name                        = var.resource_group_name
   network_security_group_name                = var.network_security_group_name
+  description                                = element(var.description, count.index)
 }
 
 output "sec_rule_id" {

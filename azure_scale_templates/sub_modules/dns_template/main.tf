@@ -59,6 +59,6 @@ module "associate_reverse_dns" {
   private_dns_zone_name = var.vpc_reverse_dns_zone
   resource_group_name   = var.resource_group_name
   vnet_id               = var.vpc_ref
-  vnet_zone_link_name   = format("%s-strg-link", basename(var.vpc_ref))
+  vnet_zone_link_name   = format("%s-rev-link", basename(var.vpc_ref))
   depends_on            = [module.reverse_dns_zone]
 }
