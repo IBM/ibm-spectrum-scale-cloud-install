@@ -100,6 +100,17 @@ module "compute_cluster_instances" {
   application_security_group_id = module.cluster_security_group.asg_id
 }
 
+# Assumption is only 1 disk encryption set is used for all disks across all NSD nodes
+module "disk_encryption_set" {
+  source                       = "../../../resources/azure/disks/encryption_set"
+  encryption_type              = "EncryptionAtRestWithCustomerKey"
+  filesystem_key_vault_key_ref = element(var.filesystem_parameters, 0).filesystem_key_vault_key_ref
+  location                     = var.vpc_region
+  name_prefix                  = format("%s-enc-set", var.resource_prefix)
+  resource_group_name          = var.resource_group_name
+  filesystem_key_vault_ref     = element(var.filesystem_parameters, 0).filesystem_key_vault_ref
+}
+
 # Create storage scale cluster instances.
 module "storage_cluster_instances" {
   for_each                      = local.storage_vm_zone_map

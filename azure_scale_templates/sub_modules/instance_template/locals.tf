@@ -106,7 +106,6 @@ locals {
   }
 }
 
-
 /*
     Generate a map using storage vm name key and values of disks list, subnet.
     Ex:
@@ -169,16 +168,16 @@ locals {
       for disk_details in fs_config.disk_config : {
         for i in range(var.scratch_devices_per_storage_instance > 0 ? var.scratch_devices_per_storage_instance : disk_details.block_devices_per_storage_instance) :
         "${fs_config.name}-${disk_details.filesystem_pool}-${i + 1}" => {
-          "fs_name"     = fs_config.name
-          "config_file" = fs_config.filesystem_config_file
-          "encrypted"   = fs_config.filesystem_encrypted
-          "kms_key"     = fs_config.filesystem_kms_key_ref
-          "termination" = fs_config.device_delete_on_termination
-          "pool"        = disk_details.filesystem_pool
-          "size"        = disk_details.block_device_volume_size
-          "type"        = disk_details.block_device_volume_type
-          "iops"        = disk_details.block_device_iops
-          "throughput"  = disk_details.block_device_throughput
+          "fs_name"                = fs_config.name
+          "config_file"            = fs_config.filesystem_config_file
+          "encrypted"              = fs_config.filesystem_encrypted
+          "disk_encryption_set_id" = module.disk_encryption_set.enc_set_id
+          "termination"            = fs_config.device_delete_on_termination
+          "pool"                   = disk_details.filesystem_pool
+          "size"                   = disk_details.block_device_volume_size
+          "type"                   = disk_details.block_device_volume_type
+          "iops"                   = disk_details.block_device_iops
+          "throughput"             = disk_details.block_device_throughput
         }
       }
     ]
@@ -187,17 +186,17 @@ locals {
     for pool in local.inflate_disks_per_fs_pool :
     [for disk, properties in pool :
       {
-        name        = disk
-        fs_name     = properties["fs_name"]
-        pool        = properties["pool"]
-        config      = properties["config_file"]
-        encrypted   = properties["encrypted"]
-        kms_key     = properties["kms_key"]
-        termination = properties["termination"]
-        size        = properties["size"]
-        type        = properties["type"]
-        iops        = properties["iops"]
-        throughput  = properties["throughput"]
+        name                   = disk
+        fs_name                = properties["fs_name"]
+        pool                   = properties["pool"]
+        config                 = properties["config_file"]
+        encrypted              = properties["encrypted"]
+        disk_encryption_set_id = properties["disk_encryption_set_id"]
+        termination            = properties["termination"]
+        size                   = properties["size"]
+        type                   = properties["type"]
+        iops                   = properties["iops"]
+        throughput             = properties["throughput"]
       }
     ]
   ])
@@ -205,17 +204,17 @@ locals {
     for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
       [for disk_config in fs_config.disk_config :
         {
-          name        = format("%s-tie", fs_config.name)
-          fs_name     = fs_config.name
-          pool        = "system"
-          config      = fs_config.filesystem_config_file
-          encrypted   = fs_config.filesystem_encrypted
-          kms_key     = fs_config.filesystem_kms_key_ref
-          termination = fs_config.device_delete_on_termination
-          size        = "5"
-          type        = "Standard_LRS"
-          throughput  = null
-          iops        = null
+          name                   = format("%s-tie", fs_config.name)
+          fs_name                = fs_config.name
+          pool                   = "system"
+          config                 = fs_config.filesystem_config_file
+          encrypted              = fs_config.filesystem_encrypted
+          disk_encryption_set_id = module.disk_encryption_set.enc_set_id
+          termination            = fs_config.device_delete_on_termination
+          size                   = "5"
+          type                   = "Standard_LRS"
+          throughput             = null
+          iops                   = null
         }
       ]
     ]
@@ -232,17 +231,17 @@ locals {
       disks = var.scratch_devices_per_storage_instance > 0 ? {} : tomap({
         for idx, disk in tolist(local.flatten_disks_per_vm) :
         format("%s-%s", vm_name, disk["name"]) => {
-          size        = disk["size"]
-          type        = disk["type"]
-          termination = disk["termination"]
-          iops        = disk["iops"]
-          throughput  = disk["throughput"]
-          encrypted   = disk["encrypted"]
-          kms_key     = disk["kms_key"]
-          fs_name     = disk["fs_name"]
-          pool        = disk["pool"]
-          lun_no      = idx
-          device_name = element(local.block_device_names, idx)
+          size                   = disk["size"]
+          type                   = disk["type"]
+          termination            = disk["termination"]
+          iops                   = disk["iops"]
+          throughput             = disk["throughput"]
+          encrypted              = disk["encrypted"]
+          disk_encryption_set_id = disk["disk_encryption_set_id"]
+          fs_name                = disk["fs_name"]
+          pool                   = disk["pool"]
+          lun_no                 = idx
+          device_name            = element(local.block_device_names, idx)
         }
       })
     }
@@ -321,17 +320,17 @@ locals {
       disks = tomap({
         for idx, disk in tolist(local.flatten_tie_disk) :
         format("%s-%s", vm_name, disk["name"]) => {
-          size        = disk["size"]
-          type        = disk["type"]
-          termination = disk["termination"]
-          iops        = disk["iops"]
-          throughput  = disk["throughput"]
-          encrypted   = disk["encrypted"]
-          kms_key     = disk["kms_key"]
-          fs_name     = disk["fs_name"]
-          pool        = disk["pool"]
-          device_name = element(local.block_device_names, idx)
-          lun_no      = idx
+          size                   = disk["size"]
+          type                   = disk["type"]
+          termination            = disk["termination"]
+          iops                   = disk["iops"]
+          throughput             = disk["throughput"]
+          encrypted              = disk["encrypted"]
+          disk_encryption_set_id = disk["disk_encryption_set_id"]
+          fs_name                = disk["fs_name"]
+          pool                   = disk["pool"]
+          device_name            = element(local.block_device_names, idx)
+          lun_no                 = idx
         }
       })
     }
