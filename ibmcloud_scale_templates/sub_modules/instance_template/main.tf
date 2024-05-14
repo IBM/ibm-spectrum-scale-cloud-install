@@ -348,7 +348,7 @@ module "compute_cluster_management_instance" {
   storage_subnet_id            = var.vpc_storage_cluster_private_subnets
   storage_sec_group            = [module.storage_cluster_security_group.sec_group_id]
   enable_sec_interface_compute = local.enable_sec_interface_compute
-  scale_firewall_rules_enabled = false
+  scale_firewall_rules_enabled = true
   resource_tags                = var.scale_cluster_resource_tags
   depends_on                   = [module.compute_cluster_ingress_security_rule, module.compute_cluster_ingress_security_rule_wt_bastion, module.compute_cluster_ingress_security_rule_wo_bastion, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
 }
@@ -537,7 +537,7 @@ module "storage_cluster_management_instance" {
   storage_subnet_id            = var.vpc_storage_cluster_private_subnets
   storage_sec_group            = [module.storage_cluster_security_group.sec_group_id]
   enable_sec_interface_compute = local.enable_sec_interface_storage
-  scale_firewall_rules_enabled = false
+  scale_firewall_rules_enabled = true
   resource_tags                = var.scale_cluster_resource_tags
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
