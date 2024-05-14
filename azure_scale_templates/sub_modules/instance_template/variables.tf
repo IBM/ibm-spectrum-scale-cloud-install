@@ -62,6 +62,7 @@ variable "compute_boot_disk_type" {
 
 variable "compute_cluster_filesystem_mountpoint" {
   type        = string
+  nullable    = true
   description = "Compute cluster (accessingCluster) Filesystem mount point."
 }
 
@@ -132,8 +133,8 @@ variable "filesystem_parameters" {
     name                         = string
     filesystem_config_file       = string
     filesystem_encrypted         = bool
-    filesystem_kms_key_ref       = string
-    filesystem_kms_key_ring_ref  = string
+    filesystem_key_vault_ref     = string
+    filesystem_key_vault_key_ref = string
     device_delete_on_termination = bool
     disk_config = list(object({
       filesystem_pool                    = string
@@ -156,7 +157,7 @@ variable "gateway_instance_type" {
 
 variable "instances_ssh_user_name" {
   type        = string
-  nullable    = false
+  nullable    = true
   description = "Compute/Storage VM login username."
 }
 
@@ -168,6 +169,7 @@ variable "inventory_format" {
 
 variable "nsg_rule_start_index" {
   type        = number
+  nullable    = true
   description = "Specifies the network security group rule priority start index."
 }
 
@@ -185,6 +187,7 @@ variable "resource_prefix" {
 
 variable "scale_ansible_repo_clone_path" {
   type        = string
+  nullable    = true
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
 
@@ -244,7 +247,7 @@ variable "storage_cluster_login_username" {
 
 variable "storage_cluster_os_disk_caching" {
   type        = string
-  nullable    = false
+  nullable    = true
   description = "Specifies the caching requirements for the OS Disk (Ex: None, ReadOnly and ReadWrite)."
 }
 
@@ -296,6 +299,7 @@ variable "using_jumphost_connection" {
 
 variable "using_packer_image" {
   type        = bool
+  nullable    = true
   description = "If true, gpfs rpm copy step will be skipped during the configuration."
 }
 

@@ -166,14 +166,15 @@ resource "azurerm_linux_virtual_machine" "itself" {
 }
 
 resource "azurerm_managed_disk" "itself" {
-  for_each             = var.disks
-  name                 = each.key
-  location             = var.location
-  create_option        = "Empty"
-  disk_size_gb         = each.value["size"]
-  resource_group_name  = var.resource_group_name
-  storage_account_type = each.value["type"]
-  zone                 = azurerm_linux_virtual_machine.itself.zone
+  for_each               = var.disks
+  name                   = each.key
+  location               = var.location
+  create_option          = "Empty"
+  disk_size_gb           = each.value["size"]
+  resource_group_name    = var.resource_group_name
+  storage_account_type   = each.value["type"]
+  zone                   = azurerm_linux_virtual_machine.itself.zone
+  disk_encryption_set_id = each.value["disk_encryption_set_id"]
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "itself" {
