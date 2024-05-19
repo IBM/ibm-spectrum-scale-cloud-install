@@ -54,7 +54,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | Name | Version |
 |------|---------|
 | <a name="requirement_github"></a> [github](#requirement_github) | 5.41.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.56.2 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.65.1 |
 
 #### Inputs
 
