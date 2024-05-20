@@ -490,9 +490,8 @@ def get_disks_list(az_count, disk_mapping, desc_disk_mapping, disk_type):
         if az_count == 1:
             # Single AZ, just split list equally
             num_storage_nodes = len(list(disk_mapping))
-            mid_index = num_storage_nodes//2
-            failure_group1 = list(disk_mapping)[:mid_index]
-            failure_group2 = list(disk_mapping)[mid_index:]
+            failure_group1 = [disk_mapping[i] for i in range(num_storage_nodes) if i % 2 == 0]
+            failure_group2 = [disk_mapping[i] for i in range(num_storage_nodes) if i % 2 != 0]
         else:
             # Multi AZ, split based on subnet match
             subnet_pattern = re.compile(
