@@ -88,11 +88,11 @@ module "compute_cluster_instances" {
   resource_group_name           = var.resource_group_name
   location                      = var.vpc_region
   vm_size                       = var.compute_cluster_instance_type
-  login_username                = var.compute_cluster_login_username
+  login_username                = var.instances_ssh_user_name
   proximity_placement_group_id  = null
   reverse_dns_zone              = var.vpc_reverse_dns_zone
   os_disk_caching               = var.compute_cluster_os_disk_caching
-  os_storage_account_type       = var.compute_boot_disk_type
+  os_storage_account_type       = var.compute_cluster_boot_disk_type
   user_key_pair                 = var.create_remote_mount_cluster == true ? var.compute_cluster_key_pair : var.storage_cluster_key_pair
   meta_private_key              = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
@@ -100,15 +100,17 @@ module "compute_cluster_instances" {
   application_security_group_id = module.cluster_security_group.asg_id
 }
 
-# Assumption is only 1 disk encryption set is used for all disks across all NSD nodes
+# 1 disk encryption set will be created per encrypted filesystem
 module "disk_encryption_set" {
   source                       = "../../../resources/azure/disks/encryption_set"
+  for_each                     = { for idx, fs in var.filesystem_parameters : idx => fs }
+  turn_on                      = local.storage_or_combined && each.value.filesystem_encrypted ? true : false
   encryption_type              = "EncryptionAtRestWithCustomerKey"
-  filesystem_key_vault_key_ref = element(var.filesystem_parameters, 0).filesystem_key_vault_key_ref
+  filesystem_key_vault_key_ref = each.value.filesystem_key_vault_key_ref
   location                     = var.vpc_region
-  name_prefix                  = format("%s-enc-set", var.resource_prefix)
+  name_prefix                  = format("%s-enc-set-%s", var.resource_prefix, each.key)
   resource_group_name          = var.resource_group_name
-  filesystem_key_vault_ref     = element(var.filesystem_parameters, 0).filesystem_key_vault_ref
+  filesystem_key_vault_ref     = each.value.filesystem_key_vault_ref
 }
 
 # Create storage scale cluster instances.
@@ -124,7 +126,7 @@ module "storage_cluster_instances" {
   location                      = var.vpc_region
   use_temporary_disks           = var.scratch_devices_per_storage_instance > 0 ? true : false
   vm_size                       = var.storage_cluster_instance_type
-  login_username                = var.storage_cluster_login_username
+  login_username                = var.instances_ssh_user_name
   proximity_placement_group_id  = local.create_placement_group == true ? module.proximity_group.proximity_group_storage_id : null
   reverse_dns_zone              = var.vpc_reverse_dns_zone
   os_disk_caching               = var.storage_cluster_os_disk_caching
@@ -148,7 +150,7 @@ module "storage_cluster_tie_breaker_instance" {
   resource_group_name           = var.resource_group_name
   location                      = var.vpc_region
   vm_size                       = var.storage_cluster_instance_type
-  login_username                = var.storage_cluster_login_username
+  login_username                = var.instances_ssh_user_name
   proximity_placement_group_id  = null
   use_temporary_disks           = false
   reverse_dns_zone              = var.vpc_reverse_dns_zone
@@ -173,7 +175,7 @@ module "gateway_instances" {
   resource_group_name           = var.resource_group_name
   location                      = var.vpc_region
   vm_size                       = var.gateway_instance_type
-  login_username                = var.storage_cluster_login_username
+  login_username                = var.instances_ssh_user_name
   proximity_placement_group_id  = null
   reverse_dns_zone              = var.vpc_reverse_dns_zone
   os_disk_caching               = var.storage_cluster_os_disk_caching
