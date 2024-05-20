@@ -896,7 +896,7 @@ module "storage_cluster_configuration" {
   storage_cluster_gui_username    = var.storage_cluster_gui_username
   storage_cluster_gui_password    = var.storage_cluster_gui_password
   memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
-  max_pagepool_gb                 = var.storage_type == "persistent" ? 256 : 16
+  max_pagepool_gb                 = var.colocate_protocol_cluster_instances == true ? 256 :32
   vcpu_count                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   max_mbps                        = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value * 0.25 : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value * 0.25
   disk_type                       = "network-attached"
