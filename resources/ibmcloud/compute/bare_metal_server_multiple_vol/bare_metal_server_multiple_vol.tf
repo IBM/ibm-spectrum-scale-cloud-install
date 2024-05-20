@@ -272,6 +272,6 @@ output "storage_cluster_instance_name_ip_map" {
 }
 
 output "secondary_interface_name_ip_map" {
-  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
+  value      = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
