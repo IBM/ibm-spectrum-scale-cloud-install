@@ -33,6 +33,7 @@ variable "default_metadata_replicas" {}
 variable "max_metadata_replicas" {}
 variable "default_data_replicas" {}
 variable "max_data_replicas" {}
+variable "max_file_cache" {}
 variable "enable_ces" {}
 variable "enable_ldap" {}
 variable "ldap_basedns" {}
@@ -65,7 +66,7 @@ resource "local_file" "create_storage_tuning_parameters" {
  nsdSmallThreadRatio=2
  nsdThreadsPerQueue=16
  nsdbufspace=70
- maxFilesToCache=128K
+ maxFilesToCache=${var.max_file_cache}
  maxStatCache=128K
  maxblocksize=16M
  maxMBpS=${var.max_mbps}

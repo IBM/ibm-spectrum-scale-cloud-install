@@ -896,7 +896,7 @@ module "storage_cluster_configuration" {
   storage_cluster_gui_username    = var.storage_cluster_gui_username
   storage_cluster_gui_password    = var.storage_cluster_gui_password
   memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
-  max_pagepool_gb                 = var.storage_type == "persistent" ? 32 : 16
+  max_pagepool_gb                 = var.storage_type == "persistent" ? 256 : 16
   vcpu_count                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   max_mbps                        = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value * 0.25 : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value * 0.25
   disk_type                       = "network-attached"
@@ -904,6 +904,7 @@ module "storage_cluster_configuration" {
   max_metadata_replicas           = 3
   default_metadata_replicas       = 2
   default_data_replicas           = 2
+  max_file_cache                  = var.colocate_protocol_cluster_instances == true && var.storage_type == "persistent" ? "3M" : "128K"
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
