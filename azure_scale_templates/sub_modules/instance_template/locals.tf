@@ -163,6 +163,11 @@ locals {
         }
 */
 locals {
+  encryption_set_ids = {
+    for idx, fs in var.filesystem_parameters : fs.name =>
+      fs.filesystem_encrypted ? module.disk_encryption_set[idx].enc_set_id : null
+  }
+
   inflate_disks_per_fs_pool = flatten([
     for fs_config in var.filesystem_parameters != null ? var.filesystem_parameters : [] : [
       for disk_details in fs_config.disk_config : {
@@ -171,7 +176,7 @@ locals {
           "fs_name"                = fs_config.name
           "config_file"            = fs_config.filesystem_config_file
           "encrypted"              = fs_config.filesystem_encrypted
-          "disk_encryption_set_id" = module.disk_encryption_set.enc_set_id
+          "disk_encryption_set_id" = local.encryption_set_ids[fs_config.name]
           "termination"            = fs_config.device_delete_on_termination
           "pool"                   = disk_details.filesystem_pool
           "size"                   = disk_details.block_device_volume_size
@@ -209,7 +214,7 @@ locals {
           pool                   = "system"
           config                 = fs_config.filesystem_config_file
           encrypted              = fs_config.filesystem_encrypted
-          disk_encryption_set_id = module.disk_encryption_set.enc_set_id
+          disk_encryption_set_id = local.encryption_set_ids[fs_config.name]
           termination            = fs_config.device_delete_on_termination
           size                   = "5"
           type                   = "Standard_LRS"

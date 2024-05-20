@@ -54,7 +54,7 @@ variable "cluster_type" {
   description = "Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage."
 }
 
-variable "compute_boot_disk_type" {
+variable "compute_cluster_boot_disk_type" {
   type        = string
   nullable    = true
   description = "Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS)."
@@ -96,12 +96,6 @@ variable "compute_cluster_key_pair" {
   type        = string
   nullable    = true
   description = "The SSH public key pair to use to launch the compute cluster host."
-}
-
-variable "compute_cluster_login_username" {
-  type        = string
-  nullable    = true
-  description = "The username of the local administrator used for the Virtual Machine."
 }
 
 variable "compute_cluster_os_disk_caching" {
@@ -237,12 +231,6 @@ variable "storage_cluster_key_pair" {
   type        = string
   nullable    = true
   description = "The SSH public key pair to use to launch the storage cluster host."
-}
-
-variable "storage_cluster_login_username" {
-  type        = string
-  nullable    = true
-  description = "The username of the local administrator used for the Virtual Machine."
 }
 
 variable "storage_cluster_os_disk_caching" {
