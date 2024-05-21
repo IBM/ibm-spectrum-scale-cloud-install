@@ -54,7 +54,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | Name | Version |
 |------|---------|
 | <a name="requirement_github"></a> [github](#requirement_github) | 5.41.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.56.2 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.65.1 |
 
 #### Inputs
 
@@ -84,6 +84,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group id. | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Provide the username for Bastion login. | `string` |
+| <a name="input_bms_boot_drive_encryption"></a> [bms_boot_drive_encryption](#input_bms_boot_drive_encryption) | To enable the encryption for the boot drive of bare metal server. Select true or false | `bool` |
 | <a name="input_client_cluster_key_pair"></a> [client_cluster_key_pair](#input_client_cluster_key_pair) | The key pair to use to launch the client cluster host. | `list(string)` |
 | <a name="input_client_vsi_osimage_name"></a> [client_vsi_osimage_name](#input_client_vsi_osimage_name) | Name of the image that you would like to use to create the client cluster nodes for the IBM Storage Scale cluster. The solution supports only stock images that use RHEL8.8 version. | `string` |
 | <a name="input_client_vsi_profile"></a> [client_vsi_profile](#input_client_vsi_profile) | Client nodes vis profile | `string` |
@@ -117,6 +118,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_ldap_user_password"></a> [ldap_user_password](#input_ldap_user_password) | The LDAP user password should be 8 to 20 characters long, with a mix of at least three alphabetic characters, including one uppercase and one lowercase letter. It must also include two numerical digits and at least one special character from (~@_+:) are required.It is important to avoid including the username in the password for enhanced security.[This value is ignored for an existing LDAP server]. | `string` |
 | <a name="input_ldap_vsi_osimage_name"></a> [ldap_vsi_osimage_name](#input_ldap_vsi_osimage_name) | Image name to be used for provisioning the LDAP instances. Note: Debian based OS are only supported for the LDAP feature. | `string` |
 | <a name="input_ldap_vsi_profile"></a> [ldap_vsi_profile](#input_ldap_vsi_profile) | Profile to be used for LDAP virtual server instance. | `string` |
+| <a name="input_management_vsi_profile"></a> [management_vsi_profile](#input_management_vsi_profile) | Profile to be used for management instance. | `string` |
 | <a name="input_protocol_vsi_profile"></a> [protocol_vsi_profile](#input_protocol_vsi_profile) | Profile to be used for compute cluster virtual server instance. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |

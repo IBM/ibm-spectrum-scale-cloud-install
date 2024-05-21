@@ -38,7 +38,11 @@ def calculate_pagepool(memory_size, max_pagepool_gb):
     mem_size_mb = int(int(memory_size) * 1.048576)
     # 1 MB = 0.001 GB
     mem_size_gb = int(mem_size_mb * 0.001)
-    pagepool_gb = max(int(int(mem_size_gb)*int(25)*0.01), 1)
+    # Fix Me:
+    if max_pagepool_gb == 256:
+        pagepool_gb = max(int(int(mem_size_gb)*int(40)*0.01), 1)
+    else:
+        pagepool_gb = max(int(int(mem_size_gb)*int(25)*0.01), 1)
     if pagepool_gb > int(max_pagepool_gb):
         pagepool = int(max_pagepool_gb)
     else:
@@ -311,127 +315,67 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
     """
     node_details, node = [], {}
     if cls_type == 'compute':
+        total_compute_node = len(compute_cluster_instance_names)
         start_quorum_assign = quorum_count - 1
         for each_ip in compute_cluster_instance_names:
             each_name = each_ip.split('.')[0]
-            if compute_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
-                    compute_cluster_instance_names.index(each_ip) <= (manager_count - 1):
-                if compute_cluster_instance_names.index(each_ip) == 0:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': True, 'is_collector': True, 'is_nsd': False,
-                            'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
-                    write_json_file({'compute_cluster_gui_ip_address': each_ip},
-                                    "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                                               "compute_cluster_gui_details.json"))
-                elif compute_cluster_instance_names.index(each_ip) == 1:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': False, 'is_collector': True, 'is_nsd': False,
-                            'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
-                else:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                            'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
-            elif compute_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
-                    compute_cluster_instance_names.index(each_ip) > (manager_count - 1):
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+            if compute_cluster_instance_names.index(each_ip) <= (start_quorum_assign):
+                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                        'is_admin': False, 'user': user, 'key_file': key_file,
+                        'is_admin': True, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
-            else:
+            # Scale Management node defination
+            elif compute_cluster_instance_names.index(each_ip) == total_compute_node - 1:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
+                        'is_gui': True, 'is_collector': True, 'is_nsd': False,
+                        'is_admin': True, 'user': user, 'key_file': key_file,
+                        'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                write_json_file({'compute_cluster_gui_ip_address': each_ip},
+                                "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                           "compute_cluster_gui_details.json"))
+            else:
+                # Non-quorum node defination
+                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': True,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
-                        'is_admin': False, 'user': user, 'key_file': key_file,
+                        'is_admin': True, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
             node_details.append(get_host_format(node))
-    elif cls_type == 'storage' and az_count == 1:
+
+    elif cls_type == 'storage':
+        total_storage_node = len(storage_cluster_instance_names)
         start_quorum_assign = quorum_count - 1
         for each_ip in storage_cluster_instance_names:
             each_name = each_ip.split('.')[0]
             scale_protocol_node = each_ip in protocol_cluster_instance_names
             is_nsd = each_ip not in protocol_cluster_instance_names
-            if storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
-                    storage_cluster_instance_names.index(each_ip) <= (manager_count - 1):
-                if storage_cluster_instance_names.index(each_ip) == 0:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': True, 'is_collector': True, 'is_nsd': is_nsd,
-                            'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
-                    write_json_file({'storage_cluster_gui_ip_address': each_ip},
-                                    "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                                               "storage_cluster_gui_details.json"))
-                elif storage_cluster_instance_names.index(each_ip) == 1:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': False, 'is_collector': True, 'is_nsd': is_nsd,
-                            'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
-                else:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                            'is_gui': False, 'is_collector': True, 'is_nsd': is_nsd,
-                            'is_admin': False, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
-            elif storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
-                    storage_cluster_instance_names.index(each_ip) > (manager_count - 1):
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                        'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
-                        'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
-            else:
-                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
-                        'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
-                        'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
-            node_details.append(get_host_format(node))
-    elif cls_type == 'storage' and az_count > 1:
-        for each_ip in desc_private_ips:
-            node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
-                    'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                    'is_admin': False, 'user': user, 'key_file': key_file,
-                    'class': "computedescnodegrp"}
-            node_details.append(get_host_format(node))
-
-        if az_count > 1:
-            # Storage/NSD nodes to be quorum nodes (quorum_count - 2 as index starts from 0)
-            start_quorum_assign = quorum_count - 2
-        else:
-            # Storage/NSD nodes to be quorum nodes (quorum_count - 1 as index starts from 0)
-            start_quorum_assign = quorum_count - 1
-
-        for each_ip in storage_cluster_instance_names:
-            if storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
-                    storage_cluster_instance_names.index(each_ip) <= (manager_count - 1):
-                if storage_cluster_instance_names.index(each_ip) == 0:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': True, 'is_collector': True, 'is_nsd': True,
-                            'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp"}
-                    write_json_file({'storage_cluster_gui_ip_address': each_ip},
-                                    "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
-                                               "storage_cluster_gui_details.json"))
-                elif storage_cluster_instance_names.index(each_ip) == 1:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': False, 'is_collector': True, 'is_nsd': True,
-                            'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp"}
-                else:
-                    node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                            'is_gui': False, 'is_collector': False, 'is_nsd': True,
-                            'is_admin': True, 'user': user, 'key_file': key_file,
-                            'class': "storagenodegrp"}
-            elif storage_cluster_instance_names.index(each_ip) <= (start_quorum_assign) and \
-                    storage_cluster_instance_names.index(each_ip) > (manager_count - 1):
-                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
+            if storage_cluster_instance_names.index(each_ip) < (start_quorum_assign):
+                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp"}
-            else:
-                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
+                        'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
+            # Tie-breaker node defination
+            elif storage_cluster_instance_names.index(each_ip) == total_storage_node - 1:
+                node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp"}
+                        'class': "computedescnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+            # Scale Management node defination
+            elif storage_cluster_instance_names.index(each_ip) == total_storage_node - 2:
+                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
+                        'is_gui': True, 'is_collector': True, 'is_nsd': False,
+                        'is_admin': True, 'user': user, 'key_file': key_file,
+                        'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                write_json_file({'storage_cluster_gui_ip_address': each_ip},
+                                "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
+                                           "storage_cluster_gui_details.json"))
+            else:
+                # Non-quorum node defination
+                node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': is_nsd,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
+                        'is_admin': is_nsd, 'user': user, 'key_file': key_file,
+                        'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
             node_details.append(get_host_format(node))
+
     elif cls_type == 'combined':
         for each_ip in desc_private_ips:
             node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
@@ -512,7 +456,6 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                         'is_admin': False, 'user': user, 'key_file': key_file,
                         'class': "computenodegrp"}
                 node_details.append(get_host_format(node))
-
     return node_details
 
 
@@ -546,10 +489,8 @@ def get_disks_list(az_count, disk_mapping, desc_disk_mapping, disk_type):
         failure_group1, failure_group2 = [], []
         if az_count == 1:
             # Single AZ, just split list equally
-            num_storage_nodes = len(list(disk_mapping))
-            mid_index = num_storage_nodes//2
-            failure_group1 = list(disk_mapping)[:mid_index]
-            failure_group2 = list(disk_mapping)[mid_index:]
+            failure_group1 = [key for index, key in enumerate(disk_mapping) if index % 2 == 0]
+            failure_group2 = [key for index, key in enumerate(disk_mapping) if index % 2 != 0]
         else:
             # Multi AZ, split based on subnet match
             subnet_pattern = re.compile(
@@ -639,7 +580,8 @@ def initialize_scale_ces_details(smb, nfs, object, export_ip_pool, filesystem, m
         exports = list(filesets_name_size.keys())
 
         # Creating map of CES nodes and it Ips
-        export_node_ip_map = [{protocol_cluster_instance_name.split('.')[0]: ip} for protocol_cluster_instance_name, ip in zip(protocol_cluster_instance_names, export_ip_pool)]
+        export_node_ip_map = [{protocol_cluster_instance_name.split(
+            '.')[0]: ip} for protocol_cluster_instance_name, ip in zip(protocol_cluster_instance_names, export_ip_pool)]
 
     ces = {
         "scale_protocols": {

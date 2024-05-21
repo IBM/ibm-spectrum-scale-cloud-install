@@ -20,6 +20,7 @@ variable "dns_domain" {}
 variable "vsi_subnet_id" {}
 variable "vsi_security_group" {}
 variable "vsi_profile" {}
+variable "bms_boot_drive_encryption" {}
 variable "vsi_image_id" {}
 variable "vsi_user_public_key" {}
 variable "vsi_meta_private_key" {}
@@ -195,9 +196,10 @@ resource "ibm_is_bare_metal_server" "itself" {
     }
   }
 
-  vpc            = var.vpc_id
-  resource_group = var.resource_group_id
-  user_data      = data.template_file.metadata_startup_script.rendered
+  vpc                = var.vpc_id
+  resource_group     = var.resource_group_id
+  user_data          = data.template_file.metadata_startup_script.rendered
+  enable_secure_boot = var.bms_boot_drive_encryption
   timeouts {
     create = "90m"
   }
@@ -266,5 +268,11 @@ output "storage_cluster_instance_name_id_map" {
 
 output "storage_cluster_instance_name_ip_map" {
   value      = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ip"][0]["address"] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+}
+
+output "secondary_interface_name_ip_map" {
+  value = {
+    for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0]}
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
