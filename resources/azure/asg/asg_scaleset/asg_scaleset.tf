@@ -15,15 +15,13 @@ variable "subnet_id" {}
 variable "login_username" {}
 variable "os_disk_caching" {}
 variable "os_storage_account_type" {}
-variable "bastion_key_pair" {}
+variable "ssh_key_path" {}
 variable "vnet_availability_zones" {}
 variable "prefix_length" {}
 variable "bastion_asg_id" {}
 
-# Gets Azure ssh keypair data
-data "azurerm_ssh_public_key" "itself" {
-  name                = var.bastion_key_pair
-  resource_group_name = var.resource_group_name
+data "local_sensitive_file" "itself" {
+  filename = var.ssh_key_path
 }
 
 # Manages a Public IP Prefix
@@ -47,7 +45,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "itself" {
 
   admin_ssh_key {
     username   = var.login_username
-    public_key = replace(data.azurerm_ssh_public_key.itself.public_key, "\r\n", "")
+    public_key = data.local_sensitive_file.itself.content
   }
 
   source_image_reference {

@@ -92,10 +92,10 @@ variable "compute_cluster_instance_type" {
   description = "Instance type to use for provisioning the compute cluster instances."
 }
 
-variable "compute_cluster_key_pair" {
+variable "compute_cluster_public_key_path" {
   type        = string
   nullable    = true
-  description = "The SSH public key pair to use to launch the compute cluster host."
+  description = "SSH public key local path for compute instances."
 }
 
 variable "compute_cluster_os_disk_caching" {
@@ -227,10 +227,10 @@ variable "storage_cluster_instance_type" {
   description = "Instance type to use for provisioning the storage cluster instances."
 }
 
-variable "storage_cluster_key_pair" {
+variable "storage_cluster_public_key_path" {
   type        = string
   nullable    = true
-  description = "The SSH public key pair to use to launch the storage cluster host."
+  description = "SSH public key local path for storage instances."
 }
 
 variable "storage_cluster_os_disk_caching" {

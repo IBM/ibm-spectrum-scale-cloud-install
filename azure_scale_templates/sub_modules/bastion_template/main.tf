@@ -64,7 +64,7 @@ module "bastion_autoscaling_group" {
   vm_count                = 1
   login_username          = var.bastion_ssh_user_name
   os_storage_account_type = var.bastion_boot_disk_type
-  bastion_key_pair        = var.bastion_key_pair
+  ssh_key_path            = var.bastion_ssh_key_path
   os_disk_caching         = var.os_disk_caching
   subnet_id               = var.vpc_auto_scaling_group_subnets[count.index]
   vnet_availability_zones = var.vpc_availability_zones

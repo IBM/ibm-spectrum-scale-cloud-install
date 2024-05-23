@@ -16,10 +16,10 @@ variable "bastion_instance_type" {
   description = "Instance type to use for provisioning the compute cluster instances."
 }
 
-variable "bastion_key_pair" {
+variable "bastion_ssh_key_path" {
   type        = string
   nullable    = false
-  description = "The SSH keypair to launch the bastion vm."
+  description = "SSH public key local path, will be used to login bastion instance."
 }
 
 variable "bastion_ssh_user_name" {
