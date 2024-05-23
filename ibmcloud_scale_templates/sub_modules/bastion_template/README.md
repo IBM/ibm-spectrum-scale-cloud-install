@@ -38,7 +38,7 @@ Below steps will provision IBM Cloud Bastion instance required for IBM Spectrum 
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.49.0 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.65.1 |
 
 #### Inputs
 
