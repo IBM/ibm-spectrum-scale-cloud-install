@@ -93,7 +93,7 @@ module "compute_cluster_instances" {
   reverse_dns_zone              = var.vpc_reverse_dns_zone
   os_disk_caching               = var.compute_cluster_os_disk_caching
   os_storage_account_type       = var.compute_cluster_boot_disk_type
-  user_key_pair                 = var.create_remote_mount_cluster == true ? var.compute_cluster_key_pair : var.storage_cluster_key_pair
+  ssh_public_key_path           = var.compute_cluster_public_key_path
   meta_private_key              = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
   availability_zone             = each.value["zone"]
@@ -131,7 +131,7 @@ module "storage_cluster_instances" {
   reverse_dns_zone              = var.vpc_reverse_dns_zone
   os_disk_caching               = var.storage_cluster_os_disk_caching
   os_storage_account_type       = var.storage_cluster_boot_disk_type
-  user_key_pair                 = var.storage_cluster_key_pair
+  ssh_public_key_path           = var.storage_cluster_public_key_path
   meta_private_key              = module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = module.generate_storage_cluster_keys.public_key_content
   availability_zone             = each.value["zone"]
@@ -156,7 +156,7 @@ module "storage_cluster_tie_breaker_instance" {
   reverse_dns_zone              = var.vpc_reverse_dns_zone
   os_disk_caching               = var.storage_cluster_os_disk_caching
   os_storage_account_type       = var.storage_cluster_boot_disk_type
-  user_key_pair                 = var.storage_cluster_key_pair
+  ssh_public_key_path           = var.storage_cluster_public_key_path
   meta_private_key              = module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = module.generate_storage_cluster_keys.public_key_content
   availability_zone             = each.value["zone"]
@@ -180,7 +180,7 @@ module "gateway_instances" {
   reverse_dns_zone              = var.vpc_reverse_dns_zone
   os_disk_caching               = var.storage_cluster_os_disk_caching
   os_storage_account_type       = var.storage_cluster_boot_disk_type
-  user_key_pair                 = var.storage_cluster_key_pair
+  ssh_public_key_path           = var.storage_cluster_public_key_path
   meta_private_key              = module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = module.generate_storage_cluster_keys.public_key_content
   availability_zone             = each.value["zone"]

@@ -165,7 +165,7 @@ locals {
 locals {
   encryption_set_ids = {
     for idx, fs in var.filesystem_parameters : fs.name =>
-      fs.filesystem_encrypted ? module.disk_encryption_set[idx].enc_set_id : null
+    fs.filesystem_encrypted ? module.disk_encryption_set[idx].enc_set_id : null
   }
 
   inflate_disks_per_fs_pool = flatten([

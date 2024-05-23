@@ -63,7 +63,7 @@ Below steps will provision Bastion host required for IBM Storage Scale cloud sol
 | <a name="input_azure_bastion_service"></a> [azure_bastion_service](#input_azure_bastion_service) | Enable Azure Bastion service | `bool` |
 | <a name="input_bastion_boot_disk_type"></a> [bastion_boot_disk_type](#input_bastion_boot_disk_type) | Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS). | `string` |
 | <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
-| <a name="input_bastion_key_pair"></a> [bastion_key_pair](#input_bastion_key_pair) | The SSH keypair to launch the bastion vm. | `string` |
+| <a name="input_bastion_ssh_key_path"></a> [bastion_ssh_key_path](#input_bastion_ssh_key_path) | SSH public key local path, will be used to login bastion instance. | `string` |
 | <a name="input_bastion_ssh_user_name"></a> [bastion_ssh_user_name](#input_bastion_ssh_user_name) | The Bastion SSH username to launch bastion vm. | `string` |
 | <a name="input_client_id"></a> [client_id](#input_client_id) | The Active Directory service principal associated with your account. | `string` |
 | <a name="input_client_secret"></a> [client_secret](#input_client_secret) | The password or secret for your service principal. | `string` |

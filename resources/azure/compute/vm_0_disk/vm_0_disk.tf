@@ -17,7 +17,7 @@ variable "resource_group_name" {}
 variable "reverse_dns_zone" {}
 variable "source_image_id" {}
 variable "subnet_id" {}
-variable "user_key_pair" {}
+variable "ssh_public_key_path" {}
 variable "name_prefix" {}
 variable "vm_size" {}
 
@@ -33,12 +33,6 @@ hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
 echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
 systemctl restart NetworkManager
 EOF
-}
-
-# Gets Azure ssh keypair data
-data "azurerm_ssh_public_key" "itself" {
-  name                = var.user_key_pair
-  resource_group_name = var.resource_group_name
 }
 
 data "template_cloudinit_config" "user_data64" {
@@ -98,7 +92,7 @@ resource "azurerm_linux_virtual_machine" "itself" {
   zone                         = var.availability_zone
   admin_ssh_key {
     username   = var.login_username
-    public_key = replace(data.azurerm_ssh_public_key.itself.public_key, "\r\n", "")
+    public_key = file(var.ssh_public_key_path)
   }
   os_disk {
     caching              = var.os_disk_caching
