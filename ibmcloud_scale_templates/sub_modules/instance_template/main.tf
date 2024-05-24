@@ -904,7 +904,8 @@ module "storage_cluster_configuration" {
   max_metadata_replicas           = 3
   default_metadata_replicas       = 2
   default_data_replicas           = 2
-  max_file_cache                  = var.colocate_protocol_cluster_instances == true && var.storage_type == "persistent" ? "3M" : "128K"
+  max_file_cache                  = var.storage_type == "persistent" ? "3M" : var.colocate_protocol_cluster_instances == true ? "256K" : "128K"
+  max_stat_cache                  = var.storage_type == "persistent" ? "512K" : var.colocate_protocol_cluster_instances == true ? "256K" : "128K"
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
