@@ -306,7 +306,8 @@ def get_host_format(node):
 
 
 def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, storage_private_ips,
-                            storage_cluster_instance_names, protocol_cluster_instance_names, desc_private_ips, quorum_count,
+                            storage_cluster_instance_names, storage_nsd_server_instance_names,
+                            protocol_cluster_instance_names, desc_private_ips, quorum_count,
                             user, key_file):
     """ Initialize node details for cluster definition.
     :args: az_count (int), cls_type (string), compute_private_ips (list),
@@ -329,7 +330,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': True, 'is_collector': True, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "mgmtnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
                 write_json_file({'compute_cluster_gui_ip_address': each_ip},
                                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                            "compute_cluster_gui_details.json"))
@@ -347,10 +348,10 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
         for each_ip in storage_cluster_instance_names:
             each_name = each_ip.split('.')[0]
             scale_protocol_node = each_ip in protocol_cluster_instance_names
-            is_nsd = each_ip not in protocol_cluster_instance_names
+            is_nsd = each_name in storage_nsd_server_instance_names
             if storage_cluster_instance_names.index(each_ip) < (start_quorum_assign):
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
-                        'is_gui': False, 'is_collector': False, 'is_nsd': True,
+                        'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
                         'is_admin': True, 'user': user, 'key_file': key_file,
                         'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': scale_protocol_node}
             # Tie-breaker node defination
@@ -358,13 +359,13 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "computedescnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "storagedescnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
             # Scale Management node defination
             elif storage_cluster_instance_names.index(each_ip) == total_storage_node - 2:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': True, 'is_collector': True, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "storagenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "mgmtnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
                 write_json_file({'storage_cluster_gui_ip_address': each_ip},
                                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                            "storage_cluster_gui_details.json"))
@@ -835,6 +836,7 @@ if __name__ == "__main__":
                                            TF['compute_cluster_instance_names'],
                                            TF['storage_cluster_instance_private_ips'],
                                            TF['storage_cluster_instance_names'],
+                                           list(TF["storage_cluster_with_data_volume_mapping"].keys()),
                                            TF['protocol_cluster_instance_names'],
                                            TF['storage_cluster_desc_instance_private_ips'],
                                            quorum_count, "root", ARGUMENTS.instance_private_key)
@@ -940,3 +942,4 @@ if __name__ == "__main__":
         if ARGUMENTS.verbose:
             print("group_vars content:\n%s" % yaml.dump(
                 scale_storage_cluster, default_flow_style=False))
+
