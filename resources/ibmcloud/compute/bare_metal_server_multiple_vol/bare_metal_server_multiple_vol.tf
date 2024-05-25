@@ -158,8 +158,6 @@ fi
 EOF
 }
 
-
-
 resource "ibm_is_bare_metal_server" "itself" {
   for_each = {
     # This assigns a subnet-id to each of the instance
@@ -198,13 +196,45 @@ resource "ibm_is_bare_metal_server" "itself" {
 
   vpc                = var.vpc_id
   resource_group     = var.resource_group_id
-  user_data          = data.template_file.metadata_startup_script.rendered
+  user_data          = var.bms_boot_drive_encryption == false ? data.template_file.metadata_startup_script.rendered : file("./cloud_init.yml")
   enable_secure_boot = var.bms_boot_drive_encryption
+  trusted_platform_module {
+    mode = "tpm_2"
+  }
   timeouts {
     create = "90m"
   }
 }
 
+resource "null_resource" "scale_cluster_provisioner" {
+  for_each = {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
+    }
+  }
+  connection {
+    type        = "ssh"
+    host        = each.value.network_ip
+    user        = "root"
+    private_key = "/opt/IBM/ibm-spectrumscale-cloud-deploy/storage_key/id_rsa"
+    timeout     = "60m"
+  }
+
+  provisioner "file" {
+    source      = "./cloud_init.yml"
+    destination = "/tmp/cloud_init.yml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "cat > /tmp/script.sh << 'EOF'",
+      "data.template_file.metadata_startup_script.rendered",
+      "EOF",
+      "sh /tmp/script.sh",
+      "shutdown -r now"
+    ]
+  }
+}
 
 resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
@@ -273,6 +303,6 @@ output "storage_cluster_instance_name_ip_map" {
 
 output "secondary_interface_name_ip_map" {
   value = {
-    for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0]}
+  for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0] }
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
