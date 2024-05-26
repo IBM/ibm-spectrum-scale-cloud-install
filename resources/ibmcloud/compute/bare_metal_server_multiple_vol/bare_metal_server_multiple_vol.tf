@@ -32,7 +32,7 @@ variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
-variable "storage_private_key" {}
+#variable "storage_private_key" {}
 
 data "ibm_is_bare_metal_server_profile" "itself" {
   name = var.vsi_profile
@@ -159,6 +159,19 @@ fi
 EOF
 }
 
+locals {
+  user_data_vars = {
+    dns_domain        = var.dns_domain,
+    enable_protocol   = var.enable_protocol,
+    protocol_domain   = var.protocol_domain,
+    vpc_region        = var.vpc_region,
+    vpc_id            = var.vpc_id,
+    zones             = var.zones,
+    resource_group_id = var.resource_group_id,
+    vpc_rt_id         = var.vpc_rt_id
+  }
+}
+
 resource "ibm_is_bare_metal_server" "itself" {
   for_each = {
     # This assigns a subnet-id to each of the instance
@@ -197,7 +210,7 @@ resource "ibm_is_bare_metal_server" "itself" {
 
   vpc                = var.vpc_id
   resource_group     = var.resource_group_id
-  user_data          = var.bms_boot_drive_encryption == false ? data.template_file.metadata_startup_script.rendered : file("${path.module}/cloud_init.yml")
+  user_data          = var.bms_boot_drive_encryption == false ? data.template_file.metadata_startup_script.rendered : templatefile("${path.module}/cloud_init.yml", local.user_data_vars) # file("${path.module}/cloud_init.yml")
   enable_secure_boot = var.bms_boot_drive_encryption
   trusted_platform_module {
     mode = "tpm_2"
@@ -207,39 +220,40 @@ resource "ibm_is_bare_metal_server" "itself" {
   }
 }
 
-output "key" {
-  value = var.storage_private_key
-}
+# output "key" {
+#   value = var.storage_private_key
+# }
 
-resource "null_resource" "scale_cluster_provisioner" {
-  for_each = var.bms_boot_drive_encryption == false ? {} : {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
-    }
-  }
-  connection {
-    type        = "ssh"
-    host        = each.value.network_ip
-    user        = "root"
-    private_key = var.storage_private_key
-    timeout     = "60m"
-  }
+# resource "null_resource" "scale_cluster_provisioner" {
+#   for_each = var.bms_boot_drive_encryption == false ? {} : {
+#     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+#       network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
+#     }
+#   }
+#   connection {
+#     type        = "ssh"
+#     host        = each.value.network_ip
+#     user        = "root"
+#     private_key = var.storage_private_key
+#     #private_key = file("${path.module}/id_rsa")
+#     timeout = "60m"
+#   }
 
-  provisioner "file" {
-    source      = "./cloud_init.yml"
-    destination = "/tmp/cloud_init.yml"
-  }
+#   provisioner "file" {
+#     source      = file("${path.module}/cloud_init.yml")
+#     destination = "/tmp/cloud_init.yml"
+#   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "cat > /tmp/script.sh << 'EOF'",
-      "data.template_file.metadata_startup_script.rendered",
-      "EOF",
-      "sh /tmp/script.sh",
-      "shutdown -r now"
-    ]
-  }
-}
+#   provisioner "remote-exec" {
+#     inline = [
+#       "cat > /tmp/script.sh << 'EOF'",
+#       "data.template_file.metadata_startup_script.rendered",
+#       "EOF",
+#       "sh /tmp/script.sh",
+#       "shutdown -r now"
+#     ]
+#   }
+# }
 
 resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
