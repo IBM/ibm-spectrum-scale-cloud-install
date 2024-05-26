@@ -32,6 +32,7 @@ variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
+variable "storage_private_key" {}
 
 data "ibm_is_bare_metal_server_profile" "itself" {
   name = var.vsi_profile
@@ -196,7 +197,7 @@ resource "ibm_is_bare_metal_server" "itself" {
 
   vpc                = var.vpc_id
   resource_group     = var.resource_group_id
-  user_data          = var.bms_boot_drive_encryption == false ? data.template_file.metadata_startup_script.rendered : file("./cloud_init.yml")
+  user_data          = var.bms_boot_drive_encryption == false ? data.template_file.metadata_startup_script.rendered : file("${path.module}/cloud_init.yml")
   enable_secure_boot = var.bms_boot_drive_encryption
   trusted_platform_module {
     mode = "tpm_2"
@@ -207,7 +208,7 @@ resource "ibm_is_bare_metal_server" "itself" {
 }
 
 resource "null_resource" "scale_cluster_provisioner" {
-  for_each = {
+  for_each = var.bms_boot_drive_encryption == false ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
     }
@@ -216,7 +217,7 @@ resource "null_resource" "scale_cluster_provisioner" {
     type        = "ssh"
     host        = each.value.network_ip
     user        = "root"
-    private_key = "/opt/IBM/ibm-spectrumscale-cloud-deploy/storage_key/id_rsa"
+    private_key = var.storage_private_key
     timeout     = "60m"
   }
 
