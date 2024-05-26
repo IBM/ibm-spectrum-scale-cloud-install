@@ -207,6 +207,10 @@ resource "ibm_is_bare_metal_server" "itself" {
   }
 }
 
+output "key" {
+  value = var.storage_private_key
+}
+
 resource "null_resource" "scale_cluster_provisioner" {
   for_each = var.bms_boot_drive_encryption == false ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
