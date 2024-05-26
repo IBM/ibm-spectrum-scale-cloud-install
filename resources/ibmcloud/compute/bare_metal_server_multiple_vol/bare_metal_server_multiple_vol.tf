@@ -167,8 +167,8 @@ locals {
     vpc_id               = var.vpc_id,
     zones                = var.zones,
     resource_group_id    = var.resource_group_id,
-    vpc_rt_id            = var.vpc_rt_id
-    vsi_meta_private_key = var.vsi_meta_private_key
+    vpc_rt_id            = var.vpc_rt_id,
+    vsi_meta_private_key = var.vsi_meta_private_key,
     vsi_meta_public_key  = var.vsi_meta_public_key
   }
 }
