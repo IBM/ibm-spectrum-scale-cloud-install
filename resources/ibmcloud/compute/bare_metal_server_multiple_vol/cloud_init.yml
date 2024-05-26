@@ -61,6 +61,8 @@ write_files:
       fi
 
       sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" ~/.ssh/authorized_keys
+      echo "${vsi_meta_private_key}" > ~/.ssh/id_rsa
+      chmod 600 ~/.ssh/id_rsa
       echo "${vsi_meta_public_key}" >> ~/.ssh/authorized_keys
       echo "StrictHostKeyChecking no" >> ~/.ssh/config
       echo "DOMAIN=\"${dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"

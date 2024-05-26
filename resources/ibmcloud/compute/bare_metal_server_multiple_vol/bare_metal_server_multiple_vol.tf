@@ -160,16 +160,16 @@ EOF
 
 locals {
   user_data_vars = {
-    dns_domain        = var.dns_domain,
-    enable_protocol   = var.enable_protocol,
-    protocol_domain   = var.protocol_domain,
-    vpc_region        = var.vpc_region,
-    vpc_id            = var.vpc_id,
-    zones             = var.zones,
-    resource_group_id = var.resource_group_id,
-    vpc_rt_id         = var.vpc_rt_id,
-    #vsi_meta_private_key = var.vsi_meta_private_key,
-    vsi_meta_public_key = var.vsi_meta_public_key
+    dns_domain           = var.dns_domain,
+    enable_protocol      = var.enable_protocol,
+    protocol_domain      = var.protocol_domain,
+    vpc_region           = var.vpc_region,
+    vpc_id               = var.vpc_id,
+    zones                = var.zones,
+    resource_group_id    = var.resource_group_id,
+    vpc_rt_id            = var.vpc_rt_id,
+    vsi_meta_private_key = jsonencode(var.vsi_meta_private_key),
+    vsi_meta_public_key  = var.vsi_meta_public_key
   }
 }
 
