@@ -168,8 +168,8 @@ locals {
     zones                = var.zones,
     resource_group_id    = var.resource_group_id,
     vpc_rt_id            = var.vpc_rt_id,
-    vsi_meta_private_key = jsonencode(var.vsi_meta_private_key),
-    vsi_meta_public_key  = jsonencode(var.vsi_meta_public_key)
+    vsi_meta_private_key = base64encode(var.vsi_meta_private_key),
+    vsi_meta_public_key  = base64encode(var.vsi_meta_public_key)
   }
 }
 
