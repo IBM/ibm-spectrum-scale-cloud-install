@@ -96,12 +96,6 @@ variable "compute_cluster_public_key_path" {
   description = "SSH public key local path for compute instances."
 }
 
-variable "create_clouddns" {
-  type        = bool
-  nullable    = true
-  description = "Indicates whether to create new cloud DNS zones or reuse existing DNS zones."
-}
-
 variable "create_remote_mount_cluster" {
   type        = bool
   nullable    = true
@@ -290,12 +284,6 @@ variable "total_storage_cluster_instances" {
   description = "Number of instances to be launched for storage instances."
 }
 
-variable "use_clouddns" {
-  type        = bool
-  nullable    = true
-  description = "Indicates whether to use cloud DNS or internal DNS."
-}
-
 variable "using_cloud_connection" {
   type        = bool
   nullable    = true
@@ -389,12 +377,6 @@ variable "vpc_compute_cluster_private_subnets" {
   description = "List of IDs of compute cluster private subnets."
 }
 
-variable "vpc_compute_cluster_private_subnets_cidr_block" {
-  type        = string
-  nullable    = true
-  description = "cidr_block of compute private subnet."
-}
-
 variable "vpc_forward_dns_zone" {
   type        = string
   nullable    = true
@@ -413,6 +395,12 @@ variable "vpc_region" {
   description = "GCP region where the resources will be created."
 }
 
+variable "vpc_reverse_dns_domain" {
+  type        = string
+  nullable    = true
+  description = "DNS reverse domain (Ex: 10.in-addr.arpa)."
+}
+
 variable "vpc_reverse_dns_zone" {
   type        = string
   nullable    = true
@@ -429,10 +417,4 @@ variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)
   nullable    = true
   description = "List of IDs of storage cluster private subnets."
-}
-
-variable "vpc_storage_cluster_private_subnets_cidr_block" {
-  type        = string
-  nullable    = true
-  description = "cidr_block of storage private subnet."
 }

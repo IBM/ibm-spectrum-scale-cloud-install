@@ -53,27 +53,6 @@ module "cluster_ingress_security_rule_using_cloud_connection" {
   udp_ports            = []
 }
 
-module "compute_dns_zone" {
-  source      = "../../../resources/gcp/network/cloud_dns"
-  turn_on     = (var.cluster_type == "Compute-only" && var.use_clouddns && var.create_clouddns) ? true : false
-  zone_name   = var.resource_prefix
-  dns_name    = format("%s.", var.vpc_compute_cluster_dns_domain) # Trailing dot is required.
-  vpc_network = var.vpc_ref
-  description = "Private DNS Zone for IBM Storage Scale compute instances DNS communication."
-}
-
-module "reverse_dns_zone" {
-  source    = "../../../resources/gcp/network/cloud_dns"
-  turn_on   = (var.use_clouddns && var.create_clouddns) ? true : false
-  zone_name = format("%s-reverse", var.resource_prefix)
-  # Prepare the reverse DNS zone name using first oclet of vpc.
-  # Ex: vpc cidr = 10.0.0.0/24, then dns_name = 10.in-addr.arpa.
-  # Trailing dot is required
-  dns_name    = format("%s.%s", try(split(".", cidrsubnet(var.cluster_type == "Compute-only" ? var.vpc_compute_cluster_private_subnets_cidr_block : var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
-  vpc_network = var.vpc_ref
-  description = "Reverse Private DNS Zone for IBM Storage Scale instances DNS communication."
-}
-
 # Creates compute instances
 module "compute_cluster_instances" {
   for_each                     = local.compute_vm_subnet_map
@@ -93,24 +72,14 @@ module "compute_cluster_instances" {
   ssh_public_key_path          = var.compute_cluster_public_key_path
   private_key_content          = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   public_key_content           = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  use_clouddns                 = var.use_clouddns
   vpc_forward_dns_zone         = var.vpc_forward_dns_zone
   vpc_dns_domain               = var.vpc_compute_cluster_dns_domain
   vpc_reverse_dns_zone         = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain       = format("%s.%s", try(split(".", cidrsubnet(var.vpc_compute_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain       = var.vpc_reverse_dns_domain
   service_email                = var.service_email
   scopes                       = var.scopes
   network_tags                 = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
-  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.compute_dns_zone, module.reverse_dns_zone]
-}
-
-module "storage_dns_zone" {
-  source      = "../../../resources/gcp/network/cloud_dns"
-  turn_on     = var.use_clouddns && var.create_clouddns && local.storage_or_combined ? true : false
-  zone_name   = var.resource_prefix
-  dns_name    = format("%s.", var.vpc_storage_cluster_dns_domain) # Trailing dot is required.
-  vpc_network = var.vpc_ref
-  description = "Private DNS Zone for IBM Storage Scale storage instances DNS communication."
+  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection]
 }
 
 # Creates storage instances
@@ -136,15 +105,14 @@ module "storage_cluster_instances" {
   boot_image                   = var.storage_cluster_image_ref
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref
   root_device_kms_key_ref      = var.root_device_kms_key_ref
-  use_clouddns                 = var.use_clouddns
   vpc_forward_dns_zone         = var.vpc_forward_dns_zone
   vpc_dns_domain               = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone         = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain       = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain       = var.vpc_reverse_dns_domain
   service_email                = var.service_email
   scopes                       = var.scopes
   network_tags                 = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
-  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
+  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection]
 }
 
 # Creates storage tie breaker instance
@@ -170,15 +138,14 @@ module "storage_cluster_tie_breaker_instance" {
   boot_image                   = var.storage_cluster_image_ref
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref
   root_device_kms_key_ref      = var.root_device_kms_key_ref
-  use_clouddns                 = var.use_clouddns
   vpc_forward_dns_zone         = var.vpc_forward_dns_zone
   vpc_dns_domain               = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone         = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain       = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain       = var.vpc_reverse_dns_domain
   service_email                = var.service_email
   scopes                       = var.scopes
   network_tags                 = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
-  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
+  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection]
 }
 
 module "gateway_instances" {
@@ -199,15 +166,14 @@ module "gateway_instances" {
   ssh_public_key_path          = var.storage_cluster_public_key_path
   private_key_content          = module.generate_storage_cluster_keys.private_key_content
   public_key_content           = module.generate_storage_cluster_keys.public_key_content
-  use_clouddns                 = var.use_clouddns
   vpc_forward_dns_zone         = var.vpc_forward_dns_zone
   vpc_dns_domain               = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone         = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain       = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain       = var.vpc_reverse_dns_domain
   service_email                = var.service_email
   scopes                       = var.scopes
   network_tags                 = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
-  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
+  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection]
 }
 
 module "protocol_instances" {
@@ -228,15 +194,14 @@ module "protocol_instances" {
   ssh_public_key_path          = var.storage_cluster_public_key_path
   private_key_content          = module.generate_storage_cluster_keys.private_key_content
   public_key_content           = module.generate_storage_cluster_keys.public_key_content
-  use_clouddns                 = var.use_clouddns
   vpc_forward_dns_zone         = var.vpc_forward_dns_zone
   vpc_dns_domain               = var.vpc_storage_cluster_dns_domain
   vpc_reverse_dns_zone         = var.vpc_reverse_dns_zone
-  vpc_reverse_dns_domain       = format("%s.%s", try(split(".", cidrsubnet(var.vpc_storage_cluster_private_subnets_cidr_block, 8, 0))[0], ""), "in-addr.arpa.")
+  vpc_reverse_dns_domain       = var.vpc_reverse_dns_domain
   service_email                = var.service_email
   scopes                       = var.scopes
   network_tags                 = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
-  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection, module.storage_dns_zone, module.reverse_dns_zone]
+  depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection]
 }
 
 # Prepare ansible config
@@ -248,69 +213,50 @@ module "prepare_ansible_configuration" {
   clone_path = var.scale_ansible_repo_clone_path
 }
 
-locals {
-  storage_cluster_private_ips      = local.storage_or_combined ? [for instance in module.storage_cluster_instances : instance.instance_private_ips] : []
-  storage_cluster_desc_private_ips = local.storage_or_combined && length(var.vpc_availability_zones) > 1 ? [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips] : []
-}
-
 # Write the compute cluster related inventory.
 resource "local_sensitive_file" "write_compute_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster && var.cluster_type == "Compute-only" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && var.cluster_type == "Compute-only" ? 1 : 0
   filename = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
-    cloud_platform                            = "GCP"
-    resource_prefix                           = var.resource_prefix
-    vpc_region                                = var.vpc_region
-    vpc_availability_zones                    = var.vpc_availability_zones
-    scale_version                             = local.scale_version
-    filesystem_details                        = local.filesystem_details
-    compute_cluster_filesystem_mountpoint     = var.compute_cluster_filesystem_mountpoint
-    bastion_instance_id                       = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
-    bastion_user                              = var.bastion_user == null ? null : var.bastion_user
-    bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
-    instances_ssh_user_name                   = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
-    compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
-    compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
-    compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
-    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
-    storage_cluster_instance_ids              = []
-    storage_cluster_instance_private_ips      = []
-    storage_cluster_with_data_volume_mapping  = {}
-    storage_cluster_instance_private_dns      = []
-    storage_cluster_desc_instance_ids         = []
-    storage_cluster_desc_instance_private_ips = []
-    storage_cluster_desc_data_volume_mapping  = {}
-    storage_cluster_desc_instance_private_dns = []
+    cloud_platform                           = "GCP"
+    resource_prefix                          = var.resource_prefix
+    vpc_region                               = var.vpc_region
+    vpc_availability_zones                   = var.vpc_availability_zones
+    scale_version                            = local.scale_version
+    filesystem_details                       = local.filesystem_details
+    compute_cluster_filesystem_mountpoint    = var.compute_cluster_filesystem_mountpoint
+    bastion_instance_id                      = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
+    bastion_user                             = var.bastion_user == null ? null : var.bastion_user
+    bastion_instance_public_ip               = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
+    instances_ssh_user_name                  = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
+    compute_cluster_details                  = [for instance in module.compute_cluster_instances : instance.instance_details]
+    storage_cluster_details                  = []
+    storage_cluster_with_data_volume_mapping = {}
+    storage_cluster_desc_details             = []
+    storage_cluster_desc_data_volume_mapping = {}
   })
 }
 
 # Write the storage cluster related inventory.
 resource "local_sensitive_file" "write_storage_cluster_inventory" {
-  count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == true && var.cluster_type == "Storage-only" ? 1 : 0
+  count    = module.prepare_ansible_configuration.clone_complete && var.cluster_type == "Storage-only" ? 1 : 0
   filename = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
-    cloud_platform                            = "GCP"
-    resource_prefix                           = var.resource_prefix
-    vpc_region                                = var.vpc_region
-    vpc_availability_zones                    = var.vpc_availability_zones
-    scale_version                             = local.scale_version
-    filesystem_details                        = local.filesystem_details
-    bastion_instance_id                       = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
-    bastion_user                              = var.bastion_user == null ? null : var.bastion_user
-    bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
-    instances_ssh_user_name                   = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
-    compute_cluster_instance_ids              = []
-    compute_cluster_instance_private_ips      = []
-    compute_cluster_instance_private_dns      = []
-    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
-    storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
-    storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
-    storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
-    storage_cluster_instance_private_dns      = [for instance in module.storage_cluster_instances : instance.instance_private_dns_name]
-    storage_cluster_desc_instance_ids         = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids]
-    storage_cluster_desc_instance_private_ips = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
-    storage_cluster_desc_data_volume_mapping  = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
-    storage_cluster_desc_instance_private_dns = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_dns_name]
+    cloud_platform                           = "GCP"
+    resource_prefix                          = var.resource_prefix
+    vpc_region                               = var.vpc_region
+    vpc_availability_zones                   = var.vpc_availability_zones
+    scale_version                            = local.scale_version
+    filesystem_details                       = local.filesystem_details
+    bastion_instance_id                      = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
+    bastion_user                             = var.bastion_user == null ? null : var.bastion_user
+    bastion_instance_public_ip               = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
+    instances_ssh_user_name                  = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
+    compute_cluster_details                  = []
+    storage_cluster_details                  = [for instance in module.storage_cluster_instances : instance.instance_details]
+    storage_cluster_with_data_volume_mapping = local.storage_instance_ips_with_disk_mapping
+    storage_cluster_desc_details             = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details]
+    storage_cluster_desc_data_volume_mapping = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
   })
 }
 
@@ -319,28 +265,21 @@ resource "local_sensitive_file" "write_combined_inventory" {
   count    = module.prepare_ansible_configuration.clone_complete && var.create_remote_mount_cluster == false && var.cluster_type == "Combined-compute-storage" ? 1 : 0
   filename = format("%s/cluster_inventory.json", var.scale_ansible_repo_clone_path)
   content = jsonencode({
-    cloud_platform                            = "GCP"
-    resource_prefix                           = var.resource_prefix
-    vpc_region                                = var.vpc_region
-    vpc_availability_zones                    = var.vpc_availability_zones
-    scale_version                             = local.scale_version
-    filesystem_details                        = local.filesystem_details
-    bastion_instance_id                       = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
-    bastion_user                              = var.bastion_user == null ? null : var.bastion_user
-    bastion_instance_public_ip                = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
-    instances_ssh_user_name                   = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
-    compute_cluster_instance_ids              = [for instance in module.compute_cluster_instances : instance.instance_ids]
-    compute_cluster_instance_private_ips      = [for instance in module.compute_cluster_instances : instance.instance_private_ips]
-    compute_cluster_instance_private_dns      = [for instance in module.compute_cluster_instances : instance.instance_private_dns_name]
-    compute_cluster_instance_zone_mapping     = local.compute_instance_ip_with_zone_mapping
-    storage_cluster_instance_ids              = [for instance in module.storage_cluster_instances : instance.instance_ids]
-    storage_cluster_instance_private_ips      = [for instance in module.storage_cluster_instances : instance.instance_private_ips]
-    storage_cluster_with_data_volume_mapping  = local.storage_instance_ips_with_disk_mapping
-    storage_cluster_instance_private_dns      = [for instance in module.storage_cluster_instances : instance.instance_private_dns_name]
-    storage_cluster_desc_instance_ids         = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids]
-    storage_cluster_desc_instance_private_ips = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
-    storage_cluster_desc_data_volume_mapping  = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
-    storage_cluster_desc_instance_private_dns = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_dns_name]
+    cloud_platform                           = "GCP"
+    resource_prefix                          = var.resource_prefix
+    vpc_region                               = var.vpc_region
+    vpc_availability_zones                   = var.vpc_availability_zones
+    scale_version                            = local.scale_version
+    filesystem_details                       = local.filesystem_details
+    bastion_instance_id                      = var.bastion_instance_ref == null ? null : var.bastion_instance_ref
+    bastion_user                             = var.bastion_user == null ? null : var.bastion_user
+    bastion_instance_public_ip               = var.bastion_instance_public_ip == null ? null : var.bastion_instance_public_ip
+    instances_ssh_user_name                  = var.instances_ssh_user_name == null ? null : var.instances_ssh_user_name
+    compute_cluster_details                  = [for instance in module.compute_cluster_instances : instance.instance_details]
+    storage_cluster_details                  = [for instance in module.storage_cluster_instances : instance.instance_details]
+    storage_cluster_with_data_volume_mapping = local.storage_instance_ips_with_disk_mapping
+    storage_cluster_desc_details             = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details]
+    storage_cluster_desc_data_volume_mapping = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
   })
 }
 
@@ -357,7 +296,7 @@ module "compute_cluster_configuration" {
   using_rest_initialization       = var.using_rest_api_remote_mount
   compute_cluster_gui_username    = var.compute_cluster_gui_username
   compute_cluster_gui_password    = var.compute_cluster_gui_password
-  memory_size                     = 8 # TODO: Use vm profile
+  memory_size                     = 8
   max_pagepool_gb                 = 4
   bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip      = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
@@ -415,7 +354,7 @@ module "combined_cluster_configuration" {
   using_jumphost_connection       = var.using_jumphost_connection
   storage_cluster_gui_username    = var.storage_cluster_gui_username
   storage_cluster_gui_password    = var.storage_cluster_gui_password
-  memory_size                     = 8
+  memory_size                     = 16
   bastion_user                    = var.bastion_user == null ? jsonencode("None") : jsonencode(var.bastion_user)
   bastion_instance_public_ip      = var.bastion_instance_public_ip == null ? jsonencode("None") : jsonencode(var.bastion_instance_public_ip)
   bastion_ssh_private_key         = var.bastion_ssh_private_key == null ? jsonencode("None") : jsonencode(var.bastion_ssh_private_key)

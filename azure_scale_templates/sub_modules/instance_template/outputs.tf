@@ -33,19 +33,14 @@ output "storage_cluster_desc_data_volume_mapping" {
   description = "Mapping of storage cluster desc instance ip vs. device path."
 }
 
-output "storage_cluster_desc_instance_ids" {
-  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_ids]
-  description = "Storage cluster desc instance id."
-}
-
-output "storage_cluster_desc_instance_private_ips" {
-  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_private_ips]
-  description = "Private IP address of storage cluster desc instance."
+output "storage_cluster_dec_instance_details" {
+  value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details]
+  description = "Storage cluster desc instance details (map of id, private_ip, dns)"
 }
 
 output "storage_cluster_instance_details" {
   value       = [for instance in module.storage_cluster_instances : instance.instance_details]
-  description = "Protocol instance details (map of id, private_ip, dns)"
+  description = "Storage cluster instance details (map of id, private_ip, dns)"
 }
 
 output "storage_cluster_security_group_id" {
