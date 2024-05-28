@@ -212,7 +212,7 @@ resource "ibm_is_bare_metal_server" "itself" {
   vpc                = var.vpc_id
   resource_group     = var.resource_group_id
   user_data          = var.bms_boot_drive_encryption == false ? data.template_file.metadata_startup_script.rendered : templatefile("${path.module}/cloud_init.yml", local.user_data_vars)
-  enable_secure_boot = var.bms_boot_drive_encryption
+  enable_secure_boot = false
   trusted_platform_module {
     mode = "tpm_2"
   }
