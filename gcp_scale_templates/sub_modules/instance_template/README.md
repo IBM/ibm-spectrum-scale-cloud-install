@@ -190,7 +190,6 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_compute_cluster_image_ref"></a> [compute_cluster_image_ref](#input_compute_cluster_image_ref) | Image from which to initialize Spectrum Scale compute instances. | `string` |
 | <a name="input_compute_cluster_instance_type"></a> [compute_cluster_instance_type](#input_compute_cluster_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | SSH public key local path for compute instances. | `string` |
-| <a name="input_create_clouddns"></a> [create_clouddns](#input_create_clouddns) | Indicates whether to create new cloud DNS zones or reuse existing DNS zones. | `bool` |
 | <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
 | <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
 | <a name="input_credential_json_path"></a> [credential_json_path](#input_credential_json_path) | The path of a GCP service account key file in JSON format. | `string` |
@@ -220,7 +219,6 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_total_gateway_instances"></a> [total_gateway_instances](#input_total_gateway_instances) | Number of EC2 instances to be launched for gateway nodes. | `number` |
 | <a name="input_total_protocol_instances"></a> [total_protocol_instances](#input_total_protocol_instances) | Number of EC2 instances to be launched for protocol nodes. | `number` |
 | <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of instances to be launched for storage instances. | `number` |
-| <a name="input_use_clouddns"></a> [use_clouddns](#input_use_clouddns) | Indicates whether to use cloud DNS or internal DNS. | `bool` |
 | <a name="input_using_cloud_connection"></a> [using_cloud_connection](#input_using_cloud_connection) | This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_using_direct_connection"></a> [using_direct_connection](#input_using_direct_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud virtual private cloud (VPC) via a VPN or direct connection. This mode requires variable `client_ip_ranges`, as the on-premise client ip will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
@@ -229,37 +227,26 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
 | <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | GCP Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
-| <a name="input_vpc_compute_cluster_private_subnets_cidr_block"></a> [vpc_compute_cluster_private_subnets_cidr_block](#input_vpc_compute_cluster_private_subnets_cidr_block) | cidr_block of compute private subnet. | `string` |
 | <a name="input_vpc_forward_dns_zone"></a> [vpc_forward_dns_zone](#input_vpc_forward_dns_zone) | GCP Cloud DNS zone name to be used for scale cluster (Ex: example-zone). | `string` |
 | <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | GCP region where the resources will be created. | `string` |
+| <a name="input_vpc_reverse_dns_domain"></a> [vpc_reverse_dns_domain](#input_vpc_reverse_dns_domain) | DNS reverse domain (Ex: 10.in-addr.arpa). | `string` |
 | <a name="input_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#input_vpc_reverse_dns_zone) | GCP Cloud DNS reverse zone lookup to be used for scale cluster (Ex: example-zone-reverse). | `string` |
 | <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | GCP Cloud DNS domain name to be used for storage cluster. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
-| <a name="input_vpc_storage_cluster_private_subnets_cidr_block"></a> [vpc_storage_cluster_private_subnets_cidr_block](#input_vpc_storage_cluster_private_subnets_cidr_block) | cidr_block of storage private subnet. | `string` |
 
 #### Outputs
 
 | Name | Description |
 |------|-------------|
 | <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
-| <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
-| <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Compute cluster private ips. |
+| <a name="output_compute_cluster_instance_details"></a> [compute_cluster_instance_details](#output_compute_cluster_instance_details) | Compute cluster instance details (map of id, private_ip, dns) |
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security ids. |
-| <a name="output_compute_cluster_with_dns_hostname"></a> [compute_cluster_with_dns_hostname](#output_compute_cluster_with_dns_hostname) | Compute cluster dns hostname mapping. |
-| <a name="output_gateway_instance_ids"></a> [gateway_instance_ids](#output_gateway_instance_ids) | Gateway instance ids. |
-| <a name="output_gateway_instance_private_ips"></a> [gateway_instance_private_ips](#output_gateway_instance_private_ips) | Private IP address of gateway instances. |
-| <a name="output_protocol_instance_ids"></a> [protocol_instance_ids](#output_protocol_instance_ids) | Protocol instance ids. |
-| <a name="output_protocol_instance_private_ips"></a> [protocol_instance_private_ips](#output_protocol_instance_private_ips) | Private IP address of protocol instances. |
+| <a name="output_gateway_instance_details"></a> [gateway_instance_details](#output_gateway_instance_details) | Gateway instance details (map of id, private_ip, dns) |
+| <a name="output_protocol_instance_details"></a> [protocol_instance_details](#output_protocol_instance_details) | Protocol instance details (map of id, private_ip, dns) |
+| <a name="output_storage_cluster_dec_instance_details"></a> [storage_cluster_dec_instance_details](#output_storage_cluster_dec_instance_details) | Storage cluster desc instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
-| <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
-| <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
-| <a name="output_storage_cluster_desc_with_dns_hostname"></a> [storage_cluster_desc_with_dns_hostname](#output_storage_cluster_desc_with_dns_hostname) | Storage cluster desc dns hostname mapping. |
-| <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
-| <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Storage cluster private ips. |
+| <a name="output_storage_cluster_instance_details"></a> [storage_cluster_instance_details](#output_storage_cluster_instance_details) | Protocol instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security ids. |
-| <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Storage cluster data volume mapping. |
-| <a name="output_storage_cluster_with_dns_hostname"></a> [storage_cluster_with_dns_hostname](#output_storage_cluster_with_dns_hostname) | Storage cluster dns hostname mapping. |
-| <a name="output_vpc_compute_cloud_dns"></a> [vpc_compute_cloud_dns](#output_vpc_compute_cloud_dns) | List of IDs of compute cluster cloud DNS. |
-| <a name="output_vpc_storage_cloud_dns"></a> [vpc_storage_cloud_dns](#output_vpc_storage_cloud_dns) | List of IDs of storage cluster cloud DNS. |
+| <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
 <!-- END_TF_DOCS -->

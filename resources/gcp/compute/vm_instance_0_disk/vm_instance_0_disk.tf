@@ -17,7 +17,6 @@ variable "boot_image" {}
 variable "ssh_user_name" {}
 variable "private_key_content" {}
 variable "public_key_content" {}
-variable "use_clouddns" {}
 variable "vpc_forward_dns_zone" {}
 variable "vpc_dns_domain" {}
 variable "vpc_reverse_dns_zone" {}
@@ -54,7 +53,7 @@ resource "google_compute_instance" "itself" {
   name         = var.instance_name
   machine_type = var.machine_type
   zone         = var.zone
-  hostname     = var.use_clouddns ? format("%s.%s", var.instance_name, var.vpc_dns_domain) : null
+  hostname     = format("%s.%s", var.instance_name, var.vpc_dns_domain)
 
   allow_stopping_for_update = true
 
@@ -93,7 +92,6 @@ resource "google_compute_instance" "itself" {
 
 # Add the VM instance ip as 'A' record to DNS
 resource "google_dns_record_set" "a_itself" {
-  count        = var.use_clouddns ? 1 : 0
   name         = format("%s.%s.", google_compute_instance.itself.name, var.vpc_dns_domain) # Trailing dot is required
   type         = "A"
   managed_zone = var.vpc_forward_dns_zone
@@ -103,28 +101,19 @@ resource "google_dns_record_set" "a_itself" {
 
 # Add the VM instance reverse lookup as 'PTR' record to DNS
 resource "google_dns_record_set" "ptr_itself" {
-  count        = var.use_clouddns ? 1 : 0
-  name         = format("%s.%s.%s.%s", split(".", google_compute_instance.itself.network_interface[0].network_ip)[3], split(".", google_compute_instance.itself.network_interface[0].network_ip)[2], split(".", google_compute_instance.itself.network_interface[0].network_ip)[1], var.vpc_reverse_dns_domain)
+  name         = format("%s.%s.%s.%s.", split(".", google_compute_instance.itself.network_interface[0].network_ip)[3], split(".", google_compute_instance.itself.network_interface[0].network_ip)[2], split(".", google_compute_instance.itself.network_interface[0].network_ip)[1], var.vpc_reverse_dns_domain) # Trailing dot is required
   type         = "PTR"
   managed_zone = var.vpc_reverse_dns_zone
   ttl          = 300
   rrdatas      = [format("%s.%s.", google_compute_instance.itself.name, var.vpc_dns_domain)] # Trailing dot is required
 }
 
-output "instance_ids" {
-  value = google_compute_instance.itself.id
-}
-
-output "instance_selflink" {
-  value = google_compute_instance.itself.self_link
-}
-
-output "instance_private_ips" {
-  value = google_compute_instance.itself.network_interface[0].network_ip
-}
-
-output "instance_private_dns_name" {
-  # Ex: id: projects/spectrum-scale-xyz/zones/us-central1-b/instances/test-compute-2,  regex o/p: test-compute-2
-  # Internal DNS format: {instance_name}.{zone}.c.{project_id}.internal
-  value = var.use_clouddns ? format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.vpc_dns_domain) : format("%s.%s.c.%s.internal", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.zone, regex("projects/(.*)/zones/.*", google_compute_instance.itself.id)[0])
+# Ex: id: projects/spectrum-scale-xyz/zones/us-central1-b/instances/test-compute-2,  regex o/p: test-compute-2
+output "instance_details" {
+  value = {
+    private_ip = google_compute_instance.itself.network_interface[0].network_ip
+    id         = google_compute_instance.itself.id
+    dns        = format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.vpc_dns_domain)
+    zone       = regex("^projects/[^/]+/zones/([^/]+)/instances/.*$", google_compute_instance.itself.id)[0]
+  }
 }
