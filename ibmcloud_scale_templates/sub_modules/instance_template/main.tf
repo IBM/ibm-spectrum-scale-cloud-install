@@ -477,11 +477,11 @@ module "storage_cluster_instances" {
   vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
   enable_sec_interface_storage = local.enable_sec_interface_storage
-  enable_protocol              = var.colocate_protocol_cluster_instances
-  vpc_region                   = var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
-  vpc_rt_id                    = var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
-  protocol_domain              = var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
-  protocol_subnet_id           = var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
+  enable_protocol              = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? true : false
+  vpc_region                   = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
+  vpc_rt_id                    = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
+  protocol_domain              = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
+  protocol_subnet_id           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
   resource_tags                = var.scale_cluster_resource_tags
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
@@ -505,11 +505,11 @@ module "storage_cluster_bare_metal_server" {
   vsi_user_public_key       = data.ibm_is_ssh_key.storage_ssh_key[*].id
   vsi_meta_private_key      = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key       = module.generate_storage_cluster_keys.public_key_content
-  enable_protocol           = var.colocate_protocol_cluster_instances
-  vpc_region                = var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
-  vpc_rt_id                 = var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
-  protocol_domain           = var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
-  protocol_subnet_id        = var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
+  enable_protocol           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? true : false
+  vpc_region                = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
+  vpc_rt_id                 = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
+  protocol_domain           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
+  protocol_subnet_id        = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
   resource_tags             = var.scale_cluster_resource_tags
   depends_on                = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
 }
