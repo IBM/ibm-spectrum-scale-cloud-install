@@ -158,7 +158,20 @@ fi
 EOF
 }
 
-
+locals {
+  user_data_vars = {
+    dns_domain           = var.dns_domain,
+    enable_protocol      = var.enable_protocol,
+    protocol_domain      = var.protocol_domain,
+    vpc_region           = var.vpc_region,
+    vpc_id               = var.vpc_id,
+    zones                = var.zones,
+    resource_group_id    = var.resource_group_id,
+    vpc_rt_id            = var.vpc_rt_id,
+    vsi_meta_private_key = base64encode(var.vsi_meta_private_key),
+    vsi_meta_public_key  = base64encode(var.vsi_meta_public_key)
+  }
+}
 
 resource "ibm_is_bare_metal_server" "itself" {
   for_each = {
@@ -198,13 +211,15 @@ resource "ibm_is_bare_metal_server" "itself" {
 
   vpc                = var.vpc_id
   resource_group     = var.resource_group_id
-  user_data          = data.template_file.metadata_startup_script.rendered
-  enable_secure_boot = var.bms_boot_drive_encryption
+  user_data          = var.bms_boot_drive_encryption == false ? data.template_file.metadata_startup_script.rendered : templatefile("${path.module}/cloud_init.yml", local.user_data_vars)
+  enable_secure_boot = false
+  trusted_platform_module {
+    mode = "tpm_2"
+  }
   timeouts {
     create = "90m"
   }
 }
-
 
 resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
@@ -273,6 +288,6 @@ output "storage_cluster_instance_name_ip_map" {
 
 output "secondary_interface_name_ip_map" {
   value = {
-    for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0]}
+  for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0] }
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
