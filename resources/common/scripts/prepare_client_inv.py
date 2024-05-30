@@ -94,8 +94,7 @@ def initialize_cluster_details(protocol_cluster_reserved_names, storage_cluster_
 
 def get_host_format(node):
     """Return host entries"""
-    host_format = f"{node['hostname']
-                     } ansible_ssh_private_key_file={node['key_file']}"
+    host_format = f"{node['hostname']} ansible_ssh_private_key_file={node['key_file']}"
     return host_format
 
 
@@ -147,13 +146,10 @@ if __name__ == "__main__":
     )
     PARSER.add_argument("--verbose", action="store_true",
                         help="print log messages")
-    PARSER.add_argument(
-        "--enable_ldap", help="Enabling the LDAP",  default="false")
-    PARSER.add_argument(
-        "--ldap_basedns", help="Base domain of LDAP", default="null")
+    PARSER.add_argument("--enable_ldap", help="Enabling the LDAP",  default="false")
+    PARSER.add_argument("--ldap_basedns", help="Base domain of LDAP", default="null")
     PARSER.add_argument("--ldap_server", help="LDAP Server IP", default="null")
-    PARSER.add_argument("--ldap_admin_password",
-                        help="LDAP Admin Password", default="null")
+    PARSER.add_argument("--ldap_admin_password",help="LDAP Admin Password", default="null")
     ARGUMENTS = PARSER.parse_args()
 
     # Step-1: Read the inventory file
@@ -191,8 +187,7 @@ if __name__ == "__main__":
         if ARGUMENTS.bastion_ssh_private_key is None:
             node_template = node_template + each_entry + "\n"
         else:
-            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {
-                ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
+            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
             each_entry = (
                 each_entry
                 + " "
