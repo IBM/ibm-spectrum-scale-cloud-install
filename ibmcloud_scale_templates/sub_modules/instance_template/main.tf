@@ -818,7 +818,7 @@ module "write_client_cluster_inventory" {
   compute_cluster_instance_ids                     = jsonencode("")
   compute_cluster_instance_private_ips             = jsonencode("")
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
-  storage_cluster_filesystem_mountpoint            = jsonencode("")
+  storage_cluster_filesystem_mountpoint            = local.scale_ces_enabled == true ? jsonencode(var.storage_cluster_filesystem_mountpoint) : jsonencode("")
   storage_cluster_instance_ids                     = jsonencode([])
   storage_cluster_instance_private_ips             = jsonencode([])
   storage_cluster_with_data_volume_mapping         = jsonencode({})

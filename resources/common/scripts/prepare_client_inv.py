@@ -72,7 +72,7 @@ def prepare_ansible_playbook_mount_fileset_client(hosts_config):
     return content
 
 
-def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password):
+def initialize_cluster_details(protocol_cluster_reserved_names, storage_cluster_filesystem_mountpoint, filesets, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password):
     """ Initialize cluster details.
     :args: protocol_cluster_reserved_names (string), filesets (string)
     """
@@ -83,6 +83,7 @@ def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable
 
     cluster_details = {}
     cluster_details['protocol_cluster_reserved_names'] = protocol_cluster_reserved_names
+    cluster_details['storage_cluster_filesystem_mountpoint'] = storage_cluster_filesystem_mountpoint
     cluster_details['filesets'] = filesets_list
     cluster_details['enable_ldap'] = enable_ldap
     cluster_details['ldap_basedns'] = ldap_basedns
@@ -93,7 +94,8 @@ def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable
 
 def get_host_format(node):
     """Return host entries"""
-    host_format = f"{node['hostname']} ansible_ssh_private_key_file={node['key_file']}"
+    host_format = f"{node['hostname']
+                     } ansible_ssh_private_key_file={node['key_file']}"
     return host_format
 
 
@@ -145,10 +147,13 @@ if __name__ == "__main__":
     )
     PARSER.add_argument("--verbose", action="store_true",
                         help="print log messages")
-    PARSER.add_argument("--enable_ldap", help="Enabling the LDAP",  default="false")
-    PARSER.add_argument("--ldap_basedns", help="Base domain of LDAP", default="null")
+    PARSER.add_argument(
+        "--enable_ldap", help="Enabling the LDAP",  default="false")
+    PARSER.add_argument(
+        "--ldap_basedns", help="Base domain of LDAP", default="null")
     PARSER.add_argument("--ldap_server", help="LDAP Server IP", default="null")
-    PARSER.add_argument("--ldap_admin_password", help="LDAP Admin Password", default="null")
+    PARSER.add_argument("--ldap_admin_password",
+                        help="LDAP Admin Password", default="null")
     ARGUMENTS = PARSER.parse_args()
 
     # Step-1: Read the inventory file
@@ -186,7 +191,8 @@ if __name__ == "__main__":
         if ARGUMENTS.bastion_ssh_private_key is None:
             node_template = node_template + each_entry + "\n"
         else:
-            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
+            proxy_command = f"ssh -p 22 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p {
+                ARGUMENTS.bastion_user}@{ARGUMENTS.bastion_ip} -i {ARGUMENTS.bastion_ssh_private_key}"
             each_entry = (
                 each_entry
                 + " "
@@ -205,6 +211,7 @@ if __name__ == "__main__":
         configfile.write(node_template)
 
     config['all:vars'] = initialize_cluster_details(STRG_TF['protocol_cluster_reserved_names'],
+                                                    STRG_TF['storage_cluster_filesystem_mountpoint'],
                                                     STRG_TF['filesets'],
                                                     ARGUMENTS.enable_ldap,
                                                     ARGUMENTS.ldap_basedns,
