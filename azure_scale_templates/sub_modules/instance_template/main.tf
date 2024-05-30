@@ -46,8 +46,7 @@ module "allow_traffic_within_scale_vms" {
 # Create security rules to enable scale communication between bastion and scale instances
 module "cluster_ingress_security_rule_using_jumphost_connection" {
   source                                     = "../../../resources/azure/security/nsg_source_destination_app_sec_grp"
-  count                                      = try(var.using_jumphost_connection ? 1 : 0, 0)
-  total_rules                                = length(local.tcp_port_bastion_scale_cluster)
+  total_rules                                = var.using_jumphost_connection ? length(local.tcp_port_bastion_scale_cluster) : 0
   rule_names_prefix                          = "${var.resource_prefix}-bastion-to-cluster"
   direction                                  = ["Inbound"]
   access                                     = ["Allow"]

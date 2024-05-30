@@ -152,15 +152,19 @@ def set_node_details(fqdn, ip_address, ansible_ssh_private_key_file,
 def interleave_nodes_by_fg(node_details):
     failure_groups = {}
     zone_list = []
-    for ip, zone_info in node_details.items():
-        zone = zone_info['zone']
+    for node in node_details:
+        ip = node['private_ip']
+        zone = node['zone']
         if zone not in failure_groups:
             failure_groups[zone] = []
             zone_list.append(zone)
         failure_groups[zone].append(ip)
+
     instances = []
-    for idx in range(len(zone_list)):
-        for nodes in failure_groups.values():
+    max_len = max(len(nodes) for nodes in failure_groups.values())
+    for idx in range(max_len):
+        for zone in zone_list:
+            nodes = failure_groups[zone]
             if idx < len(nodes):
                 instances.append(nodes[idx])
     return instances
@@ -257,43 +261,43 @@ def initialize_node_details(az_count, cls_type,
             start_quorum_assign = quorum_count - 2
             storage_desc_instances = [item["private_ip"]
                                       for item in storage_cluster_desc_details]
-            for index, each_ip in enumerate(storage_cluster_desc_details):
-                set_node_details(storage_desc_instances[index]["dns"], each_ip,
+            for index, each_ip in enumerate(storage_desc_instances):
+                set_node_details(storage_cluster_desc_details[index]["dns"], each_ip,
                                  key_file, "computedescnodegrp", user,
                                  is_quorum_node=True, is_manager_node=False,
                                  is_gui_server=False, is_collector_node=False,
                                  is_nsd_server=True, is_admin_node=False)
 
             storage_instances = interleave_nodes_by_fg(
-                storage_cluster_desc_details)
+                storage_cluster_details)
             for index, each_ip in enumerate(storage_instances):
                 if index <= start_quorum_assign and index <= (manager_count - 1):
                     if index == 0:
-                        set_node_details(storage_instances[index]["dns"], each_ip,
+                        set_node_details(storage_cluster_details[index]["dns"], each_ip,
                                          key_file, "storagenodegrp", user,
                                          is_quorum_node=True, is_manager_node=True,
                                          is_gui_server=True, is_collector_node=True,
                                          is_nsd_server=True, is_admin_node=True)
                     elif index == 1:
-                        set_node_details(storage_instances[index]["dns"], each_ip,
+                        set_node_details(storage_cluster_details[index]["dns"], each_ip,
                                          key_file, "storagenodegrp", user,
                                          is_quorum_node=True, is_manager_node=True,
                                          is_gui_server=False, is_collector_node=True,
                                          is_nsd_server=True, is_admin_node=True)
                     else:
-                        set_node_details(storage_instances[index]["dns"], each_ip,
+                        set_node_details(storage_cluster_details[index]["dns"], each_ip,
                                          key_file, "storagenodegrp", user,
                                          is_quorum_node=True, is_manager_node=True,
                                          is_gui_server=False, is_collector_node=False,
                                          is_nsd_server=True, is_admin_node=True)
                 elif index <= start_quorum_assign and index > (manager_count - 1):
-                    set_node_details(storage_instances[index]["dns"], each_ip,
+                    set_node_details(storage_cluster_details[index]["dns"], each_ip,
                                      key_file, "storagenodegrp", user,
                                      is_quorum_node=True, is_manager_node=False,
                                      is_gui_server=False, is_collector_node=False,
                                      is_nsd_server=True, is_admin_node=True)
                 else:
-                    set_node_details(storage_instances[index]["dns"], each_ip,
+                    set_node_details(storage_cluster_details[index]["dns"], each_ip,
                                      key_file, "storagenodegrp", user,
                                      is_quorum_node=False, is_manager_node=False,
                                      is_gui_server=False, is_collector_node=False,
