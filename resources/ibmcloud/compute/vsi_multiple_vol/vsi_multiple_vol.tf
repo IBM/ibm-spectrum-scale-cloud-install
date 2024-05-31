@@ -142,8 +142,6 @@ if [ "${var.enable_protocol}" == true ]; then
     firewall-offline-cmd --zone=public --add-port=2049/udp
     firewall-offline-cmd --zone=public --add-port=111/tcp
     firewall-offline-cmd --zone=public --add-port=111/udp
-    firewall-offline-cmd --zone=public --add-port=30000-61000/tcp
-    firewall-offline-cmd --zone=public --add-port=30000-61000/udp
     # firewall-offline-cmd --zone=public --add-port=32765/tcp
     # firewall-offline-cmd --zone=public --add-port=32765/udp
     # firewall-offline-cmd --zone=public --add-port=32767/tcp
@@ -152,6 +150,8 @@ if [ "${var.enable_protocol}" == true ]; then
     # firewall-offline-cmd --zone=public --add-port=32768/udp
     # firewall-offline-cmd --zone=public --add-port=32769/tcp
     # firewall-offline-cmd --zone=public --add-port=32769/udp
+    firewall-offline-cmd --zone=public --add-port=30000-61000/tcp
+    firewall-offline-cmd --zone=public --add-port=30000-61000/udp
 fi
 systemctl start firewalld
 systemctl enable firewalld
