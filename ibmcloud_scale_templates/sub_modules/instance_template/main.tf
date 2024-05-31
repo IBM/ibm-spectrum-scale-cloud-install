@@ -510,6 +510,7 @@ module "storage_cluster_bare_metal_server" {
   vpc_rt_id                 = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
   protocol_domain           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
   protocol_subnet_id        = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
+  storage_private_key       = module.generate_storage_cluster_keys.private_key_content
   resource_tags             = var.scale_cluster_resource_tags
   depends_on                = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
 }

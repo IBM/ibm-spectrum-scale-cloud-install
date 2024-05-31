@@ -32,6 +32,7 @@ variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
+variable "storage_private_key" {}
 
 data "ibm_is_bare_metal_server_profile" "itself" {
   name = var.vsi_profile
@@ -125,14 +126,16 @@ if [ "${var.enable_protocol}" == true ]; then
     firewall-offline-cmd --zone=public --add-port=2049/udp
     firewall-offline-cmd --zone=public --add-port=111/tcp
     firewall-offline-cmd --zone=public --add-port=111/udp
-    firewall-offline-cmd --zone=public --add-port=32765/tcp
-    firewall-offline-cmd --zone=public --add-port=32765/udp
-    firewall-offline-cmd --zone=public --add-port=32767/tcp
-    firewall-offline-cmd --zone=public --add-port=32767/udp
-    firewall-offline-cmd --zone=public --add-port=32768/tcp
-    firewall-offline-cmd --zone=public --add-port=32768/udp
-    firewall-offline-cmd --zone=public --add-port=32769/tcp
-    firewall-offline-cmd --zone=public --add-port=32769/udp
+    firewall-offline-cmd --zone=public --add-port=30000-61000/tcp
+    firewall-offline-cmd --zone=public --add-port=30000-61000/udp
+    # firewall-offline-cmd --zone=public --add-port=32765/tcp
+    # firewall-offline-cmd --zone=public --add-port=32765/udp
+    # firewall-offline-cmd --zone=public --add-port=32767/tcp
+    # firewall-offline-cmd --zone=public --add-port=32767/udp
+    # firewall-offline-cmd --zone=public --add-port=32768/tcp
+    # firewall-offline-cmd --zone=public --add-port=32768/udp
+    # firewall-offline-cmd --zone=public --add-port=32769/tcp
+    # firewall-offline-cmd --zone=public --add-port=32769/udp
 fi
 systemctl start firewalld
 systemctl enable firewalld
@@ -221,6 +224,38 @@ resource "ibm_is_bare_metal_server" "itself" {
   }
 }
 
+resource "null_resource" "scale_boot_drive_reboot_tolerate_provisioner" {
+  for_each = var.bms_boot_drive_encryption == false ? {} : {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
+    }
+  }
+  connection {
+    type        = "ssh"
+    host        = each.value.network_ip
+    user        = "root"
+    private_key = var.storage_private_key
+    timeout     = "60m"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sleep 300",
+      "while true; do",
+      "  lsblk | grep crypt",
+      "  if [[ \"$?\" -eq 0 ]]; then",
+      "    systemctl restart NetworkManager",
+      "    break",
+      "  fi",
+      "  echo \"Waiting for BMS to be rebooted and drive to get encrypted...\"",
+      "  sleep 10",
+      "done",
+      "lsblk"
+    ]
+  }
+  depends_on = [ibm_is_bare_metal_server.itself]
+}
+
 resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
@@ -234,8 +269,9 @@ resource "ibm_dns_resource_record" "a_itself" {
   type        = "A"
   name        = each.value.name
   #rdata       = each.value.network_ip
-  rdata = format("%s", each.value.network_ip)
-  ttl   = 300
+  rdata      = format("%s", each.value.network_ip)
+  ttl        = 300
+  depends_on = [null_resource.scale_boot_drive_reboot_tolerate_provisioner]
 }
 
 resource "ibm_dns_resource_record" "ptr_itself" {
