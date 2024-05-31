@@ -133,17 +133,25 @@ firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
 if [ "${var.enable_protocol}" == false ]; then
-firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
-firewall-offline-cmd --zone=public --add-port=47080/tcp
-firewall-offline-cmd --zone=public --add-port=47080/udp
-firewall-offline-cmd --zone=public --add-port=47443/tcp
-firewall-offline-cmd --zone=public --add-port=47443/udp
+    firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
+    firewall-offline-cmd --zone=public --add-port=47080/tcp
+    firewall-offline-cmd --zone=public --add-port=47080/udp
+    firewall-offline-cmd --zone=public --add-port=47443/tcp
+    firewall-offline-cmd --zone=public --add-port=47443/udp
 fi
 if [ "${var.enable_protocol}" == true ]; then
     firewall-offline-cmd --zone=public --add-port=2049/tcp
     firewall-offline-cmd --zone=public --add-port=2049/udp
     firewall-offline-cmd --zone=public --add-port=111/tcp
     firewall-offline-cmd --zone=public --add-port=111/udp
+      # firewall-offline-cmd --zone=public --add-port=32765/tcp
+      # firewall-offline-cmd --zone=public --add-port=32765/udp
+      # firewall-offline-cmd --zone=public --add-port=32767/tcp
+      # firewall-offline-cmd --zone=public --add-port=32767/udp
+      # firewall-offline-cmd --zone=public --add-port=32768/tcp
+      # firewall-offline-cmd --zone=public --add-port=32768/udp
+      # firewall-offline-cmd --zone=public --add-port=32769/tcp
+      # firewall-offline-cmd --zone=public --add-port=32769/udp
     firewall-offline-cmd --zone=public --add-port=30000-61000/tcp
     firewall-offline-cmd --zone=public --add-port=30000-61000/udp
 fi
