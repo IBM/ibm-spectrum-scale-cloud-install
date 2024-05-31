@@ -224,6 +224,11 @@ resource "ibm_is_bare_metal_server" "itself" {
   }
 }
 
+resource "time_sleep" "wait_60_seconds" {
+  create_duration = var.bms_boot_drive_encryption == true ? "300s" : "10s"
+  depends_on      = [ibm_is_bare_metal_server.itself]
+}
+
 resource "null_resource" "scale_boot_drive_reboot_tolerate_provisioner" {
   for_each = var.bms_boot_drive_encryption == false ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
@@ -240,7 +245,6 @@ resource "null_resource" "scale_boot_drive_reboot_tolerate_provisioner" {
 
   provisioner "remote-exec" {
     inline = [
-      "sleep 300",
       "while true; do",
       "  lsblk | grep crypt",
       "  if [[ \"$?\" -eq 0 ]]; then",
@@ -253,7 +257,7 @@ resource "null_resource" "scale_boot_drive_reboot_tolerate_provisioner" {
       "lsblk"
     ]
   }
-  depends_on = [ibm_is_bare_metal_server.itself]
+  depends_on = [time_sleep.wait_60_seconds]
 }
 
 resource "ibm_dns_resource_record" "a_itself" {
