@@ -72,7 +72,7 @@ def prepare_ansible_playbook_mount_fileset_client(hosts_config):
     return content
 
 
-def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password):
+def initialize_cluster_details(protocol_cluster_reserved_names, storage_cluster_filesystem_mountpoint, filesets, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password):
     """ Initialize cluster details.
     :args: protocol_cluster_reserved_names (string), filesets (string)
     """
@@ -83,6 +83,7 @@ def initialize_cluster_details(protocol_cluster_reserved_names, filesets, enable
 
     cluster_details = {}
     cluster_details['protocol_cluster_reserved_names'] = protocol_cluster_reserved_names
+    cluster_details['storage_cluster_filesystem_mountpoint'] = storage_cluster_filesystem_mountpoint
     cluster_details['filesets'] = filesets_list
     cluster_details['enable_ldap'] = enable_ldap
     cluster_details['ldap_basedns'] = ldap_basedns
@@ -205,6 +206,7 @@ if __name__ == "__main__":
         configfile.write(node_template)
 
     config['all:vars'] = initialize_cluster_details(STRG_TF['protocol_cluster_reserved_names'],
+                                                    STRG_TF['storage_cluster_filesystem_mountpoint'],
                                                     STRG_TF['filesets'],
                                                     ARGUMENTS.enable_ldap,
                                                     ARGUMENTS.ldap_basedns,

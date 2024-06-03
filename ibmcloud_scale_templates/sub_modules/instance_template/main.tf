@@ -510,6 +510,7 @@ module "storage_cluster_bare_metal_server" {
   vpc_rt_id                 = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
   protocol_domain           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
   protocol_subnet_id        = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
+  storage_private_key       = module.generate_storage_cluster_keys.private_key_content
   resource_tags             = var.scale_cluster_resource_tags
   depends_on                = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
 }
@@ -818,7 +819,7 @@ module "write_client_cluster_inventory" {
   compute_cluster_instance_ids                     = jsonencode("")
   compute_cluster_instance_private_ips             = jsonencode("")
   compute_cluster_instance_private_dns_ip_map      = jsonencode({})
-  storage_cluster_filesystem_mountpoint            = jsonencode("")
+  storage_cluster_filesystem_mountpoint            = local.scale_ces_enabled == true ? jsonencode(var.storage_cluster_filesystem_mountpoint) : jsonencode("")
   storage_cluster_instance_ids                     = jsonencode([])
   storage_cluster_instance_private_ips             = jsonencode([])
   storage_cluster_with_data_volume_mapping         = jsonencode({})

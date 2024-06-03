@@ -32,6 +32,7 @@ variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
+variable "storage_private_key" {}
 
 data "ibm_is_bare_metal_server_profile" "itself" {
   name = var.vsi_profile
@@ -107,11 +108,6 @@ chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
 systemctl restart NetworkManager
 systemctl stop firewalld
 firewall-offline-cmd --zone=public --add-port=1191/tcp
-firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
-firewall-offline-cmd --zone=public --add-port=47080/tcp
-firewall-offline-cmd --zone=public --add-port=47080/udp
-firewall-offline-cmd --zone=public --add-port=47443/tcp
-firewall-offline-cmd --zone=public --add-port=47443/udp
 firewall-offline-cmd --zone=public --add-port=4444/tcp
 firewall-offline-cmd --zone=public --add-port=4444/udp
 firewall-offline-cmd --zone=public --add-port=4739/udp
@@ -120,20 +116,12 @@ firewall-offline-cmd --zone=public --add-port=9084/tcp
 firewall-offline-cmd --zone=public --add-port=9085/tcp
 firewall-offline-cmd --zone=public --add-service=http
 firewall-offline-cmd --zone=public --add-service=https
-if [ "${var.enable_protocol}" == true ]; then
-    firewall-offline-cmd --zone=public --add-port=2049/tcp
-    firewall-offline-cmd --zone=public --add-port=2049/udp
-    firewall-offline-cmd --zone=public --add-port=111/tcp
-    firewall-offline-cmd --zone=public --add-port=111/udp
-    firewall-offline-cmd --zone=public --add-port=32765/tcp
-    firewall-offline-cmd --zone=public --add-port=32765/udp
-    firewall-offline-cmd --zone=public --add-port=32767/tcp
-    firewall-offline-cmd --zone=public --add-port=32767/udp
-    firewall-offline-cmd --zone=public --add-port=32768/tcp
-    firewall-offline-cmd --zone=public --add-port=32768/udp
-    firewall-offline-cmd --zone=public --add-port=32769/tcp
-    firewall-offline-cmd --zone=public --add-port=32769/udp
-fi
+firewall-offline-cmd --zone=public --add-port=2049/tcp
+firewall-offline-cmd --zone=public --add-port=2049/udp
+firewall-offline-cmd --zone=public --add-port=111/tcp
+firewall-offline-cmd --zone=public --add-port=111/udp
+firewall-offline-cmd --zone=public --add-port=30000-61000/tcp
+firewall-offline-cmd --zone=public --add-port=30000-61000/udp
 systemctl start firewalld
 systemctl enable firewalld
 
@@ -221,6 +209,44 @@ resource "ibm_is_bare_metal_server" "itself" {
   }
 }
 
+resource "time_sleep" "wait_for_reboot_tolerate" {
+  count           = var.bms_boot_drive_encryption == true ? 1 : 0
+  create_duration = "400s"
+  depends_on      = [ibm_is_bare_metal_server.itself]
+}
+
+resource "null_resource" "scale_boot_drive_reboot_tolerate_provisioner" {
+  for_each = var.bms_boot_drive_encryption == false ? {} : {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
+    }
+  }
+  connection {
+    type        = "ssh"
+    host        = each.value.network_ip
+    user        = "root"
+    private_key = var.storage_private_key
+    timeout     = "60m"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "while true; do",
+      "  lsblk | grep crypt",
+      "  if [[ \"$?\" -eq 0 ]]; then",
+      "    break",
+      "  fi",
+      "  echo \"Waiting for BMS to be rebooted and drive to get encrypted...\"",
+      "  sleep 10",
+      "done",
+      "lsblk",
+      "systemctl restart NetworkManager",
+      "echo \"Restarted NetworkManager\""
+    ]
+  }
+  depends_on = [time_sleep.wait_for_reboot_tolerate]
+}
+
 resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
@@ -234,8 +260,9 @@ resource "ibm_dns_resource_record" "a_itself" {
   type        = "A"
   name        = each.value.name
   #rdata       = each.value.network_ip
-  rdata = format("%s", each.value.network_ip)
-  ttl   = 300
+  rdata      = format("%s", each.value.network_ip)
+  ttl        = 300
+  depends_on = [null_resource.scale_boot_drive_reboot_tolerate_provisioner]
 }
 
 resource "ibm_dns_resource_record" "ptr_itself" {
