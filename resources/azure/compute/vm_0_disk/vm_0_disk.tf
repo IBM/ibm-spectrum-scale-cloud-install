@@ -100,6 +100,9 @@ resource "azurerm_linux_virtual_machine" "itself" {
   }
   source_image_id = var.source_image_id
   custom_data     = data.template_cloudinit_config.user_data64.rendered
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 output "instance_details" {
