@@ -62,12 +62,11 @@ module "cluster_ingress_security_rule_using_jumphost_connection" {
 }
 
 module "proximity_group" {
-  count                   = local.create_placement_group == true ? 1 : 0
-  source                  = "../../../resources/azure/compute/proximity_placement_group"
-  proximity_group_name    = var.resource_prefix
-  resource_group_name     = var.resource_group_name
-  location                = var.vpc_region
-  vnet_availability_zones = var.vpc_availability_zones
+  turn_on              = local.create_placement_group
+  source               = "../../../resources/azure/compute/proximity_placement_group"
+  proximity_group_name = var.resource_prefix
+  resource_group_name  = var.resource_group_name
+  location             = var.vpc_region
 }
 
 resource "time_sleep" "wait_30_seconds" {
@@ -126,7 +125,7 @@ module "storage_cluster_instances" {
   use_temporary_disks           = var.scratch_devices_per_storage_instance > 0 ? true : false
   vm_size                       = var.storage_cluster_instance_type
   login_username                = var.instances_ssh_user_name
-  proximity_placement_group_id  = local.create_placement_group == true ? module.proximity_group.proximity_group_storage_id : null
+  proximity_placement_group_id  = local.create_placement_group == true ? module.proximity_group.proximity_group_id : null
   reverse_dns_zone              = var.vpc_reverse_dns_zone
   os_disk_caching               = var.storage_cluster_os_disk_caching
   os_storage_account_type       = var.storage_cluster_boot_disk_type
