@@ -390,16 +390,12 @@ def initialize_node_details(az_count, cls_type,
                                  is_nsd_server=False, is_admin_node=False)
 
         if quorums_left == 0:
-            compute_instances = []
-            if az_count > 1:
-                compute_instances = interleave_nodes_by_fg(
-                    compute_cluster_details)
-            else:
-                compute_instances = [item["private_ip"]
-                                     for item in compute_cluster_details]
+            compute_instances = (interleave_nodes_by_fg(compute_cluster_details)
+                                 if az_count > 1
+                                 else [item["private_ip"] for item in compute_cluster_details])
 
-            for each_instance in compute_instances:
-                set_node_details(each_instance["dns"], each_instance["private_ip"],
+            for index, each_ip in enumerate(compute_instances):
+                set_node_details(compute_cluster_details[index]["dns"], each_ip,
                                  key_file, "computenodegrp", user,
                                  is_quorum_node=False, is_manager_node=False,
                                  is_gui_server=False, is_collector_node=False,
