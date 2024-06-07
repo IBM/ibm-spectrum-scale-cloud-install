@@ -424,7 +424,7 @@ module "bicluster_ingress_security_rule" {
 # Create security rules to enable scale communication within protocol vm's
 module "protocol_cluster_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_source"
-  total_rules               = length(local.protocol_vm_subnet_map) > 0 ? length(local.traffic_from_port) : 0
+  total_rules               = length(local.protocol_vm_subnet_map) > 0 ? length(local.traffic_protocol_from_port) : 0
   security_group_id         = [module.protocol_security_group.sec_group_id]
   security_rule_description = local.security_rule_description
   security_rule_type        = ["ingress"]
@@ -490,7 +490,7 @@ module "protocol_cluster_to_scale_cluster" {
   module.storage_cluster_security_group.sec_group_id]
 }
 
-# Create security rules to enable protocol communication between protocol vm's to scale cluster
+# Create security rules to enable outgoing traffic from protocol vm's
 module "protocol_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
   total_rules               = length(local.protocol_vm_subnet_map) > 0 ? 1 : 0
