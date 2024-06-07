@@ -15,6 +15,54 @@ locals {
   instance_storage_device_names = ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1", "/dev/nvme16n1"]
   gpfs_base_rpm_path            = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version                 = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
+
+  traffic_protocol_bi           = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_protocol_from_port_bi = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  traffic_protocol_to_port_bi   = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  security_rule_description_bi = ["Allow ICMP traffic from storage to protocol instances",
+    "Allow SSH traffic from storage to protocol instances",
+    "Allow GPFS intra cluster traffic from storage to protocol instances",
+    "Allow GPFS ephemeral port range from storage to protocol instances",
+    "Allow management GUI (http/localhost) TCP traffic from storage to protocol instances",
+    "Allow management GUI (https/localhost) TCP traffic from storage to protocol instances",
+    "Allow management GUI (https/localhost) TCP traffic from storage to protocol instances",
+    "Allow management GUI (localhost) TCP traffic from storage to protocol instances",
+    "Allow management GUI (localhost) UDP traffic from storage to protocol instances",
+    "Allow performance monitoring collector traffic from storage to protocol instances",
+    "Allow performance monitoring collector traffic from storage to protocol instances",
+    "Allow http traffic from storage to protocol instances",
+    "Allow https traffic from storage to protocol instances",
+    "Allow ICMP traffic from protocol to storage instances",
+    "Allow SSH traffic from protocol to storage instances",
+    "Allow GPFS intra cluster traffic from protocol to storage instances",
+    "Allow GPFS ephemeral port range from protocol to storage instances",
+    "Allow management GUI (http/localhost) TCP traffic from protocol to storage instances",
+    "Allow management GUI (https/localhost) TCP traffic from protocol to storage instances",
+    "Allow management GUI (https/localhost) TCP traffic from protocol to storage instances",
+    "Allow management GUI (localhost) TCP traffic from protocol to storage instances",
+    "Allow management GUI (localhost) UDP traffic from protocol to storage instances",
+    "Allow performance monitoring collector traffic from protocol to storage instances",
+    "Allow performance monitoring collector traffic from protocol to storage instances",
+    "Allow http traffic from protocol to storage instances",
+  "Allow https traffic from protocol to storage instances"]
+
+  traffic_protocol           = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_protocol_from_port = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
+  traffic_protocol_to_port   = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
+  security_rule_description = ["Allow ICMP traffic within storage instances",
+    "Allow SSH traffic within protocol instances",
+    "Allow GPFS intra cluster traffic within protocol instances",
+    "Allow GPFS ephemeral port range within protocol instances",
+    "Allow management GUI (http/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (localhost) TCP traffic within protocol instances",
+    "Allow management GUI (localhost) UDP traffic within protocol instances",
+    "Allow performance monitoring collector traffic within protocol instances",
+    "Allow performance monitoring collector traffic within protocol instances",
+    "Allow http traffic within protocol instances",
+    "Allow https traffic within protocol instances",
+  "Allow ctdb traffic within protocol instances"]
 }
 
 /*
