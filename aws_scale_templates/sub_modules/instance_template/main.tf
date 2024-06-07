@@ -521,7 +521,7 @@ module "protocol_cluster_ingress_security_rule_using_direct_connection" {
 # Create security rules to enable cloud-vm communication to protocol vm's
 module "protocol_cluster_ingress_security_rule_using_cloudvm" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = length(local.protocol_vm_subnet_map) > 0 ? 2 : 0
+  total_rules       = length(local.protocol_vm_subnet_map) > 0 && var.using_cloud_connection ? 2 : 0
   security_group_id = [module.protocol_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from cloud-vm to protocol instances",
   "Allow SSH traffic from cloud-vm to protocol instances"]
