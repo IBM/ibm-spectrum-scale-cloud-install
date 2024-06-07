@@ -504,6 +504,34 @@ module "protocol_egress_security_rule" {
   security_prefix_list_ids  = null
 }
 
+# Create security rules to enable direction communication to protocol vm's
+module "protocol_cluster_ingress_security_rule_using_direct_connection" {
+  source                    = "../../../resources/aws/security/security_rule_cidr"
+  total_rules               = length(local.protocol_vm_subnet_map) > 0 && var.using_direct_connection ? 2 : 0
+  security_group_id         = [module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic from client cidr/ip range to protocol instances", "Allow SSH traffic from client cidr/ip range to protocol instances"]
+  security_rule_type        = ["ingress", "ingress"]
+  traffic_protocol          = ["icmp", "TCP"]
+  traffic_from_port         = [-1, 22]
+  traffic_to_port           = [-1, 22]
+  cidr_blocks               = var.client_ip_ranges
+  security_prefix_list_ids  = null
+}
+
+# Create security rules to enable cloud-vm communication to protocol vm's
+module "protocol_cluster_ingress_security_rule_using_cloudvm" {
+  source            = "../../../resources/aws/security/security_rule_source"
+  total_rules       = length(local.protocol_vm_subnet_map) > 0 ? 2 : 0
+  security_group_id = [module.protocol_security_group.sec_group_id]
+  security_rule_description = ["Allow ICMP traffic from cloud-vm to protocol instances",
+  "Allow SSH traffic from cloud-vm to protocol instances"]
+  security_rule_type       = ["ingress"]
+  traffic_protocol         = ["icmp", "TCP"]
+  traffic_from_port        = [-1, 22]
+  traffic_to_port          = [-1, 22]
+  source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref]
+}
+
 module "email_notification" {
   source         = "../../../resources/aws/sns"
   turn_on        = var.operator_email != null ? true : false
