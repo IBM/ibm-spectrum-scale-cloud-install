@@ -16,9 +16,45 @@ locals {
   gpfs_base_rpm_path            = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version                 = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 
-  traffic_protocol_bi           = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_protocol_from_port_bi = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
-  traffic_protocol_to_port_bi   = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, -1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  ## Base Ports
+  #scale security port 
+  scale_traffic_ports    = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  scale_traffic_to_ports = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  scale_traffic_protocol = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+
+  # Ssh ports
+  ssh_traffic_ports    = [-1, 22]
+  ssh_traffic_protocol = ["icmp", "TCP"]
+
+  ## Extended ports
+  # protocol ports
+  protocol_traffic_ports    = [4379]
+  protocol_traffic_protocol = ["TCP"]
+
+
+  # Scale cluster rules
+  traffic_protocol           = local.scale_traffic_protocol
+  traffic_protocol_from_port = local.scale_traffic_ports
+  traffic_protocol_to_port   = local.scale_traffic_to_ports
+  security_rule_description_protocol = ["Allow ICMP traffic within storage instances",
+    "Allow SSH traffic within protocol instances",
+    "Allow GPFS intra cluster traffic within protocol instances",
+    "Allow GPFS ephemeral port range within protocol instances",
+    "Allow management GUI (http/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (localhost) TCP traffic within protocol instances",
+    "Allow management GUI (localhost) UDP traffic within protocol instances",
+    "Allow performance monitoring collector traffic within protocol instances",
+    "Allow performance monitoring collector traffic within protocol instances",
+    "Allow http traffic within protocol instances",
+    "Allow https traffic within protocol instances",
+  "Allow ctdb traffic within protocol instances"]
+
+  # Protocol security rule ports
+  traffic_protocol_bi           = concat(local.scale_traffic_protocol, (reverse(local.scale_traffic_protocol)))
+  traffic_protocol_from_port_bi = concat(local.scale_traffic_ports, (reverse(local.scale_traffic_ports)))
+  traffic_protocol_to_port_bi   = concat((reverse(local.scale_traffic_ports)), local.scale_traffic_ports)
   security_rule_description_bi = ["Allow ICMP traffic from storage to protocol instances",
     "Allow SSH traffic from storage to protocol instances",
     "Allow GPFS intra cluster traffic from storage to protocol instances",
@@ -46,27 +82,9 @@ locals {
     "Allow http traffic from protocol to storage instances",
   "Allow https traffic from protocol to storage instances"]
 
-  traffic_protocol           = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_protocol_from_port = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
-  traffic_protocol_to_port   = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
-  security_rule_description_protocol = ["Allow ICMP traffic within storage instances",
-    "Allow SSH traffic within protocol instances",
-    "Allow GPFS intra cluster traffic within protocol instances",
-    "Allow GPFS ephemeral port range within protocol instances",
-    "Allow management GUI (http/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (localhost) TCP traffic within protocol instances",
-    "Allow management GUI (localhost) UDP traffic within protocol instances",
-    "Allow performance monitoring collector traffic within protocol instances",
-    "Allow performance monitoring collector traffic within protocol instances",
-    "Allow http traffic within protocol instances",
-    "Allow https traffic within protocol instances",
-  "Allow ctdb traffic within protocol instances"]
-
-  traffic_scale_protocol  = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "TCP"]
-  traffic_scale_from_port = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
-  traffic_scale_to_port   = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
+  traffic_scale_protocol  = concat(local.scale_traffic_protocol, local.protocol_traffic_protocol)
+  traffic_scale_from_port = concat(local.scale_traffic_ports, local.protocol_traffic_ports)
+  traffic_scale_to_port   = concat(local.scale_traffic_to_ports, local.protocol_traffic_ports)
   security_rule_description_scale = ["Allow ICMP traffic within storage instances",
     "Allow SSH traffic within protocol instances",
     "Allow GPFS intra cluster traffic within protocol instances",

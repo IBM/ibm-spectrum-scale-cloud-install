@@ -96,7 +96,7 @@ module "cluster_security_group" {
   source                = "../../../resources/aws/security/security_group"
   turn_on               = true
   sec_group_name        = ["scale-sec-group-"]
-  sec_group_description = ["Scale cluster sec group"]
+  sec_group_description = ["Scale cluster security group"]
   vpc_id                = var.vpc_ref
   sec_group_tag         = ["scale-sec-group"]
 }
@@ -104,7 +104,7 @@ module "cluster_security_group" {
 # Create Scale cluster security group
 module "protocol_security_group" {
   source                = "../../../resources/aws/security/security_group"
-  turn_on               = length(local.protocol_vm_subnet_map) > 0 ? true : false
+  turn_on               = var.total_protocol_instances > 0 ? true : false
   sec_group_name        = ["protocol-sec-group-"]
   sec_group_description = ["CES Protocol sec group"]
   vpc_id                = var.vpc_ref
@@ -134,13 +134,12 @@ module "scale_cluster_ingress_security_rule_using_direct_connection" {
     "Allow SSH traffic from client cidr/ip range to compute instances",
   "Allow GUI traffic from jumphost security group"]
   security_rule_type       = ["ingress"]
-  traffic_protocol         = ["icmp", "TCP", "TCP"]
-  traffic_from_port        = [-1, 22, 443]
-  traffic_to_port          = [-1, 22, 443]
+  traffic_protocol         = concat(local.ssh_traffic_protocol, ["TCP"])
+  traffic_from_port        = concat(local.ssh_traffic_ports, [443])
+  traffic_to_port          = concat(local.ssh_traffic_ports, [443])
   cidr_blocks              = var.client_ip_ranges
   security_prefix_list_ids = null
 }
-
 
 # Create security rules to enable jumphost communication to scale cluster
 module "scale_cluster_ingress_security_rule_using_jumphost" {
@@ -152,9 +151,9 @@ module "scale_cluster_ingress_security_rule_using_jumphost" {
     "Allow SSH traffic from Jumphost to compute instances",
   "Allow GUI traffic from Jumphost security group"]
   security_rule_type       = ["ingress"]
-  traffic_protocol         = ["icmp", "TCP", "TCP"]
-  traffic_from_port        = [-1, 22, 443]
-  traffic_to_port          = [-1, 22, 443]
+  traffic_protocol         = concat(local.ssh_traffic_protocol, ["TCP"])
+  traffic_from_port        = concat(local.ssh_traffic_ports, [443])
+  traffic_to_port          = concat(local.ssh_traffic_ports, [443])
   source_security_group_id = [var.bastion_security_group_ref, var.bastion_security_group_ref, var.bastion_security_group_ref]
 }
 
@@ -168,9 +167,9 @@ module "scale_cluster_ingress_security_rule_using_cloud_connection" {
     "Allow SSH traffic from cloud gateway to compute instances",
   "Allow GUI traffic from cloud gateway security group"]
   security_rule_type       = ["ingress"]
-  traffic_protocol         = ["icmp", "TCP", "TCP"]
-  traffic_from_port        = [-1, 22, 443]
-  traffic_to_port          = [-1, 22, 443]
+  traffic_protocol         = concat(local.ssh_traffic_protocol, ["TCP"])
+  traffic_from_port        = concat(local.ssh_traffic_ports, [443])
+  traffic_to_port          = concat(local.ssh_traffic_ports, [443])
   source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref, var.client_security_group_ref]
 }
 
@@ -191,7 +190,7 @@ module "scale_cluster_egress_security_rule" {
 # Create security rules to enable scale communication within protocol vm's
 module "protocol_cluster_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_source"
-  total_rules               = length(local.protocol_vm_subnet_map) > 0 ? length(local.traffic_protocol_from_port) : 0
+  total_rules               = var.total_protocol_instances > 0 ? length(local.traffic_protocol_from_port) : 0
   security_group_id         = [module.protocol_security_group.sec_group_id]
   security_rule_description = local.security_rule_description_protocol
   security_rule_type        = ["ingress"]
@@ -204,21 +203,21 @@ module "protocol_cluster_security_rule" {
 # Create security rules to enable jumphost communication to protocol vm's
 module "protocol_cluster_ingress_security_rule_using_jumphost" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = length(local.protocol_vm_subnet_map) > 0 ? 2 : 0
+  total_rules       = var.total_protocol_instances > 0 ? 2 : 0
   security_group_id = [module.protocol_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from Jumphost to compute instances",
   "Allow SSH traffic from Jumphost to compute instances"]
   security_rule_type       = ["ingress"]
-  traffic_protocol         = ["icmp", "TCP"]
-  traffic_from_port        = [-1, 22]
-  traffic_to_port          = [-1, 22]
+  traffic_protocol         = local.ssh_traffic_protocol
+  traffic_from_port        = local.ssh_traffic_ports
+  traffic_to_port          = local.ssh_traffic_ports
   source_security_group_id = [var.bastion_security_group_ref, var.bastion_security_group_ref]
 }
 
 # Create security rules to enable protocol communication between protocol to scale cluster
 module "protocol_cluster_to_scale_cluster" {
   source      = "../../../resources/aws/security/security_rule_source"
-  total_rules = length(local.protocol_vm_subnet_map) > 0 ? 26 : 0
+  total_rules = var.total_protocol_instances > 0 ? 26 : 0
   security_group_id = [
     module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
     module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
@@ -260,7 +259,7 @@ module "protocol_cluster_to_scale_cluster" {
 # Create security rules to enable outgoing traffic from protocol vm's
 module "protocol_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = length(local.protocol_vm_subnet_map) > 0 ? 1 : 0
+  total_rules               = var.total_protocol_instances > 0 ? 1 : 0
   security_group_id         = [module.protocol_security_group.sec_group_id]
   security_rule_description = ["Outgoing traffic from protocol instances"]
   security_rule_type        = ["egress"]
@@ -274,13 +273,13 @@ module "protocol_egress_security_rule" {
 # Create security rules to enable direction communication to protocol vm's
 module "protocol_cluster_ingress_security_rule_using_direct_connection" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = length(local.protocol_vm_subnet_map) > 0 && var.using_direct_connection ? 2 : 0
+  total_rules               = var.total_protocol_instances > 0 && var.using_direct_connection ? 2 : 0
   security_group_id         = [module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from client cidr/ip range to protocol instances", "Allow SSH traffic from client cidr/ip range to protocol instances"]
   security_rule_type        = ["ingress", "ingress"]
-  traffic_protocol          = ["icmp", "TCP"]
-  traffic_from_port         = [-1, 22]
-  traffic_to_port           = [-1, 22]
+  traffic_protocol          = local.ssh_traffic_protocol
+  traffic_from_port         = local.ssh_traffic_ports
+  traffic_to_port           = local.ssh_traffic_ports
   cidr_blocks               = var.client_ip_ranges
   security_prefix_list_ids  = null
 }
@@ -288,14 +287,14 @@ module "protocol_cluster_ingress_security_rule_using_direct_connection" {
 # Create security rules to enable cloud-vm communication to protocol vm's
 module "protocol_cluster_ingress_security_rule_using_cloudvm" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = length(local.protocol_vm_subnet_map) > 0 && var.using_cloud_connection ? 2 : 0
+  total_rules       = var.total_protocol_instances > 0 && var.using_cloud_connection ? 2 : 0
   security_group_id = [module.protocol_security_group.sec_group_id]
   security_rule_description = ["Allow ICMP traffic from cloud-vm to protocol instances",
   "Allow SSH traffic from cloud-vm to protocol instances"]
   security_rule_type       = ["ingress"]
-  traffic_protocol         = ["icmp", "TCP"]
-  traffic_from_port        = [-1, 22]
-  traffic_to_port          = [-1, 22]
+  traffic_protocol         = local.ssh_traffic_protocol
+  traffic_from_port        = local.ssh_traffic_ports
+  traffic_to_port          = local.ssh_traffic_ports
   source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref]
 }
 
