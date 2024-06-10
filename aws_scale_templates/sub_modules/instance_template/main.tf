@@ -114,20 +114,20 @@ module "protocol_security_group" {
 # Create security rules to enable scale/gpfs traffic within compute/storage instances.
 module "scale_cluster_ingress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_source"
-  total_rules               = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? length(local.traffic_scale_protocol) : 0
+  total_rules               = local.scale_cluster_type ? length(local.scale_traffic_protocol) : 0
   security_group_id         = [module.cluster_security_group.sec_group_id]
-  security_rule_description = local.security_rule_description_scale
+  security_rule_description = local.security_rule_description_scale_nodes
   security_rule_type        = ["ingress"]
-  traffic_protocol          = local.traffic_scale_protocol
-  traffic_from_port         = local.traffic_scale_from_port
-  traffic_to_port           = local.traffic_scale_to_port
+  traffic_protocol          = local.scale_traffic_protocol
+  traffic_from_port         = local.scale_traffic_ports
+  traffic_to_port           = local.scale_traffic_to_ports
   source_security_group_id  = [module.cluster_security_group.sec_group_id]
 }
 
 # Create security rules to enable direct connection to scale cluster
 module "scale_cluster_ingress_security_rule_using_direct_connection" {
   source            = "../../../resources/aws/security/security_rule_cidr"
-  total_rules       = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.using_direct_connection ? 2 : 0
+  total_rules       = local.scale_cluster_type && var.using_direct_connection ? 3 : 0
   security_group_id = [module.cluster_security_group.sec_group_id]
   security_rule_description = [
     "Allow ICMP traffic from client cidr/ip range to compute instances",
@@ -144,7 +144,7 @@ module "scale_cluster_ingress_security_rule_using_direct_connection" {
 # Create security rules to enable jumphost communication to scale cluster
 module "scale_cluster_ingress_security_rule_using_jumphost" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.using_jumphost_connection ? 3 : 0
+  total_rules       = local.scale_cluster_type && var.using_jumphost_connection ? 3 : 0
   security_group_id = [module.cluster_security_group.sec_group_id]
   security_rule_description = [
     "Allow ICMP traffic from Jumphost to compute instances",
@@ -160,7 +160,7 @@ module "scale_cluster_ingress_security_rule_using_jumphost" {
 # Create security rules to enable scale communication from cloud connection method
 module "scale_cluster_ingress_security_rule_using_cloud_connection" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.using_cloud_connection ? 16 : 0
+  total_rules       = local.scale_cluster_type && var.using_cloud_connection ? 3 : 0
   security_group_id = [module.cluster_security_group.sec_group_id]
   security_rule_description = [
     "Allow ICMP traffic from cloud gateway to compute instances",
@@ -176,7 +176,7 @@ module "scale_cluster_ingress_security_rule_using_cloud_connection" {
 # Create security rule to enable egress communication
 module "scale_cluster_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? 1 : 0
+  total_rules               = local.scale_cluster_type ? 1 : 0
   security_group_id         = [module.cluster_security_group.sec_group_id]
   security_rule_description = ["Outgoing traffic from scale instances"]
   security_rule_type        = ["egress"]
@@ -190,112 +190,14 @@ module "scale_cluster_egress_security_rule" {
 # Create security rules to enable scale communication within protocol vm's
 module "protocol_cluster_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_source"
-  total_rules               = var.total_protocol_instances > 0 ? length(local.traffic_protocol_from_port) : 0
+  total_rules               = var.total_protocol_instances > 0 ? length(local.protocol_traffic_protocol) : 0
   security_group_id         = [module.protocol_security_group.sec_group_id]
-  security_rule_description = local.security_rule_description_protocol
+  security_rule_description = local.security_rule_description_protocol_nodes
   security_rule_type        = ["ingress"]
-  traffic_protocol          = local.traffic_protocol
-  traffic_from_port         = local.traffic_protocol_from_port
-  traffic_to_port           = local.traffic_protocol_from_port
+  traffic_protocol          = local.protocol_traffic_protocol
+  traffic_from_port         = local.protocol_traffic_ports
+  traffic_to_port           = local.protocol_traffic_to_ports
   source_security_group_id  = [module.protocol_security_group.sec_group_id]
-}
-
-# Create security rules to enable jumphost communication to protocol vm's
-module "protocol_cluster_ingress_security_rule_using_jumphost" {
-  source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = var.total_protocol_instances > 0 ? 2 : 0
-  security_group_id = [module.protocol_security_group.sec_group_id]
-  security_rule_description = ["Allow ICMP traffic from Jumphost to compute instances",
-  "Allow SSH traffic from Jumphost to compute instances"]
-  security_rule_type       = ["ingress"]
-  traffic_protocol         = local.ssh_traffic_protocol
-  traffic_from_port        = local.ssh_traffic_ports
-  traffic_to_port          = local.ssh_traffic_ports
-  source_security_group_id = [var.bastion_security_group_ref, var.bastion_security_group_ref]
-}
-
-# Create security rules to enable protocol communication between protocol to scale cluster
-module "protocol_cluster_to_scale_cluster" {
-  source      = "../../../resources/aws/security/security_rule_source"
-  total_rules = var.total_protocol_instances > 0 ? 26 : 0
-  security_group_id = [
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id
-  ]
-  security_rule_description = local.security_rule_description_bi
-  security_rule_type        = ["ingress"]
-  traffic_protocol          = local.traffic_protocol_bi
-  traffic_from_port         = local.traffic_protocol_from_port_bi
-  traffic_to_port           = local.traffic_protocol_to_port_bi
-  source_security_group_id = [
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id,
-    module.protocol_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-    module.cluster_security_group.sec_group_id, module.cluster_security_group.sec_group_id,
-  module.cluster_security_group.sec_group_id]
-}
-
-# Create security rules to enable outgoing traffic from protocol vm's
-module "protocol_egress_security_rule" {
-  source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = var.total_protocol_instances > 0 ? 1 : 0
-  security_group_id         = [module.protocol_security_group.sec_group_id]
-  security_rule_description = ["Outgoing traffic from protocol instances"]
-  security_rule_type        = ["egress"]
-  traffic_protocol          = ["-1"]
-  traffic_from_port         = ["0"]
-  traffic_to_port           = ["6335"]
-  cidr_blocks               = ["0.0.0.0/0"]
-  security_prefix_list_ids  = null
-}
-
-# Create security rules to enable direction communication to protocol vm's
-module "protocol_cluster_ingress_security_rule_using_direct_connection" {
-  source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = var.total_protocol_instances > 0 && var.using_direct_connection ? 2 : 0
-  security_group_id         = [module.protocol_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
-  security_rule_description = ["Allow ICMP traffic from client cidr/ip range to protocol instances", "Allow SSH traffic from client cidr/ip range to protocol instances"]
-  security_rule_type        = ["ingress", "ingress"]
-  traffic_protocol          = local.ssh_traffic_protocol
-  traffic_from_port         = local.ssh_traffic_ports
-  traffic_to_port           = local.ssh_traffic_ports
-  cidr_blocks               = var.client_ip_ranges
-  security_prefix_list_ids  = null
-}
-
-# Create security rules to enable cloud-vm communication to protocol vm's
-module "protocol_cluster_ingress_security_rule_using_cloudvm" {
-  source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = var.total_protocol_instances > 0 && var.using_cloud_connection ? 2 : 0
-  security_group_id = [module.protocol_security_group.sec_group_id]
-  security_rule_description = ["Allow ICMP traffic from cloud-vm to protocol instances",
-  "Allow SSH traffic from cloud-vm to protocol instances"]
-  security_rule_type       = ["ingress"]
-  traffic_protocol         = local.ssh_traffic_protocol
-  traffic_from_port        = local.ssh_traffic_ports
-  traffic_to_port          = local.ssh_traffic_ports
-  source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref]
 }
 
 module "email_notification" {
@@ -445,7 +347,7 @@ module "protocol_instances" {
   root_device_kms_key_id = var.root_device_kms_key_ref
   root_volume_type       = var.storage_cluster_boot_disk_type
   secondary_private_ip   = each.value["ces_private_ip"]
-  security_groups        = [module.protocol_security_group.sec_group_id]
+  security_groups        = [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
   subnet_id              = each.value["subnet"]
   tags                   = var.protocol_tags
   user_public_key        = var.storage_cluster_key_pair

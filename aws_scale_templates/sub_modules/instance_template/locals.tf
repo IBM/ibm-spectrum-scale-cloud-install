@@ -8,6 +8,7 @@ locals {
   storage_or_combined  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
   storage_and_protocol = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_protocol_instances > 0) ? true : false
   storage_and_gateway  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
+  scale_cluster_type   = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
 
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
@@ -22,83 +23,39 @@ locals {
   scale_traffic_to_ports = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
   scale_traffic_protocol = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
 
+  ## Extended ports
+  # Protocol ports
+  protocol_traffic_ports    = [4379, 11211, 11211, 6200, 5431]
+  protocol_traffic_to_ports = [4379, 11211, 11211, 6203, 5431]
+  protocol_traffic_protocol = ["TCP", "TCP", "TCP", "UDP", "TCP"]
+
   # Ssh ports
   ssh_traffic_ports    = [-1, 22]
   ssh_traffic_protocol = ["icmp", "TCP"]
 
-  ## Extended ports
-  # protocol ports
-  protocol_traffic_ports    = [4379]
-  protocol_traffic_protocol = ["TCP"]
+  # Scale cluster rule descriptions
+  security_rule_description_scale_nodes = [
+    "Allow ICMP traffic within scale instances",
+    "Allow SSH traffic within scale instances",
+    "Allow GPFS intra cluster traffic within scale instances",
+    "Allow GPFS ephemeral port range within scale instances",
+    "Allow management GUI (http/localhost) TCP traffic within scale instances",
+    "Allow management GUI (https/localhost) TCP traffic within scale instances",
+    "Allow management GUI (https/localhost) TCP traffic within scale instances",
+    "Allow management GUI (localhost) TCP traffic within scale instances",
+    "Allow management GUI (localhost) UDP traffic within scale instances",
+    "Allow performance monitoring collector traffic within scale instances",
+    "Allow performance monitoring collector traffic within scale instances",
+    "Allow http traffic within scale instances",
+  "Allow https traffic within scale instances"]
 
-
-  # Scale cluster rules
-  traffic_protocol           = local.scale_traffic_protocol
-  traffic_protocol_from_port = local.scale_traffic_ports
-  traffic_protocol_to_port   = local.scale_traffic_to_ports
-  security_rule_description_protocol = ["Allow ICMP traffic within storage instances",
-    "Allow SSH traffic within protocol instances",
-    "Allow GPFS intra cluster traffic within protocol instances",
-    "Allow GPFS ephemeral port range within protocol instances",
-    "Allow management GUI (http/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (localhost) TCP traffic within protocol instances",
-    "Allow management GUI (localhost) UDP traffic within protocol instances",
-    "Allow performance monitoring collector traffic within protocol instances",
-    "Allow performance monitoring collector traffic within protocol instances",
-    "Allow http traffic within protocol instances",
-    "Allow https traffic within protocol instances",
-  "Allow ctdb traffic within protocol instances"]
-
-  # Protocol security rule ports
-  traffic_protocol_bi           = concat(local.scale_traffic_protocol, (reverse(local.scale_traffic_protocol)))
-  traffic_protocol_from_port_bi = concat(local.scale_traffic_ports, (reverse(local.scale_traffic_ports)))
-  traffic_protocol_to_port_bi   = concat((reverse(local.scale_traffic_ports)), local.scale_traffic_ports)
-  security_rule_description_bi = ["Allow ICMP traffic from storage to protocol instances",
-    "Allow SSH traffic from storage to protocol instances",
-    "Allow GPFS intra cluster traffic from storage to protocol instances",
-    "Allow GPFS ephemeral port range from storage to protocol instances",
-    "Allow management GUI (http/localhost) TCP traffic from storage to protocol instances",
-    "Allow management GUI (https/localhost) TCP traffic from storage to protocol instances",
-    "Allow management GUI (https/localhost) TCP traffic from storage to protocol instances",
-    "Allow management GUI (localhost) TCP traffic from storage to protocol instances",
-    "Allow management GUI (localhost) UDP traffic from storage to protocol instances",
-    "Allow performance monitoring collector traffic from storage to protocol instances",
-    "Allow performance monitoring collector traffic from storage to protocol instances",
-    "Allow http traffic from storage to protocol instances",
-    "Allow https traffic from storage to protocol instances",
-    "Allow ICMP traffic from protocol to storage instances",
-    "Allow SSH traffic from protocol to storage instances",
-    "Allow GPFS intra cluster traffic from protocol to storage instances",
-    "Allow GPFS ephemeral port range from protocol to storage instances",
-    "Allow management GUI (http/localhost) TCP traffic from protocol to storage instances",
-    "Allow management GUI (https/localhost) TCP traffic from protocol to storage instances",
-    "Allow management GUI (https/localhost) TCP traffic from protocol to storage instances",
-    "Allow management GUI (localhost) TCP traffic from protocol to storage instances",
-    "Allow management GUI (localhost) UDP traffic from protocol to storage instances",
-    "Allow performance monitoring collector traffic from protocol to storage instances",
-    "Allow performance monitoring collector traffic from protocol to storage instances",
-    "Allow http traffic from protocol to storage instances",
-  "Allow https traffic from protocol to storage instances"]
-
-  traffic_scale_protocol  = concat(local.scale_traffic_protocol, local.protocol_traffic_protocol)
-  traffic_scale_from_port = concat(local.scale_traffic_ports, local.protocol_traffic_ports)
-  traffic_scale_to_port   = concat(local.scale_traffic_to_ports, local.protocol_traffic_ports)
-  security_rule_description_scale = ["Allow ICMP traffic within storage instances",
-    "Allow SSH traffic within protocol instances",
-    "Allow GPFS intra cluster traffic within protocol instances",
-    "Allow GPFS ephemeral port range within protocol instances",
-    "Allow management GUI (http/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
-    "Allow management GUI (localhost) TCP traffic within protocol instances",
-    "Allow management GUI (localhost) UDP traffic within protocol instances",
-    "Allow performance monitoring collector traffic within protocol instances",
-    "Allow performance monitoring collector traffic within protocol instances",
-    "Allow http traffic within protocol instances",
-    "Allow https traffic within protocol instances",
-  "Allow ctdb traffic within protocol instances"]
+  # Protocol security rule descriptions
+  security_rule_description_protocol_nodes = [
+    "Allow CTDB traffic within protocol instances",
+    "Allow Memcached traffic within protocol instances",
+    "Allow Memcached traffic within protocol instances",
+    "Allow Object Storage traffic within protocol instances",
+  "Allow Object Postgres instance traffic within protocol instances"]
 }
 
 /*
