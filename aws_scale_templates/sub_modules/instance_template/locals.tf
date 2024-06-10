@@ -49,7 +49,25 @@ locals {
   traffic_protocol           = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "TCP"]
   traffic_protocol_from_port = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
   traffic_protocol_to_port   = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
-  security_rule_description = ["Allow ICMP traffic within storage instances",
+  security_rule_description_protocol = ["Allow ICMP traffic within storage instances",
+    "Allow SSH traffic within protocol instances",
+    "Allow GPFS intra cluster traffic within protocol instances",
+    "Allow GPFS ephemeral port range within protocol instances",
+    "Allow management GUI (http/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (https/localhost) TCP traffic within protocol instances",
+    "Allow management GUI (localhost) TCP traffic within protocol instances",
+    "Allow management GUI (localhost) UDP traffic within protocol instances",
+    "Allow performance monitoring collector traffic within protocol instances",
+    "Allow performance monitoring collector traffic within protocol instances",
+    "Allow http traffic within protocol instances",
+    "Allow https traffic within protocol instances",
+  "Allow ctdb traffic within protocol instances"]
+
+  traffic_scale_protocol  = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP", "TCP"]
+  traffic_scale_from_port = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
+  traffic_scale_to_port   = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443, 4379]
+  security_rule_description_scale = ["Allow ICMP traffic within storage instances",
     "Allow SSH traffic within protocol instances",
     "Allow GPFS intra cluster traffic within protocol instances",
     "Allow GPFS ephemeral port range within protocol instances",

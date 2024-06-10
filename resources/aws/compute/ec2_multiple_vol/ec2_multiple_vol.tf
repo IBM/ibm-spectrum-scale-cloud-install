@@ -88,11 +88,11 @@ data "aws_kms_key" "itself" {
 
 # Create the EC2 instance
 resource "aws_instance" "itself" {
-  ami             = var.ami_id
-  instance_type   = var.instance_type
-  key_name        = var.user_public_key
-  security_groups = var.security_groups
-  subnet_id       = var.subnet_id
+  ami           = var.ami_id
+  instance_type = var.instance_type
+  key_name      = var.user_public_key
+  #security_groups = var.security_groups
+  subnet_id = var.subnet_id
 
   # Only include iam_instance_profile if var.iam_instance_profile is a non-empty string
   # otherwise, skip the parameter entirely
@@ -119,6 +119,15 @@ resource "aws_instance" "itself" {
   lifecycle {
     ignore_changes = all
   }
+}
+
+resource "aws_network_interface_sg_attachment" "sg_attachment" {
+  count                = length(var.security_groups)
+  security_group_id    = var.security_groups[count.index]
+  network_interface_id = aws_instance.itself.primary_network_interface_id
+  depends_on = [
+    aws_instance.itself
+  ]
 }
 
 data "aws_kms_key" "data_device_kms_key" {
