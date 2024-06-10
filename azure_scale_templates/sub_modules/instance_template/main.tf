@@ -102,7 +102,7 @@ module "compute_cluster_instances" {
 module "disk_encryption_set" {
   source                       = "../../../resources/azure/disks/encryption_set"
   for_each                     = { for idx, fs in var.filesystem_parameters : idx => fs }
-  turn_on                      = local.storage_or_combined && each.value.filesystem_encrypted ? true : false
+  turn_on                      = local.storage_or_combined && each.value.filesystem_encrypted && each.value.filesystem_key_vault_ref != "" && each.value.filesystem_key_vault_key_ref != "" ? true : false
   encryption_type              = "EncryptionAtRestWithCustomerKey"
   filesystem_key_vault_key_ref = each.value.filesystem_key_vault_key_ref
   location                     = var.vpc_region
