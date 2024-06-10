@@ -306,8 +306,8 @@ def initialize_node_details(az_count, cls_type,
     elif cls_type == 'combined':
         storage_desc_instances = [item["private_ip"]
                                   for item in storage_cluster_desc_details]
-        for index, each_ip in enumerate(storage_cluster_desc_details):
-            set_node_details(storage_desc_instances[index]["dns"], each_ip,
+        for index, each_ip in enumerate(storage_desc_instances):
+            set_node_details(storage_cluster_desc_details[index]["dns"], each_ip,
                              key_file, "computedescnodegrp", user,
                              is_quorum_node=True, is_manager_node=False,
                              is_gui_server=False, is_collector_node=False,
