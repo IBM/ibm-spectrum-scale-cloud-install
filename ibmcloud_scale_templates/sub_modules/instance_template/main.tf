@@ -654,9 +654,9 @@ locals {
 
   protocol_cluster_instance_names = slice((concat(keys(one(module.protocol_cluster_instances[*].instance_name_id_map)), (var.storage_type == "persistent" ? keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : keys(one(module.storage_cluster_instances[*].instance_name_id_map))))), 0, var.total_protocol_cluster_instances)
 
-  compute_management_node_id   = local.enable_sec_interface_storage ? values(module.compute_cluster_management_instance.secondary_interface_name_id_map) : values(module.compute_cluster_management_instance.instance_name_id_map)
-  compute_management_node_ip   = local.enable_sec_interface_storage ? values(module.compute_cluster_management_instance.secondary_interface_name_ip_map) : values(module.compute_cluster_management_instance.instance_name_ip_map)
-  compute_management_node_name = local.enable_sec_interface_storage ? keys(module.compute_cluster_management_instance.secondary_interface_name_id_map) : keys(module.compute_cluster_management_instance.instance_name_id_map)
+  compute_management_node_id   = local.enable_sec_interface_compute ? values(module.compute_cluster_management_instance.secondary_interface_name_id_map) : values(module.compute_cluster_management_instance.instance_name_id_map)
+  compute_management_node_ip   = local.enable_sec_interface_compute ? values(module.compute_cluster_management_instance.secondary_interface_name_ip_map) : values(module.compute_cluster_management_instance.instance_name_ip_map)
+  compute_management_node_name = local.enable_sec_interface_compute ? keys(module.compute_cluster_management_instance.secondary_interface_name_id_map) : keys(module.compute_cluster_management_instance.instance_name_id_map)
 }
 
 data "ibm_is_vpc" "vpc_rt_id" {
