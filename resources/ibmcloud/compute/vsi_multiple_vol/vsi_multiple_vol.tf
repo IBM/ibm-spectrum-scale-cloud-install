@@ -163,6 +163,9 @@ if [ "${var.enable_protocol}" == true ]; then
     echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
     echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 fi
+
+shutdown -r now
+
 EOF
 }
 
