@@ -10,7 +10,7 @@ locals {
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
   "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
-  instance_storage_device_names = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
+  instance_storage_device_names = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme${i}n1"] # [/dev/nvme0n1, /dev/nvme1n1, /dev/nvme2n1]
 
   gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
