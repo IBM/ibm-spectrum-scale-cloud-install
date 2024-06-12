@@ -34,6 +34,13 @@ resource "azurerm_disk_encryption_set" "itself" {
   }
 }
 
+resource "azurerm_role_assignment" "itself" {
+  count                = var.turn_on ? 1 : 0
+  scope                = data.azurerm_key_vault.itself[0].id
+  role_definition_name = "Key Vault Crypto Service Encryption User"
+  principal_id         = azurerm_disk_encryption_set.itself[0].identity[0].principal_id
+}
+
 output "enc_set_id" {
   value = try(azurerm_disk_encryption_set.itself[0].id, null)
 }
