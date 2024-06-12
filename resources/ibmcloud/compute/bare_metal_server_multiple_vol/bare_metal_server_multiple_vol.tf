@@ -126,10 +126,6 @@ firewall-offline-cmd --zone=public --add-port=30000-61000/udp
 systemctl start firewalld
 systemctl enable firewalld
 
-if grep -q "platform:el9" /etc/os-release
-then
-    subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-eus-rpms
-fi
 if [ "${var.enable_protocol}" == true ]; then
     sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
     nmcli conn del "$sec_interface"

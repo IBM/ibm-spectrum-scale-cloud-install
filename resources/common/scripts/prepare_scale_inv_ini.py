@@ -100,7 +100,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
     shell: ssh {{{{ ansible_ssh_common_args }}}} -i {cluster_key_file} root@{{{{ inventory_hostname }}}} "echo PASSWDLESS_SSH_ENABLED"
     register: result
     until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
-    retries: 60
+    retries: 240
     delay: 10
 # Validate Scale packages existence to skip node role
 - name: Check if Scale packages already installed on node
