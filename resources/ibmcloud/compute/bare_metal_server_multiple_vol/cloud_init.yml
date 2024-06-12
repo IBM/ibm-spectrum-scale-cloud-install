@@ -16,6 +16,7 @@ write_files:
               package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables-nft nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
           elif grep -q "platform:el8" /etc/os-release
           then
+              subscription-manager repos --enable=rhel-8-for-x86_64-baseos-eus-rpms
               package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
           fi
 
@@ -90,10 +91,6 @@ write_files:
       systemctl start firewalld
       systemctl enable firewalld
 
-      if grep -q "platform:el9" /etc/os-release
-      then
-          subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-eus-rpms
-      fi
       if [ "${enable_protocol}" == true ]; then
           sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
           nmcli conn del "$sec_interface"
