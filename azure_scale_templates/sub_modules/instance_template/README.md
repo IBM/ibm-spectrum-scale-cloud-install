@@ -187,6 +187,8 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 | <a name="input_nsg_rule_start_index"></a> [nsg_rule_start_index](#input_nsg_rule_start_index) | Specifies the network security group rule priority start index. | `number` |
 | <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | The name of a new resource group in which the resources will be created. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
+| <a name="input_root_device_key_vault_key_ref"></a> [root_device_key_vault_key_ref](#input_root_device_key_vault_key_ref) | Azure Key vault key reference to use when encrypting the OS disk. | `string` |
+| <a name="input_root_device_key_vault_ref"></a> [root_device_key_vault_ref](#input_root_device_key_vault_ref) | Azure Key vault reference to use when encrypting the OS disk. | `string` |
 | <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
 | <a name="input_scratch_devices_per_storage_instance"></a> [scratch_devices_per_storage_instance](#input_scratch_devices_per_storage_instance) | Number of scratch disks to be attached to each storage instance. | `number` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |

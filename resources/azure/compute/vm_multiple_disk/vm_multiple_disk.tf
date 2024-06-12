@@ -13,14 +13,15 @@ variable "meta_private_key" {}
 variable "meta_public_key" {}
 variable "name_prefix" {}
 variable "os_disk_caching" {}
+variable "os_disk_encryption_set_id" {}
 variable "os_storage_account_type" {}
 variable "proximity_placement_group_id" {}
 variable "resource_group_name" {}
 variable "reverse_dns_zone" {}
 variable "source_image_id" {}
+variable "ssh_public_key_path" {}
 variable "subnet_id" {}
 variable "use_temporary_disks" {}
-variable "ssh_public_key_path" {}
 variable "vm_size" {}
 
 data "template_file" "user_data" {
@@ -152,8 +153,9 @@ resource "azurerm_linux_virtual_machine" "itself" {
     public_key = file(var.ssh_public_key_path)
   }
   os_disk {
-    caching              = var.os_disk_caching
-    storage_account_type = var.os_storage_account_type
+    caching                = var.os_disk_caching
+    storage_account_type   = var.os_storage_account_type
+    disk_encryption_set_id = var.os_disk_encryption_set_id
   }
   source_image_id = var.source_image_id
   custom_data     = var.use_temporary_disks ? data.template_cloudinit_config.nvme_user_data64[0].rendered : data.template_cloudinit_config.user_data64[0].rendered

@@ -79,36 +79,49 @@ module "compute_cluster_instances" {
   for_each                      = local.compute_vm_zone_map
   source                        = "../../../resources/azure/compute/vm_0_disk"
   name_prefix                   = each.key
-  source_image_id               = var.compute_cluster_image_ref
+  application_security_group_id = module.cluster_security_group.asg_id
+  availability_zone             = each.value["zone"]
   dns_domain                    = var.vpc_compute_cluster_dns_domain
   forward_dns_zone              = var.vpc_forward_dns_zone
-  subnet_id                     = each.value["subnet"]
-  resource_group_name           = var.resource_group_name
   location                      = var.vpc_region
-  vm_size                       = var.compute_cluster_instance_type
   login_username                = var.instances_ssh_user_name
-  proximity_placement_group_id  = null
-  reverse_dns_zone              = var.vpc_reverse_dns_zone
-  os_disk_caching               = var.compute_cluster_os_disk_caching
-  os_storage_account_type       = var.compute_cluster_boot_disk_type
-  ssh_public_key_path           = var.compute_cluster_public_key_path
   meta_private_key              = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = var.create_remote_mount_cluster == true ? module.generate_compute_cluster_keys.public_key_content : module.generate_storage_cluster_keys.public_key_content
-  availability_zone             = each.value["zone"]
-  application_security_group_id = module.cluster_security_group.asg_id
+  os_disk_caching               = var.compute_cluster_os_disk_caching
+  os_disk_encryption_set_id     = module.os_disk_encryption_set.enc_set_id
+  os_storage_account_type       = var.compute_cluster_boot_disk_type
+  proximity_placement_group_id  = null
+  resource_group_name           = var.resource_group_name
+  reverse_dns_zone              = var.vpc_reverse_dns_zone
+  source_image_id               = var.compute_cluster_image_ref
+  ssh_public_key_path           = var.compute_cluster_public_key_path
+  subnet_id                     = each.value["subnet"]
+  vm_size                       = var.compute_cluster_instance_type
 }
 
-# 1 disk encryption set will be created per encrypted filesystem
-module "disk_encryption_set" {
+# Each encrypted filesystem will create a seperate disk encryption set
+module "data_disk_encryption_set" {
   source                       = "../../../resources/azure/disks/encryption_set"
   for_each                     = { for idx, fs in var.filesystem_parameters : idx => fs }
   turn_on                      = local.storage_or_combined && each.value.filesystem_encrypted && each.value.filesystem_key_vault_ref != "" && each.value.filesystem_key_vault_key_ref != "" ? true : false
   encryption_type              = "EncryptionAtRestWithCustomerKey"
   filesystem_key_vault_key_ref = each.value.filesystem_key_vault_key_ref
   location                     = var.vpc_region
-  name_prefix                  = format("%s-enc-set-%s", var.resource_prefix, each.key)
+  name_prefix                  = format("%s-data-enc-set-%s", var.resource_prefix, each.key)
   resource_group_name          = var.resource_group_name
   filesystem_key_vault_ref     = each.value.filesystem_key_vault_ref
+}
+
+# All OS disk(s) will be encrypted using a disk encryption set
+module "os_disk_encryption_set" {
+  source                       = "../../../resources/azure/disks/encryption_set"
+  turn_on                      = var.root_device_key_vault_ref != null && var.root_device_key_vault_key_ref != null ? true : false
+  encryption_type              = "EncryptionAtRestWithCustomerKey"
+  filesystem_key_vault_key_ref = var.root_device_key_vault_key_ref
+  location                     = var.vpc_region
+  name_prefix                  = format("%s-os-enc-set", var.resource_prefix)
+  resource_group_name          = var.resource_group_name
+  filesystem_key_vault_ref     = var.root_device_key_vault_ref
 }
 
 # Create storage scale cluster instances.
@@ -116,73 +129,76 @@ module "storage_cluster_instances" {
   for_each                      = local.storage_vm_zone_map
   source                        = "../../../resources/azure/compute/vm_multiple_disk"
   name_prefix                   = each.key
-  source_image_id               = var.storage_cluster_image_ref
-  dns_domain                    = var.vpc_storage_cluster_dns_domain
-  forward_dns_zone              = var.vpc_forward_dns_zone
-  subnet_id                     = each.value["subnet"]
-  resource_group_name           = var.resource_group_name
-  location                      = var.vpc_region
-  use_temporary_disks           = var.scratch_devices_per_storage_instance > 0 ? true : false
-  vm_size                       = var.storage_cluster_instance_type
-  login_username                = var.instances_ssh_user_name
-  proximity_placement_group_id  = local.create_placement_group == true ? module.proximity_group.proximity_group_id : null
-  reverse_dns_zone              = var.vpc_reverse_dns_zone
-  os_disk_caching               = var.storage_cluster_os_disk_caching
-  os_storage_account_type       = var.storage_cluster_boot_disk_type
-  ssh_public_key_path           = var.storage_cluster_public_key_path
-  meta_private_key              = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key               = module.generate_storage_cluster_keys.public_key_content
+  application_security_group_id = module.cluster_security_group.asg_id
   availability_zone             = each.value["zone"]
   disks                         = each.value["disks"]
-  application_security_group_id = module.cluster_security_group.asg_id
+  dns_domain                    = var.vpc_storage_cluster_dns_domain
+  forward_dns_zone              = var.vpc_forward_dns_zone
+  location                      = var.vpc_region
+  login_username                = var.instances_ssh_user_name
+  meta_private_key              = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key               = module.generate_storage_cluster_keys.public_key_content
+  os_disk_caching               = var.storage_cluster_os_disk_caching
+  os_disk_encryption_set_id     = module.os_disk_encryption_set.enc_set_id
+  os_storage_account_type       = var.storage_cluster_boot_disk_type
+  proximity_placement_group_id  = local.create_placement_group == true ? module.proximity_group.proximity_group_id : null
+  resource_group_name           = var.resource_group_name
+  reverse_dns_zone              = var.vpc_reverse_dns_zone
+  source_image_id               = var.storage_cluster_image_ref
+  ssh_public_key_path           = var.storage_cluster_public_key_path
+  subnet_id                     = each.value["subnet"]
+  use_temporary_disks           = var.scratch_devices_per_storage_instance > 0 ? true : false
+  vm_size                       = var.storage_cluster_instance_type
 }
 
 module "storage_cluster_tie_breaker_instance" {
   for_each                      = local.storage_tie_vm_zone_map
   source                        = "../../../resources/azure/compute/vm_multiple_disk"
   name_prefix                   = format("%s-storage-tie", var.resource_prefix)
-  source_image_id               = var.storage_cluster_image_ref
-  dns_domain                    = var.vpc_storage_cluster_dns_domain
-  forward_dns_zone              = var.vpc_forward_dns_zone
-  subnet_id                     = each.value["subnet"]
-  resource_group_name           = var.resource_group_name
-  location                      = var.vpc_region
-  vm_size                       = var.storage_cluster_instance_type
-  login_username                = var.instances_ssh_user_name
-  proximity_placement_group_id  = null
-  use_temporary_disks           = false
-  reverse_dns_zone              = var.vpc_reverse_dns_zone
-  os_disk_caching               = var.storage_cluster_os_disk_caching
-  os_storage_account_type       = var.storage_cluster_boot_disk_type
-  ssh_public_key_path           = var.storage_cluster_public_key_path
-  meta_private_key              = module.generate_storage_cluster_keys.private_key_content
-  meta_public_key               = module.generate_storage_cluster_keys.public_key_content
+  application_security_group_id = module.cluster_security_group.asg_id
   availability_zone             = each.value["zone"]
   disks                         = each.value["disks"]
-  application_security_group_id = module.cluster_security_group.asg_id
+  dns_domain                    = var.vpc_storage_cluster_dns_domain
+  forward_dns_zone              = var.vpc_forward_dns_zone
+  location                      = var.vpc_region
+  login_username                = var.instances_ssh_user_name
+  meta_private_key              = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key               = module.generate_storage_cluster_keys.public_key_content
+  os_disk_caching               = var.storage_cluster_os_disk_caching
+  os_disk_encryption_set_id     = module.os_disk_encryption_set.enc_set_id
+  os_storage_account_type       = var.storage_cluster_boot_disk_type
+  proximity_placement_group_id  = null
+  resource_group_name           = var.resource_group_name
+  reverse_dns_zone              = var.vpc_reverse_dns_zone
+  source_image_id               = var.storage_cluster_image_ref
+  ssh_public_key_path           = var.storage_cluster_public_key_path
+  subnet_id                     = each.value["subnet"]
+  use_temporary_disks           = false
+  vm_size                       = var.storage_cluster_instance_type
 }
 
 module "gateway_instances" {
   for_each                      = local.gateway_vm_subnet_map
   source                        = "../../../resources/azure/compute/vm_0_disk"
   name_prefix                   = each.key
-  source_image_id               = var.storage_cluster_image_ref
+  application_security_group_id = module.cluster_security_group.asg_id
+  availability_zone             = each.value["zone"]
   dns_domain                    = var.vpc_compute_cluster_dns_domain
   forward_dns_zone              = var.vpc_forward_dns_zone
-  subnet_id                     = each.value["subnet"]
-  resource_group_name           = var.resource_group_name
   location                      = var.vpc_region
-  vm_size                       = var.gateway_instance_type
   login_username                = var.instances_ssh_user_name
-  proximity_placement_group_id  = null
-  reverse_dns_zone              = var.vpc_reverse_dns_zone
-  os_disk_caching               = var.storage_cluster_os_disk_caching
-  os_storage_account_type       = var.storage_cluster_boot_disk_type
-  ssh_public_key_path           = var.storage_cluster_public_key_path
   meta_private_key              = module.generate_storage_cluster_keys.private_key_content
   meta_public_key               = module.generate_storage_cluster_keys.public_key_content
-  availability_zone             = each.value["zone"]
-  application_security_group_id = module.cluster_security_group.asg_id
+  os_disk_caching               = var.storage_cluster_os_disk_caching
+  os_disk_encryption_set_id     = module.os_disk_encryption_set.enc_set_id
+  os_storage_account_type       = var.storage_cluster_boot_disk_type
+  proximity_placement_group_id  = null
+  resource_group_name           = var.resource_group_name
+  reverse_dns_zone              = var.vpc_reverse_dns_zone
+  source_image_id               = var.storage_cluster_image_ref
+  ssh_public_key_path           = var.storage_cluster_public_key_path
+  subnet_id                     = each.value["subnet"]
+  vm_size                       = var.gateway_instance_type
 }
 
 module "prepare_ansible_configuration" {
