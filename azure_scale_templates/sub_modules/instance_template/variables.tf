@@ -179,6 +179,18 @@ variable "resource_prefix" {
   description = "Prefix is added to all resources that are created."
 }
 
+variable "root_device_key_vault_ref" {
+  type        = string
+  nullable    = true
+  description = "Azure Key vault reference to use when encrypting the OS disk."
+}
+
+variable "root_device_key_vault_key_ref" {
+  type        = string
+  nullable    = true
+  description = "Azure Key vault key reference to use when encrypting the OS disk."
+}
+
 variable "scale_ansible_repo_clone_path" {
   type        = string
   nullable    = true

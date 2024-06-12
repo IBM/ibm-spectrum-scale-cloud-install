@@ -59,7 +59,7 @@ module "compute_nat_gateway" {
 # Associate public ip to compute nat gateway
 module "compute_nat_public_pip_association" {
   source               = "../../../resources/azure/network/nat_gw_publicip_association"
-  turn_on             = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
+  turn_on              = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
   public_ip_address_id = module.compute_public_ip.id
   nat_gateway_id       = module.compute_nat_gateway.nat_gateway_id
 }
@@ -104,7 +104,7 @@ module "storage_nat_gateway" {
 # Associate public ip to storage nat gateway
 module "strg_nat_public_pip_association" {
   source               = "../../../resources/azure/network/nat_gw_publicip_association"
-  turn_on             = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
+  turn_on              = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
   public_ip_address_id = module.storage_public_ip.id
   nat_gateway_id       = module.storage_nat_gateway.nat_gateway_id
 }

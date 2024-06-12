@@ -34,6 +34,26 @@ resource "azurerm_disk_encryption_set" "itself" {
   }
 }
 
+# Granting disk encryption set to Read Data from Key Vault
+resource "azurerm_key_vault_access_policy" "itself" {
+  count        = var.turn_on ? 1 : 0
+  key_vault_id = data.azurerm_key_vault.itself[0].id
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "List",
+    "Decrypt",
+    "Sign",
+    "GetRotationPolicy",
+  ]
+  tenant_id = azurerm_disk_encryption_set.itself[0].identity[0].tenant_id
+  object_id = azurerm_disk_encryption_set.itself[0].identity[0].principal_id
+}
+
 resource "azurerm_role_assignment" "itself" {
   count                = var.turn_on ? 1 : 0
   scope                = data.azurerm_key_vault.itself[0].id
@@ -42,5 +62,6 @@ resource "azurerm_role_assignment" "itself" {
 }
 
 output "enc_set_id" {
-  value = try(azurerm_disk_encryption_set.itself[0].id, null)
+  value      = try(azurerm_disk_encryption_set.itself[0].id, null)
+  depends_on = [azurerm_key_vault_access_policy.itself, azurerm_role_assignment.itself]
 }
