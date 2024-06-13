@@ -173,7 +173,7 @@ module "scale_cluster_ingress_security_rule_using_cloud_connection" {
   source_security_group_id = [var.client_security_group_ref, var.client_security_group_ref, var.client_security_group_ref]
 }
 
-# Create security rule to enable egress communication
+# Create security rule to enable scale cluster egress communication
 module "scale_cluster_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
   total_rules               = local.scale_cluster_type ? 1 : 0
@@ -198,6 +198,20 @@ module "protocol_cluster_security_rule" {
   traffic_from_port         = local.protocol_traffic_ports
   traffic_to_port           = local.protocol_traffic_to_ports
   source_security_group_id  = [module.protocol_security_group.sec_group_id]
+}
+
+# Create security rule to enable protocol cluster egress communication
+module "protocol_cluster_egress_security_rule" {
+  source                    = "../../../resources/aws/security/security_rule_cidr"
+  total_rules               = var.total_protocol_instances > 0 ? 1 : 0
+  security_group_id         = [module.protocol_security_group.sec_group_id]
+  security_rule_description = ["Outgoing traffic from protocol instances"]
+  security_rule_type        = ["egress"]
+  traffic_protocol          = ["-1"]
+  traffic_from_port         = ["0"]
+  traffic_to_port           = ["6335"]
+  cidr_blocks               = ["0.0.0.0/0"]
+  security_prefix_list_ids  = null
 }
 
 module "email_notification" {
