@@ -360,7 +360,7 @@ module "protocol_enis" {
   subnet_id         = each.value["subnet"]
   private_ips       = each.value["private_ips"]
   private_ips_count = 1
-  security_groups   = [module.protocol_security_group.sec_group_id]
+  security_groups   = [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
   description       = each.value["description"]
 }
 

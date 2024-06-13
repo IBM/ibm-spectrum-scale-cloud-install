@@ -25,9 +25,9 @@ locals {
 
   ## Extended ports
   # Protocol ports
-  protocol_traffic_ports    = [4379, 11211, 11211, 6200, 5431]
-  protocol_traffic_to_ports = [4379, 11211, 11211, 6203, 5431]
-  protocol_traffic_protocol = ["TCP", "TCP", "TCP", "UDP", "TCP"]
+  protocol_traffic_ports    = [4379, 11211, 11211, 6200, 6443, 6001]
+  protocol_traffic_to_ports = [4379, 11211, 11211, 6203, 6443, 6001]
+  protocol_traffic_protocol = ["TCP", "TCP", "UDP", "TCP", "TCP", "TCP"]
 
   # Ssh ports
   ssh_traffic_ports    = [-1, 22]
@@ -55,7 +55,8 @@ locals {
     "Allow Memcached traffic within protocol instances",
     "Allow Memcached traffic within protocol instances",
     "Allow Object Storage traffic within protocol instances",
-  "Allow Object Postgres instance traffic within protocol instances"]
+    "Allow Nooba traffic within protocol instances",
+  "Allow Nooba traffic within protocol instances"]
 }
 
 /*
