@@ -115,7 +115,7 @@ module "data_disk_encryption_set" {
 # All OS disk(s) will be encrypted using a disk encryption set
 module "os_disk_encryption_set" {
   source                       = "../../../resources/azure/disks/encryption_set"
-  turn_on                      = var.root_device_key_vault_ref != null && var.root_device_key_vault_key_ref != null ? true : false
+  turn_on                      = var.root_device_key_vault_ref != "" && var.root_device_key_vault_key_ref != "" ? true : false
   encryption_type              = "EncryptionAtRestWithCustomerKey"
   filesystem_key_vault_key_ref = var.root_device_key_vault_key_ref
   location                     = var.vpc_region
