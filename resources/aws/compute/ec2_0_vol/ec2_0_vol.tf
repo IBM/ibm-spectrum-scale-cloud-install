@@ -31,9 +31,11 @@ chmod 600 ~/.ssh/id_rsa
 echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 # Hostname settings
+%{if var.dns_domain != ""}
 hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
 echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
 echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
+%{endif}
 EOF
 }
 
@@ -99,6 +101,7 @@ resource "aws_instance" "itself" {
 
 # Create "A" (IPv4 Address) record to map IPv4 address as hostname along with domain
 resource "aws_route53_record" "a_itself" {
+  count   = var.forward_dns_zone != "" ? 1 : 0
   zone_id = var.forward_dns_zone
   type    = "A"
   name    = var.name_prefix
@@ -108,6 +111,7 @@ resource "aws_route53_record" "a_itself" {
 
 # Create "PTR" (Pointer) to enable reverse DNS lookup, from an IP address to a hostname
 resource "aws_route53_record" "ptr_itself" {
+  count   = var.reverse_dns_zone != "" ? 1 : 0
   zone_id = var.reverse_dns_zone
   type    = "PTR"
   name    = format("%s.%s.%s.%s", split(".", aws_instance.itself.private_ip)[3], split(".", aws_instance.itself.private_ip)[2], split(".", aws_instance.itself.private_ip)[1], var.reverse_dns_domain)
@@ -143,3 +147,4 @@ output "instance_details" {
     zone       = aws_instance.itself.availability_zone
   }
 }
+
