@@ -260,6 +260,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_gateway_volume_tags"></a> [gateway_volume_tags](#input_gateway_volume_tags) | Additional tags for the gateway volume(s). | `map(string)` |
 | <a name="input_instances_ssh_user_name"></a> [instances_ssh_user_name](#input_instances_ssh_user_name) | Compute/Storage EC2 instances login username. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. Examples: ini, json | `string` |
+| <a name="input_marked_vm_names_to_attach_disks"></a> [marked_vm_names_to_attach_disks](#input_marked_vm_names_to_attach_disks) | Specify the instance names for which disks needs to be attached | `list(string)` |
 | <a name="input_operator_email"></a> [operator_email](#input_operator_email) | SNS notifications will be sent to provided email id. | `string` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
 | <a name="input_protocol_tags"></a> [protocol_tags](#input_protocol_tags) | Additional tags for the protocol instances. | `map(string)` |

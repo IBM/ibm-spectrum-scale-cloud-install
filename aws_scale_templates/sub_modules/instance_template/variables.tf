@@ -182,6 +182,12 @@ variable "inventory_format" {
   description = "Specify inventory format suited for ansible playbooks. Examples: ini, json"
 }
 
+variable "marked_vm_names_to_attach_disks" {
+  type        = list(string)
+  nullable    = true
+  description = "Specify the instance names for which disks needs to be attached"
+}
+
 variable "operator_email" {
   type        = string
   nullable    = true
