@@ -100,8 +100,9 @@ locals {
   gateway_vm_subnet_map = {
     for idx, vm_name in resource.null_resource.generate_gateway_vm_name[*].triggers.vm_name :
     vm_name => {
-      zone   = element(var.vpc_availability_zones, idx)
-      subnet = element(var.vpc_compute_cluster_private_subnets, idx)
+      # Consider only first 2 elements
+      zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
+      subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
     }
   }
 }

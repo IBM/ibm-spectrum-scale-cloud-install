@@ -183,7 +183,7 @@ module "gateway_instances" {
   name_prefix                   = each.key
   application_security_group_id = module.cluster_security_group.asg_id
   availability_zone             = each.value["zone"]
-  dns_domain                    = var.vpc_compute_cluster_dns_domain
+  dns_domain                    = var.vpc_storage_cluster_dns_domain
   forward_dns_zone              = var.vpc_forward_dns_zone
   location                      = var.vpc_region
   login_username                = var.instances_ssh_user_name
