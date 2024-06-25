@@ -202,11 +202,8 @@ module "gateway_instances" {
 }
 
 module "prepare_ansible_configuration" {
-  turn_on    = true
-  source     = "../../../resources/common/git_utils"
-  branch     = "scale_cloud"
-  tag        = null
-  clone_path = var.scale_ansible_repo_clone_path
+  source       = "../../../resources/common/dir_utils"
+  ansible_path = var.scale_ansible_repo_clone_path
 }
 
 # Write the compute cluster related inventory.
