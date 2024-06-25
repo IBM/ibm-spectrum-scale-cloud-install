@@ -181,7 +181,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "itself" {
   virtual_machine_id = azurerm_linux_virtual_machine.itself.id
   managed_disk_id    = azurerm_managed_disk.itself[each.key].id
   lun                = var.disks[each.key]["lun_no"]
-  caching            = "ReadWrite"
+  caching            = var.disks[each.key]["type"] == "PremiumV2_LRS" ? "None" : "ReadWrite"
 }
 
 output "instance_details" {
