@@ -204,13 +204,9 @@ module "protocol_instances" {
   depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection]
 }
 
-# Prepare ansible config
 module "prepare_ansible_configuration" {
-  turn_on    = true
-  source     = "../../../resources/common/git_utils"
-  branch     = "scale_cloud"
-  tag        = null
-  clone_path = var.scale_ansible_repo_clone_path
+  source       = "../../../resources/common/dir_utils"
+  ansible_path = var.scale_ansible_repo_clone_path
 }
 
 # Write the compute cluster related inventory.
