@@ -32,23 +32,73 @@ def cleanup(target_file):
         os.remove(target_file)
 
 
-def calculate_pagepool(memory_size, max_pagepool_gb):
-    """ Calculate pagepool """
-    # 1 MiB = 1.048576 MB
-    mem_size_mb = int(int(memory_size) * 1.048576)
-    # 1 MB = 0.001 GB
-    mem_size_gb = int(mem_size_mb * 0.001)
-    # Fix Me:
-    if max_pagepool_gb == 256:
-        pagepool_gb = max(int(int(mem_size_gb)*int(40)*0.01), 1)
-    else:
-        pagepool_gb = max(int(int(mem_size_gb)*int(25)*0.01), 1)
-    if pagepool_gb > int(max_pagepool_gb):
-        pagepool = int(max_pagepool_gb)
-    else:
-        pagepool = pagepool_gb
-    return "{}G".format(pagepool)
+def calculate_pagepool(nodeclass, memory):
 
+        """ Calculate pagepool """
+        memory = float(memory)
+        if nodeclass == "computenodegrp":
+            pagepool_gb = min(int((memory * 0.12) // 1 + 1), 16)
+        elif nodeclass == "storageprotocolnodegrp":
+            pagepool_gb = min(int((memory * 0.4) // 1), 256)
+        else:
+            pagepool_gb = min(int((memory * 0.25) // 1), 32)
+
+        return "{}G".format(pagepool_gb)
+        # cluster_tuneable_details = {}
+        # cluster_tuneable_details['pagepool'] = "{}G".format(pagepool_gb)
+        # return cluster_tuneable_details
+
+def calculate_maxStatCache(nodeclass, memory):
+    """ Calculate maxStatCache """
+
+    if nodeclass == "computenodegrp":
+        maxStatCache = "256K"
+    elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp"] :
+        maxStatCache = "128K"
+    else:
+        maxStatCache = str(min(int(memory * 8), 512)) + "K"
+    return maxStatCache
+
+def calculate_maxFilesToCache(nodeclass, memory):
+    """ Calculate maxFilesToCache """
+
+    if nodeclass == "computenodegrp":
+        maxFilesToCache = "256K"
+    elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp"] :
+        maxFilesToCache = "128K"
+    else:
+        calFilesToCache = int(memory * 8)
+        if calFilesToCache < 1024:
+            maxFilesToCache = str(calFilesToCache) + "K"
+        else:
+            maxFilesToCache = str(int(min((calFilesToCache / 1024), 3)) // 1) + "M"
+    return maxFilesToCache
+
+def calculate_maxReceiverThreads(nodeclass, vcpus):
+    """ Calculate maxReceiverThreads """
+    maxReceiverThreads = vcpus
+    return maxReceiverThreads
+
+def calculate_maxMBpS(nodeclass, bandwidth):
+    """ Calculate maxMBpS """
+    maxMBpS = int(int(bandwidth) * 0.25)
+    return maxMBpS
+
+def generate_nodeclass_config(nodeclass, memory, vcpus, bandwidth):
+    """ Populate all calculated params """
+    pagepool_details     = calculate_pagepool(nodeclass, memory)
+    maxStatCache_details = calculate_maxStatCache(nodeclass, memory)
+    maxFilesToCache      = calculate_maxFilesToCache(nodeclass, memory)
+    maxReceiverThreads   = calculate_maxReceiverThreads(nodeclass, vcpus)
+    maxMBpS              = calculate_maxMBpS(nodeclass, bandwidth)
+    cluster_tuneable_details = {
+        "pagepool": pagepool_details,
+        "maxStatCache": maxStatCache_details,
+        "maxFilesToCache": maxFilesToCache,
+        "maxReceiverThreads": maxReceiverThreads,
+        "maxMBpS": maxMBpS
+    } 
+    return cluster_tuneable_details
 
 def create_directory(target_directory):
     """ Create specified directory """
@@ -470,15 +520,30 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
     return node_details
 
 
-def initialize_scale_config_details(node_classes, param_key, param_value):
+def initialize_scale_config_details(node_classes, comp_nodeclass_config, mgmt_nodeclass_config, strg_desc_nodeclass_config, strg_nodeclass_config, proto_nodeclass_config, strg_proto_nodeclass_config):
     """ Initialize scale cluster config details.
-    :args: node_class (list), param_key (string), param_value (string)
+    :args: node_class (list), comp_nodeclass_config (dict), mgmt_nodeclass_config (dict), strg_desc_nodeclass_config (dict), strg_nodeclass_config (dict), proto_nodeclass_config (dict), strg_proto_nodeclass_config (dict)
     """
     scale_config = {}
     scale_config['scale_config'], scale_config['scale_cluster_config'] = [], {}
+
     for each_node in node_classes:
-        scale_config['scale_config'].append({"nodeclass": each_node,
-                                             "params": [{param_key: param_value}]})
+        param_dict = {}
+
+        if each_node == "computenodegrp":
+            param_dict = comp_nodeclass_config
+        elif each_node == "managementnodegrp": 
+            param_dict = mgmt_nodeclass_config
+        elif each_node == "storagedescnodegrp":
+            param_dict = strg_desc_nodeclass_config 
+        elif each_node == "storagenodegrp":
+            param_dict = strg_nodeclass_config 
+        elif each_node == "protocolnodegrp":
+            param_dict = proto_nodeclass_config 
+        else:
+            param_dict = strg_proto_nodeclass_config 
+        scale_config['scale_config'].append({"nodeclass": each_node,"params": [{key : value for key, value in param_dict.items()}]})
+
     scale_config['scale_cluster_config']['ephemeral_port_range'] = "60000-61000"
     return scale_config
 
@@ -663,6 +728,96 @@ if __name__ == "__main__":
                         default="null")
     PARSER.add_argument('--ldap_admin_password', help='LDAP Admin Password',
                         default="null")
+    PARSER.add_argument(
+        "--comp_memory",
+        required=True,
+        help="memory",
+    )
+    PARSER.add_argument(
+        "--comp_vcpus_count",
+        required=True,
+        help="vcpus_count",
+    )
+    PARSER.add_argument(
+        "--comp_bandwidth",
+        required=True,
+        help="bandwidth",
+    )
+    PARSER.add_argument(
+        "--mgmt_memory",
+        required=True,
+        help="memory",
+    )
+    PARSER.add_argument(
+        "--mgmt_vcpus_count",
+        required=True,
+        help="vcpus_count",
+    )
+    PARSER.add_argument(
+        "--mgmt_bandwidth",
+        required=True,
+        help="bandwidth",
+    )
+    PARSER.add_argument(
+        "--strg_desc_memory",
+        required=True,
+        help="memory",
+    )
+    PARSER.add_argument(
+        "--strg_desc_vcpus_count",
+        required=True,
+        help="vcpus_count",
+    )
+    PARSER.add_argument(
+        "--strg_desc_bandwidth",
+        required=True,
+        help="bandwidth",
+    )
+    PARSER.add_argument(
+        "--strg_memory",
+        required=True,
+        help="memory",
+    )
+    PARSER.add_argument(
+        "--strg_vcpus_count",
+        required=True,
+        help="vcpus_count",
+    )
+    PARSER.add_argument(
+        "--strg_bandwidth",
+        required=True,
+        help="bandwidth",
+    )
+    PARSER.add_argument(
+        "--proto_memory",
+        required=True,
+        help="memory",
+    )
+    PARSER.add_argument(
+        "--proto_vcpus_count",
+        required=True,
+        help="vcpus_count",
+    )
+    PARSER.add_argument(
+        "--proto_bandwidth",
+        required=True,
+        help="bandwidth",
+    )
+    PARSER.add_argument(
+        "--strg_proto_memory",
+        required=True,
+        help="memory",
+    )
+    PARSER.add_argument(
+        "--strg_proto_vcpus_count",
+        required=True,
+        help="vcpus_count",
+    )
+    PARSER.add_argument(
+        "--strg_proto_bandwidth",
+        required=True,
+        help="bandwidth",
+    )
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
@@ -691,10 +846,10 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/computesncparams" % ARGUMENTS.install_infra_path
         replica_config = False
-        pagepool_size = calculate_pagepool(
-            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+        comp_nodeclass_config = generate_nodeclass_config(
+            "computenodegrp", ARGUMENTS.comp_memory, ARGUMENTS.comp_vcpus_count, ARGUMENTS.comp_bandwidth)
         scale_config = initialize_scale_config_details(
-            ["computenodegrp"], "pagepool", pagepool_size)
+            ["computenodegrp"], comp_nodeclass_config)
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
             len(TF['storage_cluster_instance_private_ips']) > 0 and \
             len(TF['vpc_availability_zones']) == 1:
@@ -715,10 +870,21 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
-        pagepool_size = calculate_pagepool(
-            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+
+        mgmt_nodeclass_config = generate_nodeclass_config(
+            "managementnodegrp", ARGUMENTS.mgmt_memory, ARGUMENTS.mgmt_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_desc_nodeclass_config = generate_nodeclass_config(
+            "storagedescnodegrp", ARGUMENTS.strg_desc_memory, ARGUMENTS.strg_desc_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_nodeclass_config = generate_nodeclass_config(
+            "storagenodegrp", ARGUMENTS.strg_memory, ARGUMENTS.strg_vcpus_count, ARGUMENTS.strg_bandwidth)
+        proto_nodeclass_config = generate_nodeclass_config(
+            "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_proto_nodeclass_config = generate_nodeclass_config(
+            "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_bandwidth)
+        
         scale_config = initialize_scale_config_details(
-            ["storagenodegrp"], "pagepool", pagepool_size)
+            ["managementnodegrp", "storagedescnodegrp", "storagenodegrp", "protocolnodegrp", "storageprotocolnodegrp"], {}, mgmt_nodeclass_config, strg_desc_nodeclass_config, strg_nodeclass_config, proto_nodeclass_config, strg_proto_nodeclass_config)
+        
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
             len(TF['storage_cluster_instance_private_ips']) > 0 and \
             len(TF['vpc_availability_zones']) > 1 and \
@@ -740,10 +906,21 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/storagesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
-        pagepool_size = calculate_pagepool(
-            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+
+        mgmt_nodeclass_config = generate_nodeclass_config(
+            "managementnodegrp", ARGUMENTS.mgmt_memory, ARGUMENTS.mgmt_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_desc_nodeclass_config = generate_nodeclass_config(
+            "storagedescnodegrp", ARGUMENTS.strg_desc_memory, ARGUMENTS.strg_desc_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_nodeclass_config = generate_nodeclass_config(
+            "storagenodegrp", ARGUMENTS.strg_memory, ARGUMENTS.strg_vcpus_count, ARGUMENTS.strg_bandwidth)
+        proto_nodeclass_config = generate_nodeclass_config(
+            "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_proto_nodeclass_config = generate_nodeclass_config(
+            "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_bandwidth)
+        
         scale_config = initialize_scale_config_details(
-            ["storagenodegrp", "computedescnodegrp"], "pagepool", pagepool_size)
+            ["managementnodegrp", "storagedescnodegrp", "storagenodegrp", "protocolnodegrp", "storageprotocolnodegrp"], {}, mgmt_nodeclass_config, strg_desc_nodeclass_config, strg_nodeclass_config, proto_nodeclass_config, strg_proto_nodeclass_config)
+
     else:
         cluster_type = "combined"
         cleanup("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
@@ -759,14 +936,26 @@ if __name__ == "__main__":
         gui_password = ARGUMENTS.gui_password
         profile_path = "%s/scalesncparams" % ARGUMENTS.install_infra_path
         replica_config = bool(len(TF['vpc_availability_zones']) > 1)
-        pagepool_size = calculate_pagepool(
-            ARGUMENTS.memory_size, ARGUMENTS.max_pagepool_gb)
+        
+        comp_nodeclass_config = generate_nodeclass_config(
+            "computenodegrp", ARGUMENTS.comp_memory, ARGUMENTS.comp_vcpus_count, ARGUMENTS.comp_bandwidth)
+        mgmt_nodeclass_config = generate_nodeclass_config(
+            "managementnodegrp", ARGUMENTS.mgmt_memory, ARGUMENTS.mgmt_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_desc_nodeclass_config = generate_nodeclass_config(
+            "storagedescnodegrp", ARGUMENTS.strg_desc_memory, ARGUMENTS.strg_desc_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_nodeclass_config = generate_nodeclass_config(
+            "storagenodegrp", ARGUMENTS.strg_memory, ARGUMENTS.strg_vcpus_count, ARGUMENTS.strg_bandwidth)
+        proto_nodeclass_config = generate_nodeclass_config(
+            "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
+        strg_proto_nodeclass_config = generate_nodeclass_config(
+            "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_bandwidth)
+
         if len(TF['vpc_availability_zones']) == 1:
             scale_config = initialize_scale_config_details(
-                ["storagenodegrp", "computenodegrp"], "pagepool", pagepool_size)
+            ["computenodegrp", "managementnodegrp", "storagedescnodegrp", "storagenodegrp", "protocolnodegrp", "storageprotocolnodegrp"], comp_nodeclass_config, mgmt_nodeclass_config, strg_desc_nodeclass_config, strg_nodeclass_config, proto_nodeclass_config, strg_proto_nodeclass_config)
         else:
             scale_config = initialize_scale_config_details(
-                ["storagenodegrp", "computenodegrp", "computedescnodegrp"], "pagepool", pagepool_size)
+            ["computenodegrp", "managementnodegrp", "storagedescnodegrp", "storagenodegrp", "protocolnodegrp", "storageprotocolnodegrp"], comp_nodeclass_config, mgmt_nodeclass_config, strg_desc_nodeclass_config, strg_nodeclass_config, proto_nodeclass_config, strg_proto_nodeclass_config)
 
     print("Identified cluster type: %s" % cluster_type)
 
