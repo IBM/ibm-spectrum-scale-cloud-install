@@ -385,6 +385,14 @@ data "ibm_is_instance_profile" "storage_profile" {
   name = var.storage_vsi_profile
 }
 
+data "ibm_is_instance_profile" "protocol_profile" {
+  name = var.protocol_vsi_profile
+}
+
+data "ibm_is_instance_profile" "management_profile" {
+  name = var.management_vsi_profile
+}
+
 data "ibm_is_bare_metal_server_profile" "storage_bare_metal_server_profile" {
   count = var.storage_type == "persistent" ? 1 : 0
   name  = var.storage_bare_metal_server_profile
@@ -848,22 +856,26 @@ module "write_client_cluster_inventory" {
 }
 
 module "compute_cluster_configuration" {
-  source                          = "../../../resources/common/compute_configuration"
-  turn_on                         = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  bastion_user                    = jsonencode(var.bastion_user)
-  write_inventory_complete        = module.write_compute_cluster_inventory.write_inventory_complete
-  inventory_format                = var.inventory_format
-  create_scale_cluster            = var.create_scale_cluster
-  clone_path                      = var.scale_ansible_repo_clone_path
-  inventory_path                  = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image              = var.using_packer_image
-  using_jumphost_connection       = var.using_jumphost_connection
-  using_rest_initialization       = var.using_rest_api_remote_mount
-  compute_cluster_gui_username    = var.compute_cluster_gui_username
-  compute_cluster_gui_password    = var.compute_cluster_gui_password
-  memory_size                     = data.ibm_is_instance_profile.compute_profile.memory[0].value * 1000
-  max_pagepool_gb                 = 4
+  source                       = "../../../resources/common/compute_configuration"
+  turn_on                      = (var.create_separate_namespaces == true && var.total_compute_cluster_instances > 0) ? true : false
+  clone_complete               = module.prepare_ansible_configuration.clone_complete
+  bastion_user                 = jsonencode(var.bastion_user)
+  write_inventory_complete     = module.write_compute_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
+  create_scale_cluster         = var.create_scale_cluster
+  clone_path                   = var.scale_ansible_repo_clone_path
+  inventory_path               = format("%s/compute_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image           = var.using_packer_image
+  using_jumphost_connection    = var.using_jumphost_connection
+  using_rest_initialization    = var.using_rest_api_remote_mount
+  compute_cluster_gui_username = var.compute_cluster_gui_username
+  compute_cluster_gui_password = var.compute_cluster_gui_password
+  # memory_size                     = data.ibm_is_instance_profile.compute_profile.memory[0].value * 1000
+  # max_pagepool_gb                 = 4
+  comp_memory      = data.ibm_is_instance_profile.compute_profile.memory[0].value
+  comp_vcpus_count = data.ibm_is_instance_profile.compute_profile.vcpu_count[0].value
+  comp_bandwidth   = data.ibm_is_instance_profile.compute_profile.bandwidth[0].value
+
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_compute_cluster_keys.private_key_content
@@ -882,31 +894,47 @@ module "compute_cluster_configuration" {
 }
 
 module "storage_cluster_configuration" {
-  source                          = "../../../resources/common/storage_configuration"
-  turn_on                         = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  bastion_user                    = jsonencode(var.bastion_user)
-  write_inventory_complete        = module.write_storage_cluster_inventory.write_inventory_complete
-  inventory_format                = var.inventory_format
-  create_scale_cluster            = var.create_scale_cluster
-  clone_path                      = var.scale_ansible_repo_clone_path
-  inventory_path                  = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image              = var.using_packer_image
-  using_jumphost_connection       = var.using_jumphost_connection
-  using_rest_initialization       = true
-  storage_cluster_gui_username    = var.storage_cluster_gui_username
-  storage_cluster_gui_password    = var.storage_cluster_gui_password
-  memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
-  max_pagepool_gb                 = var.colocate_protocol_cluster_instances == true ? 256 : 32
-  vcpu_count                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
-  max_mbps                        = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value * 0.25 : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value * 0.25
+  source                       = "../../../resources/common/storage_configuration"
+  turn_on                      = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+  clone_complete               = module.prepare_ansible_configuration.clone_complete
+  bastion_user                 = jsonencode(var.bastion_user)
+  write_inventory_complete     = module.write_storage_cluster_inventory.write_inventory_complete
+  inventory_format             = var.inventory_format
+  create_scale_cluster         = var.create_scale_cluster
+  clone_path                   = var.scale_ansible_repo_clone_path
+  inventory_path               = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image           = var.using_packer_image
+  using_jumphost_connection    = var.using_jumphost_connection
+  using_rest_initialization    = true
+  storage_cluster_gui_username = var.storage_cluster_gui_username
+  storage_cluster_gui_password = var.storage_cluster_gui_password
+  # memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
+  # max_pagepool_gb                 = var.colocate_protocol_cluster_instances == true ? 256 : 32
+  # vcpu_count                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  # max_mbps                        = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value * 0.25 : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value * 0.25
+  # max_file_cache                  = var.storage_type == "persistent" ? "3M" : var.colocate_protocol_cluster_instances == true ? "256K" : "128K"
+  # max_stat_cache                  = var.storage_type == "persistent" ? "512K" : var.colocate_protocol_cluster_instances == true ? "256K" : "128K"
+  mgmt_memory            = data.ibm_is_instance_profile.management_profile.memory[0].value
+  mgmt_vcpus_count       = data.ibm_is_instance_profile.management_profile.vcpu_count[0].value
+  mgmt_bandwidth         = data.ibm_is_instance_profile.management_profile.bandwidth[0].value
+  strg_desc_memory       = data.ibm_is_instance_profile.storage_profile.memory[0].value
+  strg_desc_vcpus_count  = data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  strg_desc_bandwidth    = data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  strg_memory            = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
+  strg_vcpus_count       = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  strg_bandwidth         = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  proto_memory           = data.ibm_is_instance_profile.protocol_profile.memory[0].value
+  proto_vcpus_count      = data.ibm_is_instance_profile.protocol_profile.vcpu_count[0].value
+  proto_bandwidth        = data.ibm_is_instance_profile.protocol_profile.bandwidth[0].value
+  strg_proto_memory      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
+  strg_proto_vcpus_count = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  strg_proto_bandwidth   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+
   disk_type                       = "network-attached"
   max_data_replicas               = 3
   max_metadata_replicas           = 3
   default_metadata_replicas       = 2
   default_data_replicas           = 2
-  max_file_cache                  = var.storage_type == "persistent" ? "3M" : var.colocate_protocol_cluster_instances == true ? "256K" : "128K"
-  max_stat_cache                  = var.storage_type == "persistent" ? "512K" : var.colocate_protocol_cluster_instances == true ? "256K" : "128K"
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_storage_cluster_keys.private_key_content
