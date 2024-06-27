@@ -43,7 +43,6 @@ locals {
   compute_inventory_path   = format("%s/%s/compute_inventory.ini", var.clone_path, "ibm-spectrum-scale-install-infra")
   compute_playbook_path    = format("%s/%s/compute_cloud_playbook.yaml", var.clone_path, "ibm-spectrum-scale-install-infra")
   scale_encryption_servers = jsonencode(var.scale_encryption_servers)
-
 }
 
 resource "local_file" "create_compute_tuning_parameters" {
