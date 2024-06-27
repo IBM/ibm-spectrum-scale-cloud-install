@@ -43,9 +43,6 @@ def calculate_pagepool(nodeclass, memory):
         pagepool_gb = min(int((memory * 0.25) // 1), 32)
 
     return "{}G".format(pagepool_gb)
-    # cluster_tuneable_details = {}
-    # cluster_tuneable_details['pagepool'] = "{}G".format(pagepool_gb)
-    # return cluster_tuneable_details
 
 
 def calculate_maxStatCache(nodeclass, memory):
@@ -77,13 +74,13 @@ def calculate_maxFilesToCache(nodeclass, memory):
     return maxFilesToCache
 
 
-def calculate_maxReceiverThreads(nodeclass, vcpus):
+def calculate_maxReceiverThreads(vcpus):
     """ Calculate maxReceiverThreads """
-    maxReceiverThreads = vcpus
+    maxReceiverThreads = int(vcpus)
     return maxReceiverThreads
 
 
-def calculate_maxMBpS(nodeclass, bandwidth):
+def calculate_maxMBpS(bandwidth):
     """ Calculate maxMBpS """
     maxMBpS = int(int(bandwidth) * 0.25)
     return maxMBpS
@@ -94,8 +91,8 @@ def generate_nodeclass_config(nodeclass, memory, vcpus, bandwidth):
     pagepool_details = calculate_pagepool(nodeclass, memory)
     maxStatCache_details = calculate_maxStatCache(nodeclass, memory)
     maxFilesToCache = calculate_maxFilesToCache(nodeclass, memory)
-    maxReceiverThreads = calculate_maxReceiverThreads(nodeclass, vcpus)
-    maxMBpS = calculate_maxMBpS(nodeclass, bandwidth)
+    maxReceiverThreads = calculate_maxReceiverThreads(vcpus)
+    maxMBpS = calculate_maxMBpS(bandwidth)
     cluster_tuneable_details = {
         "pagepool": pagepool_details,
         "maxStatCache": maxStatCache_details,
@@ -740,99 +737,98 @@ if __name__ == "__main__":
                         default="null")
     PARSER.add_argument(
         "--colocate_protocol_cluster_instances",
-        required=True,
         help="colocation",
+        default=False
     )
-
     PARSER.add_argument(
         "--comp_memory",
-        required=True,
         help="memory",
+        default=32,
     )
     PARSER.add_argument(
         "--comp_vcpus_count",
-        required=True,
         help="vcpus_count",
+        default=8,
     )
     PARSER.add_argument(
         "--comp_bandwidth",
-        required=True,
         help="bandwidth",
+        default=16000,
     )
     PARSER.add_argument(
         "--mgmt_memory",
-        required=True,
         help="memory",
+        default=32,
     )
     PARSER.add_argument(
         "--mgmt_vcpus_count",
-        required=True,
         help="vcpus_count",
+        default=8,
     )
     PARSER.add_argument(
         "--mgmt_bandwidth",
-        required=True,
         help="bandwidth",
+        default=16000,
     )
     PARSER.add_argument(
         "--strg_desc_memory",
-        required=True,
         help="memory",
+        default=32,
     )
     PARSER.add_argument(
         "--strg_desc_vcpus_count",
-        required=True,
         help="vcpus_count",
+        default=8,
     )
     PARSER.add_argument(
         "--strg_desc_bandwidth",
-        required=True,
         help="bandwidth",
+        default=16000,
     )
     PARSER.add_argument(
         "--strg_memory",
-        required=True,
         help="memory",
+        default=32,
     )
     PARSER.add_argument(
         "--strg_vcpus_count",
-        required=True,
         help="vcpus_count",
+        default=8,
     )
     PARSER.add_argument(
         "--strg_bandwidth",
-        required=True,
         help="bandwidth",
+        default=16000,
     )
     PARSER.add_argument(
         "--proto_memory",
-        required=True,
         help="memory",
+        default=32,
     )
     PARSER.add_argument(
         "--proto_vcpus_count",
-        required=True,
         help="vcpus_count",
+        default=8,
     )
     PARSER.add_argument(
         "--proto_bandwidth",
-        required=True,
         help="bandwidth",
+        default=16000,
     )
     PARSER.add_argument(
         "--strg_proto_memory",
-        required=True,
         help="memory",
+        default=32,
     )
     PARSER.add_argument(
         "--strg_proto_vcpus_count",
-        required=True,
         help="vcpus_count",
+        default=8,
     )
     PARSER.add_argument(
         "--strg_proto_bandwidth",
-        required=True,
         help="bandwidth",
+        default=16000,
     )
     ARGUMENTS = PARSER.parse_args()
 
