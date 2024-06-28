@@ -389,7 +389,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': True, 'is_collector': True, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "mgmtnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "managementnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
                 write_json_file({'compute_cluster_gui_ip_address': each_ip},
                                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                            "compute_cluster_gui_details.json"))
@@ -417,7 +417,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 if is_protocol:
                     nodeclass = "protocolnodegrp"
                 else:
-                    nodeclass = "mgmtnodegrp"
+                    nodeclass = "managementnodegrp"
             if storage_cluster_instance_names.index(each_ip) < (start_quorum_assign):
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
@@ -434,7 +434,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': True, 'is_collector': True, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "mgmtnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "managementnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
                 write_json_file({'storage_cluster_gui_ip_address': each_ip},
                                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                            "storage_cluster_gui_details.json"))
