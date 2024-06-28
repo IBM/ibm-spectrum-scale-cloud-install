@@ -386,6 +386,7 @@ data "ibm_is_instance_profile" "storage_profile" {
 }
 
 data "ibm_is_instance_profile" "protocol_profile" {
+  count = var.colocate_protocol_cluster_instances == false ? 1 : 0
   name = var.protocol_vsi_profile
 }
 
@@ -905,22 +906,26 @@ module "storage_cluster_configuration" {
   using_rest_initialization           = true
   storage_cluster_gui_username        = var.storage_cluster_gui_username
   storage_cluster_gui_password        = var.storage_cluster_gui_password
-  colocate_protocol_cluster_instances = var.colocate_protocol_cluster_instances
+  colocate_protocol_cluster_instances = var.colocate_protocol_cluster_instances == true ? "True" : "False"
   mgmt_memory                         = data.ibm_is_instance_profile.management_profile.memory[0].value
   mgmt_vcpus_count                    = data.ibm_is_instance_profile.management_profile.vcpu_count[0].value
   mgmt_bandwidth                      = data.ibm_is_instance_profile.management_profile.bandwidth[0].value
+
   strg_desc_memory                    = data.ibm_is_instance_profile.storage_profile.memory[0].value
   strg_desc_vcpus_count               = data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   strg_desc_bandwidth                 = data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
-  strg_memory                         = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
-  strg_vcpus_count                    = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
-  strg_bandwidth                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
-  proto_memory                        = data.ibm_is_instance_profile.protocol_profile.memory[0].value
-  proto_vcpus_count                   = data.ibm_is_instance_profile.protocol_profile.vcpu_count[0].value
-  proto_bandwidth                     = data.ibm_is_instance_profile.protocol_profile.bandwidth[0].value
-  strg_proto_memory                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
-  strg_proto_vcpus_count              = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
-  strg_proto_bandwidth                = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+
+  strg_memory                         = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode("") : (var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value)
+  strg_vcpus_count                    = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode("") : (var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value)
+  strg_bandwidth                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode("") : (var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value)
+
+  proto_memory                        = data.ibm_is_instance_profile.protocol_profile[0].memory[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode("") : data.ibm_is_instance_profile.protocol_profile[0].memory[0].value
+  proto_vcpus_count                   = data.ibm_is_instance_profile.protocol_profile[0].vcpu_count[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode("") : data.ibm_is_instance_profile.protocol_profile[0].vcpu_count[0].value
+  proto_bandwidth                     = data.ibm_is_instance_profile.protocol_profile[0].bandwidth[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode("") : data.ibm_is_instance_profile.protocol_profile[0].bandwidth[0].value
+
+  strg_proto_memory                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false ? jsonencode("") : (var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value)
+  strg_proto_vcpus_count              = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false ? jsonencode("") : (var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value)
+  strg_proto_bandwidth                = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value #local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false ? jsonencode("") : (var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value)
   disk_type                           = "network-attached"
   max_data_replicas                   = 3
   max_metadata_replicas               = 3
