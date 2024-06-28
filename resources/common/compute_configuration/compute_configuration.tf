@@ -52,8 +52,8 @@ resource "local_file" "create_compute_tuning_parameters" {
  numaMemoryInterleave=yes
  ignorePrefetchLUNCount=yes
  workerThreads=1024
- maxblocksize=16M
  idleSocketTimeout=0
+ maxblocksize=16M
  minMissedPingTimeout=60
  failureDetectionTime=60
  autoload=yes

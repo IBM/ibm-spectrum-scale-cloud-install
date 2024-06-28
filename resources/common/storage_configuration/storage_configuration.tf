@@ -14,6 +14,8 @@ variable "using_jumphost_connection" {}
 variable "using_rest_initialization" {}
 variable "storage_cluster_gui_username" {}
 variable "storage_cluster_gui_password" {}
+variable "colocate_protocol_cluster_instances" {}
+variable "is_colocate_protocol_subset" {}
 variable "mgmt_memory" {}
 variable "mgmt_vcpus_count" {}
 variable "mgmt_bandwidth" {}
@@ -29,8 +31,6 @@ variable "proto_bandwidth" {}
 variable "strg_proto_memory" {}
 variable "strg_proto_vcpus_count" {}
 variable "strg_proto_bandwidth" {}
-variable "colocate_protocol_cluster_instances" {}
-variable "is_colocate_protocol_subset" {}
 variable "bastion_user" {}
 variable "bastion_instance_public_ip" {}
 variable "bastion_ssh_private_key" {}
