@@ -540,40 +540,6 @@ def initialize_scale_config_details(list_nodclass_param_dict):
         if param_dicts[1] != {}:
             scale_config['scale_config'].append({"nodeclass": list(param_dicts[0].values())[0], "params": [param_dicts[1]]})
 
-    # for param_dicts in list_nodclass_param_dict:
-    #     for param_dict in param_dicts:
-    #         if param_dict[1] != {}:
-    #             scale_config['scale_config'].append({"nodeclass": param_dict[0], "params": [
-    #                                                 {key: value for key, value in param_dict[1].items()}]})
-
-    # for each_node in node_classes:
-    #     param_dict = {}
-    #     if each_node == "computenodegrp":
-    #         param_dict = comp_nodeclass_config
-    #     elif each_node == "managementnodegrp":
-    #         param_dict = mgmt_nodeclass_config
-    #     elif each_node == "storagedescnodegrp":
-    #         param_dict = strg_desc_nodeclass_config
-    #     elif each_node == "storagenodegrp":
-    #         param_dict = strg_nodeclass_config
-    #     elif each_node == "protocolnodegrp":
-    #         param_dict = proto_nodeclass_config
-    #     elif each_node == "storageprotocolnodegrp":
-    #         param_dict = strg_proto_nodeclass_config
-
-    #     if enable_ces and not colocate_protocol_cluster_instances:
-    #         if each_node in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp", "protocolnodegrp", "storageprotocolnodegrp"]:
-    #             scale_config['scale_config'].append({"nodeclass": each_node, "params": [
-    #                                                 {key: value for key, value in param_dict.items()}]})
-    #     elif not enable_ces and not colocate_protocol_cluster_instances:
-    #         if each_node in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp"]:
-    #             scale_config['scale_config'].append({"nodeclass": each_node, "params": [
-    #                                                 {key: value for key, value in param_dict.items()}]})
-    #     else:
-    #         if each_node in ["managementnodegrp", "storagedescnodegrp", ]:
-    #             scale_config['scale_config'].append({"nodeclass": each_node, "params": [
-    #                                                 {key: value for key, value in param_dict.items()}]})
-
     scale_config['scale_cluster_config']['ephemeral_port_range'] = "60000-61000"
     return scale_config
 
@@ -764,6 +730,11 @@ if __name__ == "__main__":
         default=False
     )
     PARSER.add_argument(
+        "--is_colocate_protocol_subset",
+        help="is_colocate_protocol_subset",
+        default=False
+    )
+    PARSER.add_argument(
         "--comp_memory",
         help="memory",
         default=32,
@@ -919,15 +890,18 @@ if __name__ == "__main__":
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
         
-        if ARGUMENTS.enable_ces and ARGUMENTS.colocate_protocol_cluster_instances:
-            scale_config = initialize_scale_config_details(
-                [managementnodegrp, storagedescnodegrp, storageprotocolnodegrp])
-        elif ARGUMENTS.enable_ces and not ARGUMENTS.colocate_protocol_cluster_instances:
-            scale_config = initialize_scale_config_details(
-                [managementnodegrp, storagedescnodegrp, storagenodegrp, protocolnodegrp])
+        nodeclassgrp = [storagedescnodegrp, managementnodegrp]
+        if ARGUMENTS.enable_ces == "True":
+            if ARGUMENTS.colocate_protocol_cluster_instances == "True":
+                if ARGUMENTS.is_colocate_protocol_subset == "True":
+                    nodeclassgrp.append(storagenodegrp)
+                nodeclassgrp.append(storageprotocolnodegrp)
+            else:
+                nodeclassgrp.append(storagenodegrp)
+                nodeclassgrp.append(protocolnodegrp)
         else:
-            scale_config = initialize_scale_config_details(
-                [managementnodegrp, storagedescnodegrp, storagenodegrp])
+            nodeclassgrp.append(storagenodegrp)
+        scale_config = initialize_scale_config_details(nodeclassgrp)
 
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
             len(TF['storage_cluster_instance_private_ips']) > 0 and \
@@ -962,8 +936,18 @@ if __name__ == "__main__":
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
 
-        scale_config = initialize_scale_config_details(
-            [managementnodegrp, storagedescnodegrp, storagenodegrp, protocolnodegrp, storageprotocolnodegrp])
+        nodeclassgrp = [storagedescnodegrp, managementnodegrp]
+        if ARGUMENTS.enable_ces == "True":
+            if ARGUMENTS.colocate_protocol_cluster_instances == "True":
+                if ARGUMENTS.is_colocate_protocol_subset == "True":
+                    nodeclassgrp.append(storagenodegrp)
+                nodeclassgrp.append(storageprotocolnodegrp)
+            else:
+                nodeclassgrp.append(storagenodegrp)
+                nodeclassgrp.append(protocolnodegrp)
+        else:
+            nodeclassgrp.append(storagenodegrp)
+        scale_config = initialize_scale_config_details(nodeclassgrp)
 
     else:
         cluster_type = "combined"
@@ -995,11 +979,31 @@ if __name__ == "__main__":
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
 
         if len(TF['vpc_availability_zones']) == 1:
-            scale_config = initialize_scale_config_details(
-                [computenodegrp, managementnodegrp, storagedescnodegrp, storagenodegrp, protocolnodegrp, storageprotocolnodegrp])
+            nodeclassgrp = [storagedescnodegrp, managementnodegrp, computenodegrp]
+            if ARGUMENTS.enable_ces == "True":
+                if ARGUMENTS.colocate_protocol_cluster_instances == "True":
+                    if ARGUMENTS.is_colocate_protocol_subset == "True":
+                        nodeclassgrp.append(storagenodegrp)
+                    nodeclassgrp.append(storageprotocolnodegrp)
+                else:
+                    nodeclassgrp.append(storagenodegrp)
+                    nodeclassgrp.append(protocolnodegrp)
+            else:
+                nodeclassgrp.append(storagenodegrp)
+            scale_config = initialize_scale_config_details(nodeclassgrp)
         else:
-            scale_config = initialize_scale_config_details(
-                [computenodegrp, managementnodegrp, storagedescnodegrp, storagenodegrp, protocolnodegrp, storageprotocolnodegrp])
+            nodeclassgrp = [storagedescnodegrp, managementnodegrp, computenodegrp]
+            if ARGUMENTS.enable_ces == "True":
+                if ARGUMENTS.colocate_protocol_cluster_instances == "True":
+                    if ARGUMENTS.is_colocate_protocol_subset == "True":
+                        nodeclassgrp.append(storagenodegrp)
+                    nodeclassgrp.append(storageprotocolnodegrp)
+                else:
+                    nodeclassgrp.append(storagenodegrp)
+                    nodeclassgrp.append(protocolnodegrp)
+            else:
+                nodeclassgrp.append(storagenodegrp)
+            scale_config = initialize_scale_config_details(nodeclassgrp)
 
     print("Identified cluster type: %s" % cluster_type)
 
