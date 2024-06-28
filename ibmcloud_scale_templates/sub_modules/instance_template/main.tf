@@ -921,9 +921,9 @@ module "storage_cluster_configuration" {
   strg_vcpus_count = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   strg_bandwidth   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
 
-  proto_memory      = local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode(0) : data.ibm_is_instance_profile.protocol_profile[0].memory[0].value
-  proto_vcpus_count = local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode(0) : data.ibm_is_instance_profile.protocol_profile[0].vcpu_count[0].value
-  proto_bandwidth   = local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == true ? jsonencode(0) : data.ibm_is_instance_profile.protocol_profile[0].bandwidth[0].value
+  proto_memory      = local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false ? jsonencode(0) : data.ibm_is_instance_profile.protocol_profile[0].memory[0].value
+  proto_vcpus_count = local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false ? jsonencode(0) : data.ibm_is_instance_profile.protocol_profile[0].vcpu_count[0].value
+  proto_bandwidth   = local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false ? jsonencode(0) : data.ibm_is_instance_profile.protocol_profile[0].bandwidth[0].value
 
   strg_proto_memory               = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   strg_proto_vcpus_count          = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
