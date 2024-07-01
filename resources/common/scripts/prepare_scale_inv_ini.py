@@ -724,106 +724,46 @@ if __name__ == "__main__":
                         default="null")
     PARSER.add_argument('--ldap_admin_password', help='LDAP Admin Password',
                         default="null")
-    PARSER.add_argument(
-        "--colocate_protocol_cluster_instances",
-        help="colocation",
-        default=False
-    )
-    PARSER.add_argument(
-        "--is_colocate_protocol_subset",
-        help="is_colocate_protocol_subset",
-        default=False
-    )
-    PARSER.add_argument(
-        "--comp_memory",
-        help="memory",
-        default=32,
-    )
-    PARSER.add_argument(
-        "--comp_vcpus_count",
-        help="vcpus_count",
-        default=8,
-    )
-    PARSER.add_argument(
-        "--comp_bandwidth",
-        help="bandwidth",
-        default=16000,
-    )
-    PARSER.add_argument(
-        "--mgmt_memory",
-        help="memory",
-        default=32,
-    )
-    PARSER.add_argument(
-        "--mgmt_vcpus_count",
-        help="vcpus_count",
-        default=8,
-    )
-    PARSER.add_argument(
-        "--mgmt_bandwidth",
-        help="bandwidth",
-        default=16000,
-    )
-    PARSER.add_argument(
-        "--strg_desc_memory",
-        help="memory",
-        default=32,
-    )
-    PARSER.add_argument(
-        "--strg_desc_vcpus_count",
-        help="vcpus_count",
-        default=8,
-    )
-    PARSER.add_argument(
-        "--strg_desc_bandwidth",
-        help="bandwidth",
-        default=16000,
-    )
-    PARSER.add_argument(
-        "--strg_memory",
-        help="memory",
-        default=32,
-    )
-    PARSER.add_argument(
-        "--strg_vcpus_count",
-        help="vcpus_count",
-        default=8,
-    )
-    PARSER.add_argument(
-        "--strg_bandwidth",
-        help="bandwidth",
-        default=16000,
-    )
-    PARSER.add_argument(
-        "--proto_memory",
-        help="memory",
-        default=32,
-    )
-    PARSER.add_argument(
-        "--proto_vcpus_count",
-        help="vcpus_count",
-        default=8,
-    )
-    PARSER.add_argument(
-        "--proto_bandwidth",
-        help="bandwidth",
-        default=16000,
-    )
-    PARSER.add_argument(
-        "--strg_proto_memory",
-        help="memory",
-        default=32,
-    )
-    PARSER.add_argument(
-        "--strg_proto_vcpus_count",
-        help="vcpus_count",
-        default=8,
-    )
-    PARSER.add_argument(
-        "--strg_proto_bandwidth",
-        help="bandwidth",
-        default=16000,
-    )
+    PARSER.add_argument("--colocate_protocol_cluster_instances", help="It checks if colocation is enabled",
+                        default=False)
+    PARSER.add_argument("--is_colocate_protocol_subset", help="It checks if protocol node count is less than storage NSD node count",
+                        default=False)
+    PARSER.add_argument("--comp_memory", help="Compute memory",
+                        default=32)
+    PARSER.add_argument("--comp_vcpus_count", help="Compute vcpus count",
+                        default=8)
+    PARSER.add_argument("--comp_bandwidth", help="Compute bandwidth",
+                        default=16000)
+    PARSER.add_argument("--mgmt_memory", help="Management node memory",
+                        default=32)
+    PARSER.add_argument("--mgmt_vcpus_count", help="Management node vcpus count",
+                        default=8)
+    PARSER.add_argument("--mgmt_bandwidth", help="Management node bandwidth",
+                        default=16000)
+    PARSER.add_argument("--strg_desc_memory",
+                        help="Tie breaker node memory", default=32)
+    PARSER.add_argument("--strg_desc_vcpus_count", help="Tie breaker node vcpus count",
+                        default=8)
+    PARSER.add_argument("--strg_desc_bandwidth", help="Tie breaker node bandwidth",
+                        default=16000)
+    PARSER.add_argument("--strg_memory", help="Storage NDS node memory",
+                        default=32)
+    PARSER.add_argument("--strg_vcpus_count", help="Storage NDS node vcpuscount",
+                        default=8)
+    PARSER.add_argument("--strg_bandwidth", help="Storage NDS node bandwidth",
+                        default=16000)
+    PARSER.add_argument("--proto_memory", help="Protocol node memory",
+                        default=32)
+    PARSER.add_argument("--proto_vcpus_count", help="Protocol node vcpus count",
+                        default=8)
+    PARSER.add_argument("--proto_bandwidth", help="Protocol node bandwidth",
+                        default=16000)
+    PARSER.add_argument("--strg_proto_memory", help="Storage protocol node memory",
+                        default=32)
+    PARSER.add_argument("--strg_proto_vcpus_count", help="Storage protocol node vcpus count",
+                        default=8)
+    PARSER.add_argument("--strg_proto_bandwidth", help="Storage protocol node bandwidth",
+                        default=16000)
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
