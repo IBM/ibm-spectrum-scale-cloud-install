@@ -728,11 +728,11 @@ if __name__ == "__main__":
                         default=False)
     PARSER.add_argument("--is_colocate_protocol_subset", help="It checks if protocol node count is less than storage NSD node count",
                         default=False)
-    PARSER.add_argument("--comp_memory", help="Compute memory",
+    PARSER.add_argument("--comp_memory", help="Compute node memory",
                         default=32)
-    PARSER.add_argument("--comp_vcpus_count", help="Compute vcpus count",
+    PARSER.add_argument("--comp_vcpus_count", help="Compute node vcpus count",
                         default=8)
-    PARSER.add_argument("--comp_bandwidth", help="Compute bandwidth",
+    PARSER.add_argument("--comp_bandwidth", help="Compute node bandwidth",
                         default=16000)
     PARSER.add_argument("--mgmt_memory", help="Management node memory",
                         default=32)
