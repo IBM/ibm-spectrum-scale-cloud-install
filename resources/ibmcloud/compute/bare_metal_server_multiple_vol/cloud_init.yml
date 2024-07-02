@@ -13,11 +13,11 @@ write_files:
           if grep -q "platform:el9" /etc/os-release
           then
               subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-eus-rpms
-              package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables-nft nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
+              package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables-nft nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock cryptsetup clevis clevis-luks clevis-dracut tpm2-tools"
           elif grep -q "platform:el8" /etc/os-release
           then
               subscription-manager repos --enable=rhel-8-for-x86_64-baseos-eus-rpms
-              package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
+              package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock cryptsetup clevis clevis-luks clevis-dracut tpm2-tools"
           fi
 
           RETRY_LIMIT=5
@@ -136,8 +136,6 @@ write_files:
       echo -e 'n\np\n\n\n\nw' | fdisk $${device}
       partition=$(fdisk -l $device | grep $device | tail -1 | awk '{print $1}')
       echo $partition
-      # Install packages (support rhel/centos)
-      dnf install cryptsetup clevis clevis-luks clevis-dracut tpm2-tools -y
       # Setup encryption on the drive with a well known passphrase, and format the filesystem
       echo -n n0tsecret | cryptsetup luksFormat --type luks2 -q --force-password $partition
       echo -n n0tsecret | cryptsetup open $partition root
