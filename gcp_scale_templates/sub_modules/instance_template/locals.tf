@@ -12,11 +12,9 @@ locals {
   tcp_port_scale_cluster    = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
   udp_port_scale_cluster    = ["47443", "4739"]
   scale_cluster_network_tag = format("%s-cluster-tag", var.resource_prefix)
-  block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
-  "/dev/sdh", "/dev/sdi", "/dev/sdj", "/dev/sdk", "/dev/sdl", "/dev/sdm", "/dev/sdn", "/dev/sdo", "/dev/sdp", "/dev/sdq"]
-  ssd_device_names   = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
-  gpfs_base_rpm_path = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
-  scale_version      = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
+  ssd_device_names          = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
+  gpfs_base_rpm_path        = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
+  scale_version             = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
 
 /*
@@ -151,14 +149,12 @@ locals {
           "vm-storage-1" = {
             "disks" = {
                 "fs1-gold-1" = {
-                    device_name = "/dev/xvdi"
                     encrypted   = false
                     size        = "500"
                     termination = true
                     type        = "pd-balanced"
                 }
                 "fs1-system-1" = {
-                    device_name = "/dev/xvdi"
                     encrypted   = false
                     kms_key     = null
                     size        = "500"
@@ -166,7 +162,6 @@ locals {
                     type        = "pd-balanced"
                 }
                 "fs1-system-2" = {
-                  device_name = "/dev/xvdi"
                   encrypted   = false
                   kms_key     = null
                   size        = "500"
@@ -174,7 +169,6 @@ locals {
                   type        = "pd-balanced"
                 }
                 "fs2-system-1" = {
-                  device_name = "/dev/xvdi"
                   encrypted   = false
                   kms_key     = null
                   size        = "500"
@@ -253,7 +247,6 @@ locals {
           kms_key      = disk["kms_key"]
           fs_name      = disk["fs_name"]
           pool         = disk["pool"]
-          device_name  = element(local.block_device_names, idx)
         }
       })
     }
@@ -276,7 +269,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.block_device_names, jdx)
+          device_name = format("/dev/disk/by-id/google-%s-storage-%s-%s", var.resource_prefix, idx + 1, disk["name"])
         }
       })
     }
@@ -291,7 +284,6 @@ locals {
                 "zone"  = "us-central1c"
                 "disks" = {
                     "fs1-tie": {
-                        device_name = "/dev/xvdf"
                         encrypted   = false
                         fs_name     = "fs1"
                         iops        = null
@@ -303,7 +295,6 @@ locals {
                         type        = "pd-balanced"
                     },
                     "fs2-tie": {
-                        device_name = "/dev/xvdg"
                         encrypted   = false
                         fs_name     = "fs1"
                         iops        = null
@@ -336,7 +327,6 @@ locals {
           kms_key      = disk["kms_key"]
           fs_name      = disk["fs_name"]
           pool         = disk["pool"]
-          device_name  = element(local.block_device_names, idx)
         }
       })
     }
@@ -350,7 +340,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.block_device_names, jdx)
+          device_name = format("/dev/disk/by-id/google-%s-storage-tie-%s", var.resource_prefix, disk["name"])
         }
       })
     }

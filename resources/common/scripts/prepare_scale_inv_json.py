@@ -448,7 +448,7 @@ def get_disks_list(data_disk_map, desc_disk_map):
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk["device_name"]),
+                    "nsd": "nsd_" + each_ip.replace(".", "_").replace("-", "_") + "_" + os.path.basename(each_disk["device_name"]).replace("-", "_"),
                     "filesystem": each_disk["fs_name"],
                     "device": each_disk["device_name"],
                     "failureGroup": 1,
@@ -465,7 +465,7 @@ def get_disks_list(data_disk_map, desc_disk_map):
 
                 # TODO: FIX Include disk "size"
                 disks_list.append({
-                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk["device_name"]),
+                    "nsd": "nsd_" + each_ip.replace(".", "_").replace("-", "_") + "_" + os.path.basename(each_disk["device_name"]).replace("-", "_"),
                     "filesystem": each_disk["fs_name"],
                     "device": each_disk["device_name"],
                     "failureGroup": 2,
@@ -479,7 +479,7 @@ def get_disks_list(data_disk_map, desc_disk_map):
         for each_ip, disk_details in desc_disk_map.items():
             for _, each_disk in disk_details["disks"].items():
                 disks_list.append({
-                    "nsd": "nsd_" + each_ip.replace(".", "_") + "_" + os.path.basename(each_disk["device_name"]),
+                    "nsd": "nsd_" + each_ip.replace(".", "_").replace("-", "_") + "_" + os.path.basename(each_disk["device_name"]).replace("-", "_"),
                     "filesystem": each_disk["fs_name"],
                     "device": each_disk["device_name"],
                     "failureGroup": 3,
