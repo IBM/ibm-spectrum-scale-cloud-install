@@ -23,6 +23,7 @@ locals {
 # Getting bandwidth of compute and storage vsi and based on that checking mrot will be enabled or not.
 locals {
   scale_ces_enabled            = var.total_protocol_cluster_instances > 0 ? true : false
+  is_colocate_protocol_subset  = local.scale_ces_enabled && var.colocate_protocol_cluster_instances ? var.total_protocol_cluster_instances < var.total_storage_cluster_instances ? true : false : false
   enable_sec_interface_compute = local.scale_ces_enabled == false && data.ibm_is_instance_profile.compute_profile.bandwidth[0].value >= 64000 ? true : false
   enable_sec_interface_storage = local.scale_ces_enabled == false && var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
@@ -385,6 +386,15 @@ data "ibm_is_instance_profile" "storage_profile" {
   name = var.storage_vsi_profile
 }
 
+data "ibm_is_instance_profile" "protocol_profile" {
+  count = (local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false) ? 1 : 0
+  name  = var.protocol_vsi_profile
+}
+
+data "ibm_is_instance_profile" "management_profile" {
+  name = var.management_vsi_profile
+}
+
 data "ibm_is_bare_metal_server_profile" "storage_bare_metal_server_profile" {
   count = var.storage_type == "persistent" ? 1 : 0
   name  = var.storage_bare_metal_server_profile
@@ -546,7 +556,7 @@ module "storage_cluster_management_instance" {
 module "storage_cluster_tie_breaker_instance" {
   source                       = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   total_vsis                   = 1
-  vsi_name_prefix              = format("%s-storage-tie", var.resource_prefix)
+  vsi_name_prefix              = format("%s-strg-tie", var.resource_prefix)
   vpc_id                       = var.vpc_id
   resource_group_id            = var.resource_group_id
   zones                        = [var.vpc_availability_zones[0]]
@@ -862,8 +872,9 @@ module "compute_cluster_configuration" {
   using_rest_initialization       = var.using_rest_api_remote_mount
   compute_cluster_gui_username    = var.compute_cluster_gui_username
   compute_cluster_gui_password    = var.compute_cluster_gui_password
-  memory_size                     = data.ibm_is_instance_profile.compute_profile.memory[0].value * 1000
-  max_pagepool_gb                 = 4
+  comp_memory                     = data.ibm_is_instance_profile.compute_profile.memory[0].value
+  comp_vcpus_count                = data.ibm_is_instance_profile.compute_profile.vcpu_count[0].value
+  comp_bandwidth                  = data.ibm_is_instance_profile.compute_profile.bandwidth[0].value
   bastion_instance_public_ip      = var.bastion_instance_public_ip
   bastion_ssh_private_key         = var.bastion_ssh_private_key
   meta_private_key                = module.generate_compute_cluster_keys.private_key_content
@@ -882,46 +893,57 @@ module "compute_cluster_configuration" {
 }
 
 module "storage_cluster_configuration" {
-  source                          = "../../../resources/common/storage_configuration"
-  turn_on                         = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
-  clone_complete                  = module.prepare_ansible_configuration.clone_complete
-  bastion_user                    = jsonencode(var.bastion_user)
-  write_inventory_complete        = module.write_storage_cluster_inventory.write_inventory_complete
-  inventory_format                = var.inventory_format
-  create_scale_cluster            = var.create_scale_cluster
-  clone_path                      = var.scale_ansible_repo_clone_path
-  inventory_path                  = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
-  using_packer_image              = var.using_packer_image
-  using_jumphost_connection       = var.using_jumphost_connection
-  using_rest_initialization       = true
-  storage_cluster_gui_username    = var.storage_cluster_gui_username
-  storage_cluster_gui_password    = var.storage_cluster_gui_password
-  memory_size                     = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value * 1000 : data.ibm_is_instance_profile.storage_profile.memory[0].value * 1000
-  max_pagepool_gb                 = var.colocate_protocol_cluster_instances == true ? 256 : 32
-  vcpu_count                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
-  max_mbps                        = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value * 0.25 : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value * 0.25
-  disk_type                       = "network-attached"
-  max_data_replicas               = 3
-  max_metadata_replicas           = 3
-  default_metadata_replicas       = 2
-  default_data_replicas           = 2
-  max_file_cache                  = var.storage_type == "persistent" ? "3M" : var.colocate_protocol_cluster_instances == true ? "256K" : "128K"
-  max_stat_cache                  = var.storage_type == "persistent" ? "512K" : var.colocate_protocol_cluster_instances == true ? "256K" : "128K"
-  bastion_instance_public_ip      = var.bastion_instance_public_ip
-  bastion_ssh_private_key         = var.bastion_ssh_private_key
-  meta_private_key                = module.generate_storage_cluster_keys.private_key_content
-  scale_version                   = local.scale_version
-  spectrumscale_rpms_path         = var.spectrumscale_rpms_path
-  enable_mrot_conf                = local.enable_mrot_conf ? "True" : "False"
-  enable_ces                      = local.scale_ces_enabled == true ? "True" : "False"
-  scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
-  scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
-  enable_ldap                     = var.enable_ldap
-  ldap_basedns                    = var.ldap_basedns
-  ldap_server                     = local.ldap_server
-  ldap_admin_password             = var.ldap_admin_password
-  depends_on                      = [module.ldap_configuration]
+  source                              = "../../../resources/common/storage_configuration"
+  turn_on                             = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
+  clone_complete                      = module.prepare_ansible_configuration.clone_complete
+  bastion_user                        = jsonencode(var.bastion_user)
+  write_inventory_complete            = module.write_storage_cluster_inventory.write_inventory_complete
+  inventory_format                    = var.inventory_format
+  create_scale_cluster                = var.create_scale_cluster
+  clone_path                          = var.scale_ansible_repo_clone_path
+  inventory_path                      = format("%s/storage_cluster_inventory.json", var.scale_ansible_repo_clone_path)
+  using_packer_image                  = var.using_packer_image
+  using_jumphost_connection           = var.using_jumphost_connection
+  using_rest_initialization           = true
+  storage_cluster_gui_username        = var.storage_cluster_gui_username
+  storage_cluster_gui_password        = var.storage_cluster_gui_password
+  colocate_protocol_cluster_instances = var.colocate_protocol_cluster_instances == true ? "True" : "False"
+  is_colocate_protocol_subset         = local.is_colocate_protocol_subset == true ? "True" : "False"
+  mgmt_memory                         = data.ibm_is_instance_profile.management_profile.memory[0].value
+  mgmt_vcpus_count                    = data.ibm_is_instance_profile.management_profile.vcpu_count[0].value
+  mgmt_bandwidth                      = data.ibm_is_instance_profile.management_profile.bandwidth[0].value
+  strg_desc_memory                    = data.ibm_is_instance_profile.storage_profile.memory[0].value
+  strg_desc_vcpus_count               = data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  strg_desc_bandwidth                 = data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  strg_memory                         = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
+  strg_vcpus_count                    = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  strg_bandwidth                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  proto_memory                        = (local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false) ? data.ibm_is_instance_profile.protocol_profile[0].memory[0].value : jsonencode(0)
+  proto_vcpus_count                   = (local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false) ? data.ibm_is_instance_profile.protocol_profile[0].vcpu_count[0].value : jsonencode(0)
+  proto_bandwidth                     = (local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false) ? data.ibm_is_instance_profile.protocol_profile[0].bandwidth[0].value : jsonencode(0)
+  strg_proto_memory                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
+  strg_proto_vcpus_count              = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
+  strg_proto_bandwidth                = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  disk_type                           = "network-attached"
+  max_data_replicas                   = 3
+  max_metadata_replicas               = 3
+  default_metadata_replicas           = 2
+  default_data_replicas               = 2
+  bastion_instance_public_ip          = var.bastion_instance_public_ip
+  bastion_ssh_private_key             = var.bastion_ssh_private_key
+  meta_private_key                    = module.generate_storage_cluster_keys.private_key_content
+  scale_version                       = local.scale_version
+  spectrumscale_rpms_path             = var.spectrumscale_rpms_path
+  enable_mrot_conf                    = local.enable_mrot_conf ? "True" : "False"
+  enable_ces                          = local.scale_ces_enabled == true ? "True" : "False"
+  scale_encryption_enabled            = var.scale_encryption_enabled
+  scale_encryption_admin_password     = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+  scale_encryption_servers            = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+  enable_ldap                         = var.enable_ldap
+  ldap_basedns                        = var.ldap_basedns
+  ldap_server                         = local.ldap_server
+  ldap_admin_password                 = var.ldap_admin_password
+  depends_on                          = [module.ldap_configuration]
 }
 
 module "combined_cluster_configuration" {

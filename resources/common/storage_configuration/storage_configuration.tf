@@ -14,9 +14,23 @@ variable "using_jumphost_connection" {}
 variable "using_rest_initialization" {}
 variable "storage_cluster_gui_username" {}
 variable "storage_cluster_gui_password" {}
-variable "memory_size" {}
-variable "max_pagepool_gb" {}
-variable "vcpu_count" {}
+variable "colocate_protocol_cluster_instances" {}
+variable "is_colocate_protocol_subset" {}
+variable "mgmt_memory" {}
+variable "mgmt_vcpus_count" {}
+variable "mgmt_bandwidth" {}
+variable "strg_desc_memory" {}
+variable "strg_desc_vcpus_count" {}
+variable "strg_desc_bandwidth" {}
+variable "strg_memory" {}
+variable "strg_vcpus_count" {}
+variable "strg_bandwidth" {}
+variable "proto_memory" {}
+variable "proto_vcpus_count" {}
+variable "proto_bandwidth" {}
+variable "strg_proto_memory" {}
+variable "strg_proto_vcpus_count" {}
+variable "strg_proto_bandwidth" {}
 variable "bastion_user" {}
 variable "bastion_instance_public_ip" {}
 variable "bastion_ssh_private_key" {}
@@ -27,14 +41,11 @@ variable "enable_mrot_conf" {}
 variable "scale_encryption_enabled" {}
 variable "scale_encryption_admin_password" {}
 variable "scale_encryption_servers" {}
-variable "max_mbps" {}
 variable "disk_type" {}
 variable "default_metadata_replicas" {}
 variable "max_metadata_replicas" {}
 variable "default_data_replicas" {}
 variable "max_data_replicas" {}
-variable "max_file_cache" {}
-variable "max_stat_cache" {}
 variable "enable_ces" {}
 variable "enable_ldap" {}
 variable "ldap_basedns" {}
@@ -67,11 +78,7 @@ resource "local_file" "create_storage_tuning_parameters" {
  nsdSmallThreadRatio=2
  nsdThreadsPerQueue=16
  nsdbufspace=70
- maxFilesToCache=${var.max_file_cache}
- maxStatCache=${var.max_stat_cache}
  maxblocksize=16M
- maxMBpS=${var.max_mbps}
- maxReceiverThreads=${var.vcpu_count}
  maxTcpConnsPerNodeConn=2
  idleSocketTimeout=0
  minMissedPingTimeout=60
@@ -93,7 +100,7 @@ resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == false) && var.bastion_instance_public_ip != null && var.bastion_ssh_private_key != null ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --disk_type ${var.disk_type} --default_metadata_replicas ${local.default_metadata_replicas} --max_metadata_replicas ${var.max_metadata_replicas} --default_data_replicas ${local.default_data_replicas}  --max_data_replicas ${var.max_data_replicas} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}  --enable_ces ${var.enable_ces} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --disk_type ${var.disk_type} --default_metadata_replicas ${local.default_metadata_replicas} --max_metadata_replicas ${var.max_metadata_replicas} --default_data_replicas ${local.default_data_replicas}  --max_data_replicas ${var.max_data_replicas} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}  --enable_ces ${var.enable_ces} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password} --mgmt_memory ${var.mgmt_memory} --mgmt_vcpus_count ${var.mgmt_vcpus_count} --mgmt_bandwidth ${var.mgmt_bandwidth} --strg_desc_memory ${var.strg_desc_memory} --strg_desc_vcpus_count ${var.strg_desc_vcpus_count} --strg_desc_bandwidth ${var.strg_desc_bandwidth} --strg_memory ${var.strg_memory} --strg_vcpus_count ${var.strg_vcpus_count} --strg_bandwidth ${var.strg_bandwidth} --proto_memory ${var.proto_memory} --proto_vcpus_count ${var.proto_vcpus_count} --proto_bandwidth ${var.proto_bandwidth} --strg_proto_memory ${var.strg_proto_memory} --strg_proto_vcpus_count ${var.strg_proto_vcpus_count} --strg_proto_bandwidth ${var.strg_proto_bandwidth} --colocate_protocol_cluster_instances ${var.colocate_protocol_cluster_instances} --is_colocate_protocol_subset ${var.is_colocate_protocol_subset}"
   }
   depends_on = [local_file.create_storage_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {
@@ -105,7 +112,7 @@ resource "null_resource" "prepare_ansible_inventory_using_jumphost_connection_en
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == true && tobool(var.scale_encryption_enabled) == true) && var.bastion_instance_public_ip != null && var.bastion_ssh_private_key != null ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --disk_type ${var.disk_type} --default_metadata_replicas ${local.default_metadata_replicas} --max_metadata_replicas ${var.max_metadata_replicas} --default_data_replicas ${local.default_data_replicas}  --max_data_replicas ${var.max_data_replicas} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}  --enable_ces ${var.enable_ces} --scale_encryption_enabled ${var.scale_encryption_enabled} --scale_encryption_servers ${local.scale_encryption_servers} --scale_encryption_admin_password ${var.scale_encryption_admin_password} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --bastion_user ${var.bastion_user} --bastion_ip ${var.bastion_instance_public_ip} --bastion_ssh_private_key ${var.bastion_ssh_private_key} --disk_type ${var.disk_type} --default_metadata_replicas ${local.default_metadata_replicas} --max_metadata_replicas ${var.max_metadata_replicas} --default_data_replicas ${local.default_data_replicas}  --max_data_replicas ${var.max_data_replicas} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}  --enable_ces ${var.enable_ces} --scale_encryption_enabled ${var.scale_encryption_enabled} --scale_encryption_servers ${local.scale_encryption_servers} --scale_encryption_admin_password ${var.scale_encryption_admin_password} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password} --mgmt_memory ${var.mgmt_memory} --mgmt_vcpus_count ${var.mgmt_vcpus_count} --mgmt_bandwidth ${var.mgmt_bandwidth} --strg_desc_memory ${var.strg_desc_memory} --strg_desc_vcpus_count ${var.strg_desc_vcpus_count} --strg_desc_bandwidth ${var.strg_desc_bandwidth} --strg_memory ${var.strg_memory} --strg_vcpus_count ${var.strg_vcpus_count} --strg_bandwidth ${var.strg_bandwidth} --proto_memory ${var.proto_memory} --proto_vcpus_count ${var.proto_vcpus_count} --proto_bandwidth ${var.proto_bandwidth} --strg_proto_memory ${var.strg_proto_memory} --strg_proto_vcpus_count ${var.strg_proto_vcpus_count} --strg_proto_bandwidth ${var.strg_proto_bandwidth} --colocate_protocol_cluster_instances ${var.colocate_protocol_cluster_instances} --is_colocate_protocol_subset ${var.is_colocate_protocol_subset}"
   }
   depends_on = [local_file.create_storage_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {
@@ -117,7 +124,7 @@ resource "null_resource" "prepare_ansible_inventory" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == false) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --disk_type ${var.disk_type} --default_metadata_replicas ${local.default_metadata_replicas} --max_metadata_replicas ${var.max_metadata_replicas} --default_data_replicas ${local.default_data_replicas}  --max_data_replicas ${var.max_data_replicas} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}  --enable_ces ${var.enable_ces} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --disk_type ${var.disk_type} --default_metadata_replicas ${local.default_metadata_replicas} --max_metadata_replicas ${var.max_metadata_replicas} --default_data_replicas ${local.default_data_replicas}  --max_data_replicas ${var.max_data_replicas} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}  --enable_ces ${var.enable_ces} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password} --mgmt_memory ${var.mgmt_memory} --mgmt_vcpus_count ${var.mgmt_vcpus_count} --mgmt_bandwidth ${var.mgmt_bandwidth} --strg_desc_memory ${var.strg_desc_memory} --strg_desc_vcpus_count ${var.strg_desc_vcpus_count} --strg_desc_bandwidth ${var.strg_desc_bandwidth} --strg_memory ${var.strg_memory} --strg_vcpus_count ${var.strg_vcpus_count} --strg_bandwidth ${var.strg_bandwidth} --proto_memory ${var.proto_memory} --proto_vcpus_count ${var.proto_vcpus_count} --proto_bandwidth ${var.proto_bandwidth} --strg_proto_memory ${var.strg_proto_memory} --strg_proto_vcpus_count ${var.strg_proto_vcpus_count} --strg_proto_bandwidth ${var.strg_proto_bandwidth} --mgmt_memory ${var.mgmt_memory} --mgmt_vcpus_count ${var.mgmt_vcpus_count} --mgmt_bandwidth ${var.mgmt_bandwidth} --strg_desc_memory ${var.strg_desc_memory} --strg_desc_vcpus_count ${var.strg_desc_vcpus_count} --strg_desc_bandwidth ${var.strg_desc_bandwidth} --strg_memory ${var.strg_memory} --strg_vcpus_count ${var.strg_vcpus_count} --strg_bandwidth ${var.strg_bandwidth} --proto_memory ${var.proto_memory} --proto_vcpus_count ${var.proto_vcpus_count} --proto_bandwidth ${var.proto_bandwidth} --strg_proto_memory ${var.strg_proto_memory} --strg_proto_vcpus_count ${var.strg_proto_vcpus_count} --strg_proto_bandwidth ${var.strg_proto_bandwidth} --colocate_protocol_cluster_instances ${var.colocate_protocol_cluster_instances} --is_colocate_protocol_subset ${var.is_colocate_protocol_subset}"
   }
   depends_on = [local_file.create_storage_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {
@@ -129,7 +136,7 @@ resource "null_resource" "prepare_ansible_inventory_encryption" {
   count = (tobool(var.turn_on) == true && tobool(var.clone_complete) == true && tobool(var.write_inventory_complete) == true && tobool(var.using_jumphost_connection) == false && tobool(var.scale_encryption_enabled) == true) ? 1 : 0
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --memory_size ${var.memory_size} --max_pagepool_gb ${var.max_pagepool_gb} --disk_type ${var.disk_type} --default_metadata_replicas ${local.default_metadata_replicas} --max_metadata_replicas ${var.max_metadata_replicas} --default_data_replicas ${local.default_data_replicas}  --max_data_replicas ${var.max_data_replicas} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}  --enable_ces ${var.enable_ces} --scale_encryption_enabled ${var.scale_encryption_enabled} --scale_encryption_servers ${local.scale_encryption_servers} --scale_encryption_admin_password ${var.scale_encryption_admin_password} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password}"
+    command     = "python3 ${local.ansible_inv_script_path} --tf_inv_path ${var.inventory_path} --install_infra_path ${var.clone_path} --instance_private_key ${local.storage_private_key} --disk_type ${var.disk_type} --default_metadata_replicas ${local.default_metadata_replicas} --max_metadata_replicas ${var.max_metadata_replicas} --default_data_replicas ${local.default_data_replicas}  --max_data_replicas ${var.max_data_replicas} --using_packer_image ${var.using_packer_image} --using_rest_initialization ${var.using_rest_initialization} --gui_username ${var.storage_cluster_gui_username} --gui_password ${var.storage_cluster_gui_password} --enable_mrot_conf ${var.enable_mrot_conf}  --enable_ces ${var.enable_ces} --scale_encryption_enabled ${var.scale_encryption_enabled} --scale_encryption_servers ${local.scale_encryption_servers} --scale_encryption_admin_password ${var.scale_encryption_admin_password} --enable_ldap ${var.enable_ldap} --ldap_basedns ${var.ldap_basedns} --ldap_server ${var.ldap_server} --ldap_admin_password ${var.ldap_admin_password} --mgmt_memory ${var.mgmt_memory} --mgmt_vcpus_count ${var.mgmt_vcpus_count} --mgmt_bandwidth ${var.mgmt_bandwidth} --strg_desc_memory ${var.strg_desc_memory} --strg_desc_vcpus_count ${var.strg_desc_vcpus_count} --strg_desc_bandwidth ${var.strg_desc_bandwidth} --strg_memory ${var.strg_memory} --strg_vcpus_count ${var.strg_vcpus_count} --strg_bandwidth ${var.strg_bandwidth} --proto_memory ${var.proto_memory} --proto_vcpus_count ${var.proto_vcpus_count} --proto_bandwidth ${var.proto_bandwidth} --strg_proto_memory ${var.strg_proto_memory} --strg_proto_vcpus_count ${var.strg_proto_vcpus_count} --strg_proto_bandwidth ${var.strg_proto_bandwidth} --colocate_protocol_cluster_instances ${var.colocate_protocol_cluster_instances} --is_colocate_protocol_subset ${var.is_colocate_protocol_subset}"
   }
   depends_on = [local_file.create_storage_tuning_parameters, local_sensitive_file.write_meta_private_key]
   triggers = {
