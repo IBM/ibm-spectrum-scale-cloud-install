@@ -30,6 +30,7 @@ locals {
   ldap_server                  = var.enable_ldap == true && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
   create_cos_bucket            = var.afm_cos_config[0].bucket_name == "" ? true : false
+  afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
 }
 
 module "generate_compute_cluster_keys" {
@@ -615,9 +616,10 @@ module "gklm_instance" {
 }
 
 module "afm_cluster_instances" {
-  source                       = "../../../resources/ibmcloud/compute/vsi_0_vol"
+  source                       = "../../../resources/ibmcloud/compute/afm_vsi"
   total_vsis                   = var.total_afm_cluster_instances
   vsi_name_prefix              = format("%s-afm", var.resource_prefix)
+  afm_server_type              = local.afm_server_type
   vpc_id                       = var.vpc_id
   resource_group_id            = var.resource_group_id
   zones                        = [var.vpc_availability_zones[0]]
@@ -631,13 +633,15 @@ module "afm_cluster_instances" {
   vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
   vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
-  storage_domain_name          = var.vpc_storage_cluster_dns_domain
-  storage_dns_service_id       = var.vpc_storage_cluster_dns_service_id
-  storage_dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
-  storage_subnet_id            = var.vpc_storage_cluster_private_subnets
-  storage_sec_group            = [module.storage_cluster_security_group.sec_group_id]
-  enable_sec_interface_compute = false
+  protocol_domain              = ""
+  storage_dns_service_id       = ""
+  storage_dns_zone_id          = ""
+  protocol_subnet_id           = []
+  storage_sec_group            = []
+  enable_protocol              = false
   scale_firewall_rules_enabled = false
+  vpc_region                   = ""
+  vpc_rt_id                    = ""
   resource_tags                = var.scale_cluster_resource_tags
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
@@ -845,7 +849,7 @@ module "write_storage_cluster_inventory" {
   filesets                                         = jsonencode(local.fileset_size_map)
   afm_cos_bucket_details                           = local.enable_afm == true ? jsonencode(local.afm_cos_bucket_details) : jsonencode([])
   afm_config_details                               = local.enable_afm == true ? jsonencode(local.afm_config_details) : jsonencode([])
-  afm_cluster_instance_names                       = jsonencode(keys(module.afm_cluster_instances.instance_name_id_map))
+  afm_cluster_instance_names                       = jsonencode([]) #jsonencode(keys(module.afm_cluster_instances.instance_name_id_map))
 }
 
 module "write_cluster_inventory" {
