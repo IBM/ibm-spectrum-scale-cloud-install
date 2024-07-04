@@ -536,3 +536,27 @@ variable "ldap_vsi_osimage_name" {
   default     = "ibm-ubuntu-22-04-3-minimal-amd64-1"
   description = "Image name to be used for provisioning the LDAP instances. Note: Debian based OS are only supported for the LDAP feature."
 }
+
+variable "total_afm_cluster_instances" {
+  type        = number
+  default     = 1
+  description = "Total number of afm nodes that you need to provision."
+}
+
+variable "afm_vsi_profile" {
+  type        = string
+  default     = "cx2-2x4"
+  description = "The virtual server instance profile type name to be used to create the protocol cluster nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui)."
+}
+
+variable "afm_cos_config" {
+  type = list(object({
+    cos_instance  = string,
+    bucket_name   = string,
+    bucket_region = string,
+    hmac_key      = string,
+    afm_fileset   = string,
+    mode          = string
+  }))
+  description = "Existing Bucket name and cos instance name"
+}
