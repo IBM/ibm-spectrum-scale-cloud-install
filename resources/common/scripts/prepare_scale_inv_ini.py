@@ -1075,7 +1075,7 @@ if __name__ == "__main__":
                                                     ARGUMENTS.enable_ldap,
                                                     ARGUMENTS.ldap_basedns,
                                                     ARGUMENTS.ldap_server,
-                                                    ARGUMENTS.ldap_admin_password
+                                                    ARGUMENTS.ldap_admin_password,
                                                     TF['afm_cos_bucket_details'],
                                                     TF['afm_config_details'])
     with open("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
