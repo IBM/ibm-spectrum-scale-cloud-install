@@ -153,7 +153,7 @@ resource "ibm_is_instance" "itself" {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       sequence_string    = tostring(count_number)
       subnet_id          = element(var.vsi_subnet_id, idx)
-      protocol_subnet_id = element(var.protocol_subnet_id, idx)
+      protocol_subnet_id = var.enable_protocol == true ? element(var.protocol_subnet_id, idx) : ""
       zone               = element(var.zones, idx)
     }
   }
