@@ -519,7 +519,7 @@ module "gateway_instances" {
   for_each               = local.gateway_vm_subnet_map
   source                 = "../../../resources/aws/compute/ec2_0_vol"
   ami_id                 = var.storage_cluster_image_ref
-  dns_domain             = var.vpc_compute_cluster_dns_domain
+  dns_domain             = var.vpc_storage_cluster_dns_domain
   forward_dns_zone       = var.vpc_forward_dns_zone
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
   instance_type          = var.gateway_instance_type
@@ -544,7 +544,7 @@ module "protocol_instances" {
   for_each               = local.protocol_vm_subnet_map
   source                 = "../../../resources/aws/compute/ec2_0_vol"
   ami_id                 = var.storage_cluster_image_ref
-  dns_domain             = var.vpc_compute_cluster_dns_domain
+  dns_domain             = var.vpc_storage_cluster_dns_domain
   forward_dns_zone       = var.vpc_forward_dns_zone
   iam_instance_profile   = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
   instance_type          = var.protocol_instance_type
