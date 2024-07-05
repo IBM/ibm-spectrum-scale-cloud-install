@@ -718,14 +718,18 @@ data "ibm_is_subnet_reserved_ips" "protocol_subnet_reserved_ips" {
 }
 
 locals {
-  storage_instance_ids                = var.storage_type != "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_instances[*].instance_name_id_map)), values(module.afm_cluster_instances.instance_name_id_map)) : values(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
-  storage_instance_names              = var.storage_type != "persistent" ? local.enable_afm == true ? concat(keys(one(module.storage_cluster_instances[*].instance_name_id_map)), keys(module.afm_cluster_instances.instance_name_id_map)) : keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
-  storage_instance_private_ips        = var.storage_type != "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_instances[*].instance_name_ip_map)), values(module.afm_cluster_instances.instance_name_ip_map)) : values(one(module.storage_cluster_instances[*].instance_name_ip_map)) : []
+  afm_instance_ids         = local.afm_server_type == true ? values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map)) : values(module.afm_cluster_instances.instance_name_id_map_vsi)
+  afm_instance_names       = local.afm_server_type == true ? keys(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map)) : keys(module.afm_cluster_instances.instance_name_id_map_vsi)
+  afm_instance_private_ips = local.afm_server_type == true ? values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_ip_map)) : values(module.afm_cluster_instances.instance_name_ip_map_vsi)
+
+  storage_instance_ids                = var.storage_type != "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_instances[*].instance_name_id_map)), local.afm_instance_ids) : values(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
+  storage_instance_names              = var.storage_type != "persistent" ? local.enable_afm == true ? concat(keys(one(module.storage_cluster_instances[*].instance_name_id_map)), local.afm_instance_names) : keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
+  storage_instance_private_ips        = var.storage_type != "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_instances[*].instance_name_ip_map)), local.afm_instance_private_ips) : values(one(module.storage_cluster_instances[*].instance_name_ip_map)) : []
   storage_instance_private_dns_ip_map = var.storage_type != "persistent" ? one(module.storage_cluster_instances[*].instance_private_dns_ip_map) : {}
 
-  storage_cluster_instance_ids                = local.scale_ces_enabled == false ? local.storage_instance_ids : concat(local.storage_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)), values(module.afm_cluster_instances.instance_name_id_map))
-  storage_cluster_instance_names              = local.scale_ces_enabled == false ? local.storage_instance_names : concat(local.storage_instance_names, keys(one(module.protocol_cluster_instances[*].instance_name_id_map)), keys(module.afm_cluster_instances.instance_name_id_map))
-  storage_cluster_instance_private_ips        = local.scale_ces_enabled == false ? local.storage_instance_private_ips : concat(local.storage_instance_private_ips, values(one(module.protocol_cluster_instances[*].instance_name_ip_map)), values(module.afm_cluster_instances.instance_name_ip_map))
+  storage_cluster_instance_ids                = local.scale_ces_enabled == false ? local.storage_instance_ids : concat(local.storage_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)), local.afm_instance_ids)
+  storage_cluster_instance_names              = local.scale_ces_enabled == false ? local.storage_instance_names : concat(local.storage_instance_names, keys(one(module.protocol_cluster_instances[*].instance_name_id_map)), local.afm_instance_names)
+  storage_cluster_instance_private_ips        = local.scale_ces_enabled == false ? local.storage_instance_private_ips : concat(local.storage_instance_private_ips, values(one(module.protocol_cluster_instances[*].instance_name_ip_map)), local.afm_instance_private_ips)
   storage_cluster_instance_private_dns_ip_map = local.scale_ces_enabled == false ? local.storage_instance_private_dns_ip_map : merge(local.storage_instance_private_dns_ip_map, one(module.protocol_cluster_instances[*].instance_private_dns_ip_map), module.afm_cluster_instances.instance_private_dns_ip_map)
 
   baremetal_instance_ids                = var.storage_type == "persistent" ? values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
@@ -849,7 +853,7 @@ module "write_storage_cluster_inventory" {
   filesets                                         = jsonencode(local.fileset_size_map)
   afm_cos_bucket_details                           = local.enable_afm == true ? jsonencode(local.afm_cos_bucket_details) : jsonencode([])
   afm_config_details                               = local.enable_afm == true ? jsonencode(local.afm_config_details) : jsonencode([])
-  afm_cluster_instance_names                       = jsonencode([]) #jsonencode(keys(module.afm_cluster_instances.instance_name_id_map))
+  afm_cluster_instance_names                       = jsonencode(local.afm_instance_names) #jsonencode(keys(module.afm_cluster_instances.instance_name_id_map))
 }
 
 module "write_cluster_inventory" {

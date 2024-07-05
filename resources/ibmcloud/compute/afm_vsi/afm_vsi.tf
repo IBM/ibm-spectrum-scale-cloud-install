@@ -197,7 +197,7 @@ resource "time_sleep" "wait_60_seconds" {
 # A Record for primary network Interface
 
 resource "ibm_dns_resource_record" "a_itself_vsi" {
-  for_each = {
+  for_each = var.afm_server_type == true ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist([for name_details in ibm_is_instance.itself : name_details.name]), idx)
       network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0]["primary_ipv4_address"]]), idx)
@@ -215,8 +215,8 @@ resource "ibm_dns_resource_record" "a_itself_vsi" {
 
 # PTR Record for primary network Interface
 
-resource "ibm_dns_resource_record" "ptr_itself" {
-  for_each = {
+resource "ibm_dns_resource_record" "ptr_itself_vsi" {
+  for_each = var.afm_server_type == true ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist([for name_details in ibm_is_instance.itself : name_details.name]), idx)
       network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0]["primary_ipv4_address"]]), idx)
@@ -235,7 +235,7 @@ resource "ibm_dns_resource_record" "ptr_itself" {
 # A Record for Secondary network Interface
 
 resource "ibm_dns_resource_record" "sec_interface_a_record" {
-  for_each = var.enable_protocol == false ? {} : {
+  for_each = var.enable_protocol == false && var.afm_server_type == true ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
       network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
@@ -254,7 +254,7 @@ resource "ibm_dns_resource_record" "sec_interface_a_record" {
 # PTR Record for Secondary network Interface
 
 resource "ibm_dns_resource_record" "sec_interface_ptr_record" {
-  for_each = var.enable_protocol == false ? {} : {
+  for_each = var.enable_protocol == false && var.afm_server_type == true ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
       network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
@@ -270,39 +270,39 @@ resource "ibm_dns_resource_record" "sec_interface_ptr_record" {
   depends_on  = [ibm_dns_resource_record.sec_interface_a_record]
 }
 
-# output "instance_ids" {
-#   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
+output "instance_ids_vsi" {
+  value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+}
 
-# output "instance_private_ips" {
-#   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"]]), [])
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
+output "instance_private_ips_vsi" {
+  value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"]]), [])
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+}
 
-# output "instance_private_dns_ip_map" {
-#   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
-# }
+output "instance_private_dns_ip_map_vsi" {
+  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
+}
 
-# output "instance_name_id_map" {
-#   value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
+output "instance_name_id_map_vsi" {
+  value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+}
 
-# output "instance_name_ip_map" {
-#   value      = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
+output "instance_name_ip_map_vsi" {
+  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+}
 
-# output "secondary_interface_name_id_map" {
-#   value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.network_interfaces[0]["name"]}.${var.protocol_domain}" => instance_details.id }, {})
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
+output "secondary_interface_name_id_map_vsi" {
+  value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.network_interfaces[0]["name"]}.${var.protocol_domain}" => instance_details.id }, {})
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+}
 
-# output "secondary_interface_name_ip_map" {
-#   value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
-#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-# }
+output "secondary_interface_name_ip_map_vsi" {
+  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+}
 
 #
 ####################### Bare Metal Server ####################
