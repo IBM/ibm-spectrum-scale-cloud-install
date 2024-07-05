@@ -235,7 +235,7 @@ resource "ibm_dns_resource_record" "ptr_itself_vsi" {
 # A Record for Secondary network Interface
 
 resource "ibm_dns_resource_record" "sec_interface_a_record" {
-  for_each = var.enable_protocol == false && var.afm_server_type == true ? {} : {
+  for_each = var.enable_protocol == false ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
       network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
@@ -254,7 +254,7 @@ resource "ibm_dns_resource_record" "sec_interface_a_record" {
 # PTR Record for Secondary network Interface
 
 resource "ibm_dns_resource_record" "sec_interface_ptr_record" {
-  for_each = var.enable_protocol == false && var.afm_server_type == true ? {} : {
+  for_each = var.enable_protocol == false ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
       network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
