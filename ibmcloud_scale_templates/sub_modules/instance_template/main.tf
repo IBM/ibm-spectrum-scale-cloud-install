@@ -29,7 +29,7 @@ locals {
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
   ldap_server                  = var.enable_ldap == true && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
-  create_cos_bucket            = var.afm_cos_config[0].bucket_name == "" ? true : false
+  create_cos_bucket            = local.enable_afm == true && var.afm_cos_config[0].bucket_name == "" ? true : false
   afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
 }
 
