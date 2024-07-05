@@ -270,19 +270,19 @@ resource "ibm_dns_resource_record" "sec_interface_ptr_record" {
   depends_on  = [ibm_dns_resource_record.sec_interface_a_record]
 }
 
-output "instance_ids_vsi" {
-  value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
-  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
-}
+# output "instance_ids_vsi" {
+#   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
+#   depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+# }
 
-output "instance_private_ips_vsi" {
-  value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"]]), [])
-  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
-}
+# output "instance_private_ips_vsi" {
+#   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"]]), [])
+#   depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+# }
 
-output "instance_private_dns_ip_map_vsi" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
-}
+# output "instance_private_dns_ip_map_vsi" {
+#   value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
+# }
 
 output "instance_name_id_map_vsi" {
   value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
@@ -294,23 +294,23 @@ output "instance_name_ip_map_vsi" {
   depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
 }
 
-output "secondary_interface_name_id_map_vsi" {
-  value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.network_interfaces[0]["name"]}.${var.protocol_domain}" => instance_details.id }, {})
-  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
-}
+# output "secondary_interface_name_id_map_vsi" {
+#   value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.network_interfaces[0]["name"]}.${var.protocol_domain}" => instance_details.id }, {})
+#   depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+# }
 
-output "secondary_interface_name_ip_map_vsi" {
-  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
-}
+# output "secondary_interface_name_ip_map_vsi" {
+#   value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
+#   depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi]
+# }
 
 #
 ####################### Bare Metal Server ####################
 #
 
-data "ibm_is_bare_metal_server_profile" "itself" {
-  name = var.vsi_profile
-}
+# data "ibm_is_bare_metal_server_profile" "itself" {
+#   name = var.vsi_profile
+# }
 
 data "template_file" "metadata_startup_script_bm" {
   template = <<EOF
@@ -466,7 +466,7 @@ resource "ibm_is_bare_metal_server" "itself_bm" {
 }
 
 resource "ibm_dns_resource_record" "a_itself_bm" {
-  for_each = {
+  for_each = var.afm_server_type == false ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist([for name_details in ibm_is_bare_metal_server.itself_bm : name_details.name]), idx)
       network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself_bm : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
@@ -484,7 +484,7 @@ resource "ibm_dns_resource_record" "a_itself_bm" {
 }
 
 resource "ibm_dns_resource_record" "ptr_itself_bm" {
-  for_each = {
+  for_each = var.afm_server_type == false ? {} : {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist([for name_details in ibm_is_bare_metal_server.itself_bm : name_details.name]), idx)
       network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself_bm : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
@@ -500,38 +500,37 @@ resource "ibm_dns_resource_record" "ptr_itself_bm" {
   depends_on  = [ibm_dns_resource_record.a_itself_bm]
 }
 
+# output "instance_ids_bm" {
+#   value      = try(toset([for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.id]), [])
+#   depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
+# }
 
-output "instance_ids" {
-  value      = try(toset([for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.id]), [])
-  depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
-}
+# output "instance_private_ips_bm" {
+#   value      = try(toset([for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.primary_network_interface[0]["primary_ip"][0]["address"]]), [])
+#   depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
+# }
 
-output "instance_private_ips" {
-  value      = try(toset([for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.primary_network_interface[0]["primary_ip"][0]["address"]]), [])
-  depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
-}
+# output "instance_ips_with_vol_mapping_bm" {
+#   value = try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name =>
+#   data.ibm_is_bare_metal_server_profile.itself.disks[1].quantity[0].value == 8 ? ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"] : ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1"] }, {})
+#   depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
+# }
 
-output "instance_ips_with_vol_mapping" {
-  value = try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name =>
-  data.ibm_is_bare_metal_server_profile.itself.disks[1].quantity[0].value == 8 ? ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"] : ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1"] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
-}
+# output "instance_private_dns_ip_map_bm" {
+#   value = try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.primary_network_interface[0]["primary_ip"][0]["address"] => instance_details.private_dns }, {})
+# }
 
-output "instance_private_dns_ip_map" {
-  value = try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.primary_network_interface[0]["primary_ip"][0]["address"] => instance_details.private_dns }, {})
-}
-
-output "storage_cluster_instance_name_id_map" {
+output "storage_cluster_instance_name_id_map_bm" {
   value      = try({ for instance_details in ibm_is_bare_metal_server.itself_bm : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
   depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
 }
 
-output "storage_cluster_instance_name_ip_map" {
+output "storage_cluster_instance_name_ip_map_bm" {
   value      = try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => instance_details.primary_network_interface[0]["primary_ip"][0]["address"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
 }
 
-output "secondary_interface_name_ip_map" {
-  value      = try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
-}
+# output "secondary_interface_name_ip_map_bm" {
+#   value      = try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0] }, {})
+#   depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
+# }
