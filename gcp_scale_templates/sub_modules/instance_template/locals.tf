@@ -12,7 +12,6 @@ locals {
   tcp_port_scale_cluster    = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
   udp_port_scale_cluster    = ["47443", "4739"]
   scale_cluster_network_tag = format("%s-cluster-tag", var.resource_prefix)
-  ssd_device_names          = [for i in range(var.scratch_devices_per_storage_instance) : "/dev/nvme0n${i + 1}"]
   gpfs_base_rpm_path        = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version             = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
@@ -262,7 +261,7 @@ locals {
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
-          device_name = element(local.ssd_device_names, jdx)
+          device_name = format("/dev/disk/by-id/google-local-nvme-ssd-%s", jdx)
         }
         }) : tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
