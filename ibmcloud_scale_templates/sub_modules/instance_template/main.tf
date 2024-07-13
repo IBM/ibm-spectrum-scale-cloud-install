@@ -615,6 +615,37 @@ module "gklm_instance" {
   depends_on           = [module.gklm_instance_ingress_security_rule, module.gklm_instance_ingress_security_rule_wt_bastion, module.gklm_instance_ingress_security_rule_wo_bastion, module.gklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
+# module "afm_cluster_instances" {
+#   source                       = "../../../resources/ibmcloud/compute/afm_vsi"
+#   total_vsis                   = var.total_afm_cluster_instances
+#   vsi_name_prefix              = format("%s-afm", var.resource_prefix)
+#   afm_server_type              = local.afm_server_type
+#   vpc_id                       = var.vpc_id
+#   resource_group_id            = var.resource_group_id
+#   zones                        = [var.vpc_availability_zones[0]]
+#   vsi_image_id                 = local.storage_instance_image_id
+#   vsi_profile                  = var.afm_vsi_profile
+#   dns_domain                   = var.vpc_storage_cluster_dns_domain
+#   dns_service_id               = var.vpc_storage_cluster_dns_service_id
+#   dns_zone_id                  = var.vpc_storage_cluster_dns_zone_id
+#   vsi_subnet_id                = var.vpc_storage_cluster_private_subnets
+#   vsi_security_group           = [module.storage_cluster_security_group.sec_group_id]
+#   vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
+#   vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
+#   vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
+#   protocol_domain              = ""
+#   storage_dns_service_id       = ""
+#   storage_dns_zone_id          = ""
+#   protocol_subnet_id           = []
+#   storage_sec_group            = []
+#   enable_protocol              = false
+#   scale_firewall_rules_enabled = true
+#   vpc_region                   = ""
+#   vpc_rt_id                    = ""
+#   resource_tags                = var.scale_cluster_resource_tags
+#   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
+# }
+
 module "afm_cluster_instances" {
   source                       = "../../../resources/ibmcloud/compute/afm_vsi"
   total_vsis                   = var.total_afm_cluster_instances
@@ -633,15 +664,7 @@ module "afm_cluster_instances" {
   vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
   vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
-  protocol_domain              = ""
-  storage_dns_service_id       = ""
-  storage_dns_zone_id          = ""
-  protocol_subnet_id           = []
-  storage_sec_group            = []
-  enable_protocol              = false
-  scale_firewall_rules_enabled = false
-  vpc_region                   = ""
-  vpc_rt_id                    = ""
+  scale_firewall_rules_enabled = true
   resource_tags                = var.scale_cluster_resource_tags
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
@@ -718,9 +741,13 @@ data "ibm_is_subnet_reserved_ips" "protocol_subnet_reserved_ips" {
 }
 
 locals {
-  afm_instance_ids         = local.afm_server_type == true ? values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map_bm)) : values(module.afm_cluster_instances.instance_name_id_map_vsi)
-  afm_instance_names       = local.afm_server_type == true ? keys(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map_bm)) : keys(module.afm_cluster_instances.instance_name_id_map_vsi)
-  afm_instance_private_ips = local.afm_server_type == true ? values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_ip_map_bm)) : values(module.afm_cluster_instances.instance_name_ip_map_vsi)
+  # afm_instance_ids         = local.afm_server_type == true ? values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map_bm)) : values(module.afm_cluster_instances.instance_name_id_map_vsi)
+  # afm_instance_names       = local.afm_server_type == true ? keys(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map_bm)) : keys(module.afm_cluster_instances.instance_name_id_map_vsi)
+  # afm_instance_private_ips = local.afm_server_type == true ? values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_ip_map_bm)) : values(module.afm_cluster_instances.instance_name_ip_map_vsi)
+
+  afm_instance_ids         = values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map_vsi_bm))
+  afm_instance_names       = keys(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map_vsi_bm))
+  afm_instance_private_ips = values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_ip_map_vsi_bm))
 
   storage_instance_ids                = var.storage_type != "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_instances[*].instance_name_id_map)), local.afm_instance_ids) : values(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
   storage_instance_names              = var.storage_type != "persistent" ? local.enable_afm == true ? concat(keys(one(module.storage_cluster_instances[*].instance_name_id_map)), local.afm_instance_names) : keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
