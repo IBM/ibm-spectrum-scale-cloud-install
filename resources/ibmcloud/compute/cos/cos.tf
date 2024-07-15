@@ -18,6 +18,7 @@ variable "exstng_instance_new_bucket_hmac" {}
 variable "exstng_instance_bucket_new_hmac" {}
 variable "exstng_instance_hmac_new_bucket" {}
 variable "exstng_instance_bucket_hmac" {}
+variable "filesystem" {}
 
 #############################################################################################################
 # 1. It creates new COS instance, Bucket and Hmac Key
@@ -26,6 +27,8 @@ variable "exstng_instance_bucket_hmac" {}
 locals {
   new_cos_instance                = distinct([for instance in var.new_instance_bucket_hmac : instance.cos_instance])
   region_new_instance_bucket_hmac = [for region in var.new_instance_bucket_hmac : region.bucket_region]
+  path_elements                   = split("/", var.filesystem)
+  filesystem                      = element(local.path_elements, length(local.path_elements) - 1)
 }
 
 resource "ibm_resource_instance" "cos_instance" {
@@ -58,7 +61,7 @@ resource "ibm_cos_bucket" "cos_bucket" {
 
 resource "ibm_resource_key" "hmac_key" {
   for_each = {
-    for idx, count_number in range(1, length(var.new_instance_bucket_hmac) + 1) : idx => {
+    for idx, count_number in range(1, length(local.new_cos_instance) + 1) : idx => {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in ibm_resource_instance.cos_instance : instance_id[*].id]), idx)
       #region_location = element(var.region_location, idx)
@@ -79,7 +82,7 @@ locals {
 
   afm_config_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
     bucket     = (flatten([for bucket in ibm_cos_bucket.cos_bucket : bucket[*].bucket_name]))[idx]
-    filesystem = "fs1"
+    filesystem = local.filesystem
     fileset    = ([for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset])[idx]
     mode       = ([for mode in var.new_instance_bucket_hmac : mode.mode])[idx]
     endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
@@ -143,7 +146,7 @@ locals {
 
   afm_config_details_2 = [for idx, config in var.exstng_instance_new_bucket_hmac : {
     bucket     = (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket : bucket[*].bucket_name]))[idx]
-    filesystem = "fs1"
+    filesystem = local.filesystem
     fileset    = ([for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset])[idx]
     mode       = ([for mode in var.exstng_instance_new_bucket_hmac : mode.mode])[idx]
     endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
@@ -208,7 +211,7 @@ locals {
 
   afm_config_details_3 = [for idx, config in var.exstng_instance_bucket_new_hmac : {
     bucket     = (flatten([for bucket in data.ibm_cos_bucket.existing_cos_instance_bucket : bucket[*].bucket_name]))[idx]
-    filesystem = "fs1"
+    filesystem = local.filesystem
     fileset    = ([for fileset in var.exstng_instance_bucket_new_hmac : fileset.afm_fileset])[idx]
     mode       = ([for mode in var.exstng_instance_bucket_new_hmac : mode.mode])[idx]
     endpoint   = "https://${(flatten([for endpoint in data.ibm_cos_bucket.existing_cos_instance_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
@@ -271,7 +274,7 @@ locals {
 
   afm_config_details_4 = [for idx, config in var.exstng_instance_hmac_new_bucket : {
     bucket     = (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : bucket[*].bucket_name]))[idx]
-    filesystem = "fs1"
+    filesystem = local.filesystem
     fileset    = ([for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset])[idx]
     mode       = ([for mode in var.exstng_instance_hmac_new_bucket : mode.mode])[idx]
     endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
@@ -336,7 +339,7 @@ locals {
 
   afm_config_details_5 = [for idx, config in var.exstng_instance_bucket_hmac : {
     bucket     = (flatten([for bucket in data.ibm_cos_bucket.exstng_cos_instance_bucket : bucket[*].bucket_name]))[idx]
-    filesystem = "fs1"
+    filesystem = local.filesystem
     fileset    = ([for fileset in var.exstng_instance_bucket_hmac : fileset.afm_fileset])[idx]
     mode       = ([for mode in var.exstng_instance_bucket_hmac : mode.mode])[idx]
     endpoint   = "https://${(flatten([for endpoint in data.ibm_cos_bucket.exstng_cos_instance_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
