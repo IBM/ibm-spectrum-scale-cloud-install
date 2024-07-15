@@ -639,7 +639,6 @@ module "afm_cluster_instances" {
 }
 
 locals {
-
   new_instance_bucket_hmac        = [for details in var.afm_cos_config : details if(details.cos_instance == "" && details.bucket_name == "" && details.hmac_key == "")]
   exstng_instance_new_bucket_hmac = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name == "" && details.hmac_key == "")]
   exstng_instance_bucket_new_hmac = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name != "" && details.hmac_key == "")]
@@ -663,56 +662,12 @@ module "cos" {
   exstng_instance_bucket_new_hmac = local.exstng_instance_bucket_new_hmac
   exstng_instance_hmac_new_bucket = local.exstng_instance_hmac_new_bucket
   exstng_instance_bucket_hmac     = local.exstng_instance_bucket_hmac
-
+  depends_on                      = [module.afm_cluster_instances]
 }
 
-# module "cos" {
-#   count             = local.create_cos_bucket == true ? 1 : 0
-#   source            = "../../../resources/ibmcloud/compute/cos"
-#   prefix            = "${var.resource_prefix}-region-${var.vpc_region}-"
-#   resource_group_id = var.resource_group_id
-#   region_location   = var.vpc_region
-# }
-
-# data "ibm_resource_instance" "cos_instance" {
-#   count   = local.create_cos_bucket == false ? 1 : 0
-#   name    = var.afm_cos_config[0].cos_instance
-#   service = "cloud-object-storage"
-# }
-
-# data "ibm_cos_bucket" "existing_cos_bucket" {
-#   count                = local.create_cos_bucket == false ? 1 : 0
-#   bucket_name          = var.afm_cos_config[0].bucket_name
-#   resource_instance_id = data.ibm_resource_instance.cos_instance[0].id
-#   bucket_region        = var.afm_cos_config[0].bucket_region
-#   bucket_type          = "region_location"
-# }
-
-# data "ibm_resource_key" "existing_hmac_key" {
-#   count                = local.create_cos_bucket == false ? 1 : 0
-#   name                 = var.afm_cos_config[0].hmac_key
-#   resource_instance_id = data.ibm_resource_instance.cos_instance[0].id
-# }
-
 locals {
-  # new_bucket_name              = local.create_cos_bucket == true ? module.cos[0].bucket_name : ""
-  # new_bucket_endpoint          = local.create_cos_bucket == true ? module.cos[0].bucket_endpoint : ""
-  # new_bucket_access_key_id     = local.create_cos_bucket == true ? module.cos[0].access_key_id : ""
-  # new_bucket_secret_access_key = local.create_cos_bucket == true ? module.cos[0].secret_access_key : ""
-
-  # existing_bucket_endpoint   = local.create_cos_bucket == false ? data.ibm_cos_bucket.existing_cos_bucket[0].s3_endpoint_direct : ""
-  # existing_access_key_id     = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.access_key_id"] : ""
-  # existing_secret_access_key = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.secret_access_key"] : ""
-
-  # afm_bucket_name       = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_name : var.afm_cos_config[0].bucket_name : ""
-  # afm_access_key_id     = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_access_key_id : local.existing_access_key_id : ""
-  # afm_secret_access_key = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_secret_access_key : local.existing_secret_access_key : ""
-  # afm_endpoint          = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_endpoint : local.existing_bucket_endpoint : ""
-
-  # afm_cos_bucket_details = [{ bucket = local.afm_bucket_name, akey = local.afm_access_key_id, skey = local.afm_secret_access_key }]
-  # afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config[0].afm_fileset, endpoint = "https://${local.afm_endpoint}", mode = var.afm_cos_config[0].mode }]
-  afm_cos_bucket_details = local.enable_afm == true ? module.cos.afm_cos_bucket_details : []
-  afm_config_details     = local.enable_afm == true ? module.cos.afm_config_details : []
+  afm_cos_bucket_details = local.enable_afm == true ? flatten(module.cos[*].afm_cos_bucket_details) : []
+  afm_config_details     = local.enable_afm == true ? flatten(module.cos[*].afm_config_details) : []
 }
 
 module "activity_tracker" {

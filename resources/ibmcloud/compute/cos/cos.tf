@@ -72,17 +72,17 @@ resource "ibm_resource_key" "hmac_key" {
 
 locals {
   afm_cos_bucket_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
-    access_key  = (flatten([for access_key in ibm_resource_key.hmac_key : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
-    bucket_name = (flatten([for bucket in ibm_cos_bucket.cos_bucket : bucket[*].bucket_name]))[idx]
-    secret_key  = (flatten([for secret_access_key in ibm_resource_key.hmac_key : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
+    akey   = (flatten([for access_key in ibm_resource_key.hmac_key : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
+    bucket = (flatten([for bucket in ibm_cos_bucket.cos_bucket : bucket[*].bucket_name]))[idx]
+    skey   = (flatten([for secret_access_key in ibm_resource_key.hmac_key : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
   }]
 
   afm_config_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
-    bucket_name = (flatten([for bucket in ibm_cos_bucket.cos_bucket : bucket[*].bucket_name]))[idx]
-    filesystem  = "fs1"
-    fileset     = ([for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset])[idx]
-    mode        = ([for mode in var.new_instance_bucket_hmac : mode.mode])[idx]
-    endpoint    = "https://${(flatten([for endpoint in ibm_cos_bucket.cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
+    bucket     = (flatten([for bucket in ibm_cos_bucket.cos_bucket : bucket[*].bucket_name]))[idx]
+    filesystem = "fs1"
+    fileset    = ([for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset])[idx]
+    mode       = ([for mode in var.new_instance_bucket_hmac : mode.mode])[idx]
+    endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
   }]
 }
 
@@ -136,17 +136,17 @@ resource "ibm_resource_key" "existing_instance_new_hmac_keys" {
 
 locals {
   afm_cos_bucket_details_2 = [for idx, config in var.exstng_instance_new_bucket_hmac : {
-    access_key  = (flatten([for access_key in ibm_resource_key.existing_instance_new_hmac_keys : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
-    bucket_name = (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket : bucket[*].bucket_name]))[idx]
-    secret_key  = (flatten([for secret_access_key in ibm_resource_key.existing_instance_new_hmac_keys : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
+    akey   = (flatten([for access_key in ibm_resource_key.existing_instance_new_hmac_keys : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
+    bucket = (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket : bucket[*].bucket_name]))[idx]
+    skey   = (flatten([for secret_access_key in ibm_resource_key.existing_instance_new_hmac_keys : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
   }]
 
   afm_config_details_2 = [for idx, config in var.exstng_instance_new_bucket_hmac : {
-    bucket_name = (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket : bucket[*].bucket_name]))[idx]
-    filesystem  = "fs1"
-    fileset     = ([for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset])[idx]
-    mode        = ([for mode in var.exstng_instance_new_bucket_hmac : mode.mode])[idx]
-    endpoint    = "https://${(flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
+    bucket     = (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket : bucket[*].bucket_name]))[idx]
+    filesystem = "fs1"
+    fileset    = ([for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset])[idx]
+    mode       = ([for mode in var.exstng_instance_new_bucket_hmac : mode.mode])[idx]
+    endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
   }]
 }
 
@@ -201,17 +201,17 @@ resource "ibm_resource_key" "existing_instance_bkt_new_hmac_keys" {
 
 locals {
   afm_cos_bucket_details_3 = [for idx, config in var.exstng_instance_bucket_new_hmac : {
-    access_key  = (flatten([for access_key in ibm_resource_key.existing_instance_bkt_new_hmac_keys : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
-    bucket_name = (flatten([for bucket in data.ibm_cos_bucket.existing_cos_instance_bucket : bucket[*].bucket_name]))[idx]
-    secret_key  = (flatten([for secret_access_key in ibm_resource_key.existing_instance_bkt_new_hmac_keys : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
+    akey   = (flatten([for access_key in ibm_resource_key.existing_instance_bkt_new_hmac_keys : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
+    bucket = (flatten([for bucket in data.ibm_cos_bucket.existing_cos_instance_bucket : bucket[*].bucket_name]))[idx]
+    skey   = (flatten([for secret_access_key in ibm_resource_key.existing_instance_bkt_new_hmac_keys : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
   }]
 
   afm_config_details_3 = [for idx, config in var.exstng_instance_bucket_new_hmac : {
-    bucket_name = (flatten([for bucket in data.ibm_cos_bucket.existing_cos_instance_bucket : bucket[*].bucket_name]))[idx]
-    filesystem  = "fs1"
-    fileset     = ([for fileset in var.exstng_instance_bucket_new_hmac : fileset.afm_fileset])[idx]
-    mode        = ([for mode in var.exstng_instance_bucket_new_hmac : mode.mode])[idx]
-    endpoint    = "https://${(flatten([for endpoint in data.ibm_cos_bucket.existing_cos_instance_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
+    bucket     = (flatten([for bucket in data.ibm_cos_bucket.existing_cos_instance_bucket : bucket[*].bucket_name]))[idx]
+    filesystem = "fs1"
+    fileset    = ([for fileset in var.exstng_instance_bucket_new_hmac : fileset.afm_fileset])[idx]
+    mode       = ([for mode in var.exstng_instance_bucket_new_hmac : mode.mode])[idx]
+    endpoint   = "https://${(flatten([for endpoint in data.ibm_cos_bucket.existing_cos_instance_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
   }]
 }
 
@@ -264,17 +264,17 @@ data "ibm_resource_key" "existing_hmac_key" {
 
 locals {
   afm_cos_bucket_details_4 = [for idx, config in var.exstng_instance_hmac_new_bucket : {
-    access_key  = (flatten([for access_key in data.ibm_resource_key.existing_hmac_key : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
-    bucket_name = (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : bucket[*].bucket_name]))[idx]
-    secret_key  = (flatten([for secret_access_key in data.ibm_resource_key.existing_hmac_key : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
+    akey   = (flatten([for access_key in data.ibm_resource_key.existing_hmac_key : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
+    bucket = (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : bucket[*].bucket_name]))[idx]
+    skey   = (flatten([for secret_access_key in data.ibm_resource_key.existing_hmac_key : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
   }]
 
   afm_config_details_4 = [for idx, config in var.exstng_instance_hmac_new_bucket : {
-    bucket_name = (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : bucket[*].bucket_name]))[idx]
-    filesystem  = "fs1"
-    fileset     = ([for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset])[idx]
-    mode        = ([for mode in var.exstng_instance_hmac_new_bucket : mode.mode])[idx]
-    endpoint    = "https://${(flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
+    bucket     = (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : bucket[*].bucket_name]))[idx]
+    filesystem = "fs1"
+    fileset    = ([for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset])[idx]
+    mode       = ([for mode in var.exstng_instance_hmac_new_bucket : mode.mode])[idx]
+    endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
   }]
 }
 
@@ -329,22 +329,22 @@ data "ibm_resource_key" "exstng_cos_instance_hmac" {
 
 locals {
   afm_cos_bucket_details_5 = [for idx, config in var.exstng_instance_bucket_hmac : {
-    access_key  = (flatten([for access_key in data.ibm_resource_key.exstng_cos_instance_hmac : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
-    bucket_name = (flatten([for bucket in data.ibm_cos_bucket.exstng_cos_instance_bucket : bucket[*].bucket_name]))[idx]
-    secret_key  = (flatten([for secret_access_key in data.ibm_resource_key.exstng_cos_instance_hmac : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
+    akey   = (flatten([for access_key in data.ibm_resource_key.exstng_cos_instance_hmac : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
+    bucket = (flatten([for bucket in data.ibm_cos_bucket.exstng_cos_instance_bucket : bucket[*].bucket_name]))[idx]
+    skey   = (flatten([for secret_access_key in data.ibm_resource_key.exstng_cos_instance_hmac : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
   }]
 
   afm_config_details_5 = [for idx, config in var.exstng_instance_bucket_hmac : {
-    bucket_name = (flatten([for bucket in data.ibm_cos_bucket.exstng_cos_instance_bucket : bucket[*].bucket_name]))[idx]
-    filesystem  = "fs1"
-    fileset     = ([for fileset in var.exstng_instance_bucket_hmac : fileset.afm_fileset])[idx]
-    mode        = ([for mode in var.exstng_instance_bucket_hmac : mode.mode])[idx]
-    endpoint    = "https://${(flatten([for endpoint in data.ibm_cos_bucket.exstng_cos_instance_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
+    bucket     = (flatten([for bucket in data.ibm_cos_bucket.exstng_cos_instance_bucket : bucket[*].bucket_name]))[idx]
+    filesystem = "fs1"
+    fileset    = ([for fileset in var.exstng_instance_bucket_hmac : fileset.afm_fileset])[idx]
+    mode       = ([for mode in var.exstng_instance_bucket_hmac : mode.mode])[idx]
+    endpoint   = "https://${(flatten([for endpoint in data.ibm_cos_bucket.exstng_cos_instance_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
   }]
 }
 
 output "afm_cos_bucket_details" {
-  value = concat(local.afm_cos_bucket_details_1, local.afm_cos_bucket_details_2, local.afm_cos_bucket_details_3, local.afm_cos_bucket_details_4, local.afm_cos_bucket_details_5, )
+  value = concat(local.afm_cos_bucket_details_1, local.afm_cos_bucket_details_2, local.afm_cos_bucket_details_3, local.afm_cos_bucket_details_4, local.afm_cos_bucket_details_5)
 }
 
 output "afm_config_details" {
