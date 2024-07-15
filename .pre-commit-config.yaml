@@ -16,12 +16,12 @@ repos:
   rev: v2.0.4
   hooks:
     - id: autopep8
-- repo: https://github.com/antonbabenko/pre-commit-terraform
-  rev: v1.83.4
+- repo: https://github.com/tofuutils/pre-commit-opentofu
+  rev: v1.0.2
   hooks:
-    - id: terraform_fmt
-    - id: terraform_validate
-    - id: terraform_tflint
+    - id: tofu_fmt
+    - id: tofu_validate
+    - id: tofu_tflint
       args:
           - '--args=--only=terraform_deprecated_interpolation'
           - '--args=--only=terraform_deprecated_index'
@@ -30,7 +30,7 @@ repos:
           - '--args=--only=terraform_module_pinned_source'
           - '--args=--only=terraform_naming_convention'
           - '--args=--only=terraform_workspace_remote'
-    - id: terraform_tfsec
+    - id: tofu_tfsec
 - repo: local
   hooks:
     - id: custom-terraform-docs

@@ -88,6 +88,9 @@ resource "google_compute_instance" "itself" {
     email  = var.service_email
     scopes = var.scopes
   }
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 # Add the VM instance ip as 'A' record to DNS
