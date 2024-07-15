@@ -29,8 +29,8 @@ locals {
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
   ldap_server                  = var.enable_ldap == true && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
-  create_cos_bucket            = local.enable_afm == true && var.afm_cos_config[0].bucket_name == "" ? true : false
-  afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
+  #create_cos_bucket            = local.enable_afm == true && var.afm_cos_config[0].bucket_name == "" ? true : false
+  afm_server_type = strcontains(var.afm_vsi_profile, "metal")
 }
 
 module "generate_compute_cluster_keys" {
@@ -615,37 +615,6 @@ module "gklm_instance" {
   depends_on           = [module.gklm_instance_ingress_security_rule, module.gklm_instance_ingress_security_rule_wt_bastion, module.gklm_instance_ingress_security_rule_wo_bastion, module.gklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
-# module "afm_cluster_instances" {
-#   source                       = "../../../resources/ibmcloud/compute/afm_vsi"
-#   total_vsis                   = var.total_afm_cluster_instances
-#   vsi_name_prefix              = format("%s-afm", var.resource_prefix)
-#   afm_server_type              = local.afm_server_type
-#   vpc_id                       = var.vpc_id
-#   resource_group_id            = var.resource_group_id
-#   zones                        = [var.vpc_availability_zones[0]]
-#   vsi_image_id                 = local.storage_instance_image_id
-#   vsi_profile                  = var.afm_vsi_profile
-#   dns_domain                   = var.vpc_storage_cluster_dns_domain
-#   dns_service_id               = var.vpc_storage_cluster_dns_service_id
-#   dns_zone_id                  = var.vpc_storage_cluster_dns_zone_id
-#   vsi_subnet_id                = var.vpc_storage_cluster_private_subnets
-#   vsi_security_group           = [module.storage_cluster_security_group.sec_group_id]
-#   vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
-#   vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
-#   vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
-#   protocol_domain              = ""
-#   storage_dns_service_id       = ""
-#   storage_dns_zone_id          = ""
-#   protocol_subnet_id           = []
-#   storage_sec_group            = []
-#   enable_protocol              = false
-#   scale_firewall_rules_enabled = true
-#   vpc_region                   = ""
-#   vpc_rt_id                    = ""
-#   resource_tags                = var.scale_cluster_resource_tags
-#   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
-# }
-
 module "afm_cluster_instances" {
   source                       = "../../../resources/ibmcloud/compute/afm_vsi"
   total_vsis                   = var.total_afm_cluster_instances
@@ -669,51 +638,81 @@ module "afm_cluster_instances" {
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
+locals {
+
+  new_instance_bucket_hmac        = [for details in var.afm_cos_config : details if(details.cos_instance == "" && details.bucket_name == "" && details.hmac_key == "")]
+  exstng_instance_new_bucket_hmac = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name == "" && details.hmac_key == "")]
+  exstng_instance_bucket_new_hmac = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name != "" && details.hmac_key == "")]
+  exstng_instance_hmac_new_bucket = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name == "" && details.hmac_key != "")]
+  exstng_instance_bucket_hmac     = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name != "" && details.hmac_key != "")]
+
+}
+
 module "cos" {
-  count             = local.create_cos_bucket == true ? 1 : 0
-  source            = "../../../resources/ibmcloud/compute/cos"
-  prefix            = "${var.resource_prefix}-region-${var.vpc_region}-"
-  resource_group_id = var.resource_group_id
-  region_location   = var.vpc_region
+  count                           = local.enable_afm == true ? 1 : 0
+  source                          = "../../../resources/ibmcloud/compute/cos"
+  prefix                          = "${var.resource_prefix}-"
+  resource_group_id               = "0808a9d6f8874342b7c4c07ad1666dc2"
+  cos_instance_plan               = "standard"
+  cos_instance_location           = "global"
+  cos_service                     = "cloud-object-storage"
+  cos_bucket_storage_class        = "standard"
+  cos_hmac_role                   = "Manager"
+  new_instance_bucket_hmac        = local.new_instance_bucket_hmac
+  exstng_instance_new_bucket_hmac = local.exstng_instance_new_bucket_hmac
+  exstng_instance_bucket_new_hmac = local.exstng_instance_bucket_new_hmac
+  exstng_instance_hmac_new_bucket = local.exstng_instance_hmac_new_bucket
+  exstng_instance_bucket_hmac     = local.exstng_instance_bucket_hmac
+
 }
 
-data "ibm_resource_instance" "cos_instance" {
-  count   = local.create_cos_bucket == false ? 1 : 0
-  name    = var.afm_cos_config[0].cos_instance
-  service = "cloud-object-storage"
-}
+# module "cos" {
+#   count             = local.create_cos_bucket == true ? 1 : 0
+#   source            = "../../../resources/ibmcloud/compute/cos"
+#   prefix            = "${var.resource_prefix}-region-${var.vpc_region}-"
+#   resource_group_id = var.resource_group_id
+#   region_location   = var.vpc_region
+# }
 
-data "ibm_cos_bucket" "existing_cos_bucket" {
-  count                = local.create_cos_bucket == false ? 1 : 0
-  bucket_name          = var.afm_cos_config[0].bucket_name
-  resource_instance_id = data.ibm_resource_instance.cos_instance[0].id
-  bucket_region        = var.afm_cos_config[0].bucket_region
-  bucket_type          = "region_location"
-}
+# data "ibm_resource_instance" "cos_instance" {
+#   count   = local.create_cos_bucket == false ? 1 : 0
+#   name    = var.afm_cos_config[0].cos_instance
+#   service = "cloud-object-storage"
+# }
 
-data "ibm_resource_key" "existing_hmac_key" {
-  count                = local.create_cos_bucket == false ? 1 : 0
-  name                 = var.afm_cos_config[0].hmac_key
-  resource_instance_id = data.ibm_resource_instance.cos_instance[0].id
-}
+# data "ibm_cos_bucket" "existing_cos_bucket" {
+#   count                = local.create_cos_bucket == false ? 1 : 0
+#   bucket_name          = var.afm_cos_config[0].bucket_name
+#   resource_instance_id = data.ibm_resource_instance.cos_instance[0].id
+#   bucket_region        = var.afm_cos_config[0].bucket_region
+#   bucket_type          = "region_location"
+# }
+
+# data "ibm_resource_key" "existing_hmac_key" {
+#   count                = local.create_cos_bucket == false ? 1 : 0
+#   name                 = var.afm_cos_config[0].hmac_key
+#   resource_instance_id = data.ibm_resource_instance.cos_instance[0].id
+# }
 
 locals {
-  new_bucket_name              = local.create_cos_bucket == true ? module.cos[0].bucket_name : ""
-  new_bucket_endpoint          = local.create_cos_bucket == true ? module.cos[0].bucket_endpoint : ""
-  new_bucket_access_key_id     = local.create_cos_bucket == true ? module.cos[0].access_key_id : ""
-  new_bucket_secret_access_key = local.create_cos_bucket == true ? module.cos[0].secret_access_key : ""
+  # new_bucket_name              = local.create_cos_bucket == true ? module.cos[0].bucket_name : ""
+  # new_bucket_endpoint          = local.create_cos_bucket == true ? module.cos[0].bucket_endpoint : ""
+  # new_bucket_access_key_id     = local.create_cos_bucket == true ? module.cos[0].access_key_id : ""
+  # new_bucket_secret_access_key = local.create_cos_bucket == true ? module.cos[0].secret_access_key : ""
 
-  existing_bucket_endpoint   = local.create_cos_bucket == false ? data.ibm_cos_bucket.existing_cos_bucket[0].s3_endpoint_direct : ""
-  existing_access_key_id     = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.access_key_id"] : ""
-  existing_secret_access_key = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.secret_access_key"] : ""
+  # existing_bucket_endpoint   = local.create_cos_bucket == false ? data.ibm_cos_bucket.existing_cos_bucket[0].s3_endpoint_direct : ""
+  # existing_access_key_id     = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.access_key_id"] : ""
+  # existing_secret_access_key = local.create_cos_bucket == false ? data.ibm_resource_key.existing_hmac_key[0].credentials["cos_hmac_keys.secret_access_key"] : ""
 
-  afm_bucket_name       = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_name : var.afm_cos_config[0].bucket_name : ""
-  afm_access_key_id     = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_access_key_id : local.existing_access_key_id : ""
-  afm_secret_access_key = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_secret_access_key : local.existing_secret_access_key : ""
-  afm_endpoint          = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_endpoint : local.existing_bucket_endpoint : ""
+  # afm_bucket_name       = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_name : var.afm_cos_config[0].bucket_name : ""
+  # afm_access_key_id     = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_access_key_id : local.existing_access_key_id : ""
+  # afm_secret_access_key = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_secret_access_key : local.existing_secret_access_key : ""
+  # afm_endpoint          = local.enable_afm == true ? local.create_cos_bucket == true ? local.new_bucket_endpoint : local.existing_bucket_endpoint : ""
 
-  afm_cos_bucket_details = [{ bucket = local.afm_bucket_name, akey = local.afm_access_key_id, skey = local.afm_secret_access_key }]
-  afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config[0].afm_fileset, endpoint = "https://${local.afm_endpoint}", mode = var.afm_cos_config[0].mode }]
+  # afm_cos_bucket_details = [{ bucket = local.afm_bucket_name, akey = local.afm_access_key_id, skey = local.afm_secret_access_key }]
+  # afm_config_details     = [{ bucket = local.afm_bucket_name, filesystem = "fs1", fileset = var.afm_cos_config[0].afm_fileset, endpoint = "https://${local.afm_endpoint}", mode = var.afm_cos_config[0].mode }]
+  afm_cos_bucket_details = local.enable_afm == true ? module.cos.afm_cos_bucket_details : []
+  afm_config_details     = local.enable_afm == true ? module.cos.afm_config_details : []
 }
 
 module "activity_tracker" {
