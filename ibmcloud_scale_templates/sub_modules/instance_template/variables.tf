@@ -558,5 +558,5 @@ variable "afm_cos_config" {
     afm_fileset   = string,
     mode          = string
   }))
-  description = "Existing Bucket name and cos instance name"
+  description = "Please add the details of COS instance, COS bucket, hmac key, fileset and mode."
 }
