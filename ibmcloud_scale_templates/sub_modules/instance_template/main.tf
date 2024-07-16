@@ -29,8 +29,7 @@ locals {
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
   ldap_server                  = var.enable_ldap == true && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
-  #create_cos_bucket            = local.enable_afm == true && var.afm_cos_config[0].bucket_name == "" ? true : false
-  afm_server_type = strcontains(var.afm_vsi_profile, "metal")
+  afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
 }
 
 module "generate_compute_cluster_keys" {
@@ -651,7 +650,7 @@ module "cos" {
   count                           = local.enable_afm == true ? 1 : 0
   source                          = "../../../resources/ibmcloud/compute/cos"
   prefix                          = "${var.resource_prefix}-"
-  resource_group_id               = "0808a9d6f8874342b7c4c07ad1666dc2"
+  resource_group_id               = var.resource_group_id
   cos_instance_plan               = "standard"
   cos_instance_location           = "global"
   cos_service                     = "cloud-object-storage"
