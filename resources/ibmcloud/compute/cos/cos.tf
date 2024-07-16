@@ -64,7 +64,6 @@ resource "ibm_resource_key" "hmac_key" {
     for idx, count_number in range(1, length(local.new_cos_instance) + 1) : idx => {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in ibm_resource_instance.cos_instance : instance_id[*].id]), idx)
-      #region_location = element(var.region_location, idx)
     }
   }
   name                 = format("%s-%03s", "${var.prefix}hmac-key-new", each.value.sequence_string)

@@ -830,7 +830,7 @@ module "write_storage_cluster_inventory" {
   filesets                                         = jsonencode(local.fileset_size_map)
   afm_cos_bucket_details                           = local.enable_afm == true ? jsonencode(local.afm_cos_bucket_details) : jsonencode([])
   afm_config_details                               = local.enable_afm == true ? jsonencode(local.afm_config_details) : jsonencode([])
-  afm_cluster_instance_names                       = jsonencode(local.afm_instance_names) #jsonencode(keys(module.afm_cluster_instances.instance_name_id_map))
+  afm_cluster_instance_names                       = jsonencode(local.afm_instance_names)
 }
 
 module "write_cluster_inventory" {
