@@ -39,6 +39,8 @@ def calculate_pagepool(nodeclass, memory):
         pagepool_gb = min(int((memory * 0.12) // 1 + 1), 16)
     elif nodeclass == "storageprotocolnodegrp":
         pagepool_gb = min(int((memory * 0.4) // 1), 256)
+    elif nodeclass == "afmgatewaygrp":
+        pagepool_gb = min(int((memory * 0.0625) // 1), 256)
     else:
         pagepool_gb = min(int((memory * 0.25) // 1), 32)
 
@@ -50,7 +52,7 @@ def calculate_maxStatCache(nodeclass, memory):
 
     if nodeclass == "computenodegrp":
         maxStatCache = "256K"
-    elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp"]:
+    elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp", "afmgatewaygrp"]:
         maxStatCache = "128K"
     else:
         maxStatCache = str(min(int(memory * 8), 512)) + "K"
@@ -64,6 +66,8 @@ def calculate_maxFilesToCache(nodeclass, memory):
         maxFilesToCache = "256K"
     elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp"]:
         maxFilesToCache = "128K"
+    elif nodeclass in "afmgatewaygrp":
+        maxFilesToCache = "10000K"
     else:
         calFilesToCache = int(memory * 8)
         if calFilesToCache < 1024:
@@ -425,7 +429,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 if is_protocol:
                     nodeclass = "protocolnodegrp"
                 elif is_afm:
-                    nodeclass = "afmnodegrp"
+                    nodeclass = "afmgatewaygrp"
                 else:
                     nodeclass = "managementnodegrp"
             if storage_cluster_instance_names.index(each_ip) < (start_quorum_assign):
@@ -776,6 +780,12 @@ if __name__ == "__main__":
                         default=16000)
     PARSER.add_argument('--enable_afm', help='enable AFM',
                         default="null")
+    PARSER.add_argument("--afm_memory", help="AFM node memory",
+                        default=32)
+    PARSER.add_argument("--afm_vcpus_count", help="AFM node vcpus count",
+                        default=8)
+    PARSER.add_argument("--afm_bandwidth", help="AFM node bandwidth",
+                        default=16000)
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
@@ -841,6 +851,8 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
+        afmgatewaygrp = generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
         
         nodeclassgrp = [storagedescnodegrp, managementnodegrp]
         if ARGUMENTS.enable_ces == "True":
@@ -848,11 +860,17 @@ if __name__ == "__main__":
                 if ARGUMENTS.is_colocate_protocol_subset == "True":
                     nodeclassgrp.append(storagenodegrp)
                 nodeclassgrp.append(storageprotocolnodegrp)
+                if ARGUMENTS.enable_afm == "True":
+                    nodeclassgrp.append(afmgatewaygrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
                 nodeclassgrp.append(protocolnodegrp)
+                if ARGUMENTS.enable_afm == "True":
+                    nodeclassgrp.append(afmgatewaygrp)
         else:
             nodeclassgrp.append(storagenodegrp)
+            if ARGUMENTS.enable_afm == "True":
+                    nodeclassgrp.append(afmgatewaygrp)
         scale_config = initialize_scale_config_details(nodeclassgrp)
 
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
@@ -887,6 +905,8 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
+        afmgatewaygrp = generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
 
         nodeclassgrp = [storagedescnodegrp, managementnodegrp]
         if ARGUMENTS.enable_ces == "True":
@@ -894,11 +914,17 @@ if __name__ == "__main__":
                 if ARGUMENTS.is_colocate_protocol_subset == "True":
                     nodeclassgrp.append(storagenodegrp)
                 nodeclassgrp.append(storageprotocolnodegrp)
+                if ARGUMENTS.enable_afm == "True":
+                    nodeclassgrp.append(afmgatewaygrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
                 nodeclassgrp.append(protocolnodegrp)
+                if ARGUMENTS.enable_afm == "True":
+                    nodeclassgrp.append(afmgatewaygrp)
         else:
             nodeclassgrp.append(storagenodegrp)
+            if ARGUMENTS.enable_afm == "True":
+                    nodeclassgrp.append(afmgatewaygrp)
         scale_config = initialize_scale_config_details(nodeclassgrp)
 
     else:
@@ -929,6 +955,8 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
+        afmgatewaygrp = generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
 
         if len(TF['vpc_availability_zones']) == 1:
             nodeclassgrp = [storagedescnodegrp, managementnodegrp, computenodegrp]
@@ -937,11 +965,17 @@ if __name__ == "__main__":
                     if ARGUMENTS.is_colocate_protocol_subset == "True":
                         nodeclassgrp.append(storagenodegrp)
                     nodeclassgrp.append(storageprotocolnodegrp)
+                    if ARGUMENTS.enable_afm == "True":
+                        nodeclassgrp.append(afmgatewaygrp)
                 else:
                     nodeclassgrp.append(storagenodegrp)
                     nodeclassgrp.append(protocolnodegrp)
+                    if ARGUMENTS.enable_afm == "True":
+                        nodeclassgrp.append(afmgatewaygrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
+                if ARGUMENTS.enable_afm == "True":
+                    nodeclassgrp.append(afmgatewaygrp)
             scale_config = initialize_scale_config_details(nodeclassgrp)
         else:
             nodeclassgrp = [storagedescnodegrp, managementnodegrp, computenodegrp]
@@ -950,11 +984,17 @@ if __name__ == "__main__":
                     if ARGUMENTS.is_colocate_protocol_subset == "True":
                         nodeclassgrp.append(storagenodegrp)
                     nodeclassgrp.append(storageprotocolnodegrp)
+                    if ARGUMENTS.enable_afm == "True":
+                        nodeclassgrp.append(afmgatewaygrp)
                 else:
                     nodeclassgrp.append(storagenodegrp)
                     nodeclassgrp.append(protocolnodegrp)
+                    if ARGUMENTS.enable_afm == "True":
+                        nodeclassgrp.append(afmgatewaygrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
+                if ARGUMENTS.enable_afm == "True":
+                    nodeclassgrp.append(afmgatewaygrp)
             scale_config = initialize_scale_config_details(nodeclassgrp)
 
     print("Identified cluster type: %s" % cluster_type)

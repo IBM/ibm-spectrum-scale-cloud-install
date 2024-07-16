@@ -999,6 +999,9 @@ module "storage_cluster_configuration" {
   strg_proto_memory                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   strg_proto_vcpus_count              = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   strg_proto_bandwidth                = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  afm_memory                          = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_profile[0].memory[0].value : data.ibm_is_instance_profile.afm_vsi_profile.memory[0].value
+  afm_vcpus_count                     = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.afm_vsi_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.afm_vsi_profile.vcpu_count[0].value
+  afm_bandwidth                       = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.afm_vsi_profile.bandwidth[0].value
   disk_type                           = "network-attached"
   max_data_replicas                   = 3
   max_metadata_replicas               = 3
