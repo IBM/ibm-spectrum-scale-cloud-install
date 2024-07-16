@@ -75,9 +75,9 @@ resource "ibm_resource_key" "hmac_key" {
 
 locals {
   afm_cos_bucket_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
-    akey   = (flatten([for access_key in ibm_resource_key.hmac_key : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
+    akey   = ibm_resource_key.hmac_key[0].credentials["cos_hmac_keys.access_key_id"]
     bucket = (flatten([for bucket in ibm_cos_bucket.cos_bucket : bucket[*].bucket_name]))[idx]
-    skey   = (flatten([for secret_access_key in ibm_resource_key.hmac_key : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
+    skey   = ibm_resource_key.hmac_key[0].credentials["cos_hmac_keys.secret_access_key"]
   }]
 
   afm_config_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
