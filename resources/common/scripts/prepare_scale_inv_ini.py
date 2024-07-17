@@ -97,8 +97,8 @@ def check_nodeclass(nodeclass):
 def check_afm_values():
     """Check afm values"""
     afmHardMemThreshold = "40000000K"
-    afmNumFlushThreads = "8"
-    afmDIO = "2"
+    afmNumFlushThreads = 8
+    afmDIO = 2
     afm_config = {"afmHardMemThreshold": afmHardMemThreshold,
               "afmNumFlushThreads": afmNumFlushThreads,
               "afmDIO": afmDIO}
@@ -860,9 +860,9 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
-        afmgatewaygrp = check_afm_values()
-        afmgatewaygrp.update(generate_nodeclass_config(
-            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth))
+        afmgatewaygrp =generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
+        afmgatewaygrp[1].update(check_afm_values())
         
         nodeclassgrp = [storagedescnodegrp, managementnodegrp]
         if ARGUMENTS.enable_ces == "True":
@@ -915,9 +915,9 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
-        afmgatewaygrp = check_afm_values()
-        afmgatewaygrp.update(generate_nodeclass_config(
-            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth))
+        afmgatewaygrp =generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
+        afmgatewaygrp[1].update(check_afm_values())
 
         nodeclassgrp = [storagedescnodegrp, managementnodegrp]
         if ARGUMENTS.enable_ces == "True":
@@ -966,9 +966,9 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
-        afmgatewaygrp = check_afm_values()
-        afmgatewaygrp.update(generate_nodeclass_config(
-            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth))
+        afmgatewaygrp =generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
+        afmgatewaygrp[1].update(check_afm_values())
 
         if len(TF['vpc_availability_zones']) == 1:
             nodeclassgrp = [storagedescnodegrp, managementnodegrp, computenodegrp]
