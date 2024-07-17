@@ -614,6 +614,16 @@ module "gklm_instance" {
   depends_on           = [module.gklm_instance_ingress_security_rule, module.gklm_instance_ingress_security_rule_wt_bastion, module.gklm_instance_ingress_security_rule_wo_bastion, module.gklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
+data "ibm_is_bare_metal_server_profile" "afm_vsi_bm_server_profile" {
+  count = local.afm_server_type == true ? 1 : 0
+  name  = var.afm_vsi_profile
+}
+
+data "ibm_is_instance_profile" "afm_vsi_server_profile" {
+  count = local.afm_server_type == false ? 1 : 0
+  name  = var.afm_vsi_profile
+}
+
 module "afm_cluster_instances" {
   source                       = "../../../resources/ibmcloud/compute/afm_vsi"
   total_vsis                   = var.total_afm_cluster_instances
@@ -999,9 +1009,9 @@ module "storage_cluster_configuration" {
   strg_proto_memory                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   strg_proto_vcpus_count              = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   strg_proto_bandwidth                = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
-  afm_memory                          = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_profile[0].memory[0].value : data.ibm_is_instance_profile.afm_vsi_profile.memory[0].value
-  afm_vcpus_count                     = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.afm_vsi_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.afm_vsi_profile.vcpu_count[0].value
-  afm_bandwidth                       = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.afm_vsi_profile.bandwidth[0].value
+  afm_memory                          = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].memory[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].memory[0].value
+  afm_vcpus_count                     = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].vcpu_count[0].value
+  afm_bandwidth                       = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].bandwidth[0].value
   disk_type                           = "network-attached"
   max_data_replicas                   = 3
   max_metadata_replicas               = 3
