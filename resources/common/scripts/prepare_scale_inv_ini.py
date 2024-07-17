@@ -66,7 +66,7 @@ def calculate_maxFilesToCache(nodeclass, memory):
         maxFilesToCache = "256K"
     elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp"]:
         maxFilesToCache = "128K"
-    elif nodeclass in "afmgatewaygrp":
+    elif nodeclass == "afmgatewaygrp":
         maxFilesToCache = "10000K"
     else:
         calFilesToCache = int(memory * 8)
