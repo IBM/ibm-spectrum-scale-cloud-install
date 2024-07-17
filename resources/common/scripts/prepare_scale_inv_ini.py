@@ -870,17 +870,13 @@ if __name__ == "__main__":
                 if ARGUMENTS.is_colocate_protocol_subset == "True":
                     nodeclassgrp.append(storagenodegrp)
                 nodeclassgrp.append(storageprotocolnodegrp)
-                if ARGUMENTS.enable_afm == "True":
-                    nodeclassgrp.append(afmgatewaygrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
                 nodeclassgrp.append(protocolnodegrp)
-                if ARGUMENTS.enable_afm == "True":
-                    nodeclassgrp.append(afmgatewaygrp)
         else:
             nodeclassgrp.append(storagenodegrp)
-            if ARGUMENTS.enable_afm == "True":
-                    nodeclassgrp.append(afmgatewaygrp)
+        if ARGUMENTS.enable_afm == "True":
+            nodeclassgrp.append(afmgatewaygrp)
         scale_config = initialize_scale_config_details(nodeclassgrp)
 
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
@@ -925,17 +921,13 @@ if __name__ == "__main__":
                 if ARGUMENTS.is_colocate_protocol_subset == "True":
                     nodeclassgrp.append(storagenodegrp)
                 nodeclassgrp.append(storageprotocolnodegrp)
-                if ARGUMENTS.enable_afm == "True":
-                    nodeclassgrp.append(afmgatewaygrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
                 nodeclassgrp.append(protocolnodegrp)
-                if ARGUMENTS.enable_afm == "True":
-                    nodeclassgrp.append(afmgatewaygrp)
         else:
             nodeclassgrp.append(storagenodegrp)
-            if ARGUMENTS.enable_afm == "True":
-                    nodeclassgrp.append(afmgatewaygrp)
+        if ARGUMENTS.enable_afm == "True":
+            nodeclassgrp.append(afmgatewaygrp)
         scale_config = initialize_scale_config_details(nodeclassgrp)
 
     else:
@@ -977,17 +969,13 @@ if __name__ == "__main__":
                     if ARGUMENTS.is_colocate_protocol_subset == "True":
                         nodeclassgrp.append(storagenodegrp)
                     nodeclassgrp.append(storageprotocolnodegrp)
-                    if ARGUMENTS.enable_afm == "True":
-                        nodeclassgrp.append(afmgatewaygrp)
                 else:
                     nodeclassgrp.append(storagenodegrp)
                     nodeclassgrp.append(protocolnodegrp)
-                    if ARGUMENTS.enable_afm == "True":
-                        nodeclassgrp.append(afmgatewaygrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
-                if ARGUMENTS.enable_afm == "True":
-                    nodeclassgrp.append(afmgatewaygrp)
+            if ARGUMENTS.enable_afm == "True":
+                nodeclassgrp.append(afmgatewaygrp)
             scale_config = initialize_scale_config_details(nodeclassgrp)
         else:
             nodeclassgrp = [storagedescnodegrp, managementnodegrp, computenodegrp]
@@ -996,17 +984,13 @@ if __name__ == "__main__":
                     if ARGUMENTS.is_colocate_protocol_subset == "True":
                         nodeclassgrp.append(storagenodegrp)
                     nodeclassgrp.append(storageprotocolnodegrp)
-                    if ARGUMENTS.enable_afm == "True":
-                        nodeclassgrp.append(afmgatewaygrp)
                 else:
                     nodeclassgrp.append(storagenodegrp)
                     nodeclassgrp.append(protocolnodegrp)
-                    if ARGUMENTS.enable_afm == "True":
-                        nodeclassgrp.append(afmgatewaygrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
-                if ARGUMENTS.enable_afm == "True":
-                    nodeclassgrp.append(afmgatewaygrp)
+            if ARGUMENTS.enable_afm == "True":
+                nodeclassgrp.append(afmgatewaygrp)
             scale_config = initialize_scale_config_details(nodeclassgrp)
 
     print("Identified cluster type: %s" % cluster_type)
