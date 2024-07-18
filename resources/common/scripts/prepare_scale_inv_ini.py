@@ -97,11 +97,7 @@ def check_nodeclass(nodeclass):
 def check_afm_values():
     """Check afm values"""
     afmHardMemThreshold = "40000000K"
-    afmNumFlushThreads = 8
-    afmDIO = 2
-    afm_config = {"afmHardMemThreshold": afmHardMemThreshold,
-              "afmNumFlushThreads": afmNumFlushThreads,
-              "afmDIO": afmDIO}
+    afm_config = {"afmHardMemThreshold": afmHardMemThreshold,}
     return afm_config
 
 def generate_nodeclass_config(nodeclass, memory, vcpus, bandwidth):
