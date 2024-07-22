@@ -539,14 +539,14 @@ variable "ldap_vsi_osimage_name" {
 
 variable "total_afm_cluster_instances" {
   type        = number
-  default     = 1
-  description = "Total number of afm nodes that you need to provision."
+  default     = 0
+  description = "Total number of instance count that you need to provision for afm nodes and enable AFM."
 }
 
 variable "afm_vsi_profile" {
   type        = string
   default     = "cx2-2x4"
-  description = "The virtual server instance profile type name to be used to create the protocol cluster nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui)."
+  description = "The virtual instance or bare metal server instance profile type name to be used to create the AFM gateway nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui) and [bare metal server profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
 }
 
 variable "afm_cos_config" {
@@ -558,5 +558,5 @@ variable "afm_cos_config" {
     afm_fileset   = string,
     mode          = string
   }))
-  description = "Please add the details of COS instance, COS bucket, hmac key, fileset and mode."
+  description = "Please add the details of COS instance, COS bucket, hmac key, AFM fileset and mode(Read-only (RO), Single writer (SW), Local updates (LU) and Independent writer (IW))."
 }
