@@ -115,7 +115,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket" {
       region_location = element(local.region_exstng_instance_new_bucket_hmac, idx)
     }
   }
-  bucket_name          = format("%s-%03s", "${var.prefix}bkt", each.value.sequence_string)
+  bucket_name          = format("%s-%03s", "${var.prefix}bucket", each.value.sequence_string)
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
   storage_class        = var.cos_bucket_storage_class

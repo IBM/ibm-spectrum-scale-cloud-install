@@ -89,6 +89,7 @@ resource "local_file" "create_storage_tuning_parameters" {
  failureDetectionTime=60
  autoload=yes
  autoBuildGPL=yes
+ afmDIO=2
 EOT
   filename = local.scale_tuning_config_path
 }
