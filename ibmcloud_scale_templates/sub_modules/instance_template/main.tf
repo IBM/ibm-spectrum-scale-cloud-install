@@ -663,9 +663,10 @@ module "cos" {
   resource_group_id               = var.resource_group_id
   cos_instance_plan               = "standard"
   cos_instance_location           = "global"
-  cos_service                     = "cloud-object-storage"
+  cos_instance_service            = "cloud-object-storage"
   cos_bucket_storage_class        = "standard"
   cos_hmac_role                   = "Manager"
+  bucket_type                     = "region_location"
   new_instance_bucket_hmac        = local.new_instance_bucket_hmac
   exstng_instance_new_bucket_hmac = local.exstng_instance_new_bucket_hmac
   exstng_instance_bucket_new_hmac = local.exstng_instance_bucket_new_hmac

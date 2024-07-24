@@ -10,9 +10,10 @@ variable "prefix" {}
 variable "resource_group_id" {}
 variable "cos_instance_plan" {}
 variable "cos_instance_location" {}
-variable "cos_service" {}
+variable "cos_instance_service" {}
 variable "cos_bucket_storage_class" {}
 variable "cos_hmac_role" {}
+variable "bucket_type" {}
 variable "new_instance_bucket_hmac" {}
 variable "exstng_instance_new_bucket_hmac" {}
 variable "exstng_instance_bucket_new_hmac" {}
@@ -41,7 +42,7 @@ resource "ibm_resource_instance" "cos_instance" {
   resource_group_id = var.resource_group_id
   plan              = var.cos_instance_plan
   location          = var.cos_instance_location
-  service           = var.cos_service
+  service           = var.cos_instance_service
 }
 
 resource "ibm_cos_bucket" "cos_bucket" {
@@ -104,7 +105,7 @@ data "ibm_resource_instance" "existing_cos_instance" {
     }
   }
   name    = each.value.cos_instance
-  service = "cloud-object-storage"
+  service = var.cos_instance_service
 }
 
 resource "ibm_cos_bucket" "existing_instance_new_cos_bucket" {
@@ -169,7 +170,7 @@ data "ibm_resource_instance" "existing_cos_instance_bucket_new_hmac" {
     }
   }
   name    = each.value.cos_instance
-  service = "cloud-object-storage"
+  service = var.cos_instance_service
 }
 
 data "ibm_cos_bucket" "existing_cos_instance_bucket" {
@@ -183,7 +184,7 @@ data "ibm_cos_bucket" "existing_cos_instance_bucket" {
   bucket_name          = each.value.bucket_name
   resource_instance_id = each.value.resource_instance_id
   bucket_region        = each.value.bucket_region
-  bucket_type          = "region_location"
+  bucket_type          = var.bucket_type
   depends_on           = [data.ibm_resource_instance.existing_cos_instance_bucket_new_hmac]
 }
 
@@ -234,7 +235,7 @@ data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket" {
     }
   }
   name    = each.value.cos_instance
-  service = "cloud-object-storage"
+  service = var.cos_instance_service
 }
 
 resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket" {
@@ -299,7 +300,7 @@ data "ibm_resource_instance" "exstng_cos_instance_bucket_hmac" {
     }
   }
   name    = each.value.cos_instance
-  service = "cloud-object-storage"
+  service = var.cos_instance_service
 }
 
 data "ibm_cos_bucket" "exstng_cos_instance_bucket" {
@@ -313,7 +314,7 @@ data "ibm_cos_bucket" "exstng_cos_instance_bucket" {
   bucket_name          = each.value.bucket_name
   resource_instance_id = each.value.resource_instance_id
   bucket_region        = each.value.bucket_region
-  bucket_type          = "region_location"
+  bucket_type          = var.bucket_type
   depends_on           = [data.ibm_resource_instance.exstng_cos_instance_bucket_hmac]
 }
 
