@@ -52,7 +52,7 @@ def calculate_maxStatCache(nodeclass, memory):
 
     if nodeclass == "computenodegrp":
         maxStatCache = "256K"
-    elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp", "afmgatewaygrp"]:
+    elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp"]:
         maxStatCache = "128K"
     else:
         maxStatCache = str(min(int(memory * 8), 512)) + "K"
@@ -97,7 +97,7 @@ def check_nodeclass(nodeclass):
 def check_afm_values():
     """Check afm values"""
     afmHardMemThreshold = "40000000K"
-    afm_config = {"afmHardMemThreshold": afmHardMemThreshold,}
+    afm_config = {"afmHardMemThreshold": afmHardMemThreshold}
     return afm_config
 
 def generate_nodeclass_config(nodeclass, memory, vcpus, bandwidth):
