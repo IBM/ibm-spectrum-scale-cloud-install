@@ -230,7 +230,7 @@ locals {
 
 locals {
   exstng_instance_hmac_new_bkt         = [for instance in var.exstng_instance_hmac_new_bucket : instance.cos_instance]
-  exstng_instance_exstng_hmac          = [for hmac in var.exstng_instance_hmac_new_bucket : hmac.hmac_key]
+  exstng_instance_exstng_hmac          = [for hmac in var.exstng_instance_hmac_new_bucket : hmac.cos_service_cred_key]
   region_exstng_instance_hmac_new_bkt  = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region]
   exstng_instnc_hmac_new_bkt_strg_clss = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class]
 }
@@ -296,7 +296,7 @@ locals {
 locals {
   exstng_instance_bkt_hmac           = [for instance in var.exstng_instance_bucket_hmac : instance.cos_instance]
   exstng_instance_exstng_bkt         = [for bucket in var.exstng_instance_bucket_hmac : bucket.bucket_name]
-  exstng_instance_hmac_bkt           = [for hmac in var.exstng_instance_bucket_hmac : hmac.hmac_key]
+  exstng_instance_hmac_bkt           = [for hmac in var.exstng_instance_bucket_hmac : hmac.cos_service_cred_key]
   region_exstng_instance_bucket_hmac = [for region in var.exstng_instance_bucket_hmac : region.bucket_region]
   exstng_instance_bkt_type           = [for type in var.exstng_instance_bucket_hmac : type.bucket_type]
 }
