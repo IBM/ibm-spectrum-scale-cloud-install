@@ -551,12 +551,14 @@ variable "afm_vsi_profile" {
 
 variable "afm_cos_config" {
   type = list(object({
-    cos_instance  = string,
-    bucket_name   = string,
-    bucket_region = string,
-    hmac_key      = string,
-    afm_fileset   = string,
-    mode          = string
+    cos_instance         = string,
+    bucket_name          = string,
+    bucket_region        = string,
+    cos_service_cred_key = string,
+    afm_fileset          = string,
+    mode                 = string,
+    bucket_type          = string,
+    bucket_storage_class = string
   }))
   description = "Please add the details of COS instance, COS bucket, hmac key, AFM fileset and mode(Read-only (RO), Single writer (SW), Local updates (LU) and Independent writer (IW))."
 }
