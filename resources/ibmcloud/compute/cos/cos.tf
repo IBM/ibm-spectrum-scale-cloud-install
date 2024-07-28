@@ -11,9 +11,7 @@ variable "resource_group_id" {}
 variable "cos_instance_plan" {}
 variable "cos_instance_location" {}
 variable "cos_instance_service" {}
-#variable "cos_bucket_storage_class" {}
 variable "cos_hmac_role" {}
-#variable "bucket_type" {}
 variable "new_instance_bucket_hmac" {}
 variable "exstng_instance_new_bucket_hmac" {}
 variable "exstng_instance_bucket_new_hmac" {}
@@ -26,11 +24,20 @@ variable "filesystem" {}
 #############################################################################################################
 
 locals {
-  new_cos_instance                = distinct([for instance in var.new_instance_bucket_hmac : instance.cos_instance])
-  region_new_instance_bucket_hmac = [for region in var.new_instance_bucket_hmac : region.bucket_region]
-  path_elements                   = split("/", var.filesystem)
-  filesystem                      = element(local.path_elements, length(local.path_elements) - 1)
-  new_bucket_storage_class        = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class]
+  path_elements = split("/", var.filesystem)
+  filesystem    = element(local.path_elements, length(local.path_elements) - 1)
+
+  new_cos_instance = distinct([for instance in var.new_instance_bucket_hmac : instance.cos_instance])
+  # New bucket single Site
+  new_bucket_single_site_region = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "single_site_location"]
+  storage_class_single_site     = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "single_site_location"]
+  # New bucket regional
+  new_bucket_regional_region = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "region_location"]
+  storage_class_regional     = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location"]
+  # New bucket cross region
+  new_bucket_cross_region      = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
+  storage_class_cross_regional = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
+
 }
 
 resource "ibm_resource_instance" "cos_instance" {
@@ -46,13 +53,29 @@ resource "ibm_resource_instance" "cos_instance" {
   service           = var.cos_instance_service
 }
 
-resource "ibm_cos_bucket" "cos_bucket" {
+resource "ibm_cos_bucket" "cos_bucket_single_site" {
   for_each = {
-    for idx, count_number in range(1, length(var.new_instance_bucket_hmac) + 1) : idx => {
+    for idx, count_number in range(1, length(local.new_bucket_single_site_region) + 1) : idx => {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in ibm_resource_instance.cos_instance : instance_id[*].id]), idx)
-      region_location = element(local.region_new_instance_bucket_hmac, idx)
-      storage_class   = element(local.new_bucket_storage_class, idx)
+      region_location = element(local.new_bucket_single_site_region, idx)
+      storage_class   = element(local.storage_class_single_site, idx)
+    }
+  }
+  bucket_name          = format("%s-%03s", "${var.prefix}bucket-new", each.value.sequence_string)
+  resource_instance_id = each.value.cos_instance
+  single_site_location = each.value.region_location
+  storage_class        = each.value.storage_class
+  depends_on           = [ibm_resource_instance.cos_instance]
+}
+
+resource "ibm_cos_bucket" "cos_bucket_regional" {
+  for_each = {
+    for idx, count_number in range(1, length(local.new_bucket_regional_region) + 1) : idx => {
+      sequence_string = tostring(count_number)
+      cos_instance    = element(flatten([for instance_id in ibm_resource_instance.cos_instance : instance_id[*].id]), idx)
+      region_location = element(local.new_bucket_regional_region, idx)
+      storage_class   = element(local.storage_class_cross_regional, idx)
     }
   }
   bucket_name          = format("%s-%03s", "${var.prefix}bucket-new", each.value.sequence_string)
@@ -60,6 +83,22 @@ resource "ibm_cos_bucket" "cos_bucket" {
   region_location      = each.value.region_location
   storage_class        = each.value.storage_class
   depends_on           = [ibm_resource_instance.cos_instance]
+}
+
+resource "ibm_cos_bucket" "cos_bucket_cross_region" {
+  for_each = {
+    for idx, count_number in range(1, length(local.new_bucket_cross_region) + 1) : idx => {
+      sequence_string = tostring(count_number)
+      cos_instance    = element(flatten([for instance_id in ibm_resource_instance.cos_instance : instance_id[*].id]), idx)
+      region_location = element(local.new_bucket_cross_region, idx)
+      storage_class   = element(local.storage_class_regional, idx)
+    }
+  }
+  bucket_name           = format("%s-%03s", "${var.prefix}bucket-new", each.value.sequence_string)
+  resource_instance_id  = each.value.cos_instance
+  cross_region_location = each.value.region_location
+  storage_class         = each.value.storage_class
+  depends_on            = [ibm_resource_instance.cos_instance]
 }
 
 resource "ibm_resource_key" "hmac_key" {
@@ -76,18 +115,21 @@ resource "ibm_resource_key" "hmac_key" {
 }
 
 locals {
+  buckets   = concat((flatten([for bucket in ibm_cos_bucket.cos_bucket_single_site : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.cos_bucket_cross_region : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.cos_bucket_regional : bucket[*].bucket_name])))
+  endpoints = concat((flatten([for endpoint in ibm_cos_bucket.cos_bucket_single_site : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.cos_bucket_cross_region : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.cos_bucket_regional : endpoint[*].s3_endpoint_direct])))
+
   afm_cos_bucket_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
     akey   = ibm_resource_key.hmac_key[0].credentials["cos_hmac_keys.access_key_id"]
-    bucket = (flatten([for bucket in ibm_cos_bucket.cos_bucket : bucket[*].bucket_name]))[idx]
+    bucket = (local.buckets)[idx]
     skey   = ibm_resource_key.hmac_key[0].credentials["cos_hmac_keys.secret_access_key"]
   }]
 
   afm_config_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
-    bucket     = (flatten([for bucket in ibm_cos_bucket.cos_bucket : bucket[*].bucket_name]))[idx]
+    bucket     = (local.buckets)[idx]
     filesystem = local.filesystem
     fileset    = ([for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset])[idx]
     mode       = ([for mode in var.new_instance_bucket_hmac : mode.mode])[idx]
-    endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
+    endpoint   = "https://${(local.endpoints)[idx]}"
   }]
 }
 
@@ -96,9 +138,16 @@ locals {
 #############################################################################################################
 
 locals {
-  exstng_instance_new_bkt_hmac           = [for instance in var.exstng_instance_new_bucket_hmac : instance.cos_instance]
-  region_exstng_instance_new_bucket_hmac = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region]
-  exstng_instance_new_bkt_storage_class  = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class]
+  exstng_instance_new_bkt_hmac = [for instance in var.exstng_instance_new_bucket_hmac : instance.cos_instance]
+  # New bucket single Site
+  exstng_instance_single_site_region        = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "single_site_location"]
+  exstng_instance_storage_class_single_site = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "single_site_location"]
+  # New bucket regional
+  exstng_instance_regional_region        = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "region_location"]
+  exstng_instance_storage_class_regional = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location"]
+  # New bucket cross region
+  exstng_instance_cross_region                 = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
+  exstng_instance_storage_class_cross_regional = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
 }
 
 data "ibm_resource_instance" "existing_cos_instance" {
@@ -111,13 +160,45 @@ data "ibm_resource_instance" "existing_cos_instance" {
   service = var.cos_instance_service
 }
 
-resource "ibm_cos_bucket" "existing_instance_new_cos_bucket" {
+resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_single_site" {
   for_each = {
-    for idx, count_number in range(1, length(var.exstng_instance_new_bucket_hmac) + 1) : idx => {
+    for idx, count_number in range(1, length(local.exstng_instance_single_site_region) + 1) : idx => {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in data.ibm_resource_instance.existing_cos_instance : instance_id[*].id]), idx)
-      region_location = element(local.region_exstng_instance_new_bucket_hmac, idx)
-      storage_class   = element(local.exstng_instance_new_bkt_storage_class, idx)
+      region_location = element(local.exstng_instance_single_site_region, idx)
+      storage_class   = element(local.exstng_instance_storage_class_single_site, idx)
+    }
+  }
+  bucket_name          = format("%s-%03s", "${var.prefix}bucket", each.value.sequence_string)
+  resource_instance_id = each.value.cos_instance
+  region_location      = each.value.region_location
+  storage_class        = each.value.storage_class
+  depends_on           = [data.ibm_resource_instance.existing_cos_instance]
+}
+
+resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_regional" {
+  for_each = {
+    for idx, count_number in range(1, length(local.exstng_instance_regional_region) + 1) : idx => {
+      sequence_string = tostring(count_number)
+      cos_instance    = element(flatten([for instance_id in data.ibm_resource_instance.existing_cos_instance : instance_id[*].id]), idx)
+      region_location = element(local.exstng_instance_regional_region, idx)
+      storage_class   = element(local.exstng_instance_storage_class_regional, idx)
+    }
+  }
+  bucket_name          = format("%s-%03s", "${var.prefix}bucket", each.value.sequence_string)
+  resource_instance_id = each.value.cos_instance
+  region_location      = each.value.region_location
+  storage_class        = each.value.storage_class
+  depends_on           = [data.ibm_resource_instance.existing_cos_instance]
+}
+
+resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_cross_regional" {
+  for_each = {
+    for idx, count_number in range(1, length(local.exstng_instance_cross_region) + 1) : idx => {
+      sequence_string = tostring(count_number)
+      cos_instance    = element(flatten([for instance_id in data.ibm_resource_instance.existing_cos_instance : instance_id[*].id]), idx)
+      region_location = element(local.exstng_instance_cross_region, idx)
+      storage_class   = element(local.exstng_instance_storage_class_cross_regional, idx)
     }
   }
   bucket_name          = format("%s-%03s", "${var.prefix}bucket", each.value.sequence_string)
@@ -142,18 +223,21 @@ resource "ibm_resource_key" "existing_instance_new_hmac_keys" {
 }
 
 locals {
+  exstng_instance_buckets   = concat((flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket_single_site : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket_regional : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket_cross_regional : bucket[*].bucket_name])))
+  exstng_instance_endpoints = concat((flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket_single_site : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket_regional : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket_cross_regional : endpoint[*].s3_endpoint_direct])))
+
   afm_cos_bucket_details_2 = [for idx, config in var.exstng_instance_new_bucket_hmac : {
     akey   = (flatten([for access_key in ibm_resource_key.existing_instance_new_hmac_keys : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
-    bucket = (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket : bucket[*].bucket_name]))[idx]
+    bucket = (local.exstng_instance_buckets)[idx]
     skey   = (flatten([for secret_access_key in ibm_resource_key.existing_instance_new_hmac_keys : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
   }]
 
   afm_config_details_2 = [for idx, config in var.exstng_instance_new_bucket_hmac : {
-    bucket     = (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket : bucket[*].bucket_name]))[idx]
+    bucket     = (local.exstng_instance_buckets)[idx]
     filesystem = local.filesystem
     fileset    = ([for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset])[idx]
     mode       = ([for mode in var.exstng_instance_new_bucket_hmac : mode.mode])[idx]
-    endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
+    endpoint   = "https://${(local.exstng_instance_endpoints)[idx]}"
   }]
 }
 
@@ -229,10 +313,18 @@ locals {
 #############################################################################################################
 
 locals {
-  exstng_instance_hmac_new_bkt         = [for instance in var.exstng_instance_hmac_new_bucket : instance.cos_instance]
-  exstng_instance_exstng_hmac          = [for hmac in var.exstng_instance_hmac_new_bucket : hmac.cos_service_cred_key]
-  region_exstng_instance_hmac_new_bkt  = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region]
-  exstng_instnc_hmac_new_bkt_strg_clss = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class]
+  exstng_instance_hmac_new_bkt = [for instance in var.exstng_instance_hmac_new_bucket : instance.cos_instance]
+  exstng_instance_exstng_hmac  = [for hmac in var.exstng_instance_hmac_new_bucket : hmac.cos_service_cred_key]
+
+  # New bucket single Site
+  exstng_instance_hmac_single_site_region        = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "single_site_location"]
+  exstng_instance_hmac_storage_class_single_site = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "single_site_location"]
+  # New bucket regional
+  exstng_instance_hmac_regional_region        = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "region_location"]
+  exstng_instance_hmac_storage_class_regional = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "region_location"]
+  # New bucket cross region
+  exstng_instance_hmac_cross_region                 = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "cross_region_location"]
+  exstng_instance_hmac_storage_class_cross_regional = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
 }
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket" {
@@ -245,13 +337,45 @@ data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket" {
   service = var.cos_instance_service
 }
 
-resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket" {
+resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_single_site" {
   for_each = {
-    for idx, count_number in range(1, length(var.exstng_instance_hmac_new_bucket) + 1) : idx => {
+    for idx, count_number in range(1, length(local.exstng_instance_hmac_single_site_region) + 1) : idx => {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket : instance_id[*].id]), idx)
-      region_location = element(local.region_exstng_instance_hmac_new_bkt, idx)
-      storage_class   = element(local.exstng_instnc_hmac_new_bkt_strg_clss, idx)
+      region_location = element(local.exstng_instance_hmac_single_site_region, idx)
+      storage_class   = element(local.exstng_instance_hmac_storage_class_single_site, idx)
+    }
+  }
+  bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", each.value.sequence_string)
+  resource_instance_id = each.value.cos_instance
+  region_location      = each.value.region_location
+  storage_class        = each.value.storage_class
+  depends_on           = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
+}
+
+resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_regional" {
+  for_each = {
+    for idx, count_number in range(1, length(local.exstng_instance_hmac_regional_region) + 1) : idx => {
+      sequence_string = tostring(count_number)
+      cos_instance    = element(flatten([for instance_id in data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket : instance_id[*].id]), idx)
+      region_location = element(local.exstng_instance_hmac_regional_region, idx)
+      storage_class   = element(local.exstng_instance_hmac_storage_class_regional, idx)
+    }
+  }
+  bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", each.value.sequence_string)
+  resource_instance_id = each.value.cos_instance
+  region_location      = each.value.region_location
+  storage_class        = each.value.storage_class
+  depends_on           = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
+}
+
+resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_cross_region" {
+  for_each = {
+    for idx, count_number in range(1, length(local.exstng_instance_hmac_cross_region) + 1) : idx => {
+      sequence_string = tostring(count_number)
+      cos_instance    = element(flatten([for instance_id in data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket : instance_id[*].id]), idx)
+      region_location = element(local.exstng_instance_hmac_cross_region, idx)
+      storage_class   = element(local.exstng_instance_hmac_storage_class_cross_regional, idx)
     }
   }
   bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", each.value.sequence_string)
@@ -274,18 +398,21 @@ data "ibm_resource_key" "existing_hmac_key" {
 }
 
 locals {
+  exstng_instance_hmac_buckets   = concat((flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_single_site : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_regional : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_cross_region : bucket[*].bucket_name])))
+  exstng_instance_hmac_endpoints = concat((flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_single_site : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_regional : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_cross_region : endpoint[*].s3_endpoint_direct])))
+
   afm_cos_bucket_details_4 = [for idx, config in var.exstng_instance_hmac_new_bucket : {
     akey   = (flatten([for access_key in data.ibm_resource_key.existing_hmac_key : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
-    bucket = (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : bucket[*].bucket_name]))[idx]
+    bucket = (local.exstng_instance_hmac_buckets)[idx]
     skey   = (flatten([for secret_access_key in data.ibm_resource_key.existing_hmac_key : secret_access_key[*].credentials["cos_hmac_keys.secret_access_key"]]))[idx]
   }]
 
   afm_config_details_4 = [for idx, config in var.exstng_instance_hmac_new_bucket : {
-    bucket     = (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : bucket[*].bucket_name]))[idx]
+    bucket     = (local.exstng_instance_hmac_buckets)[idx]
     filesystem = local.filesystem
     fileset    = ([for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset])[idx]
     mode       = ([for mode in var.exstng_instance_hmac_new_bucket : mode.mode])[idx]
-    endpoint   = "https://${(flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket : endpoint[*].s3_endpoint_direct]))[idx]}"
+    endpoint   = "https://${(local.exstng_instance_hmac_endpoints)[idx]}"
   }]
 }
 

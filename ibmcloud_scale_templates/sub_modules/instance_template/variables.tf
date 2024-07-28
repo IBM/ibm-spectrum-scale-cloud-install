@@ -545,7 +545,7 @@ variable "total_afm_cluster_instances" {
 
 variable "afm_vsi_profile" {
   type        = string
-  default     = "cx2-2x4"
+  default     = "bx2-32x128"
   description = "The virtual instance or bare metal server instance profile type name to be used to create the AFM gateway nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui) and [bare metal server profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
 }
 
@@ -557,8 +557,8 @@ variable "afm_cos_config" {
     cos_service_cred_key = string,
     afm_fileset          = string,
     mode                 = string,
-    bucket_type          = string,
-    bucket_storage_class = string
+    bucket_storage_class = string,
+    bucket_type          = string
   }))
   description = "Please add the details of COS instance, COS bucket, hmac key, AFM fileset and mode(Read-only (RO), Single writer (SW), Local updates (LU) and Independent writer (IW))."
 }

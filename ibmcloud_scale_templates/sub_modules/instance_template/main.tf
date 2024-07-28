@@ -672,8 +672,6 @@ module "cos" {
   exstng_instance_bucket_hmac     = local.exstng_instance_bucket_hmac
   filesystem                      = var.storage_cluster_filesystem_mountpoint
   depends_on                      = [module.afm_cluster_instances]
-  #cos_bucket_storage_class        = "standard"
-  #bucket_type                     = "region_location"
 }
 
 locals {
