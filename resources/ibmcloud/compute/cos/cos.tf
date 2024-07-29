@@ -31,12 +31,18 @@ locals {
   # New bucket single Site
   new_bucket_single_site_region = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "single_site_location"]
   storage_class_single_site     = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "single_site_location"]
+  mode_single_site              = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "single_site_location"]
+  afm_fileset_single_site       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "single_site_location"]
   # New bucket regional
   new_bucket_regional_region = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "region_location"]
   storage_class_regional     = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location"]
+  mode_regional              = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "region_location"]
+  afm_fileset_regional       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location"]
   # New bucket cross region
   new_bucket_cross_region      = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
   storage_class_cross_regional = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
+  mode_cross_regional          = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "cross_region_location"]
+  fileset_cross_regional       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "cross_region_location"]
 
 }
 
@@ -115,8 +121,11 @@ resource "ibm_resource_key" "hmac_key" {
 }
 
 locals {
-  buckets   = concat((flatten([for bucket in ibm_cos_bucket.cos_bucket_single_site : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.cos_bucket_cross_region : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.cos_bucket_regional : bucket[*].bucket_name])))
-  endpoints = concat((flatten([for endpoint in ibm_cos_bucket.cos_bucket_single_site : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.cos_bucket_cross_region : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.cos_bucket_regional : endpoint[*].s3_endpoint_direct])))
+  buckets   = concat((flatten([for bucket in ibm_cos_bucket.cos_bucket_single_site : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.cos_bucket_regional : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.cos_bucket_cross_region : bucket[*].bucket_name])))
+  endpoints = concat((flatten([for endpoint in ibm_cos_bucket.cos_bucket_single_site : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.cos_bucket_regional : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.cos_bucket_cross_region : endpoint[*].s3_endpoint_direct])))
+  modes     = concat(local.mode_single_site, local.mode_regional, local.mode_cross_regional)
+  filesets  = concat(local.afm_fileset_single_site, local.afm_fileset_regional, local.fileset_cross_regional)
+
 
   afm_cos_bucket_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
     akey   = ibm_resource_key.hmac_key[0].credentials["cos_hmac_keys.access_key_id"]
@@ -127,8 +136,8 @@ locals {
   afm_config_details_1 = [for idx, config in var.new_instance_bucket_hmac : {
     bucket     = (local.buckets)[idx]
     filesystem = local.filesystem
-    fileset    = ([for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset])[idx]
-    mode       = ([for mode in var.new_instance_bucket_hmac : mode.mode])[idx]
+    fileset    = (local.filesets)[idx]
+    mode       = (local.modes)[idx]
     endpoint   = "https://${(local.endpoints)[idx]}"
   }]
 }
