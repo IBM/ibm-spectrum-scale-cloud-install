@@ -81,7 +81,7 @@ resource "ibm_cos_bucket" "cos_bucket_regional" {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in ibm_resource_instance.cos_instance : instance_id[*].id]), idx)
       region_location = element(local.new_bucket_regional_region, idx)
-      storage_class   = element(local.storage_class_cross_regional, idx)
+      storage_class   = element(local.storage_class_regional, idx)
     }
   }
   bucket_name          = format("%s-%03s", "${var.prefix}bucket-new", (each.value.sequence_string + length(local.new_bucket_single_site_region)))
@@ -97,7 +97,7 @@ resource "ibm_cos_bucket" "cos_bucket_cross_region" {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in ibm_resource_instance.cos_instance : instance_id[*].id]), idx)
       region_location = element(local.new_bucket_cross_region, idx)
-      storage_class   = element(local.storage_class_regional, idx)
+      storage_class   = element(local.storage_class_cross_regional, idx)
     }
   }
   bucket_name           = format("%s-%03s", "${var.prefix}bucket-new", (each.value.sequence_string + (length(local.new_bucket_single_site_region) + length(local.new_bucket_regional_region))))
@@ -140,6 +140,14 @@ locals {
     mode       = (local.modes)[idx]
     endpoint   = "https://${(local.endpoints)[idx]}"
   }]
+}
+
+output "modes" {
+  value = local.modes
+}
+
+output "filesets" {
+  value = local.filesets
 }
 
 #############################################################################################################
