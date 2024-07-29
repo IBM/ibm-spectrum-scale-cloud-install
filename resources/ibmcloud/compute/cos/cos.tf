@@ -78,7 +78,7 @@ resource "ibm_cos_bucket" "cos_bucket_regional" {
       storage_class   = element(local.storage_class_cross_regional, idx)
     }
   }
-  bucket_name          = format("%s-%03s", "${var.prefix}bucket-new", each.value.sequence_string)
+  bucket_name          = format("%s-%03s", "${var.prefix}bucket-new", (each.value.sequence_string + length(local.new_bucket_single_site_region)))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
   storage_class        = each.value.storage_class
@@ -94,7 +94,7 @@ resource "ibm_cos_bucket" "cos_bucket_cross_region" {
       storage_class   = element(local.storage_class_regional, idx)
     }
   }
-  bucket_name           = format("%s-%03s", "${var.prefix}bucket-new", each.value.sequence_string)
+  bucket_name           = format("%s-%03s", "${var.prefix}bucket-new", (each.value.sequence_string + (length(local.new_bucket_single_site_region) + length(local.new_bucket_regional_region))))
   resource_instance_id  = each.value.cos_instance
   cross_region_location = each.value.region_location
   storage_class         = each.value.storage_class
@@ -185,7 +185,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_regional" {
       storage_class   = element(local.exstng_instance_storage_class_regional, idx)
     }
   }
-  bucket_name          = format("%s-%03s", "${var.prefix}bucket", each.value.sequence_string)
+  bucket_name          = format("%s-%03s", "${var.prefix}bucket", (each.value.sequence_string + length(local.exstng_instance_single_site_region)))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
   storage_class        = each.value.storage_class
@@ -201,7 +201,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_cross_regional" {
       storage_class   = element(local.exstng_instance_storage_class_cross_regional, idx)
     }
   }
-  bucket_name          = format("%s-%03s", "${var.prefix}bucket", each.value.sequence_string)
+  bucket_name          = format("%s-%03s", "${var.prefix}bucket", (each.value.sequence_string + (length(local.exstng_instance_single_site_region) + length(local.exstng_instance_regional_region))))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
   storage_class        = each.value.storage_class
@@ -362,7 +362,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_regional" {
       storage_class   = element(local.exstng_instance_hmac_storage_class_regional, idx)
     }
   }
-  bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", each.value.sequence_string)
+  bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", (each.value.sequence_string + length(local.exstng_instance_hmac_single_site_region)))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
   storage_class        = each.value.storage_class
@@ -378,7 +378,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_cross_regio
       storage_class   = element(local.exstng_instance_hmac_storage_class_cross_regional, idx)
     }
   }
-  bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", each.value.sequence_string)
+  bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", (each.value.sequence_string + (length(local.exstng_instance_hmac_single_site_region) + length(local.exstng_instance_hmac_regional_region))))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
   storage_class        = each.value.storage_class
