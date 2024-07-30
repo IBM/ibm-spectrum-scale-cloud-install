@@ -385,7 +385,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_single_site
   bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", each.value.sequence_string)
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
-  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
+  storage_class        = each.value.storage_class
   depends_on           = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
 }
 
@@ -401,7 +401,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_regional" {
   bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", (each.value.sequence_string + length(local.exstng_instance_hmac_single_site_region)))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
-  storage_class        = each.value.storage_class
+  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
 }
 
