@@ -34,10 +34,10 @@ locals {
   mode_single_site              = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "single_site_location"]
   afm_fileset_single_site       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "single_site_location"]
   # New bucket regional
-  new_bucket_regional_region = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "region_location" || region.bucket_type == "" || region.bucket_storage_class == ""]
-  storage_class_regional     = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location" || class.bucket_type == "" || class.bucket_storage_class == ""]
-  mode_regional              = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "region_location" || mode.bucket_type == "" || mode.bucket_storage_class == ""]
-  afm_fileset_regional       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location" || fileset.bucket_type == "" || fileset.bucket_storage_class == ""]
+  new_bucket_regional_region = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "region_location" || (region.bucket_type == "" && region.bucket_storage_class == "")]
+  storage_class_regional     = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location" || (class.bucket_type == "" && class.bucket_storage_class == "")]
+  mode_regional              = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "region_location" || (mode.bucket_type == "" && mode.bucket_storage_class == "")]
+  afm_fileset_regional       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location" || (fileset.bucket_type == "" && fileset.bucket_storage_class == "")]
   # New bucket cross region
   new_bucket_cross_region      = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
   storage_class_cross_regional = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
@@ -84,7 +84,7 @@ resource "ibm_cos_bucket" "cos_bucket_single_site" {
   bucket_name          = format("%s-%03s", "${var.prefix}bucket-new", each.value.sequence_string)
   resource_instance_id = each.value.cos_instance
   single_site_location = each.value.region_location
-  storage_class        = each.value.storage_class
+  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [ibm_resource_instance.cos_instance]
 }
 
@@ -116,7 +116,7 @@ resource "ibm_cos_bucket" "cos_bucket_cross_region" {
   bucket_name           = format("%s-%03s", "${var.prefix}bucket-new", (each.value.sequence_string + (length(local.new_bucket_single_site_region) + length(local.new_bucket_regional_region))))
   resource_instance_id  = each.value.cos_instance
   cross_region_location = each.value.region_location
-  storage_class         = each.value.storage_class
+  storage_class         = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on            = [ibm_resource_instance.cos_instance]
 }
 
@@ -167,10 +167,10 @@ locals {
   exstng_instance_mode_single_site          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "single_site_location"]
   exstng_instance_fileset_single_site       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "single_site_location"]
   # New bucket regional
-  exstng_instance_regional_region        = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "region_location" || region.bucket_type == "" || region.bucket_storage_class == ""]
-  exstng_instance_storage_class_regional = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location" || class.bucket_type == "" || class.bucket_storage_class == ""]
-  exstng_instance_mode_regional          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "region_location" || mode.bucket_type == "" || mode.bucket_storage_class == ""]
-  exstng_instance_fileset_regional       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location" || fileset.bucket_type == "" || fileset.bucket_storage_class == ""]
+  exstng_instance_regional_region        = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "region_location" || (region.bucket_type == "" && region.bucket_storage_class == "")]
+  exstng_instance_storage_class_regional = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location" || (class.bucket_type == "" && class.bucket_storage_class == "")]
+  exstng_instance_mode_regional          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "region_location" || (mode.bucket_type == "" && mode.bucket_storage_class == "")]
+  exstng_instance_fileset_regional       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location" || (fileset.bucket_type == "" && fileset.bucket_storage_class == "")]
   # New bucket cross region
   exstng_instance_cross_region                 = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
   exstng_instance_storage_class_cross_regional = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
@@ -200,7 +200,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_single_site" {
   bucket_name          = format("%s-%03s", "${var.prefix}bucket", each.value.sequence_string)
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
-  storage_class        = each.value.storage_class
+  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [data.ibm_resource_instance.existing_cos_instance]
 }
 
@@ -232,7 +232,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_cross_regional" {
   bucket_name          = format("%s-%03s", "${var.prefix}bucket", (each.value.sequence_string + (length(local.exstng_instance_single_site_region) + length(local.exstng_instance_regional_region))))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
-  storage_class        = each.value.storage_class
+  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [data.ibm_resource_instance.existing_cos_instance]
 }
 
@@ -352,10 +352,10 @@ locals {
   exstng_instance_hmac_mode_single_site          = [for mode in var.exstng_instance_hmac_new_bucket : mode.mode if mode.bucket_type == "single_site_location"]
   exstng_instance_hmac_fileset_single_site       = [for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset if fileset.bucket_type == "single_site_location"]
   # New bucket regional
-  exstng_instance_hmac_regional_region        = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "region_location" || region.bucket_type == "" || region.bucket_storage_class == ""]
-  exstng_instance_hmac_storage_class_regional = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "region_location" || class.bucket_type == "" || class.bucket_storage_class == ""]
-  exstng_instance_hmac_mode_regional          = [for mode in var.exstng_instance_hmac_new_bucket : mode.mode if mode.bucket_type == "region_location" || mode.bucket_type == "" || mode.bucket_storage_class == ""]
-  exstng_instance_hmac_fileset_regional       = [for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset if fileset.bucket_type == "region_location" || fileset.bucket_type == "" || fileset.bucket_storage_class == ""]
+  exstng_instance_hmac_regional_region        = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "region_location" || (region.bucket_type == "" && region.bucket_storage_class == "")]
+  exstng_instance_hmac_storage_class_regional = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "region_location" || (class.bucket_type == "" && class.bucket_storage_class == "")]
+  exstng_instance_hmac_mode_regional          = [for mode in var.exstng_instance_hmac_new_bucket : mode.mode if mode.bucket_type == "region_location" || (mode.bucket_type == "" || mode.bucket_storage_class == "")]
+  exstng_instance_hmac_fileset_regional       = [for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset if fileset.bucket_type == "region_location" || (fileset.bucket_type == "" && fileset.bucket_storage_class == "")]
   # New bucket cross region
   exstng_instance_hmac_cross_region                 = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "cross_region_location"]
   exstng_instance_hmac_storage_class_cross_regional = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
@@ -385,7 +385,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_single_site
   bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", each.value.sequence_string)
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
-  storage_class        = each.value.storage_class
+  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
 }
 
@@ -417,7 +417,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_cross_regio
   bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", (each.value.sequence_string + (length(local.exstng_instance_hmac_single_site_region) + length(local.exstng_instance_hmac_regional_region))))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
-  storage_class        = each.value.storage_class
+  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
 }
 
