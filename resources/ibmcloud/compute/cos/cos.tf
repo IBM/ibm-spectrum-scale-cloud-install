@@ -172,23 +172,23 @@ locals {
   exstng_instance_mode_regional          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "region_location" || mode.bucket_type == ""]
   exstng_instance_fileset_regional       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location" || fileset.bucket_type == ""]
   # New bucket cross region
-  exstng_instance_cross_region                 = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
+  exstng_instance_cross_regional               = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
   exstng_instance_storage_class_cross_regional = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
   exstng_instance_mode_cross_regional          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "cross_region_location"]
   exstng_instance_fileset_cross_regional       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "cross_region_location"]
 }
 
-output "exstng_instance_regional_region" {
-  value = local.exstng_instance_regional_region
+output "exstng_instance_cross_regional" {
+  value = local.exstng_instance_cross_regional
 }
-output "exstng_instance_storage_class_regional" {
-  value = local.exstng_instance_storage_class_regional
+output "exstng_instance_storage_class_cross_regional" {
+  value = local.exstng_instance_storage_class_cross_regional
 }
-output "exstng_instance_mode_regional" {
-  value = local.exstng_instance_mode_regional
+output "exstng_instance_mode_cross_regional" {
+  value = local.exstng_instance_mode_cross_regional
 }
-output "exstng_instance_fileset_regional" {
-  value = local.exstng_instance_fileset_regional
+output "exstng_instance_fileset_cross_regional" {
+  value = local.exstng_instance_fileset_cross_regional
 }
 
 
@@ -213,7 +213,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_single_site" {
   }
   bucket_name          = format("%s-%03s", "${var.prefix}bucket", each.value.sequence_string)
   resource_instance_id = each.value.cos_instance
-  region_location      = each.value.region_location
+  single_site_location = each.value.region_location
   storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [data.ibm_resource_instance.existing_cos_instance]
 }
@@ -236,18 +236,18 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_regional" {
 
 resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_cross_regional" {
   for_each = {
-    for idx, count_number in range(1, length(local.exstng_instance_cross_region) + 1) : idx => {
+    for idx, count_number in range(1, length(local.exstng_instance_cross_regional) + 1) : idx => {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in data.ibm_resource_instance.existing_cos_instance : instance_id[*].id]), idx)
-      region_location = element(local.exstng_instance_cross_region, idx)
+      region_location = element(local.exstng_instance_cross_regional, idx)
       storage_class   = element(local.exstng_instance_storage_class_cross_regional, idx)
     }
   }
-  bucket_name          = format("%s-%03s", "${var.prefix}bucket", (each.value.sequence_string + (length(local.exstng_instance_single_site_region) + length(local.exstng_instance_regional_region))))
-  resource_instance_id = each.value.cos_instance
-  region_location      = each.value.region_location
-  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
-  depends_on           = [data.ibm_resource_instance.existing_cos_instance]
+  bucket_name           = format("%s-%03s", "${var.prefix}bucket", (each.value.sequence_string + (length(local.exstng_instance_single_site_region) + length(local.exstng_instance_regional_region))))
+  resource_instance_id  = each.value.cos_instance
+  cross_region_location = each.value.region_location
+  storage_class         = each.value.storage_class == "" ? "smart" : each.value.storage_class
+  depends_on            = [data.ibm_resource_instance.existing_cos_instance]
 }
 
 resource "ibm_resource_key" "existing_instance_new_hmac_keys" {
@@ -412,7 +412,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_single_site
   }
   bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", each.value.sequence_string)
   resource_instance_id = each.value.cos_instance
-  region_location      = each.value.region_location
+  single_site_location = each.value.region_location
   storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
 }
@@ -442,11 +442,11 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_cross_regio
       storage_class   = element(local.exstng_instance_hmac_storage_class_cross_regional, idx)
     }
   }
-  bucket_name          = format("%s-%03s", "${var.prefix}new-bucket", (each.value.sequence_string + (length(local.exstng_instance_hmac_single_site_region) + length(local.exstng_instance_hmac_regional_region))))
-  resource_instance_id = each.value.cos_instance
-  region_location      = each.value.region_location
-  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
-  depends_on           = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
+  bucket_name           = format("%s-%03s", "${var.prefix}new-bucket", (each.value.sequence_string + (length(local.exstng_instance_hmac_single_site_region) + length(local.exstng_instance_hmac_regional_region))))
+  resource_instance_id  = each.value.cos_instance
+  cross_region_location = each.value.region_location
+  storage_class         = each.value.storage_class == "" ? "smart" : each.value.storage_class
+  depends_on            = [data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket]
 }
 
 data "ibm_resource_key" "existing_hmac_key" {
