@@ -159,12 +159,18 @@ locals {
   # New bucket single Site
   exstng_instance_single_site_region        = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "single_site_location"]
   exstng_instance_storage_class_single_site = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "single_site_location"]
+  exstng_instance_mode_single_site          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "single_site_location"]
+  exstng_instance_fileset_single_site       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "single_site_location"]
   # New bucket regional
   exstng_instance_regional_region        = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "region_location"]
   exstng_instance_storage_class_regional = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location"]
+  exstng_instance_mode_regional          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "region_location"]
+  exstng_instance_fileset_regional       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location"]
   # New bucket cross region
   exstng_instance_cross_region                 = [for region in var.exstng_instance_new_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
   exstng_instance_storage_class_cross_regional = [for class in var.exstng_instance_new_bucket_hmac : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
+  exstng_instance_mode_cross_regional          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "cross_region_location"]
+  exstng_instance_fileset_cross_regional       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "cross_region_location"]
 }
 
 data "ibm_resource_instance" "existing_cos_instance" {
@@ -242,6 +248,8 @@ resource "ibm_resource_key" "existing_instance_new_hmac_keys" {
 locals {
   exstng_instance_buckets   = concat((flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket_single_site : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket_regional : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.existing_instance_new_cos_bucket_cross_regional : bucket[*].bucket_name])))
   exstng_instance_endpoints = concat((flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket_single_site : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket_regional : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.existing_instance_new_cos_bucket_cross_regional : endpoint[*].s3_endpoint_direct])))
+  exstng_instance_modes     = concat(local.exstng_instance_mode_single_site, local.exstng_instance_mode_regional, local.exstng_instance_mode_cross_regional)
+  exstng_instance_filesets  = concat(local.exstng_instance_fileset_single_site, local.exstng_instance_fileset_regional, local.exstng_instance_fileset_cross_regional)
 
   afm_cos_bucket_details_2 = [for idx, config in var.exstng_instance_new_bucket_hmac : {
     akey   = (flatten([for access_key in ibm_resource_key.existing_instance_new_hmac_keys : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
@@ -252,8 +260,8 @@ locals {
   afm_config_details_2 = [for idx, config in var.exstng_instance_new_bucket_hmac : {
     bucket     = (local.exstng_instance_buckets)[idx]
     filesystem = local.filesystem
-    fileset    = ([for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset])[idx]
-    mode       = ([for mode in var.exstng_instance_new_bucket_hmac : mode.mode])[idx]
+    fileset    = (local.exstng_instance_filesets)[idx]
+    mode       = (local.exstng_instance_modes)[idx]
     endpoint   = "https://${(local.exstng_instance_endpoints)[idx]}"
   }]
 }
@@ -336,12 +344,18 @@ locals {
   # New bucket single Site
   exstng_instance_hmac_single_site_region        = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "single_site_location"]
   exstng_instance_hmac_storage_class_single_site = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "single_site_location"]
+  exstng_instance_hmac_mode_single_site          = [for mode in var.exstng_instance_hmac_new_bucket : mode.mode if mode.bucket_type == "single_site_location"]
+  exstng_instance_hmac_fileset_single_site       = [for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset if fileset.bucket_type == "single_site_location"]
   # New bucket regional
   exstng_instance_hmac_regional_region        = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "region_location"]
   exstng_instance_hmac_storage_class_regional = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "region_location"]
+  exstng_instance_hmac_mode_regional          = [for mode in var.exstng_instance_hmac_new_bucket : mode.mode if mode.bucket_type == "region_location"]
+  exstng_instance_hmac_fileset_regional       = [for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset if fileset.bucket_type == "region_location"]
   # New bucket cross region
   exstng_instance_hmac_cross_region                 = [for region in var.exstng_instance_hmac_new_bucket : region.bucket_region if region.bucket_type == "cross_region_location"]
   exstng_instance_hmac_storage_class_cross_regional = [for class in var.exstng_instance_hmac_new_bucket : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
+  exstng_instance_hmac_mode_cross_regional          = [for mode in var.exstng_instance_hmac_new_bucket : mode.mode if mode.bucket_type == "cross_region_location"]
+  exstng_instance_hmac_fileset_cross_regional       = [for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset if fileset.bucket_type == "cross_region_location"]
 }
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket" {
@@ -417,6 +431,8 @@ data "ibm_resource_key" "existing_hmac_key" {
 locals {
   exstng_instance_hmac_buckets   = concat((flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_single_site : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_regional : bucket[*].bucket_name])), (flatten([for bucket in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_cross_region : bucket[*].bucket_name])))
   exstng_instance_hmac_endpoints = concat((flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_single_site : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_regional : endpoint[*].s3_endpoint_direct])), (flatten([for endpoint in ibm_cos_bucket.existing_cos_instance_hmac_new_cos_bucket_cross_region : endpoint[*].s3_endpoint_direct])))
+  exstng_instance_hmac_modes     = concat(local.exstng_instance_hmac_mode_single_site, local.exstng_instance_hmac_mode_regional, local.exstng_instance_hmac_mode_cross_regional)
+  exstng_instance_hmac_filesets  = concat(local.exstng_instance_hmac_fileset_single_site, local.exstng_instance_hmac_fileset_regional, local.exstng_instance_hmac_fileset_cross_regional)
 
   afm_cos_bucket_details_4 = [for idx, config in var.exstng_instance_hmac_new_bucket : {
     akey   = (flatten([for access_key in data.ibm_resource_key.existing_hmac_key : access_key[*].credentials["cos_hmac_keys.access_key_id"]]))[idx]
@@ -427,8 +443,8 @@ locals {
   afm_config_details_4 = [for idx, config in var.exstng_instance_hmac_new_bucket : {
     bucket     = (local.exstng_instance_hmac_buckets)[idx]
     filesystem = local.filesystem
-    fileset    = ([for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset])[idx]
-    mode       = ([for mode in var.exstng_instance_hmac_new_bucket : mode.mode])[idx]
+    fileset    = (local.exstng_instance_hmac_filesets)[idx]
+    mode       = (local.exstng_instance_hmac_modes)[idx]
     endpoint   = "https://${(local.exstng_instance_hmac_endpoints)[idx]}"
   }]
 }
