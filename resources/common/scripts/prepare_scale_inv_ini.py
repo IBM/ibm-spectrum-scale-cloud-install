@@ -39,8 +39,8 @@ def calculate_pagepool(nodeclass, memory):
         pagepool_gb = min(int((memory * 0.12) // 1 + 1), 16)
     elif nodeclass == "storageprotocolnodegrp":
         pagepool_gb = min(int((memory * 0.4) // 1), 256)
-    elif nodeclass == "afmgatewaygrp":
-        pagepool_gb = min(int((memory * 0.0625) // 1), 256)
+    # elif nodeclass == "afmgatewaygrp":
+    #     pagepool_gb = min(int((memory * 0.0625) // 1), 256)
     else:
         pagepool_gb = min(int((memory * 0.25) // 1), 32)
 
@@ -66,8 +66,8 @@ def calculate_maxFilesToCache(nodeclass, memory):
         maxFilesToCache = "256K"
     elif nodeclass in ["managementnodegrp", "storagedescnodegrp", "storagenodegrp"]:
         maxFilesToCache = "128K"
-    elif nodeclass == "afmgatewaygrp":
-        maxFilesToCache = "10000K"
+    # elif nodeclass == "afmgatewaygrp":
+    #     maxFilesToCache = "10000K"
     else:
         calFilesToCache = int(memory * 8)
         if calFilesToCache < 1024:
@@ -856,7 +856,7 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
-        afmgatewaygrp =generate_nodeclass_config(
+        afmgatewaygrp = generate_nodeclass_config(
             "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
         afmgatewaygrp[1].update(check_afm_values())
         
