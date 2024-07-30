@@ -96,7 +96,7 @@ def check_nodeclass(nodeclass):
 
 def check_afm_values():
     """Check afm values"""
-    afmHardMemThreshold = "40000000K"
+    afmHardMemThreshold = "40G"
     afm_config = {"afmHardMemThreshold": afmHardMemThreshold}
     return afm_config
 
