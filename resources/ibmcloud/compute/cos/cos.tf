@@ -34,10 +34,10 @@ locals {
   mode_single_site              = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "single_site_location"]
   afm_fileset_single_site       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "single_site_location"]
   # New bucket regional
-  new_bucket_regional_region = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "region_location"]
-  storage_class_regional     = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location"]
-  mode_regional              = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "region_location"]
-  afm_fileset_regional       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location"]
+  new_bucket_regional_region = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "region_location" || region.bucket_type == "" || region.bucket_storage_class == ""]
+  storage_class_regional     = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "region_location" || class.bucket_type == "" || class.bucket_storage_class == ""]
+  mode_regional              = [for mode in var.new_instance_bucket_hmac : mode.mode if mode.bucket_type == "region_location" || mode.bucket_type == "" || mode.bucket_storage_class == ""]
+  afm_fileset_regional       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "region_location" || fileset.bucket_type == "" || fileset.bucket_storage_class == ""]
   # New bucket cross region
   new_bucket_cross_region      = [for region in var.new_instance_bucket_hmac : region.bucket_region if region.bucket_type == "cross_region_location"]
   storage_class_cross_regional = [for class in var.new_instance_bucket_hmac : class.bucket_storage_class if class.bucket_type == "cross_region_location"]
@@ -87,7 +87,7 @@ resource "ibm_cos_bucket" "cos_bucket_regional" {
   bucket_name          = format("%s-%03s", "${var.prefix}bucket-new", (each.value.sequence_string + length(local.new_bucket_single_site_region)))
   resource_instance_id = each.value.cos_instance
   region_location      = each.value.region_location
-  storage_class        = each.value.storage_class
+  storage_class        = each.value.storage_class == "" ? "smart" : each.value.storage_class
   depends_on           = [ibm_resource_instance.cos_instance]
 }
 
@@ -140,14 +140,6 @@ locals {
     mode       = (local.modes)[idx]
     endpoint   = "https://${(local.endpoints)[idx]}"
   }]
-}
-
-output "modes" {
-  value = local.modes
-}
-
-output "filesets" {
-  value = local.filesets
 }
 
 #############################################################################################################
