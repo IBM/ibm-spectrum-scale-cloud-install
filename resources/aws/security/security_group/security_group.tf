@@ -9,10 +9,15 @@ variable "vpc_id" {}
 variable "sec_group_tag" {}
 
 resource "aws_security_group" "itself" {
-  count       = tobool(var.turn_on) == true ? 1 : 0
-  name_prefix = element(var.sec_group_name, count.index)
-  description = element(var.sec_group_description, count.index)
-  vpc_id      = var.vpc_id
+  count                  = tobool(var.turn_on) == true ? 1 : 0
+  name_prefix            = element(var.sec_group_name, count.index)
+  description            = element(var.sec_group_description, count.index)
+  vpc_id                 = var.vpc_id
+  revoke_rules_on_delete = true
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = { "Name" = var.sec_group_tag[count.index] }
 }

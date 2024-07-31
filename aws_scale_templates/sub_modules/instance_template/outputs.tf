@@ -32,7 +32,7 @@ output "compute_cluster_instance_details" {
 }
 
 output "compute_cluster_security_group_id" {
-  value       = module.compute_cluster_security_group.sec_group_id
+  value       = module.cluster_security_group.sec_group_id
   description = "Compute cluster security group id."
 }
 
@@ -55,6 +55,11 @@ output "protocol_instance_details" {
   description = "Protocol instance details (map of id, private_ip, dns)"
 }
 
+output "protocol_cluster_security_group_id" {
+  value       = module.protocol_security_group.sec_group_id
+  description = "Protocol cluster security group id."
+}
+
 output "storage_cluster_desc_data_volume_mapping" {
   value       = local.storage_instance_desc_ip_with_disk_mapping
   description = "Mapping of storage cluster desc instance ip vs. device path."
@@ -75,7 +80,7 @@ output "storage_cluster_instance_details" {
 }
 
 output "storage_cluster_security_group_id" {
-  value       = module.storage_cluster_security_group.sec_group_id
+  value       = module.cluster_security_group.sec_group_id
   description = "Storage cluster security group id."
 }
 

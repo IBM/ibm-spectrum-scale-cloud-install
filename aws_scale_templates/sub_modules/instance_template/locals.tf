@@ -8,6 +8,7 @@ locals {
   storage_or_combined  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
   storage_and_protocol = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_protocol_instances > 0) ? true : false
   storage_and_gateway  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
+  scale_cluster_type   = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
 
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
@@ -15,6 +16,47 @@ locals {
   instance_storage_device_names = ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1", "/dev/nvme16n1"]
   gpfs_base_rpm_path            = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version                 = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
+
+  ## Base Ports
+  #scale security port 
+  scale_traffic_ports    = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  scale_traffic_to_ports = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
+  scale_traffic_protocol = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
+
+  ## Extended ports
+  # Protocol ports
+  protocol_traffic_ports    = [4379, 11211, 11211, 6200, 6443, 6001]
+  protocol_traffic_to_ports = [4379, 11211, 11211, 6203, 6443, 6001]
+  protocol_traffic_protocol = ["TCP", "TCP", "UDP", "TCP", "TCP", "TCP"]
+
+  # Ssh ports
+  ssh_traffic_ports    = [-1, 22]
+  ssh_traffic_protocol = ["icmp", "TCP"]
+
+  # Scale cluster rule descriptions
+  security_rule_description_scale_nodes = [
+    "Allow ICMP traffic within scale instances",
+    "Allow SSH traffic within scale instances",
+    "Allow GPFS intra cluster traffic within scale instances",
+    "Allow GPFS ephemeral port range within scale instances",
+    "Allow management GUI (http/localhost) TCP traffic within scale instances",
+    "Allow management GUI (https/localhost) TCP traffic within scale instances",
+    "Allow management GUI (https/localhost) TCP traffic within scale instances",
+    "Allow management GUI (localhost) TCP traffic within scale instances",
+    "Allow management GUI (localhost) UDP traffic within scale instances",
+    "Allow performance monitoring collector traffic within scale instances",
+    "Allow performance monitoring collector traffic within scale instances",
+    "Allow http traffic within scale instances",
+  "Allow https traffic within scale instances"]
+
+  # Protocol security rule descriptions
+  security_rule_description_protocol_nodes = [
+    "Allow CTDB traffic within protocol instances",
+    "Allow Memcached traffic within protocol instances",
+    "Allow Memcached traffic within protocol instances",
+    "Allow Object Storage traffic within protocol instances",
+    "Allow Nooba traffic within protocol instances",
+  "Allow Nooba traffic within protocol instances"]
 }
 
 /*
