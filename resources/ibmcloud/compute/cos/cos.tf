@@ -45,20 +45,6 @@ locals {
   fileset_cross_regional       = [for fileset in var.new_instance_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "cross_region_location"]
 }
 
-output "new_bucket_regional_region" {
-  value = local.new_bucket_regional_region
-}
-
-output "storage_class_regional" {
-  value = local.storage_class_regional
-}
-output "mode_regional" {
-  value = local.mode_regional
-}
-output "afm_fileset_regional" {
-  value = local.afm_fileset_regional
-}
-
 resource "ibm_resource_instance" "cos_instance" {
   for_each = {
     for idx, count_number in range(1, length(local.new_cos_instance) + 1) : idx => {
@@ -177,20 +163,6 @@ locals {
   exstng_instance_mode_cross_regional          = [for mode in var.exstng_instance_new_bucket_hmac : mode.mode if mode.bucket_type == "cross_region_location"]
   exstng_instance_fileset_cross_regional       = [for fileset in var.exstng_instance_new_bucket_hmac : fileset.afm_fileset if fileset.bucket_type == "cross_region_location"]
 }
-
-output "exstng_instance_cross_regional" {
-  value = local.exstng_instance_cross_regional
-}
-output "exstng_instance_storage_class_cross_regional" {
-  value = local.exstng_instance_storage_class_cross_regional
-}
-output "exstng_instance_mode_cross_regional" {
-  value = local.exstng_instance_mode_cross_regional
-}
-output "exstng_instance_fileset_cross_regional" {
-  value = local.exstng_instance_fileset_cross_regional
-}
-
 
 data "ibm_resource_instance" "existing_cos_instance" {
   for_each = {
@@ -376,20 +348,6 @@ locals {
   exstng_instance_hmac_mode_cross_regional          = [for mode in var.exstng_instance_hmac_new_bucket : mode.mode if mode.bucket_type == "cross_region_location"]
   exstng_instance_hmac_fileset_cross_regional       = [for fileset in var.exstng_instance_hmac_new_bucket : fileset.afm_fileset if fileset.bucket_type == "cross_region_location"]
 }
-
-output "exstng_instance_hmac_regional_region" {
-  value = local.exstng_instance_hmac_regional_region
-}
-output "exstng_instance_hmac_storage_class_regional" {
-  value = local.exstng_instance_hmac_storage_class_regional
-}
-output "exstng_instance_hmac_mode_regional" {
-  value = local.exstng_instance_hmac_mode_regional
-}
-output "exstng_instance_hmac_fileset_regional" {
-  value = local.exstng_instance_hmac_fileset_regional
-}
-
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket" {
   for_each = {
