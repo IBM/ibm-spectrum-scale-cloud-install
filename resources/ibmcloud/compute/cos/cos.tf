@@ -169,7 +169,7 @@ locals {
 
 data "ibm_resource_instance" "existing_cos_instance_single_site" {
   for_each = {
-    for idx, value in var.exstng_instance_new_bucket_hmac : idx => {
+    for idx, value in local.exstng_instance_new_bkt_hmac_single_site : idx => {
       cos_instance = element(local.exstng_instance_new_bkt_hmac_single_site, idx)
     }
   }
@@ -195,7 +195,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_single_site" {
 
 data "ibm_resource_instance" "existing_cos_instance_bucket_regional" {
   for_each = {
-    for idx, value in var.exstng_instance_new_bucket_hmac : idx => {
+    for idx, value in local.exstng_instance_new_bkt_hmac_regional : idx => {
       cos_instance = element(local.exstng_instance_new_bkt_hmac_regional, idx)
     }
   }
@@ -221,7 +221,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_regional" {
 
 data "ibm_resource_instance" "existing_cos_instancecross_regional" {
   for_each = {
-    for idx, value in var.exstng_instance_new_bucket_hmac : idx => {
+    for idx, value in local.exstng_instance_new_bkt_hmac_cross_regional : idx => {
       cos_instance = element(local.exstng_instance_new_bkt_hmac_cross_regional, idx)
     }
   }
@@ -247,7 +247,7 @@ resource "ibm_cos_bucket" "existing_instance_new_cos_bucket_cross_regional" {
 
 data "ibm_resource_instance" "existing_cos_instance" {
   for_each = {
-    for idx, value in var.exstng_instance_new_bucket_hmac : idx => {
+    for idx, value in local.exstng_instance_new_bkt_hmac : idx => {
       cos_instance = element(local.exstng_instance_new_bkt_hmac, idx)
     }
   }
@@ -257,7 +257,7 @@ data "ibm_resource_instance" "existing_cos_instance" {
 
 resource "ibm_resource_key" "existing_instance_new_hmac_keys" {
   for_each = {
-    for idx, count_number in range(1, length(var.exstng_instance_new_bucket_hmac) + 1) : idx => {
+    for idx, count_number in range(1, length(local.exstng_instance_new_bkt_hmac) + 1) : idx => {
       sequence_string = tostring(count_number)
       cos_instance    = element(flatten([for instance_id in data.ibm_resource_instance.existing_cos_instance : instance_id[*].id]), idx)
     }
@@ -387,7 +387,7 @@ locals {
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket_single_site" {
   for_each = {
-    for idx, value in var.exstng_instance_hmac_new_bucket : idx => {
+    for idx, value in local.exstng_instance_hmac_new_bkt_single_site : idx => {
       cos_instance = element(local.exstng_instance_hmac_new_bkt_single_site, idx)
     }
   }
@@ -413,7 +413,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_single_site
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket_regional" {
   for_each = {
-    for idx, value in var.exstng_instance_hmac_new_bucket : idx => {
+    for idx, value in local.exstng_instance_hmac_new_bkt_regional : idx => {
       cos_instance = element(local.exstng_instance_hmac_new_bkt_regional, idx)
     }
   }
@@ -439,7 +439,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_regional" {
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket_cross_region" {
   for_each = {
-    for idx, value in var.exstng_instance_hmac_new_bucket : idx => {
+    for idx, value in local.exstng_instance_hmac_new_bkt_cross_region : idx => {
       cos_instance = element(local.exstng_instance_hmac_new_bkt_cross_region, idx)
     }
   }
@@ -465,7 +465,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_cross_regio
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket" {
   for_each = {
-    for idx, value in var.exstng_instance_hmac_new_bucket : idx => {
+    for idx, value in local.exstng_instance_hmac_new_bkt : idx => {
       cos_instance = element(local.exstng_instance_hmac_new_bkt, idx)
     }
   }
@@ -475,7 +475,7 @@ data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket" {
 
 data "ibm_resource_key" "existing_hmac_key" {
   for_each = {
-    for idx, value in var.exstng_instance_hmac_new_bucket : idx => {
+    for idx, value in local.exstng_instance_exstng_hmac : idx => {
       hmac_key             = element(local.exstng_instance_exstng_hmac, idx)
       resource_instance_id = element(flatten([for instance in data.ibm_resource_instance.exstng_cos_instance_hmac_new_bucket : instance[*].id]), idx)
     }
