@@ -386,7 +386,7 @@ locals {
 }
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket_single_site" {
-  for_each = {
+  for_each = length(local.exstng_instance_hmac_new_bkt_single_site) == 0 ? {} : {
     for idx, value in local.exstng_instance_hmac_new_bkt_single_site : idx => {
       cos_instance = element(local.exstng_instance_hmac_new_bkt_single_site, idx)
     }
@@ -412,7 +412,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_single_site
 }
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket_regional" {
-  for_each = {
+  for_each = length(local.exstng_instance_hmac_new_bkt_regional) == 0 ? {} : {
     for idx, value in local.exstng_instance_hmac_new_bkt_regional : idx => {
       cos_instance = element(local.exstng_instance_hmac_new_bkt_regional, idx)
     }
@@ -438,7 +438,7 @@ resource "ibm_cos_bucket" "existing_cos_instance_hmac_new_cos_bucket_regional" {
 }
 
 data "ibm_resource_instance" "exstng_cos_instance_hmac_new_bucket_cross_region" {
-  for_each = {
+  for_each = length(local.exstng_instance_hmac_new_bkt_cross_region) == 0 ? {} : {
     for idx, value in local.exstng_instance_hmac_new_bkt_cross_region : idx => {
       cos_instance = element(local.exstng_instance_hmac_new_bkt_cross_region, idx)
     }
