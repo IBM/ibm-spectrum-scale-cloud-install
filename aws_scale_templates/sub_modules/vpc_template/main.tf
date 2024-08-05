@@ -88,6 +88,13 @@ module "compute_eip" {
   total_eips = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? length(var.vpc_availability_zones) : 0
 }
 
+# One protocol EIP per provided AZ.
+module "protocol_eip" {
+  source     = "../../../resources/aws/network/eip"
+  turn_on    = var.vpc_public_subnets_cidr_blocks != null ? true : false
+  total_eips = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? length(var.vpc_availability_zones) : 0
+}
+
 # Storage public subnet id registred to NAT gateway.
 module "storage_nat_gateway" {
   source           = "../../../resources/aws/network/nat_gw"
@@ -107,6 +114,17 @@ module "compute_nat_gateway" {
   eip_id           = module.compute_eip.eip_id
   target_subnet_id = module.public_subnet.subnet_id
   vpc_name         = format("%s-cmp-nat", var.resource_prefix)
+  vpc_tags         = var.vpc_tags
+}
+
+# Protocol public subnet id registred to NAT gateway.
+module "protocol_nat_gateway" {
+  source           = "../../../resources/aws/network/nat_gw"
+  turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false
+  total_nat_gws    = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? length(var.vpc_availability_zones) : 0
+  eip_id           = module.protocol_eip.eip_id
+  target_subnet_id = module.public_subnet.subnet_id
+  vpc_name         = format("%s-protocol-nat", var.resource_prefix)
   vpc_tags         = var.vpc_tags
 }
 
@@ -161,6 +179,17 @@ module "compute_private_subnet" {
   vpc_tags     = var.vpc_tags
 }
 
+# One protocol private subnet per provided AZ.
+module "protocol_private_subnet" {
+  source       = "../../../resources/aws/network/subnet"
+  turn_on      = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
+  vpc_id       = module.vpc.vpc_id
+  subnets_cidr = var.vpc_protocol_private_subnets_cidr_blocks
+  avail_zones  = var.vpc_availability_zones
+  vpc_name     = format("%s-protocol-pvt", var.resource_prefix)
+  vpc_tags     = var.vpc_tags
+}
+
 # Storage private route tables equal to number of provided AZ's.
 module "storage_private_route_table" {
   source   = "../../../resources/aws/network/route_table"
@@ -178,6 +207,16 @@ module "compute_private_route_table" {
   total_rt = length(var.vpc_availability_zones)
   vpc_id   = module.vpc.vpc_id
   vpc_name = format("%s-comp-pvt", var.resource_prefix)
+  vpc_tags = var.vpc_tags
+}
+
+# Protocol private route tables equal to number of provided AZ's.
+module "protocol_private_route_table" {
+  source   = "../../../resources/aws/network/route_table"
+  turn_on  = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
+  total_rt = length(var.vpc_availability_zones)
+  vpc_id   = module.vpc.vpc_id
+  vpc_name = format("%s-protocol-pvt", var.resource_prefix)
   vpc_tags = var.vpc_tags
 }
 
@@ -205,6 +244,18 @@ module "compute_private_route" {
   nat_gateway_id  = module.compute_nat_gateway.nat_gw_id
 }
 
+# NAT gateways attached to all protocol private routes.
+# This is not required in a private only mode
+module "protocol_private_route" {
+  source          = "../../../resources/aws/network/route"
+  turn_on         = ((var.vpc_public_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
+  total_routes    = length(var.vpc_availability_zones)
+  route_table_id  = module.protocol_private_route_table.table_id
+  dest_cidr_block = "0.0.0.0/0"
+  gateway_id      = null
+  nat_gateway_id  = module.protocol_nat_gateway.nat_gw_id
+}
+
 # s3 vpc end point association with all storage cluster private route tables.
 module "vpc_endpoint_storage_private_association" {
   source                  = "../../../resources/aws/network/vpc_endpoint_association"
@@ -220,6 +271,15 @@ module "vpc_endpoint_compute_private_association" {
   turn_on                 = (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
   total_vpce_associations = length(var.vpc_availability_zones)
   route_table_id          = module.compute_private_route_table.table_id
+  vpce_id                 = module.vpc_private_endpoint.vpce_id
+}
+
+# s3 vpc end point association with all protocol private route tables.
+module "vpc_endpoint_protocol_private_association" {
+  source                  = "../../../resources/aws/network/vpc_endpoint_association"
+  turn_on                 = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
+  total_vpce_associations = length(var.vpc_availability_zones)
+  route_table_id          = module.protocol_private_route_table.table_id
   vpce_id                 = module.vpc_private_endpoint.vpce_id
 }
 
@@ -239,4 +299,13 @@ module "compute_private_route_table_association" {
   total_associations = length(var.vpc_availability_zones)
   subnet_id          = module.compute_private_subnet.subnet_id
   route_table_id     = module.compute_private_route_table.table_id
+}
+
+# Associate each protocol private subnet to one private route table.
+module "protocol_private_route_table_association" {
+  source             = "../../../resources/aws/network/route_table_association"
+  turn_on            = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
+  total_associations = length(var.vpc_availability_zones)
+  subnet_id          = module.protocol_private_subnet.subnet_id
+  route_table_id     = module.protocol_private_route_table.table_id
 }

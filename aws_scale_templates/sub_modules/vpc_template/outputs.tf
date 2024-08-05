@@ -13,6 +13,16 @@ output "vpc_internet_gateway" {
   description = "The ID of the Internet Gateway."
 }
 
+output "vpc_protocol_nat_gateways" {
+  value       = module.protocol_nat_gateway.nat_gw_id
+  description = "List of allocation ID of Elastic IPs created for AWS NAT Gateway."
+}
+
+output "vpc_protocol_private_subnets" {
+  value       = module.protocol_private_subnet.subnet_id
+  description = "List of IDs of protocol cluster private subnets."
+}
+
 output "vpc_public_subnets" {
   value       = module.public_subnet.subnet_id
   description = "List of IDs of public subnets."

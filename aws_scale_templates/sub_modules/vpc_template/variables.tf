@@ -28,6 +28,12 @@ variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
   description = "List of cidr_blocks of compute private subnets."
 }
 
+variable "vpc_protocol_private_subnets_cidr_blocks" {
+  type        = list(string)
+  nullable    = true
+  description = "List of cidr_blocks of protocol private subnets."
+}
+
 variable "vpc_public_subnets_cidr_blocks" {
   type        = list(string)
   nullable    = true
