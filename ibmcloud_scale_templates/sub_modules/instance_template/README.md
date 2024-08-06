@@ -54,12 +54,13 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | Name | Version |
 |------|---------|
 | <a name="requirement_github"></a> [github](#requirement_github) | 5.41.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.65.1 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.67.1 |
 
 #### Inputs
 
 | Name | Description | Type |
 |------|-------------|------|
+| <a name="input_afm_cos_config"></a> [afm_cos_config](#input_afm_cos_config) | Please add the details of COS instance, COS bucket, hmac key, AFM fileset and mode(Read-only (RO), Single writer (SW), Local updates (LU) and Independent writer (IW)). | <pre>list(object({<br>    cos_instance         = string,<br>    bucket_name          = string,<br>    bucket_region        = string,<br>    cos_service_cred_key = string,<br>    afm_fileset          = string,<br>    mode                 = string,<br>    bucket_storage_class = string,<br>    bucket_type          = string<br>  }))</pre> |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
@@ -79,6 +80,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#input_vpc_storage_cluster_dns_zone_id) | IBM Cloud storage cluster DNS zone id. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
 | <a name="input_activity_tracker_plan_type"></a> [activity_tracker_plan_type](#input_activity_tracker_plan_type) | IBM Cloud activity tracker plan type (Valid: lite, 7-day, 14-day, 30-day, hipaa-30-day). | `string` |
+| <a name="input_afm_vsi_profile"></a> [afm_vsi_profile](#input_afm_vsi_profile) | The virtual instance or bare metal server instance profile type name to be used to create the AFM gateway nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui) and [bare metal server profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui). | `string` |
 | <a name="input_bastion_instance_id"></a> [bastion_instance_id](#input_bastion_instance_id) | Bastion instance id. | `string` |
 | <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group id. | `string` |
@@ -136,6 +138,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_storage_vsi_osimage_id"></a> [storage_vsi_osimage_id](#input_storage_vsi_osimage_id) | Image id to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_osimage_name"></a> [storage_vsi_osimage_name](#input_storage_vsi_osimage_name) | Image name to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_profile"></a> [storage_vsi_profile](#input_storage_vsi_profile) | Profile to be used for storage cluster virtual server instance. | `string` |
+| <a name="input_total_afm_cluster_instances"></a> [total_afm_cluster_instances](#input_total_afm_cluster_instances) | Total number of instance count that you need to provision for afm nodes and enable AFM. | `number` |
 | <a name="input_total_client_cluster_instances"></a> [total_client_cluster_instances](#input_total_client_cluster_instances) | Total number of client cluster instances that you need to provision. A minimum of 2 nodes and a maximum of 64 nodes are supported | `number` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of instances to be launched for compute cluster. | `number` |
 | <a name="input_total_gklm_instances"></a> [total_gklm_instances](#input_total_gklm_instances) | Number of instances to be launched for GKLM. | `number` |

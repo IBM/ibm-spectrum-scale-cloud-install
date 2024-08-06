@@ -28,6 +28,8 @@ locals {
   enable_sec_interface_storage = local.scale_ces_enabled == false && var.storage_type != "persistent" && data.ibm_is_instance_profile.storage_profile.bandwidth[0].value >= 64000 ? true : false
   enable_mrot_conf             = local.enable_sec_interface_compute && local.enable_sec_interface_storage ? true : false
   ldap_server                  = var.enable_ldap == true && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
+  enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
+  afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
 }
 
 module "generate_compute_cluster_keys" {
@@ -612,6 +614,71 @@ module "gklm_instance" {
   depends_on           = [module.gklm_instance_ingress_security_rule, module.gklm_instance_ingress_security_rule_wt_bastion, module.gklm_instance_ingress_security_rule_wo_bastion, module.gklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
+data "ibm_is_bare_metal_server_profile" "afm_vsi_bm_server_profile" {
+  count = local.afm_server_type == true ? 1 : 0
+  name  = var.afm_vsi_profile
+}
+
+data "ibm_is_instance_profile" "afm_vsi_server_profile" {
+  count = local.afm_server_type == false ? 1 : 0
+  name  = var.afm_vsi_profile
+}
+
+module "afm_cluster_instances" {
+  source                       = "../../../resources/ibmcloud/compute/afm_vsi"
+  total_vsis                   = var.total_afm_cluster_instances
+  vsi_name_prefix              = format("%s-afm", var.resource_prefix)
+  afm_server_type              = local.afm_server_type
+  vpc_id                       = var.vpc_id
+  resource_group_id            = var.resource_group_id
+  zones                        = [var.vpc_availability_zones[0]]
+  vsi_image_id                 = local.storage_instance_image_id
+  vsi_profile                  = var.afm_vsi_profile
+  dns_domain                   = var.vpc_storage_cluster_dns_domain
+  dns_service_id               = var.vpc_storage_cluster_dns_service_id
+  dns_zone_id                  = var.vpc_storage_cluster_dns_zone_id
+  vsi_subnet_id                = var.vpc_storage_cluster_private_subnets
+  vsi_security_group           = [module.storage_cluster_security_group.sec_group_id]
+  vsi_user_public_key          = data.ibm_is_ssh_key.storage_ssh_key[*].id
+  vsi_meta_private_key         = module.generate_storage_cluster_keys.private_key_content
+  vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
+  scale_firewall_rules_enabled = true
+  resource_tags                = var.scale_cluster_resource_tags
+  depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
+}
+
+locals {
+  new_instance_bucket_hmac        = [for details in var.afm_cos_config : details if(details.cos_instance == "" && details.bucket_name == "" && details.cos_service_cred_key == "")]
+  exstng_instance_new_bucket_hmac = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name == "" && details.cos_service_cred_key == "")]
+  exstng_instance_bucket_new_hmac = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name != "" && details.cos_service_cred_key == "")]
+  exstng_instance_hmac_new_bucket = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name == "" && details.cos_service_cred_key != "")]
+  exstng_instance_bucket_hmac     = [for details in var.afm_cos_config : details if(details.cos_instance != "" && details.bucket_name != "" && details.cos_service_cred_key != "")]
+
+}
+
+module "cos" {
+  count                           = local.enable_afm == true ? 1 : 0
+  source                          = "../../../resources/ibmcloud/compute/cos"
+  prefix                          = "${var.resource_prefix}-"
+  resource_group_id               = var.resource_group_id
+  cos_instance_plan               = "standard"
+  cos_instance_location           = "global"
+  cos_instance_service            = "cloud-object-storage"
+  cos_hmac_role                   = "Manager"
+  new_instance_bucket_hmac        = local.new_instance_bucket_hmac
+  exstng_instance_new_bucket_hmac = local.exstng_instance_new_bucket_hmac
+  exstng_instance_bucket_new_hmac = local.exstng_instance_bucket_new_hmac
+  exstng_instance_hmac_new_bucket = local.exstng_instance_hmac_new_bucket
+  exstng_instance_bucket_hmac     = local.exstng_instance_bucket_hmac
+  filesystem                      = var.storage_cluster_filesystem_mountpoint
+  depends_on                      = [module.afm_cluster_instances]
+}
+
+locals {
+  afm_cos_bucket_details = local.enable_afm == true ? flatten(module.cos[*].afm_cos_bucket_details) : []
+  afm_config_details     = local.enable_afm == true ? flatten(module.cos[*].afm_config_details) : []
+}
+
 module "activity_tracker" {
   source                 = "../../../resources/ibmcloud/resource_instance"
   service_count          = var.vpc_create_activity_tracker == true ? 1 : 0
@@ -637,9 +704,13 @@ data "ibm_is_subnet_reserved_ips" "protocol_subnet_reserved_ips" {
 }
 
 locals {
-  storage_instance_ids                = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
-  storage_instance_names              = var.storage_type != "persistent" ? keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
-  storage_instance_private_ips        = var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].instance_name_ip_map)) : []
+  afm_instance_ids         = values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map_vsi_bm))
+  afm_instance_names       = keys(one(module.afm_cluster_instances[*].storage_cluster_instance_name_id_map_vsi_bm))
+  afm_instance_private_ips = values(one(module.afm_cluster_instances[*].storage_cluster_instance_name_ip_map_vsi_bm))
+
+  storage_instance_ids                = var.storage_type != "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_instances[*].instance_name_id_map)), local.afm_instance_ids) : values(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
+  storage_instance_names              = var.storage_type != "persistent" ? local.enable_afm == true ? concat(keys(one(module.storage_cluster_instances[*].instance_name_id_map)), local.afm_instance_names) : keys(one(module.storage_cluster_instances[*].instance_name_id_map)) : []
+  storage_instance_private_ips        = var.storage_type != "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_instances[*].instance_name_ip_map)), local.afm_instance_private_ips) : values(one(module.storage_cluster_instances[*].instance_name_ip_map)) : []
   storage_instance_private_dns_ip_map = var.storage_type != "persistent" ? one(module.storage_cluster_instances[*].instance_private_dns_ip_map) : {}
 
   storage_cluster_instance_ids                = local.scale_ces_enabled == false ? local.storage_instance_ids : concat(local.storage_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)))
@@ -647,9 +718,9 @@ locals {
   storage_cluster_instance_private_ips        = local.scale_ces_enabled == false ? local.storage_instance_private_ips : concat(local.storage_instance_private_ips, values(one(module.protocol_cluster_instances[*].instance_name_ip_map)))
   storage_cluster_instance_private_dns_ip_map = local.scale_ces_enabled == false ? local.storage_instance_private_dns_ip_map : merge(local.storage_instance_private_dns_ip_map, one(module.protocol_cluster_instances[*].instance_private_dns_ip_map))
 
-  baremetal_instance_ids                = var.storage_type == "persistent" ? values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
-  baremetal_instance_names              = var.storage_type == "persistent" ? keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
-  baremetal_instance_private_ips        = var.storage_type == "persistent" ? values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map)) : []
+  baremetal_instance_ids                = var.storage_type == "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)), local.afm_instance_ids) : values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
+  baremetal_instance_names              = var.storage_type == "persistent" ? local.enable_afm == true ? concat(keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)), local.afm_instance_names) : keys(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_id_map)) : []
+  baremetal_instance_private_ips        = var.storage_type == "persistent" ? local.enable_afm == true ? concat(values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map)), local.afm_instance_private_ips) : values(one(module.storage_cluster_bare_metal_server[*].storage_cluster_instance_name_ip_map)) : []
   baremetal_instance_private_dns_ip_map = var.storage_type == "persistent" ? one(module.storage_cluster_bare_metal_server[*].instance_private_dns_ip_map) : {}
 
   baremetal_cluster_instance_ids                = var.storage_type == "persistent" && local.scale_ces_enabled == false ? local.baremetal_instance_ids : concat(local.baremetal_instance_ids, values(one(module.protocol_cluster_instances[*].instance_name_id_map)))
@@ -717,6 +788,9 @@ module "write_compute_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = jsonencode({})
+  afm_cos_bucket_details                           = jsonencode([])
+  afm_config_details                               = jsonencode([])
+  afm_cluster_instance_names                       = jsonencode([])
 }
 
 module "write_storage_cluster_inventory" {
@@ -763,6 +837,9 @@ module "write_storage_cluster_inventory" {
   mountpoint                                       = local.scale_ces_enabled == true ? jsonencode(var.storage_cluster_filesystem_mountpoint) : jsonencode("")
   protocol_gateway_ip                              = jsonencode(local.protocol_subnet_gateway_ip)
   filesets                                         = jsonencode(local.fileset_size_map)
+  afm_cos_bucket_details                           = local.enable_afm == true ? jsonencode(local.afm_cos_bucket_details) : jsonencode([])
+  afm_config_details                               = local.enable_afm == true ? jsonencode(local.afm_config_details) : jsonencode([])
+  afm_cluster_instance_names                       = jsonencode(local.afm_instance_names)
 }
 
 module "write_cluster_inventory" {
@@ -809,6 +886,9 @@ module "write_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = jsonencode({})
+  afm_cos_bucket_details                           = jsonencode([])
+  afm_config_details                               = jsonencode([])
+  afm_cluster_instance_names                       = jsonencode([])
 }
 
 module "write_client_cluster_inventory" {
@@ -855,6 +935,9 @@ module "write_client_cluster_inventory" {
   mountpoint                                       = jsonencode("")
   protocol_gateway_ip                              = jsonencode("")
   filesets                                         = local.scale_ces_enabled == true ? jsonencode(local.fileset_size_map) : jsonencode({})
+  afm_cos_bucket_details                           = jsonencode([])
+  afm_config_details                               = jsonencode([])
+  afm_cluster_instance_names                       = jsonencode([])
 }
 
 module "compute_cluster_configuration" {
@@ -882,6 +965,7 @@ module "compute_cluster_configuration" {
   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
   enable_mrot_conf                = local.enable_mrot_conf ? "True" : "False"
   enable_ces                      = "False"
+  enable_afm                      = "False"
   scale_encryption_enabled        = var.scale_encryption_enabled
   scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
@@ -924,6 +1008,9 @@ module "storage_cluster_configuration" {
   strg_proto_memory                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   strg_proto_vcpus_count              = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
   strg_proto_bandwidth                = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  afm_memory                          = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].memory[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].memory[0].value
+  afm_vcpus_count                     = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].vcpu_count[0].value
+  afm_bandwidth                       = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].bandwidth[0].value
   disk_type                           = "network-attached"
   max_data_replicas                   = 3
   max_metadata_replicas               = 3
@@ -936,6 +1023,7 @@ module "storage_cluster_configuration" {
   spectrumscale_rpms_path             = var.spectrumscale_rpms_path
   enable_mrot_conf                    = local.enable_mrot_conf ? "True" : "False"
   enable_ces                          = local.scale_ces_enabled == true ? "True" : "False"
+  enable_afm                          = local.enable_afm == true ? "True" : "False"
   scale_encryption_enabled            = var.scale_encryption_enabled
   scale_encryption_admin_password     = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
   scale_encryption_servers            = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null

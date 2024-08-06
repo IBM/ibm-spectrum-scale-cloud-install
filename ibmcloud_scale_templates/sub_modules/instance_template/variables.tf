@@ -536,3 +536,29 @@ variable "ldap_vsi_osimage_name" {
   default     = "ibm-ubuntu-22-04-3-minimal-amd64-1"
   description = "Image name to be used for provisioning the LDAP instances. Note: Debian based OS are only supported for the LDAP feature."
 }
+
+variable "total_afm_cluster_instances" {
+  type        = number
+  default     = 0
+  description = "Total number of instance count that you need to provision for afm nodes and enable AFM."
+}
+
+variable "afm_vsi_profile" {
+  type        = string
+  default     = "bx2-32x128"
+  description = "The virtual instance or bare metal server instance profile type name to be used to create the AFM gateway nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles&interface=ui) and [bare metal server profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
+}
+
+variable "afm_cos_config" {
+  type = list(object({
+    cos_instance         = string,
+    bucket_name          = string,
+    bucket_region        = string,
+    cos_service_cred_key = string,
+    afm_fileset          = string,
+    mode                 = string,
+    bucket_storage_class = string,
+    bucket_type          = string
+  }))
+  description = "Please add the details of COS instance, COS bucket, hmac key, AFM fileset and mode(Read-only (RO), Single writer (SW), Local updates (LU) and Independent writer (IW))."
+}
