@@ -90,6 +90,11 @@ def check_nodeclass(nodeclass):
     nodeclass_name = nodeclass
     return nodeclass_name
 
+def check_afm_values():
+    """Check afm values"""
+    afmHardMemThreshold = "40G"
+    afm_config = {"afmHardMemThreshold": afmHardMemThreshold}
+    return afm_config
 
 def generate_nodeclass_config(nodeclass, memory, vcpus, bandwidth):
     """ Populate all calculated params """
@@ -178,6 +183,7 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
       - gpfs.gss.pmsensors
       - gpfs.gui
       - gpfs.java
+#      - gpfs.afm
 #      - gpfs.nfs-ganesha
   tasks:
   - name: Check if scale packages are already installed
@@ -224,6 +230,9 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: auth_prepare, when: enable_ces }}
      - {{ role: auth_configure, when: enable_ldap or enable_ces }}
      - {{ role: nfs_file_share, when: enable_ces }}
+     - {{ role: afm_cos_prepare, when: enable_afm }}
+     - {{ role: afm_cos_install, when: "enable_afm and scale_packages_installed is false" }}
+     - {{ role: afm_cos_configure, when: enable_afm }}
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content
@@ -314,8 +323,8 @@ def prepare_ansible_playbook_encryption_cluster(hosts_config):
 
 
 def initialize_cluster_details(scale_version, cluster_name, cluster_type, username, password, scale_profile_path, scale_replica_config, enable_mrot,
-                               enable_ces, storage_subnet_cidr, compute_subnet_cidr, protocol_gateway_ip, scale_remote_cluster_clustername,
-                               scale_encryption_servers, scale_encryption_admin_password, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password):
+                               enable_ces, enable_afm, storage_subnet_cidr, compute_subnet_cidr, protocol_gateway_ip, scale_remote_cluster_clustername,
+                               scale_encryption_servers, scale_encryption_admin_password, enable_ldap, ldap_basedns, ldap_server, ldap_admin_password, afm_cos_bucket_details, afm_config_details):
     """ Initialize cluster details.
     :args: scale_version (string), cluster_name (string),
            username (string), password (string), scale_profile_path (string),
@@ -337,6 +346,7 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
         pathlib.PurePath(scale_profile_path).parent)
     cluster_details['enable_mrot'] = enable_mrot
     cluster_details['enable_ces'] = enable_ces
+    cluster_details['enable_afm'] = enable_afm
     cluster_details['storage_subnet_cidr'] = storage_subnet_cidr
     cluster_details['compute_subnet_cidr'] = compute_subnet_cidr
     cluster_details['protocol_gateway_ip'] = protocol_gateway_ip
@@ -355,17 +365,19 @@ def initialize_cluster_details(scale_version, cluster_name, cluster_type, userna
     cluster_details['ldap_basedns'] = ldap_basedns
     cluster_details['ldap_server'] = ldap_server
     cluster_details['ldap_admin_password'] = ldap_admin_password
+    cluster_details['scale_afm_cos_bucket_params'] = afm_cos_bucket_details
+    cluster_details['scale_afm_cos_filesets_params'] = afm_config_details
     return cluster_details
 
 
 def get_host_format(node):
     """ Return host entries """
-    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']} scale_protocol_node={node['scale_protocol_node']}"
+    host_format = f"{node['ip_addr']} scale_cluster_quorum={node['is_quorum']} scale_cluster_manager={node['is_manager']} scale_cluster_gui={node['is_gui']} scale_zimon_collector={node['is_collector']} is_nsd_server={node['is_nsd']} is_admin_node={node['is_admin']} ansible_user={node['user']} ansible_ssh_private_key_file={node['key_file']} ansible_python_interpreter=/usr/bin/python3 scale_nodeclass={node['class']} scale_daemon_nodename={node['daemon_nodename']} scale_protocol_node={node['scale_protocol_node']} scale_cluster_gateway={node['scale_cluster_gateway']}"
     return host_format
 
 
 def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, storage_private_ips,
-                            storage_cluster_instance_names, storage_nsd_server_instance_names,
+                            storage_cluster_instance_names, storage_nsd_server_instance_names, afm_cluster_instance_names,
                             protocol_cluster_instance_names, desc_private_ips, quorum_count,
                             user, key_file):
     """ Initialize node details for cluster definition.
@@ -383,13 +395,13 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False, 'scale_cluster_gateway': False}
             # Scale Management node defination
             elif compute_cluster_instance_names.index(each_ip) == total_compute_node - 1:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': True, 'is_collector': True, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "managementnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "managementnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False, 'scale_cluster_gateway': False}
                 write_json_file({'compute_cluster_gui_ip_address': each_ip},
                                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                            "compute_cluster_gui_details.json"))
@@ -398,7 +410,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': True,
                         'is_gui': False, 'is_collector': False, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "computenodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False, 'scale_cluster_gateway': False}
             node_details.append(get_host_format(node))
 
     elif cls_type == 'storage':
@@ -408,6 +420,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
             each_name = each_ip.split('.')[0]
             is_protocol = each_ip in protocol_cluster_instance_names
             is_nsd = each_name in storage_nsd_server_instance_names
+            is_afm = each_ip in afm_cluster_instance_names
             if is_nsd:
                 if is_protocol:
                     nodeclass = "storageprotocolnodegrp"
@@ -416,25 +429,27 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
             else:
                 if is_protocol:
                     nodeclass = "protocolnodegrp"
+                elif is_afm:
+                    nodeclass = "afmgatewaygrp"
                 else:
                     nodeclass = "managementnodegrp"
             if storage_cluster_instance_names.index(each_ip) < (start_quorum_assign):
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': True,
                         'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': nodeclass, 'daemon_nodename': each_name, 'scale_protocol_node': is_protocol}
+                        'class': nodeclass, 'daemon_nodename': each_name, 'scale_protocol_node': is_protocol, 'scale_cluster_gateway': is_afm}
             # Tie-breaker node defination
             elif storage_cluster_instance_names.index(each_ip) == total_storage_node - 1:
                 node = {'ip_addr': each_ip, 'is_quorum': True, 'is_manager': False,
                         'is_gui': False, 'is_collector': False, 'is_nsd': True,
                         'is_admin': False, 'user': user, 'key_file': key_file,
-                        'class': "storagedescnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "storagedescnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False, 'scale_cluster_gateway': False}
             # Scale Management node defination
             elif storage_cluster_instance_names.index(each_ip) == total_storage_node - 2:
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': False,
                         'is_gui': True, 'is_collector': True, 'is_nsd': False,
                         'is_admin': True, 'user': user, 'key_file': key_file,
-                        'class': "managementnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False}
+                        'class': "managementnodegrp", 'daemon_nodename': each_name, 'scale_protocol_node': False, 'scale_cluster_gateway': False}
                 write_json_file({'storage_cluster_gui_ip_address': each_ip},
                                 "%s/%s" % (str(pathlib.PurePath(ARGUMENTS.tf_inv_path).parent),
                                            "storage_cluster_gui_details.json"))
@@ -443,7 +458,7 @@ def initialize_node_details(az_count, cls_type, compute_cluster_instance_names, 
                 node = {'ip_addr': each_ip, 'is_quorum': False, 'is_manager': is_nsd,
                         'is_gui': False, 'is_collector': False, 'is_nsd': is_nsd,
                         'is_admin': is_nsd, 'user': user, 'key_file': key_file,
-                        'class': nodeclass, 'daemon_nodename': each_name, 'scale_protocol_node': is_protocol}
+                        'class': nodeclass, 'daemon_nodename': each_name, 'scale_protocol_node': is_protocol, 'scale_cluster_gateway': is_afm}
             node_details.append(get_host_format(node))
 
     elif cls_type == 'combined':
@@ -764,6 +779,14 @@ if __name__ == "__main__":
                         default=8)
     PARSER.add_argument("--strg_proto_bandwidth", help="Storage protocol node bandwidth",
                         default=16000)
+    PARSER.add_argument('--enable_afm', help='enable AFM',
+                        default="null")
+    PARSER.add_argument("--afm_memory", help="AFM node memory",
+                        default=32)
+    PARSER.add_argument("--afm_vcpus_count", help="AFM node vcpus count",
+                        default=8)
+    PARSER.add_argument("--afm_bandwidth", help="AFM node bandwidth",
+                        default=16000)
     ARGUMENTS = PARSER.parse_args()
 
     cluster_type, gui_username, gui_password = None, None, None
@@ -829,6 +852,9 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
+        afmgatewaygrp = generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
+        afmgatewaygrp[1].update(check_afm_values())
         
         nodeclassgrp = [storagedescnodegrp, managementnodegrp]
         if ARGUMENTS.enable_ces == "True":
@@ -841,6 +867,8 @@ if __name__ == "__main__":
                 nodeclassgrp.append(protocolnodegrp)
         else:
             nodeclassgrp.append(storagenodegrp)
+        if ARGUMENTS.enable_afm == "True":
+            nodeclassgrp.append(afmgatewaygrp)
         scale_config = initialize_scale_config_details(nodeclassgrp)
 
     elif len(TF['compute_cluster_instance_private_ips']) == 0 and \
@@ -875,6 +903,9 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
+        afmgatewaygrp =generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
+        afmgatewaygrp[1].update(check_afm_values())
 
         nodeclassgrp = [storagedescnodegrp, managementnodegrp]
         if ARGUMENTS.enable_ces == "True":
@@ -887,6 +918,8 @@ if __name__ == "__main__":
                 nodeclassgrp.append(protocolnodegrp)
         else:
             nodeclassgrp.append(storagenodegrp)
+        if ARGUMENTS.enable_afm == "True":
+            nodeclassgrp.append(afmgatewaygrp)
         scale_config = initialize_scale_config_details(nodeclassgrp)
 
     else:
@@ -917,6 +950,9 @@ if __name__ == "__main__":
             "protocolnodegrp", ARGUMENTS.proto_memory, ARGUMENTS.proto_vcpus_count, ARGUMENTS.strg_bandwidth)
         storageprotocolnodegrp = generate_nodeclass_config(
             "storageprotocolnodegrp", ARGUMENTS.strg_proto_memory, ARGUMENTS.strg_proto_vcpus_count, ARGUMENTS.strg_proto_bandwidth)
+        afmgatewaygrp =generate_nodeclass_config(
+            "afmgatewaygrp", ARGUMENTS.afm_memory, ARGUMENTS.afm_vcpus_count, ARGUMENTS.afm_bandwidth)
+        afmgatewaygrp[1].update(check_afm_values())
 
         if len(TF['vpc_availability_zones']) == 1:
             nodeclassgrp = [storagedescnodegrp, managementnodegrp, computenodegrp]
@@ -930,6 +966,8 @@ if __name__ == "__main__":
                     nodeclassgrp.append(protocolnodegrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
+            if ARGUMENTS.enable_afm == "True":
+                nodeclassgrp.append(afmgatewaygrp)
             scale_config = initialize_scale_config_details(nodeclassgrp)
         else:
             nodeclassgrp = [storagedescnodegrp, managementnodegrp, computenodegrp]
@@ -943,6 +981,8 @@ if __name__ == "__main__":
                     nodeclassgrp.append(protocolnodegrp)
             else:
                 nodeclassgrp.append(storagenodegrp)
+            if ARGUMENTS.enable_afm == "True":
+                nodeclassgrp.append(afmgatewaygrp)
             scale_config = initialize_scale_config_details(nodeclassgrp)
 
     print("Identified cluster type: %s" % cluster_type)
@@ -1024,6 +1064,7 @@ if __name__ == "__main__":
                                            TF['storage_cluster_instance_private_ips'],
                                            TF['storage_cluster_instance_names'],
                                            list(TF["storage_cluster_with_data_volume_mapping"].keys()),
+                                           TF["afm_cluster_instance_names"],
                                            TF['protocol_cluster_instance_names'],
                                            TF['storage_cluster_desc_instance_private_ips'],
                                            quorum_count, "root", ARGUMENTS.instance_private_key)
@@ -1052,6 +1093,7 @@ if __name__ == "__main__":
                                                     replica_config,
                                                     ARGUMENTS.enable_mrot_conf,
                                                     ARGUMENTS.enable_ces,
+                                                    ARGUMENTS.enable_afm,
                                                     TF['storage_subnet_cidr'],
                                                     TF['compute_subnet_cidr'],
                                                     TF['protocol_gateway_ip'],
@@ -1061,7 +1103,9 @@ if __name__ == "__main__":
                                                     ARGUMENTS.enable_ldap,
                                                     ARGUMENTS.ldap_basedns,
                                                     ARGUMENTS.ldap_server,
-                                                    ARGUMENTS.ldap_admin_password)
+                                                    ARGUMENTS.ldap_admin_password,
+                                                    TF['afm_cos_bucket_details'],
+                                                    TF['afm_config_details'])
     with open("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                           "ibm-spectrum-scale-install-infra",
                                           cluster_type), 'w') as configfile:
