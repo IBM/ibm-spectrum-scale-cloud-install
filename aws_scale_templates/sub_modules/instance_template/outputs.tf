@@ -8,13 +8,8 @@ output "bastion_user" {
   description = "Bastion OS Login username."
 }
 
-output "ces_nic_ids" {
-  value       = [for nic in module.protocol_enis : nic.eni_ids]
-  description = "CES/Protocol ENI (secondary nic) ids."
-}
-
 output "ces_private_ips" {
-  value       = local.separate_nic ? [] : var.ces_private_ips
+  value       = [for ip in module.protocol_instances : ip.ces_private_ip]
   description = "CES/Protocol ENI (secondary private) ips."
 }
 

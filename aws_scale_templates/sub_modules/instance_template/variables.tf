@@ -34,12 +34,6 @@ variable "bastion_user" {
   description = "Bastion login username."
 }
 
-variable "ces_private_ips" {
-  type        = list(string)
-  nullable    = true
-  description = "List of CES ipaddress to use (must be equal to total_protocol_instances)."
-}
-
 variable "client_ip_ranges" {
   type        = list(string)
   nullable    = true
@@ -374,6 +368,12 @@ variable "vpc_forward_dns_zone" {
   type        = string
   nullable    = true
   description = "DNS zone name to be used for scale cluster (Ex: example-zone)."
+}
+
+variable "vpc_protocol_private_subnets" {
+  type        = list(string)
+  nullable    = true
+  description = "List of IDs of protocol private subnets."
 }
 
 variable "vpc_ref" {

@@ -8,7 +8,6 @@ locals {
   storage_or_combined  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
   storage_and_protocol = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_protocol_instances > 0) ? true : false
   storage_and_gateway  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
-  scale_cluster_type   = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
 
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   ebs_device_names = ["/dev/xvdf", "/dev/xvdg", "/dev/xvdh", "/dev/xvdi", "/dev/xvdj",
@@ -17,24 +16,11 @@ locals {
   gpfs_base_rpm_path            = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version                 = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 
-  ## Base Ports
-  #scale security port 
+  # Internode scale firewall ports
   scale_traffic_ports    = [-1, 22, 1191, 60000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
   scale_traffic_to_ports = [-1, 22, 1191, 61000, 47080, 47443, 4444, 4739, 4739, 9080, 9081, 80, 443]
   scale_traffic_protocol = ["icmp", "TCP", "TCP", "TCP", "TCP", "UDP", "TCP", "TCP", "UDP", "TCP", "TCP", "TCP", "TCP"]
-
-  ## Extended ports
-  # Protocol ports
-  protocol_traffic_ports    = [4379, 11211, 11211, 6200, 6443, 6001]
-  protocol_traffic_to_ports = [4379, 11211, 11211, 6203, 6443, 6001]
-  protocol_traffic_protocol = ["TCP", "TCP", "UDP", "TCP", "TCP", "TCP"]
-
-  # Ssh ports
-  ssh_traffic_ports    = [-1, 22]
-  ssh_traffic_protocol = ["icmp", "TCP"]
-
-  # Scale cluster rule descriptions
-  security_rule_description_scale_nodes = [
+  scale_nodes_security_rule_description = [
     "Allow ICMP traffic within scale instances",
     "Allow SSH traffic within scale instances",
     "Allow GPFS intra cluster traffic within scale instances",
@@ -49,14 +35,15 @@ locals {
     "Allow http traffic within scale instances",
   "Allow https traffic within scale instances"]
 
-  # Protocol security rule descriptions
-  security_rule_description_protocol_nodes = [
-    "Allow CTDB traffic within protocol instances",
-    "Allow Memcached traffic within protocol instances",
-    "Allow Memcached traffic within protocol instances",
-    "Allow Object Storage traffic within protocol instances",
-    "Allow Nooba traffic within protocol instances",
-  "Allow Nooba traffic within protocol instances"]
+  # Internode protocol ports
+  protocol_traffic_ports                   = [4379]
+  protocol_traffic_to_ports                = [4379]
+  protocol_traffic_protocol                = ["TCP"]
+  protocol_nodes_security_rule_description = ["Allow CTDB traffic within protocol instances"]
+
+  # SSH ports
+  ssh_traffic_ports    = [-1, 22]
+  ssh_traffic_protocol = ["icmp", "TCP"]
 }
 
 /*
@@ -162,10 +149,12 @@ locals {
     Ex:
         protocol_vm_subnet_map = {
             "vm-protocol-1" = {
-                "subnet" = "test-private-subnet-1"
+                "base_subnet" = "test-private-subnet-1"
+                "ces_subnet" = "ces-private-subnet-1"
             }
             "vm-protocol-2" = {
-                "subnet" = "test-private-subnet-2"
+                "base_subnet" = "test-private-subnet-2"
+                "ces_subnet" = "ces-private-subnet-2"
             }
         }
 */
@@ -174,27 +163,10 @@ locals {
     for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
     vm_name => {
       # Consider only first 2 elements
-      subnet         = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
-      ces_private_ip = element(var.ces_private_ips, idx)
+      base_subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
+      ces_subnet  = length(var.vpc_protocol_private_subnets) > 1 ? element(slice(var.vpc_protocol_private_subnets, 0, 2), idx) : element(var.vpc_protocol_private_subnets, idx)
     }
   }
-}
-
-/*
-    Notes:
-    1. One additional ENI will be provisioned per protocol node
-    2. Each ENI will only have 1 secondary ip
-*/
-locals {
-  separate_nic = false
-  protocol_vm_ces_map = local.separate_nic ? {
-    for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
-    vm_name => {
-      subnet      = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx) # Consider only first 2 elements
-      private_ips = var.ces_private_ips == null ? null : element(var.ces_private_ips, idx)
-      description = format("%s-ces", vm_name)
-    }
-  } : {}
 }
 
 /*
