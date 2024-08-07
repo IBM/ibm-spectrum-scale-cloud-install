@@ -1,8 +1,10 @@
 /*
-     Creates AWS EC2 instance(s).
+     Creates AWS EC2 instance(s) with multiple NIC's.
 */
 
 variable "ami_id" {}
+variable "base_subnet_id" {}
+variable "ces_subnet_id" {}
 variable "dns_domain" {}
 variable "forward_dns_zone" {}
 variable "iam_instance_profile" {}
@@ -17,7 +19,6 @@ variable "root_device_encrypted" {}
 variable "root_device_kms_key_id" {}
 variable "root_volume_type" {}
 variable "security_groups" {}
-variable "subnet_id" {}
 variable "tags" {}
 variable "user_public_key" {}
 variable "volume_tags" {}
@@ -50,12 +51,31 @@ data "aws_kms_key" "itself" {
   key_id = var.root_device_kms_key_id
 }
 
-resource "aws_instance" "itself" {
-  ami             = var.ami_id
-  instance_type   = var.instance_type
-  key_name        = var.user_public_key
+resource "aws_network_interface" "base_nic" {
+  subnet_id       = var.base_subnet_id
   security_groups = var.security_groups
-  subnet_id       = var.subnet_id
+}
+
+resource "aws_network_interface" "ces_nic" {
+  subnet_id         = var.ces_subnet_id
+  private_ips_count = 1 # Number of secondary private IPs to assign to the ENI
+  security_groups   = var.security_groups
+}
+
+resource "aws_instance" "itself" {
+  ami           = var.ami_id
+  instance_type = var.instance_type
+  key_name      = var.user_public_key
+
+  network_interface {
+    network_interface_id = aws_network_interface.base_nic.id
+    device_index         = 0
+  }
+
+  network_interface {
+    network_interface_id = aws_network_interface.ces_nic.id
+    device_index         = 1
+  }
 
   # Only include iam_instance_profile if var.iam_instance_profile is a non-empty string
   # otherwise, skip the parameter entirely
@@ -95,6 +115,10 @@ resource "aws_instance" "itself" {
   }
 }
 
+locals {
+  ces_ipaddress = tolist(setsubtract(aws_network_interface.ces_nic.private_ips, [aws_network_interface.ces_nic.private_ip]))[0]
+}
+
 # Create "A" (IPv4 Address) record to map IPv4 address as hostname along with domain
 resource "aws_route53_record" "a_itself" {
   zone_id = var.forward_dns_zone
@@ -113,11 +137,34 @@ resource "aws_route53_record" "ptr_itself" {
   ttl     = 360
 }
 
+# Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
+resource "aws_route53_record" "ces_a_itself" {
+  zone_id = var.forward_dns_zone
+  type    = "A"
+  name    = format("%s-ces", var.name_prefix)
+  records = [local.ces_ipaddress]
+  ttl     = 360
+}
+
+# Create "PTR" (Pointer) to enable reverse DNS lookup, from an IP address to a hostname for CES ip address
+resource "aws_route53_record" "ces_ptr_itself" {
+  zone_id = var.reverse_dns_zone
+  type    = "PTR"
+  name    = format("%s.%s.%s.%s", split(".", local.ces_ipaddress)[3], split(".", local.ces_ipaddress)[2], split(".", local.ces_ipaddress)[1], var.reverse_dns_domain)
+  records = [format("%s-ces.%s", var.name_prefix, var.dns_domain)]
+  ttl     = 360
+}
+
 output "instance_details" {
   value = {
     private_ip = aws_instance.itself.private_ip
     id         = aws_instance.itself.id
     dns        = format("%s.%s", var.name_prefix, var.dns_domain)
     zone       = aws_instance.itself.availability_zone
+    ces_ip     = tolist(setsubtract(aws_network_interface.ces_nic.private_ips, [aws_network_interface.ces_nic.private_ip]))[0]
   }
+}
+
+output "ces_private_ip" {
+  value = tolist(setsubtract(aws_network_interface.ces_nic.private_ips, [aws_network_interface.ces_nic.private_ip]))[0]
 }

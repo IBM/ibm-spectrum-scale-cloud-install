@@ -114,9 +114,9 @@ module "protocol_security_group" {
 # Create security rules to enable scale/gpfs traffic within compute/storage instances.
 module "scale_cluster_ingress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_source"
-  total_rules               = local.scale_cluster_type ? length(local.scale_traffic_protocol) : 0
+  total_rules               = length(local.scale_traffic_protocol)
   security_group_id         = [module.cluster_security_group.sec_group_id]
-  security_rule_description = local.security_rule_description_scale_nodes
+  security_rule_description = local.scale_nodes_security_rule_description
   security_rule_type        = ["ingress"]
   traffic_protocol          = local.scale_traffic_protocol
   traffic_from_port         = local.scale_traffic_ports
@@ -127,7 +127,7 @@ module "scale_cluster_ingress_security_rule" {
 # Create security rules to enable direct connection to scale cluster
 module "scale_cluster_ingress_security_rule_using_direct_connection" {
   source            = "../../../resources/aws/security/security_rule_cidr"
-  total_rules       = local.scale_cluster_type && var.using_direct_connection ? 3 : 0
+  total_rules       = var.using_direct_connection ? 3 : 0
   security_group_id = [module.cluster_security_group.sec_group_id]
   security_rule_description = [
     "Allow ICMP traffic from client cidr/ip range to compute instances",
@@ -144,7 +144,7 @@ module "scale_cluster_ingress_security_rule_using_direct_connection" {
 # Create security rules to enable jumphost communication to scale cluster
 module "scale_cluster_ingress_security_rule_using_jumphost" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = local.scale_cluster_type && var.using_jumphost_connection ? 3 : 0
+  total_rules       = var.using_jumphost_connection ? 3 : 0
   security_group_id = [module.cluster_security_group.sec_group_id]
   security_rule_description = [
     "Allow ICMP traffic from Jumphost to compute instances",
@@ -160,7 +160,7 @@ module "scale_cluster_ingress_security_rule_using_jumphost" {
 # Create security rules to enable scale communication from cloud connection method
 module "scale_cluster_ingress_security_rule_using_cloud_connection" {
   source            = "../../../resources/aws/security/security_rule_source"
-  total_rules       = local.scale_cluster_type && var.using_cloud_connection ? 3 : 0
+  total_rules       = var.using_cloud_connection ? 3 : 0
   security_group_id = [module.cluster_security_group.sec_group_id]
   security_rule_description = [
     "Allow ICMP traffic from cloud gateway to compute instances",
@@ -176,7 +176,7 @@ module "scale_cluster_ingress_security_rule_using_cloud_connection" {
 # Create security rule to enable scale cluster egress communication
 module "scale_cluster_egress_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_cidr"
-  total_rules               = local.scale_cluster_type ? 1 : 0
+  total_rules               = 1
   security_group_id         = [module.cluster_security_group.sec_group_id]
   security_rule_description = ["Outgoing traffic from scale instances"]
   security_rule_type        = ["egress"]
@@ -192,7 +192,7 @@ module "protocol_cluster_security_rule" {
   source                    = "../../../resources/aws/security/security_rule_source"
   total_rules               = var.total_protocol_instances > 0 ? length(local.protocol_traffic_protocol) : 0
   security_group_id         = [module.protocol_security_group.sec_group_id]
-  security_rule_description = local.security_rule_description_protocol_nodes
+  security_rule_description = local.protocol_nodes_security_rule_description
   security_rule_type        = ["ingress"]
   traffic_protocol          = local.protocol_traffic_protocol
   traffic_from_port         = local.protocol_traffic_ports
@@ -249,7 +249,6 @@ module "compute_cluster_instances" {
   root_device_encrypted  = var.root_device_encrypted
   root_device_kms_key_id = var.root_device_kms_key_ref
   root_volume_type       = var.compute_cluster_boot_disk_type
-  secondary_private_ip   = null
   security_groups        = [module.cluster_security_group.sec_group_id]
   subnet_id              = each.value["subnet"]
   tags                   = var.compute_cluster_tags
@@ -335,7 +334,6 @@ module "gateway_instances" {
   root_device_encrypted  = var.root_device_encrypted
   root_device_kms_key_id = var.root_device_kms_key_ref
   root_volume_type       = var.storage_cluster_boot_disk_type
-  secondary_private_ip   = null
   security_groups        = [module.cluster_security_group.sec_group_id]
   subnet_id              = each.value["subnet"]
   tags                   = var.gateway_tags
@@ -345,7 +343,7 @@ module "gateway_instances" {
 
 module "protocol_instances" {
   for_each               = local.protocol_vm_subnet_map
-  source                 = "../../../resources/aws/compute/ec2_0_vol"
+  source                 = "../../../resources/aws/compute/ec2_multiple_nic"
   ami_id                 = var.storage_cluster_image_ref
   dns_domain             = var.vpc_storage_cluster_dns_domain
   forward_dns_zone       = var.vpc_forward_dns_zone
@@ -360,22 +358,12 @@ module "protocol_instances" {
   root_device_encrypted  = var.root_device_encrypted
   root_device_kms_key_id = var.root_device_kms_key_ref
   root_volume_type       = var.storage_cluster_boot_disk_type
-  secondary_private_ip   = each.value["ces_private_ip"]
   security_groups        = [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
-  subnet_id              = each.value["subnet"]
+  base_subnet_id         = each.value["base_subnet"]
+  ces_subnet_id          = each.value["ces_subnet"]
   tags                   = var.protocol_tags
   user_public_key        = var.storage_cluster_key_pair
   volume_tags            = var.protocol_volume_tags
-}
-
-module "protocol_enis" {
-  for_each          = local.protocol_vm_ces_map
-  source            = "../../../resources/aws/network/eni"
-  subnet_id         = each.value["subnet"]
-  private_ips       = each.value["private_ips"]
-  private_ips_count = 1
-  security_groups   = [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
-  description       = each.value["description"]
 }
 
 module "prepare_ansible_configuration" {

@@ -238,7 +238,6 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_bastion_security_group_ref"></a> [bastion_security_group_ref](#input_bastion_security_group_ref) | Bastion security group reference (id/self-link). | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
-| <a name="input_ces_private_ips"></a> [ces_private_ips](#input_ces_private_ips) | List of CES ipaddress to use (must be equal to total_protocol_instances). | `list(string)` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of gateway/client ip/cidr ranges. | `list(string)` |
 | <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
@@ -292,6 +291,7 @@ The following steps will provision AWS resources (compute and storage instances 
 | <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
 | <a name="input_vpc_forward_dns_zone"></a> [vpc_forward_dns_zone](#input_vpc_forward_dns_zone) | DNS zone name to be used for scale cluster (Ex: example-zone). | `string` |
+| <a name="input_vpc_protocol_private_subnets"></a> [vpc_protocol_private_subnets](#input_vpc_protocol_private_subnets) | List of IDs of protocol private subnets. | `list(string)` |
 | <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc. | `string` |
 | <a name="input_vpc_reverse_dns_domain"></a> [vpc_reverse_dns_domain](#input_vpc_reverse_dns_domain) | DNS reverse domain (Ex: 10.in-addr.arpa). | `string` |
@@ -305,7 +305,6 @@ The following steps will provision AWS resources (compute and storage instances 
 |------|-------------|
 | <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
 | <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
-| <a name="output_ces_nic_ids"></a> [ces_nic_ids](#output_ces_nic_ids) | CES/Protocol ENI (secondary nic) ids. |
 | <a name="output_ces_private_ips"></a> [ces_private_ips](#output_ces_private_ips) | CES/Protocol ENI (secondary private) ips. |
 | <a name="output_cluster_sns_arn"></a> [cluster_sns_arn](#output_cluster_sns_arn) | n/a |
 | <a name="output_compute_cluster_instance_cidrs"></a> [compute_cluster_instance_cidrs](#output_compute_cluster_instance_cidrs) | n/a |
