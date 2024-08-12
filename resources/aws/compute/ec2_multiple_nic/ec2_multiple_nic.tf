@@ -157,11 +157,11 @@ resource "aws_route53_record" "ces_ptr_itself" {
 
 output "instance_details" {
   value = {
-    private_ip = aws_instance.itself.private_ip
-    id         = aws_instance.itself.id
-    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
-    zone       = aws_instance.itself.availability_zone
-    ces_ip     = tolist(setsubtract(aws_network_interface.ces_nic.private_ips, [aws_network_interface.ces_nic.private_ip]))[0]
+    private_ip     = aws_instance.itself.private_ip
+    id             = aws_instance.itself.id
+    dns            = format("%s.%s", var.name_prefix, var.dns_domain)
+    zone           = aws_instance.itself.availability_zone
+    ces_private_ip = tolist(setsubtract(aws_network_interface.ces_nic.private_ips, [aws_network_interface.ces_nic.private_ip]))[0]
   }
 }
 

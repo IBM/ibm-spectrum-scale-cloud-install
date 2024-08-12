@@ -246,15 +246,15 @@ locals {
           kms_key      = disk["kms_key"]
           fs_name      = disk["fs_name"]
           pool         = disk["pool"]
-        }
+        } if length(var.marked_vm_names_to_attach_disks) == 0 || contains(var.marked_vm_names_to_attach_disks, vm_name)
       })
     }
   }
 
   filesystem_details = local.storage_or_combined ? { for fs_config in var.filesystem_parameters : fs_config.name => fs_config.filesystem_config_file } : {}
   storage_instance_ips_with_disk_mapping = {
-    for idx, vm_ipaddr in [for instance in module.storage_cluster_instances : instance.instance_details["private_ip"]] :
-    vm_ipaddr => {
+    for idx, vm_dns in [for instance in module.storage_cluster_instances : instance.instance_details["dns"]] :
+    vm_dns => {
       zone = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
       disks = var.scratch_devices_per_storage_instance > 0 ? tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
@@ -262,14 +262,14 @@ locals {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
           device_name = format("/dev/disk/by-id/google-local-nvme-ssd-%s", jdx)
-        }
+        } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for vm_name in var.marked_vm_names_to_attach_disks : can(regex(vm_name, vm_dns))])
         }) : tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
           device_name = format("/dev/disk/by-id/google-%s-storage-%s-%s", var.resource_prefix, idx + 1, disk["name"])
-        }
+        } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for vm_name in var.marked_vm_names_to_attach_disks : can(regex(vm_name, vm_dns))])
       })
     }
   }

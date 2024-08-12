@@ -197,6 +197,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
 | <a name="input_instances_ssh_user_name"></a> [instances_ssh_user_name](#input_instances_ssh_user_name) | Compute/Storage VM login username. | `string` |
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
+| <a name="input_marked_vm_names_to_attach_disks"></a> [marked_vm_names_to_attach_disks](#input_marked_vm_names_to_attach_disks) | Specify the instance names for which disks needs to be attached | `list(string)` |
 | <a name="input_physical_block_size_bytes"></a> [physical_block_size_bytes](#input_physical_block_size_bytes) | Physical block size of the persistent disk, in bytes (valid: 4096, 16384). | `number` |
 | <a name="input_project_id"></a> [project_id](#input_project_id) | GCP project ID to manage resources. | `string` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
