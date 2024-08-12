@@ -150,6 +150,12 @@ variable "inventory_format" {
   description = "Specify inventory format suited for ansible playbooks."
 }
 
+variable "marked_vm_names_to_attach_disks" {
+  type        = list(string)
+  nullable    = true
+  description = "Specify the instance names for which disks needs to be attached"
+}
+
 variable "physical_block_size_bytes" {
   type        = number
   nullable    = true
