@@ -1,11 +1,11 @@
-# Configure AWS Route53 and associate with a VPC
+# Configure Managed AWS AD
 
-The below steps will provision the AWS route53 zones required for the IBM Spectrum Scale cloud solution.
+The below steps will provision the managed AWS AD service required for the IBM Spectrum Scale cloud solution.
 
-1. Change the working directory to `aws_scale_templates/sub_modules/dns_template`.
+1. Change the working directory to `aws_scale_templates/sub_modules/auth_template`.
 
     ```cli
-    cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/dns_template/
+    cd ibm-spectrum-scale-cloud-install/aws_scale_templates/sub_modules/auth_template/
     ```
 
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
@@ -13,18 +13,15 @@ The below steps will provision the AWS route53 zones required for the IBM Spectr
     Minimal Example-1:
 
     ```cli
-    cat <<EOF > combined_1az.auto.tfvars.json
+    cat <<EOF > inputs.auto.tfvars.json
     {
-	    "cluster_type": "Combined-compute-storage",
-	    "create_dns_zone": true,
-    	"vpc_compute_cluster_dns_zone": "ibm-storage-scale.compscale.com",
-	    "vpc_compute_cluster_dns_zone_description": "This zone is created by (cloudkit) for IBM Storage Scale (ibm-storage-scale) operations.",
-	    "vpc_ref": "vpc-00ff479c2deb21662",
-    	"vpc_region": "us-east-2",
-    	"vpc_reverse_dns_zone": "10.in-addr.arpa",
-	    "vpc_reverse_dns_zone_description": "This zone is created by (cloudkit) for IBM Storage Scale (ibm-storage-scale) operations.",
-	    "vpc_storage_cluster_dns_zone": "ibm-storage-scale.strgscale.com",
-	    "vpc_storage_cluster_dns_zone_description": "This zone is created by (cloudkit) for IBM Storage Scale (ibm-storage-scale) operations.",
+	    "create_cloud_managed_auth": true,
+	    "managed_ad_dns_name": "corp.example.com",
+	    "managed_ad_password": "Passw0rd",
+	    "managed_ad_size": "Small",
+	    "managed_ad_subnet_refs": ["subnet-0fb8161c215", "subnet-0e7f69a18"],
+	    "vpc_region": "us-east-2",
+	    "vpc_ref": "vpc-06ba11cf6f0e5a374"
     }
     EOF
     ```
