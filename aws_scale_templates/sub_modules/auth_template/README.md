@@ -40,26 +40,19 @@ The below steps will provision the managed AWS AD service required for the IBM S
 
 | Name | Description | Type |
 |------|-------------|------|
-| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
-| <a name="input_create_dns_zone"></a> [create_dns_zone](#input_create_dns_zone) | Flag to represent if a new private DNS zone needs to be created or reused. | `bool` |
-| <a name="input_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#input_vpc_compute_cluster_dns_zone) | Route53 DNS zone name/id (incase of new creation use name, incase of association use id). | `string` |
-| <a name="input_vpc_compute_cluster_dns_zone_description"></a> [vpc_compute_cluster_dns_zone_description](#input_vpc_compute_cluster_dns_zone_description) | DNS zone description | `string` |
-| <a name="input_vpc_dns_tags"></a> [vpc_dns_tags](#input_vpc_dns_tags) | Additional tags for the DNS zone | `map(string)` |
+| <a name="input_create_cloud_managed_auth"></a> [create_cloud_managed_auth](#input_create_cloud_managed_auth) | Flag to represent if a cloud-managed auth service needs to be created or customer managed auth service needs to be created. | `bool` |
+| <a name="input_managed_ad_dns_name"></a> [managed_ad_dns_name](#input_managed_ad_dns_name) | Managed directory DNS name | `string` |
+| <a name="input_managed_ad_password"></a> [managed_ad_password](#input_managed_ad_password) | Managed directory (AD) password | `string` |
+| <a name="input_managed_ad_size"></a> [managed_ad_size](#input_managed_ad_size) | Managed directory (AD) size | `string` |
+| <a name="input_managed_ad_subnet_refs"></a> [managed_ad_subnet_refs](#input_managed_ad_subnet_refs) | Managed directory (AD) subnets (). | `list(string)` |
 | <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id to be associated with the DNS zone. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc. | `string` |
-| <a name="input_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#input_vpc_reverse_dns_zone) | Route53 DNS zone/id (incase of new creation use name, incase of association use id). | `string` |
-| <a name="input_vpc_reverse_dns_zone_description"></a> [vpc_reverse_dns_zone_description](#input_vpc_reverse_dns_zone_description) | Route53 DNS zone description. | `string` |
-| <a name="input_vpc_storage_cluster_dns_zone"></a> [vpc_storage_cluster_dns_zone](#input_vpc_storage_cluster_dns_zone) | Route53 DNS zone name/id (incase of new creation use name, incase of association use id). | `string` |
-| <a name="input_vpc_storage_cluster_dns_zone_description"></a> [vpc_storage_cluster_dns_zone_description](#input_vpc_storage_cluster_dns_zone_description) | DNS zone description | `string` |
 
 #### Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#output_vpc_compute_cluster_dns_zone) | Route53 DNS zone name/id. |
-| <a name="output_vpc_compute_dns_zone_id"></a> [vpc_compute_dns_zone_id](#output_vpc_compute_dns_zone_id) | Route53 zone id. |
-| <a name="output_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#output_vpc_reverse_dns_zone) | Route53 DNS zone name/id. |
-| <a name="output_vpc_reverse_dns_zone_id"></a> [vpc_reverse_dns_zone_id](#output_vpc_reverse_dns_zone_id) | Route53 zone id. |
-| <a name="output_vpc_storage_cluster_dns_zone"></a> [vpc_storage_cluster_dns_zone](#output_vpc_storage_cluster_dns_zone) | Route53 DNS zone name/id. |
-| <a name="output_vpc_storage_dns_zone_id"></a> [vpc_storage_dns_zone_id](#output_vpc_storage_dns_zone_id) | Route53 zone id. |
+| <a name="output_managed_ad_access_url"></a> [managed_ad_access_url](#output_managed_ad_access_url) | Managed AD access url. |
+| <a name="output_managed_ad_dns_ip_addresses"></a> [managed_ad_dns_ip_addresses](#output_managed_ad_dns_ip_addresses) | Managed AD DNS ip addresses. |
+| <a name="output_managed_ad_security_group_ref"></a> [managed_ad_security_group_ref](#output_managed_ad_security_group_ref) | Managed AD security group reference. |
 <!-- END_TF_DOCS -->
