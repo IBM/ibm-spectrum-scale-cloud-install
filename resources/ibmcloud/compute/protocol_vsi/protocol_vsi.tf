@@ -163,12 +163,23 @@ resource "ibm_is_instance" "itself" {
     security_groups = var.vsi_security_group
   }
 
-  network_interfaces {
-    name              = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
-    subnet            = each.value.protocol_subnet_id
-    allow_ip_spoofing = true
-    security_groups   = var.vsi_security_group
+  network_attachments {
+    name = "jay-network-att"
+    virtual_network_interface {
+      name                      = "jay-net-vni"
+      allow_ip_spoofing         = false
+      auto_delete               = false
+      enable_infrastructure_nat = true
+      subnet                    = each.value.protocol_subnet_id
+    }
   }
+
+  # network_interfaces {
+  #   name              = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+  #   subnet            = each.value.protocol_subnet_id
+  #   allow_ip_spoofing = true
+  #   security_groups   = var.vsi_security_group
+  # }
 
   vpc            = var.vpc_id
   zone           = each.value.zone
