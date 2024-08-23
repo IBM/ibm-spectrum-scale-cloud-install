@@ -769,13 +769,13 @@ if __name__ == "__main__":
                         default=[])
     PARSER.add_argument('--scale_encryption_admin_password', help='Admin Password for the Key server',
                         default="null")
-    PARSER.add_argument('--scale_encryption_type', help='Encryption Type',
+    PARSER.add_argument('--scale_encryption_type', help='Encryption type should be either GKLM or Key_Protect',
                         default="null")
-    PARSER.add_argument('--kp_resource_prefix', help='Resource Prefix',
+    PARSER.add_argument('--kp_resource_prefix', help='Key Protect Resource Prefix',
                         default="null")
     PARSER.add_argument('--vpc_region', help='VPC Region',
                         default="null")
-    PARSER.add_argument('--scale_encryption_enabled', help='Enabling encryption feature with GKLM',
+    PARSER.add_argument('--scale_encryption_enabled', help='Enabling encryption feature',
                         default=False)
     PARSER.add_argument('--enable_ldap', help='Enabling the LDAP',
                         default=False)
