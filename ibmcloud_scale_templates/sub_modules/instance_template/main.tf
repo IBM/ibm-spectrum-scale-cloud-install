@@ -49,7 +49,7 @@ module "generate_storage_cluster_keys" {
 
 module "generate_gklm_instance_keys" {
   source  = "../../../resources/common/generate_keys"
-  turn_on = var.scale_encryption_enabled
+  turn_on = var.scale_encryption_enabled && var.scale_encryption_type == "gklm" ? true : false
 }
 
 module "generate_ldap_instance_keys" {
@@ -122,7 +122,7 @@ module "storage_egress_security_rule" {
 
 module "gklm_instance_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
-  turn_on            = var.scale_encryption_enabled
+  turn_on            = var.scale_encryption_enabled && var.scale_encryption_type == "gklm" ? true : false
   security_group_ids = module.gklm_instance_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = "0.0.0.0/0"
@@ -179,7 +179,7 @@ module "bicluster_ingress_security_rule" {
 
 module "gklm_instance_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = var.scale_encryption_enabled
+  turn_on           = var.scale_encryption_enabled && var.scale_encryption_type == "gklm" ? true : false
   sec_group_name    = [format("%s-gklm-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
@@ -188,7 +188,7 @@ module "gklm_instance_security_group" {
 
 module "gklm_instance_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.scale_encryption_enabled == true && var.using_jumphost_connection == false) ? 5 : 0
+  total_rules              = (var.scale_encryption_enabled == true  && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == false) ? 5 : 0
   security_group_id        = [module.gklm_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.gklm_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -196,7 +196,7 @@ module "gklm_instance_ingress_security_rule" {
 
 module "gklm_instance_ingress_security_rule_wt_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.scale_encryption_enabled == true && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null) ? 5 : 0
+  total_rules              = (var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null) ? 5 : 0
   security_group_id        = [module.gklm_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.gklm_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -204,7 +204,7 @@ module "gklm_instance_ingress_security_rule_wt_bastion" {
 
 module "gklm_instance_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.scale_encryption_enabled == true && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 4 : 0
+  total_rules              = (var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null) ? 4 : 0
   security_group_id        = [module.gklm_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.gklm_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -583,17 +583,17 @@ module "storage_cluster_tie_breaker_instance" {
 }
 
 data "ibm_is_ssh_key" "gklm_ssh_key" {
-  count = var.scale_encryption_enabled == true ? length(var.gklm_instance_key_pair) : 0
+  count = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" ? length(var.gklm_instance_key_pair) : 0
   name  = var.gklm_instance_key_pair[count.index]
 }
 
 data "ibm_is_image" "gklm_instance_image" {
   name  = var.gklm_vsi_osimage_name
-  count = var.scale_encryption_enabled == true && var.gklm_vsi_osimage_id == null ? 1 : 0
+  count = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_vsi_osimage_id == null ? 1 : 0
 }
 
 module "gklm_instance" {
-  count                = var.scale_encryption_enabled == true ? 1 : 0
+  count                = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" ? 1 : 0
   source               = "../../../resources/ibmcloud/compute/gklm_vsi"
   total_vsis           = var.total_gklm_instances
   vsi_name_prefix      = format("%s-gklm", var.resource_prefix)
@@ -607,11 +607,22 @@ module "gklm_instance" {
   dns_zone_id          = var.gklm_instance_dns_zone_id
   vsi_subnet_id        = var.vpc_compute_cluster_private_subnets
   vsi_security_group   = [module.gklm_instance_security_group.sec_group_id]
-  vsi_user_public_key  = var.scale_encryption_enabled ? data.ibm_is_ssh_key.gklm_ssh_key[*].id : []
+  vsi_user_public_key  = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" ? data.ibm_is_ssh_key.gklm_ssh_key[*].id : []
   vsi_meta_private_key = var.create_separate_namespaces == true ? module.generate_gklm_instance_keys.private_key_content : 0
   vsi_meta_public_key  = var.create_separate_namespaces == true ? module.generate_gklm_instance_keys.public_key_content : 0
   resource_tags        = var.scale_cluster_resource_tags
   depends_on           = [module.gklm_instance_ingress_security_rule, module.gklm_instance_ingress_security_rule_wt_bastion, module.gklm_instance_ingress_security_rule_wo_bastion, module.gklm_instance_egress_security_rule, var.vpc_custom_resolver_id]
+}
+
+module "key_protect_instance" {
+  count                          = var.scale_encryption_enabled == true && var.scale_encryption_type == "key_protect" ? 1 : 0
+  source                         = "../../../resources/ibmcloud/compute/key_protect"
+  resource_prefix                = var.resource_prefix
+  vpc_region                     = var.vpc_region
+  resource_group_id              = var.resource_group_id
+  key_protect_path               = format("%s/key_protect", var.scale_ansible_repo_clone_path)
+  resource_tags                  = var.scale_cluster_resource_tags
+  vpc_storage_cluster_dns_domain = var.vpc_storage_cluster_dns_domain
 }
 
 data "ibm_is_bare_metal_server_profile" "afm_vsi_bm_server_profile" {
@@ -967,7 +978,7 @@ module "compute_cluster_configuration" {
   enable_ces                      = "False"
   enable_afm                      = "False"
   scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+  scale_encryption_admin_password = var.scale_encryption_admin_password
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
   enable_ldap                     = var.enable_ldap
   ldap_basedns                    = var.ldap_basedns
@@ -982,6 +993,8 @@ module "storage_cluster_configuration" {
   clone_complete                      = module.prepare_ansible_configuration.clone_complete
   bastion_user                        = jsonencode(var.bastion_user)
   write_inventory_complete            = module.write_storage_cluster_inventory.write_inventory_complete
+  kp_resource_prefix                  = var.resource_prefix
+  vpc_region                          = var.vpc_region
   inventory_format                    = var.inventory_format
   create_scale_cluster                = var.create_scale_cluster
   clone_path                          = var.scale_ansible_repo_clone_path
@@ -1025,8 +1038,9 @@ module "storage_cluster_configuration" {
   enable_ces                          = local.scale_ces_enabled == true ? "True" : "False"
   enable_afm                          = local.enable_afm == true ? "True" : "False"
   scale_encryption_enabled            = var.scale_encryption_enabled
-  scale_encryption_admin_password     = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
-  scale_encryption_servers            = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
+  scale_encryption_type               = var.scale_encryption_type
+  scale_encryption_admin_password     = var.scale_encryption_admin_password
+  scale_encryption_servers            = var.scale_encryption_enabled && var.scale_encryption_type == "gklm" ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
   enable_ldap                         = var.enable_ldap
   ldap_basedns                        = var.ldap_basedns
   ldap_server                         = local.ldap_server
@@ -1056,7 +1070,7 @@ module "combined_cluster_configuration" {
   spectrumscale_rpms_path         = var.spectrumscale_rpms_path
   enable_mrot_conf                = false
   scale_encryption_enabled        = var.scale_encryption_enabled
-  scale_encryption_admin_password = var.scale_encryption_enabled ? var.scale_encryption_admin_password : null
+  scale_encryption_admin_password = var.scale_encryption_admin_password
   scale_encryption_servers        = var.scale_encryption_enabled ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : null
   enable_ldap                     = var.enable_ldap
   ldap_basedns                    = var.ldap_basedns
@@ -1142,9 +1156,12 @@ module "encryption_configuration" {
   scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
   scale_encryption_admin_password         = var.scale_encryption_admin_password
   scale_encryption_admin_username         = var.scale_encryption_admin_username
-  scale_encryption_servers                = jsonencode(one(module.gklm_instance[*].gklm_ip_addresses))
-  scale_encryption_servers_dns            = jsonencode(one(module.gklm_instance[*].gklm_dns_names))
-  meta_private_key                        = module.generate_gklm_instance_keys.private_key_content
+  kp_resource_prefix                      = var.resource_prefix
+  vpc_region                              = var.vpc_region
+  scale_encryption_type                   = var.scale_encryption_type
+  scale_encryption_servers                = var.scale_encryption_type == "gklm" ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : jsonencode([])
+  scale_encryption_servers_dns            = var.scale_encryption_type == "gklm" ? jsonencode(one(module.gklm_instance[*].gklm_dns_names)) : jsonencode([])
+  meta_private_key                        = var.scale_encryption_type == "gklm" ? module.generate_gklm_instance_keys.private_key_content : module.generate_storage_cluster_keys.private_key_content
   storage_cluster_encryption              = (var.create_separate_namespaces == true && var.total_storage_cluster_instances > 0) ? true : false
   compute_cluster_encryption              = (var.create_separate_namespaces == true && var.total_compute_cluster_instances >= 0) ? true : false
   combined_cluster_encryption             = var.create_separate_namespaces == false ? true : false
@@ -1152,6 +1169,7 @@ module "encryption_configuration" {
   storage_cluster_create_complete         = module.storage_cluster_configuration.storage_cluster_create_complete
   combined_cluster_create_complete        = module.combined_cluster_configuration.combined_cluster_create_complete
   remote_mount_create_complete            = module.remote_mount_configuration.remote_mount_create_complete
+  filesystem_mountpoint                   = element(split("/", var.storage_cluster_filesystem_mountpoint), length(split("/", var.storage_cluster_filesystem_mountpoint)) - 1)
   depends_on                              = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
 }
 

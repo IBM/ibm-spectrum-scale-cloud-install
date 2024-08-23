@@ -320,6 +320,12 @@ variable "scale_encryption_enabled" {
   description = "To enable the encryption for the filesystem. Select true or false"
 }
 
+variable "scale_encryption_type" {
+  type        = string
+  default     = ""
+  description = "To enable filesystem encryption, specify either 'key_protect' or 'gklm'. If neither is specified, the default value will be 'null' and encryption is disabled"
+}
+
 variable "gklm_vsi_osimage_id" {
   type        = string
   default     = null
