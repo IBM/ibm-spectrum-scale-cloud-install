@@ -30,6 +30,9 @@ variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
+variable "protocol_dns_service_id" {}
+variable "protocol_dns_zone_id" {}
+variable "name" {}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -140,15 +143,37 @@ echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 EOF
 }
 
-resource "ibm_is_instance" "itself" {
+resource "ibm_is_virtual_network_interface" "vni" {
   for_each = {
     # This assigns a subnet-id to each of the instance
     # iteration.
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       sequence_string    = tostring(count_number)
-      subnet_id          = element(var.vsi_subnet_id, idx)
       protocol_subnet_id = element(var.protocol_subnet_id, idx)
-      zone               = element(var.zones, idx)
+      #subnet_id          = element(var.vsi_subnet_id, idx)
+    }
+  }
+  name                      = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+  allow_ip_spoofing         = false
+  enable_infrastructure_nat = true
+  subnet                    = each.value.protocol_subnet_id
+  resource_group            = var.resource_group_id
+  security_groups           = var.vsi_security_group
+  primary_ip {
+    auto_delete = false
+  }
+}
+
+resource "ibm_is_instance" "itself" {
+  for_each = {
+    # This assigns a subnet-id to each of the instance
+    # iteration.
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      sequence_string = tostring(count_number)
+      subnet_id       = element(var.vsi_subnet_id, idx)
+      #protocol_subnet_id = element(var.protocol_subnet_id, idx)
+      zone   = element(var.zones, idx)
+      vni_id = element(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id.id]), idx)
     }
   }
 
@@ -157,20 +182,28 @@ resource "ibm_is_instance" "itself" {
   profile = var.vsi_profile
   tags    = var.resource_tags
 
-  primary_network_interface {
-    name            = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
-    subnet          = each.value.subnet_id
-    security_groups = var.vsi_security_group
-  }
+  # primary_network_interface {
+  #   name            = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
+  #   subnet          = each.value.subnet_id
+  #   security_groups = var.vsi_security_group
+  # }
 
-  network_attachments {
-    name = "jay-network-att"
+  primary_network_attachment {
+    name = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
     virtual_network_interface {
-      name                      = "jay-net-vni"
+      name                      = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
       allow_ip_spoofing         = false
       auto_delete               = false
       enable_infrastructure_nat = true
-      subnet                    = each.value.protocol_subnet_id
+      subnet                    = each.value.subnet_id
+      security_groups           = var.vsi_security_group
+    }
+  }
+
+  network_attachments {
+    name = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+    virtual_network_interface {
+      id = each.value.vni_id
     }
   }
 
@@ -235,6 +268,63 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
+# A Record for Secondary network Interface
+
+resource "ibm_dns_resource_record" "a_sec_itself" {
+  for_each = {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : name_details.name]), idx)
+      network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
+    }
+  }
+
+  instance_id = var.protocol_dns_service_id
+  zone_id     = var.protocol_dns_zone_id
+  type        = "A"
+  name        = each.value.name
+  rdata       = each.value.network_ip
+  ttl         = 300
+  depends_on  = [ibm_is_virtual_network_interface.vni]
+}
+
+# PTR Record for Secondary network Interface
+
+resource "ibm_dns_resource_record" "ptr_sec_itself" {
+  for_each = {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : name_details.name]), idx)
+      network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
+    }
+  }
+
+  instance_id = var.protocol_dns_service_id
+  zone_id     = var.protocol_dns_zone_id
+  type        = "PTR"
+  name        = each.value.network_ip
+  rdata       = format("%s.%s", each.value.name, var.protocol_domain)
+  ttl         = 300
+  depends_on  = [ibm_dns_resource_record.a_itself]
+}
+
+# A Record for load balancing
+
+resource "ibm_dns_resource_record" "a_lb_itself" {
+  for_each = {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : var.name]), idx)
+      network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
+    }
+  }
+
+  instance_id = var.protocol_dns_service_id
+  zone_id     = var.protocol_dns_zone_id
+  type        = "A"
+  name        = each.value.name
+  rdata       = each.value.network_ip
+  ttl         = 300
+  depends_on  = [ibm_is_virtual_network_interface.vni]
+}
+
 output "instance_ids" {
   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
@@ -260,6 +350,10 @@ output "instance_name_ip_map" {
 }
 
 output "secondary_interface_name_ip_map" {
-  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
+  value      = try({ for instance_details in ibm_is_virtual_network_interface.vni : instance_details.name => instance_details.primary_ip[0]["address"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+}
+
+output "vnni" {
+  value = try(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id]), [])
 }
