@@ -84,7 +84,7 @@ resource "aws_route53_record" "a_itself" {
   zone_id = var.forward_dns_zone
   type    = "A"
   name    = var.name_prefix
-  records = [aws_instance.itself[0].private_ip, null]
+  records = [aws_instance.itself[0].private_ip]
   ttl     = 360
 }
 
