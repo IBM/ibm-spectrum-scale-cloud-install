@@ -99,7 +99,7 @@ resource "aws_route53_record" "ptr_itself" {
 }
 
 output "instance_details" {
-  value = aws_instance.itself[0].private_ip != null ? {
+  value = length(aws_instance.itself) != 0 ? {
     private_ip = aws_instance.itself[0].private_ip
     id         = aws_instance.itself[0].id
     dns        = format("%s.%s", var.name_prefix, var.dns_domain)
