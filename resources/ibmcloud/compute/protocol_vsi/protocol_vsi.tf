@@ -30,9 +30,9 @@ variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
-variable "protocol_dns_service_id" {}
-variable "protocol_dns_zone_id" {}
-variable "name" {}
+# variable "protocol_dns_service_id" {}
+# variable "protocol_dns_zone_id" {}
+# variable "name" {}
 
 data "template_file" "metadata_startup_script" {
   template = <<EOF
@@ -270,60 +270,60 @@ resource "ibm_dns_resource_record" "ptr_itself" {
 
 # A Record for Secondary network Interface
 
-resource "ibm_dns_resource_record" "a_sec_itself" {
-  for_each = {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : name_details.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
-    }
-  }
+# resource "ibm_dns_resource_record" "a_sec_itself" {
+#   for_each = {
+#     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+#       name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : name_details.name]), idx)
+#       network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
+#     }
+#   }
 
-  instance_id = var.protocol_dns_service_id
-  zone_id     = var.protocol_dns_zone_id
-  type        = "A"
-  name        = each.value.name
-  rdata       = each.value.network_ip
-  ttl         = 300
-  depends_on  = [ibm_is_virtual_network_interface.vni]
-}
+#   instance_id = var.protocol_dns_service_id
+#   zone_id     = var.protocol_dns_zone_id
+#   type        = "A"
+#   name        = each.value.name
+#   rdata       = each.value.network_ip
+#   ttl         = 300
+#   depends_on  = [ibm_is_virtual_network_interface.vni]
+# }
 
 # PTR Record for Secondary network Interface
 
-resource "ibm_dns_resource_record" "ptr_sec_itself" {
-  for_each = {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : name_details.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
-    }
-  }
+# resource "ibm_dns_resource_record" "ptr_sec_itself" {
+#   for_each = {
+#     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+#       name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : name_details.name]), idx)
+#       network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
+#     }
+#   }
 
-  instance_id = var.protocol_dns_service_id
-  zone_id     = var.protocol_dns_zone_id
-  type        = "PTR"
-  name        = each.value.network_ip
-  rdata       = format("%s.%s", each.value.name, var.protocol_domain)
-  ttl         = 300
-  depends_on  = [ibm_dns_resource_record.a_itself]
-}
+#   instance_id = var.protocol_dns_service_id
+#   zone_id     = var.protocol_dns_zone_id
+#   type        = "PTR"
+#   name        = each.value.network_ip
+#   rdata       = format("%s.%s", each.value.name, var.protocol_domain)
+#   ttl         = 300
+#   depends_on  = [ibm_dns_resource_record.a_itself]
+# }
 
 # A Record for load balancing
 
-resource "ibm_dns_resource_record" "a_lb_itself" {
-  for_each = {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : var.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
-    }
-  }
+# resource "ibm_dns_resource_record" "a_lb_itself" {
+#   for_each = {
+#     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+#       name       = element(tolist([for name_details in ibm_is_virtual_network_interface.vni : var.name]), idx)
+#       network_ip = element(tolist([for ip_details in ibm_is_virtual_network_interface.vni : ip_details.primary_ip[0]["address"]]), idx)
+#     }
+#   }
 
-  instance_id = var.protocol_dns_service_id
-  zone_id     = var.protocol_dns_zone_id
-  type        = "A"
-  name        = each.value.name
-  rdata       = each.value.network_ip
-  ttl         = 300
-  depends_on  = [ibm_is_virtual_network_interface.vni]
-}
+#   instance_id = var.protocol_dns_service_id
+#   zone_id     = var.protocol_dns_zone_id
+#   type        = "A"
+#   name        = each.value.name
+#   rdata       = each.value.network_ip
+#   ttl         = 300
+#   depends_on  = [ibm_is_virtual_network_interface.vni]
+# }
 
 output "instance_ids" {
   value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
@@ -350,9 +350,14 @@ output "instance_name_ip_map" {
 }
 
 output "secondary_interface_name_ip_map" {
-  value      = try({ for instance_details in ibm_is_virtual_network_interface.vni : instance_details.name => instance_details.primary_ip[0]["address"] }, {})
+  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
+
+# output "secondary_interface_name_ip_map" {
+#   value      = try({ for instance_details in ibm_is_virtual_network_interface.vni : instance_details.name => instance_details.primary_ip[0]["address"] }, {})
+#   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+# }
 
 output "vnni" {
   value = try(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id]), [])
