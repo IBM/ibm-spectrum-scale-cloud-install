@@ -17,6 +17,7 @@ variable "turn_on" {}
 variable "user_public_key" {}
 
 data "template_file" "user_data" {
+  count    = var.turn_on ? 1 : 0
   template = <<EOF
 #!/usr/bin/env bash
 # Hostname settings
@@ -27,11 +28,12 @@ EOF
 }
 
 data "template_cloudinit_config" "user_data64" {
+  count         = var.turn_on ? 1 : 0
   gzip          = true
   base64_encode = true
   part {
     content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
+    content      = try(data.template_file.user_data[0].rendered, null)
   }
 }
 
@@ -59,7 +61,7 @@ resource "aws_instance" "itself" {
     },
   )
 
-  user_data_base64 = data.template_cloudinit_config.user_data64.rendered
+  user_data_base64 = try(data.template_cloudinit_config.user_data64[0].rendered, null)
   tags = merge(
     {
       "Name" = var.name_prefix
@@ -78,15 +80,17 @@ resource "aws_instance" "itself" {
 
 # Create "A" (IPv4 Address) record to map IPv4 address as hostname along with domain
 resource "aws_route53_record" "a_itself" {
+  count   = var.turn_on ? 1 : 0
   zone_id = var.forward_dns_zone
   type    = "A"
   name    = var.name_prefix
-  records = [aws_instance.itself[0].private_ip]
+  records = [aws_instance.itself[0].private_ip, null]
   ttl     = 360
 }
 
 # Create "PTR" (Pointer) to enable reverse DNS lookup, from an IP address to a hostname
 resource "aws_route53_record" "ptr_itself" {
+  count   = var.turn_on ? 1 : 0
   zone_id = var.reverse_dns_zone
   type    = "PTR"
   name    = format("%s.%s.%s.%s", split(".", aws_instance.itself[0].private_ip)[3], split(".", aws_instance.itself[0].private_ip)[2], split(".", aws_instance.itself[0].private_ip)[1], var.reverse_dns_domain)
@@ -95,10 +99,10 @@ resource "aws_route53_record" "ptr_itself" {
 }
 
 output "instance_details" {
-  value = {
+  value = aws_instance.itself[0].private_ip != null ? {
     private_ip = aws_instance.itself[0].private_ip
     id         = aws_instance.itself[0].id
     dns        = format("%s.%s", var.name_prefix, var.dns_domain)
     zone       = aws_instance.itself[0].availability_zone
-  }
+  } : {}
 }
