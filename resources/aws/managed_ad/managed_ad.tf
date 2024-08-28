@@ -24,13 +24,13 @@ resource "aws_directory_service_directory" "itself" {
 }
 
 output "ad_access_url" {
-  value = aws_directory_service_directory.itself[0].access_url
+  value = try(aws_directory_service_directory.itself[0].access_url, null)
 }
 
 output "ad_security_group_id" {
-  value = aws_directory_service_directory.itself[0].security_group_id
+  value = try(aws_directory_service_directory.itself[0].security_group_id, null)
 }
 
 output "ad_dns_ip_addresses" {
-  value = aws_directory_service_directory.itself[0].dns_ip_addresses
+  value = try(aws_directory_service_directory.itself[0].dns_ip_addresses, null)
 }
