@@ -203,9 +203,9 @@ resource "ibm_dns_resource_record" "ptr_itself_vsi" {
   depends_on  = [ibm_dns_resource_record.a_itself_vsi]
 }
 
-#
-####################### Bare Metal Server ####################
-#
+##########################################################################################################################
+################ Bare Metal Server ################
+##########################################################################################################################
 
 data "template_file" "metadata_startup_script_bm" {
   template = <<EOF
@@ -366,10 +366,10 @@ resource "ibm_dns_resource_record" "ptr_itself_bm" {
 
 output "storage_cluster_instance_name_id_map_vsi_bm" {
   value      = var.afm_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {}) : try({ for instance_details in ibm_is_instance.itself : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
-  depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi, ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
 }
 
 output "storage_cluster_instance_name_ip_map_vsi_bm" {
   value      = var.afm_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => instance_details.primary_network_interface[0]["primary_ip"][0]["address"] }, {}) : try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi, ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
 }

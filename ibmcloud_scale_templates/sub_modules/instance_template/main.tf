@@ -30,6 +30,8 @@ locals {
   ldap_server                  = var.enable_ldap == true && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
   afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
+  ces_server_type              = strcontains(var.afm_vsi_profile, "metal")
+  #tie_breaker_server_type      = strcontains(var.afm_vsi_profile, "metal")
 }
 
 module "generate_compute_cluster_keys" {
@@ -436,6 +438,7 @@ module "protocol_cluster_instances" {
   source               = "../../../resources/ibmcloud/compute/protocol_vsi"
   total_vsis           = var.colocate_protocol_cluster_instances == true ? 0 : var.total_protocol_cluster_instances
   vsi_name_prefix      = format("%s-ces", var.resource_prefix)
+  ces_server_type      = local.ces_server_type
   vpc_id               = var.vpc_id
   resource_group_id    = var.resource_group_id
   zones                = [var.vpc_availability_zones[0]]
@@ -449,31 +452,14 @@ module "protocol_cluster_instances" {
   vsi_user_public_key  = data.ibm_is_ssh_key.storage_ssh_key[*].id
   vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
   vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  # protocol_dns_service_id = var.vpc_protocol_cluster_dns_service_id
-  # protocol_dns_zone_id    = var.vpc_protocol_cluster_dns_zone_id
-  protocol_domain = var.vpc_protocol_cluster_dns_domain
-  # name                    = format("%s-ces", var.resource_prefix)
-  protocol_subnet_id  = var.vpc_protocol_cluster_private_subnets
-  resource_tags       = var.scale_cluster_resource_tags
-  vpc_region          = var.vpc_region
-  ces_reserved_ip_ids = keys(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map))
-  vpc_rt_id           = data.ibm_is_vpc.vpc_rt_id.default_routing_table
-  depends_on          = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id, module.protocol_reserved_ip]
+  protocol_domain      = var.vpc_protocol_cluster_dns_domain
+  protocol_subnet_id   = var.vpc_protocol_cluster_private_subnets
+  resource_tags        = var.scale_cluster_resource_tags
+  vpc_region           = var.vpc_region
+  ces_reserved_ip_ids  = keys(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map))
+  vpc_rt_id            = data.ibm_is_vpc.vpc_rt_id.default_routing_table
+  depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id, module.protocol_reserved_ip]
 }
-
-# module "routing_table_routes" {
-#   source            = "../../../resources/ibmcloud/network/routing_table_routes"
-#   scale_ces_enabled = local.scale_ces_enabled
-#   total_vsis        = var.total_protocol_cluster_instances
-#   vpc_id            = var.vpc_id
-#   routing_table     = data.ibm_is_vpc.vpc_rt_id.default_routing_table
-#   zone              = [var.vpc_availability_zones[0]]
-#   action            = "deliver"
-#   next_hop          = var.colocate_protocol_cluster_instances == false ? values(one(module.protocol_cluster_instances[*].secondary_interface_name_ip_map)) : (var.storage_type != "persistent" ? values(one(module.storage_cluster_instances[*].secondary_interface_name_ip_map)) : values(one(module.storage_cluster_bare_metal_server[*].secondary_interface_name_ip_map)))
-#   priority          = 2
-#   dest_ip           = values(one(module.protocol_reserved_ip[*].instance_name_ip_map))
-#   depends_on        = [module.protocol_cluster_instances, module.storage_cluster_instances, module.protocol_reserved_ip, module.client_cluster_instances]
-# }
 
 module "storage_cluster_instances" {
   count                        = var.storage_type != "persistent" ? 1 : 0
