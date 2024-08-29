@@ -30,6 +30,7 @@ variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 variable "vpc_region" {}
 variable "vpc_rt_id" {}
+variable "ces_reserved_ip_ids" {}
 # variable "protocol_dns_service_id" {}
 # variable "protocol_dns_zone_id" {}
 # variable "name" {}
@@ -160,7 +161,7 @@ resource "ibm_is_virtual_network_interface" "vni" {
   resource_group            = var.resource_group_id
   security_groups           = var.vsi_security_group
   primary_ip {
-    auto_delete = false
+    auto_delete = true
   }
 }
 
@@ -193,7 +194,7 @@ resource "ibm_is_instance" "itself" {
     virtual_network_interface {
       name                      = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
       allow_ip_spoofing         = false
-      auto_delete               = false
+      auto_delete               = true
       enable_infrastructure_nat = true
       subnet                    = each.value.subnet_id
       security_groups           = var.vsi_security_group
@@ -266,6 +267,21 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   rdata       = format("%s.%s", each.value.name, var.dns_domain)
   ttl         = 300
   depends_on  = [ibm_dns_resource_record.a_itself]
+}
+
+resource "ibm_is_virtual_network_interface_ip" "vni_reserved_ip" {
+  for_each = {
+    # This assigns a subnet-id to each of the instance
+    # iteration.
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      sequence_string    = tostring(count_number)
+      vni_id             = element(tolist([for id_details in ibm_is_virtual_network_interface.vni : id_details.id]), idx)
+      ces_reserved_ip_id = element(var.ces_reserved_ip_ids, idx)
+    }
+  }
+  virtual_network_interface = each.value.vni_id
+  reserved_ip               = each.value.ces_reserved_ip_id
+  depends_on                = [ibm_dns_resource_record.a_itself, ibm_is_virtual_network_interface.vni]
 }
 
 # A Record for Secondary network Interface
@@ -361,4 +377,8 @@ output "secondary_interface_name_ip_map" {
 
 output "vnni" {
   value = try(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id]), [])
+}
+
+output "vnnni" {
+  value = try(tolist([for id_details in ibm_is_virtual_network_interface.vni : id_details.id]), [])
 }

@@ -421,6 +421,17 @@ data "ibm_is_subnet" "storage_cluster_private_subnets_cidr" {
   identifier = var.vpc_storage_cluster_private_subnets[0]
 }
 
+module "protocol_reserved_ip" {
+  source                  = "../../../resources/ibmcloud/network/protocol_reserved_ip"
+  total_reserved_ips      = var.total_protocol_cluster_instances
+  subnet_id               = var.vpc_protocol_cluster_private_subnets
+  name                    = format("%s-ces", var.resource_prefix)
+  protocol_domain         = var.vpc_protocol_cluster_dns_domain
+  protocol_dns_service_id = var.vpc_protocol_cluster_dns_service_id
+  protocol_dns_zone_id    = var.vpc_protocol_cluster_dns_zone_id
+  depends_on              = [module.compute_cluster_ingress_security_rule, module.compute_cluster_ingress_security_rule_wt_bastion, module.compute_cluster_ingress_security_rule_wo_bastion, module.compute_egress_security_rule, var.vpc_custom_resolver_id]
+}
+
 module "protocol_cluster_instances" {
   source               = "../../../resources/ibmcloud/compute/protocol_vsi"
   total_vsis           = var.colocate_protocol_cluster_instances == true ? 0 : var.total_protocol_cluster_instances
@@ -442,21 +453,12 @@ module "protocol_cluster_instances" {
   # protocol_dns_zone_id    = var.vpc_protocol_cluster_dns_zone_id
   protocol_domain = var.vpc_protocol_cluster_dns_domain
   # name                    = format("%s-ces", var.resource_prefix)
-  protocol_subnet_id = var.vpc_protocol_cluster_private_subnets
-  resource_tags      = var.scale_cluster_resource_tags
-  vpc_region         = var.vpc_region
-  vpc_rt_id          = data.ibm_is_vpc.vpc_rt_id.default_routing_table
-  depends_on         = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
-}
-
-module "protocol_reserved_ip" {
-  source                  = "../../../resources/ibmcloud/network/protocol_reserved_ip"
-  total_reserved_ips      = var.total_protocol_cluster_instances
-  subnet_id               = var.vpc_protocol_cluster_private_subnets
-  name                    = format("%s-ces", var.resource_prefix)
-  protocol_domain         = var.vpc_protocol_cluster_dns_domain
-  protocol_dns_service_id = var.vpc_protocol_cluster_dns_service_id
-  protocol_dns_zone_id    = var.vpc_protocol_cluster_dns_zone_id
+  protocol_subnet_id  = var.vpc_protocol_cluster_private_subnets
+  resource_tags       = var.scale_cluster_resource_tags
+  vpc_region          = var.vpc_region
+  ces_reserved_ip_ids = keys(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map))
+  vpc_rt_id           = data.ibm_is_vpc.vpc_rt_id.default_routing_table
+  depends_on          = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id, module.protocol_reserved_ip]
 }
 
 # module "routing_table_routes" {
