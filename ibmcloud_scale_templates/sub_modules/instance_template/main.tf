@@ -30,7 +30,7 @@ locals {
   ldap_server                  = var.enable_ldap == true && var.ldap_server == "null" ? jsonencode(one(module.ldap_instance[*].vsi_private_ip)) : var.ldap_server
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
   afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
-  ces_server_type              = strcontains(var.afm_vsi_profile, "metal")
+  ces_server_type              = strcontains(var.protocol_vsi_profile, "metal")
   #tie_breaker_server_type      = strcontains(var.afm_vsi_profile, "metal")
 }
 
