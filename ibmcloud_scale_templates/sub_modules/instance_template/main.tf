@@ -909,7 +909,7 @@ module "write_cluster_inventory" {
   storage_cluster_instance_private_dns_ip_map      = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_bare_metal_server[*].instance_private_dns_ip_map)) : jsonencode(one(module.storage_cluster_instances[*].instance_private_dns_ip_map))
   storage_cluster_desc_instance_ids                = length(var.vpc_availability_zones) > 1 ? jsonencode(local.tie_breaker_storage_instance_ids) : jsonencode([])
   storage_cluster_desc_instance_private_ips        = length(var.vpc_availability_zones) > 1 ? jsonencode(local.tie_breaker_storage_instance_private_ips) : jsonencode([])
-  storage_cluster_desc_data_volume_mapping         = length(var.vpc_availability_zones) > 1 ? var.storage_type == "persistent" ? one(module.storage_cluster_tie_breaker_instance_bm[*].instance_ips_with_vol_mapping) : jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping) : jsonencode({})
+  storage_cluster_desc_data_volume_mapping         = length(var.vpc_availability_zones) > 1 ? var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_tie_breaker_instance_bm[*].instance_ips_with_vol_mapping)) : jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping) : jsonencode({})
   storage_cluster_desc_instance_private_dns_ip_map = length(var.vpc_availability_zones) > 1 ? jsonencode(local.tie_breaker_storage_instance_private_dns_ip_map) : jsonencode({})
   storage_cluster_instance_names                   = jsonencode([])
   compute_cluster_instance_names                   = jsonencode([])
