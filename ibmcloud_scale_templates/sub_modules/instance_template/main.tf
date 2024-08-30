@@ -765,10 +765,10 @@ locals {
   baremetal_cluster_instance_private_ips        = var.storage_type == "persistent" && local.scale_ces_enabled == false ? local.baremetal_instance_private_ips : concat(local.baremetal_instance_private_ips, values(one(module.protocol_cluster_instances[*].instance_name_ip_map)))
   baremetal_cluster_instance_private_dns_ip_map = var.storage_type == "persistent" && local.scale_ces_enabled == false ? local.baremetal_instance_private_dns_ip_map : merge(local.baremetal_instance_private_dns_ip_map, one(module.protocol_cluster_instances[*].instance_private_dns_ip_map))
 
-  tie_breaker_storage_instance_ids                = var.storage_type != "persistent" ? tolist(module.storage_cluster_tie_breaker_instance.instance_ids) : values(one(module.storage_cluster_tie_breaker_instance_bm[*].storage_cluster_instance_name_id_map))
-  tie_breaker_storage_instance_names              = var.storage_type != "persistent" ? keys(one(module.storage_cluster_tie_breaker_instance[*].instance_name_id_map)) : keys(one(module.storage_cluster_tie_breaker_instance_bm[*].storage_cluster_instance_name_id_map))
-  tie_breaker_storage_instance_private_ips        = var.storage_type != "persistent" ? tolist(module.storage_cluster_tie_breaker_instance.instance_private_ips) : values(one(module.storage_cluster_tie_breaker_instance_bm[*].storage_cluster_instance_name_ip_map))
-  tie_breaker_storage_instance_private_dns_ip_map = var.storage_type != "persistent" ? one(module.storage_cluster_tie_breaker_instance.instance_private_dns_ip_map) : {}
+  tie_breaker_storage_instance_ids                = var.storage_type != "persistent" ? flatten(module.storage_cluster_tie_breaker_instance[*].instance_ids) : values(one(module.storage_cluster_tie_breaker_instance_bm[*].storage_cluster_instance_name_id_map))
+  tie_breaker_storage_instance_names              = var.storage_type != "persistent" ? flatten(keys(one(module.storage_cluster_tie_breaker_instance[*].instance_name_id_map))) : keys(one(module.storage_cluster_tie_breaker_instance_bm[*].storage_cluster_instance_name_id_map))
+  tie_breaker_storage_instance_private_ips        = var.storage_type != "persistent" ? flatten(module.storage_cluster_tie_breaker_instance[*].instance_private_ips) : values(one(module.storage_cluster_tie_breaker_instance_bm[*].storage_cluster_instance_name_ip_map))
+  tie_breaker_storage_instance_private_dns_ip_map = var.storage_type != "persistent" ? one(module.storage_cluster_tie_breaker_instance[*].instance_private_dns_ip_map) : {}
 
   fileset_size_map = try({ for details in var.filesets : details.mount_path => details.size }, {})
 
@@ -860,7 +860,7 @@ module "write_storage_cluster_inventory" {
   storage_cluster_instance_private_dns_ip_map      = var.storage_type == "persistent" ? jsonencode(local.baremetal_cluster_instance_private_dns_ip_map) : jsonencode(local.storage_cluster_instance_private_dns_ip_map)
   storage_cluster_desc_instance_ids                = jsonencode(local.tie_breaker_storage_instance_ids)
   storage_cluster_desc_instance_private_ips        = jsonencode(local.tie_breaker_storage_instance_private_ips)
-  storage_cluster_desc_data_volume_mapping         = var.storage_type == "persistent" ? one(module.storage_cluster_tie_breaker_instance_bm[*].instance_ips_with_vol_mapping) : jsonencode(module.storage_cluster_tie_breaker_instance.instance_ips_with_vol_mapping)
+  storage_cluster_desc_data_volume_mapping         = var.storage_type == "persistent" ? jsonencode(one(module.storage_cluster_tie_breaker_instance_bm[*].instance_ips_with_vol_mapping)) : jsonencode(one(module.storage_cluster_tie_breaker_instance[*].instance_ips_with_vol_mapping))
   storage_cluster_desc_instance_private_dns_ip_map = jsonencode(local.tie_breaker_storage_instance_private_dns_ip_map)
   storage_cluster_instance_names                   = var.storage_type == "persistent" ? jsonencode(concat(local.baremetal_cluster_instance_names, keys(module.storage_cluster_management_instance.instance_name_id_map), local.tie_breaker_storage_instance_names)) : jsonencode(concat(local.storage_cluster_instance_names, keys(module.storage_cluster_management_instance.instance_name_id_map), local.tie_breaker_storage_instance_names))
   compute_cluster_instance_names                   = jsonencode([])
