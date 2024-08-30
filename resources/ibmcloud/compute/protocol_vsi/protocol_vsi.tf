@@ -273,7 +273,8 @@ resource "ibm_dns_resource_record" "ptr_itself" {
 ##########################################################################################################################
 
 data "ibm_is_bare_metal_server_profile" "itself" {
-  name = var.vsi_profile
+  count = var.ces_server_type == false ? 0 : 1
+  name  = var.vsi_profile
 }
 
 data "template_file" "metadata_startup_script_bm" {
@@ -390,6 +391,7 @@ resource "ibm_is_bare_metal_server" "itself_bm" {
       sequence_string = tostring(count_number)
       subnet_id       = element(var.vsi_subnet_id, idx)
       zone            = element(var.zones, idx)
+      vni_id          = element(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id.id]), idx)
     }
   }
   profile = var.vsi_profile
@@ -477,7 +479,7 @@ output "instance_private_ips" {
 
 output "instance_ips_with_vol_mapping" {
   value = var.ces_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name =>
-  data.ibm_is_bare_metal_server_profile.itself.disks[1].quantity[0].value == 8 ? ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"] : ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1"] }, {}) : {}
+  data.ibm_is_bare_metal_server_profile.itself[0].disks[1].quantity[0].value == 8 ? ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"] : ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1"] }, {}) : {}
   depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
 }
 
