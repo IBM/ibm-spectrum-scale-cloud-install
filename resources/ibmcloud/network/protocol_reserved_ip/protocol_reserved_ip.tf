@@ -93,6 +93,6 @@ output "instance_name_ip_map" {
 }
 
 output "reserved_ip_id_ip_map" {
-  value      = try({ for reserved_ip_details in ibm_is_subnet_reserved_ip.itself : reserved_ip_details.reserved_ip => reserved_ip_details.address }, {})
+  value      = try({ for reserved_ip_details in ibm_is_subnet_reserved_ip.itself : reserved_ip_details.name => reserved_ip_details.reserved_ip }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
