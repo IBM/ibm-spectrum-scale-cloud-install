@@ -9,9 +9,18 @@ if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
     sudo ./aws/install
     sudo rm -rf awscliv2.zip
     curl -sS http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/scale.gpg
-    sudo ua detach --assume-yes
-    sudo rm -rf /var/log/ubuntu-advantage.log
-    sudo cloud-init clean --machine-id
+    sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/gpfs_debs /' >> /etc/apt/sources.list.d/scale.list"
+    if sudo grep -q jammy /etc/os-release; then
+        sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
+    fi
+    sudo apt update
+    sudo apt install -y gpfs.base gpfs.docs gpfs.msg.en-us gpfs.compression gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.afm.cos gpfs.license* gpfs.gss.pmcollector gpfs.gss.pmsensors
+    if sudo apt search gpfs.adv | grep -q "gpfs.adv"; then
+        sudo apt install -y gpfs.adv
+    fi
+    if sudo apt search gpfs.crypto | grep -q "gpfs.crypto"; then
+        sudo apt install -y gpfs.crypto
+    fi
 elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo dnf install -y unzip python3 python3-pip jq numactl
     sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`
@@ -137,9 +146,15 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
 
     sudo /usr/lpp/mmfs/bin/mmbuildgpl
     sudo sh -c "echo 'export PATH=$PATH:$HOME/bin:/usr/lpp/mmfs/bin' >> /root/.bashrc"
-    sudo rm -rf /etc/yum.repos.d/scale.repo
-    sudo dnf clean all
-    sudo rm -rf /var/cache/dnf
-    sudo rm -rf /root/.bash_history
-    sudo rm -rf /home/ec2-user/.bash_history
+    if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
+        sudo ua detach --assume-yes
+        sudo rm -rf /var/log/ubuntu-advantage.log
+        sudo cloud-init clean --machine-id
+    elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
+        sudo rm -rf /etc/yum.repos.d/scale.repo
+        sudo dnf clean all
+        sudo rm -rf /var/cache/dnf
+        sudo rm -rf /root/.bash_history
+        sudo rm -rf /home/ec2-user/.bash_history
+    fi
 fi
