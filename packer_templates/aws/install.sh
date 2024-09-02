@@ -4,7 +4,8 @@ set -ex
 sleep 30
 if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
     echo "debconf debconf/frontend select Noninteractive" | sudo debconf-set-selections
-    sudo apt-get install unzip
+    sudo apt-get -y install make cpp gcc g++
+    sudo apt-get -y install unzip
     sudo curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
     sudo unzip awscliv2.zip
     sudo ./aws/install
@@ -15,12 +16,12 @@ if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
         sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
     fi
     sudo apt-get update
-    sudo apt-get install -y gpfs.base gpfs.docs gpfs.msg.en-us gpfs.compression gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.afm.cos gpfs.license* gpfs.gss.pmcollector gpfs.gss.pmsensors
+    sudo apt-get -y install gpfs.base gpfs.docs gpfs.msg.en-us gpfs.compression gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.afm.cos gpfs.license* gpfs.gss.pmcollector gpfs.gss.pmsensors
     if sudo apt-cache search gpfs.adv | grep -q "gpfs.adv"; then
-        sudo apt-get install -y gpfs.adv
+        sudo apt-get -y install gpfs.adv
     fi
     if sudo apt-cache search gpfs.crypto | grep -q "gpfs.crypto"; then
-        sudo apt-get install -y gpfs.crypto
+        sudo apt-get -y install gpfs.crypto
     fi
 elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo dnf install -y unzip python3 python3-pip jq numactl
@@ -67,7 +68,7 @@ install_nfs() {
             sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/ganesha_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
         fi
         sudo apt-get update
-        sudo apt-get install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+        sudo apt-get -y install gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
     elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo '[NFSProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'name=IBM Storage Scale NFS Protocol Repository' >> /etc/yum.repos.d/scale.repo"
@@ -91,7 +92,7 @@ install_smb() {
             sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/smb_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
         fi
         sudo apt-get update
-        sudo apt-get install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+        sudo apt-get -y install gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
     elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo '[SMBProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'name=IBM Storage Scale SMB Protocol Repository' >> /etc/yum.repos.d/scale.repo"
@@ -127,7 +128,7 @@ install_s3() {
 
 case "$INSTALL_PROTOCOLS" in
     None)
-        echo "skipping protocol rpm installation"
+        echo "skipping protocol rpm/debs installation"
         ;;
     nfs)
         ces_failback
