@@ -3,7 +3,7 @@ set -ex
 
 sleep 30
 if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
-    sudo apt install unzip
+    sudo apt-get install unzip
     sudo curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
     sudo unzip awscliv2.zip
     sudo ./aws/install
@@ -14,12 +14,12 @@ if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
         sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
     fi
     sudo apt update
-    sudo apt install -y gpfs.base gpfs.docs gpfs.msg.en-us gpfs.compression gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.afm.cos gpfs.license* gpfs.gss.pmcollector gpfs.gss.pmsensors
+    sudo apt-get install -y gpfs.base gpfs.docs gpfs.msg.en-us gpfs.compression gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.afm.cos gpfs.license* gpfs.gss.pmcollector gpfs.gss.pmsensors
     if sudo apt search gpfs.adv | grep -q "gpfs.adv"; then
-        sudo apt install -y gpfs.adv
+        sudo apt-get install -y gpfs.adv
     fi
     if sudo apt search gpfs.crypto | grep -q "gpfs.crypto"; then
-        sudo apt install -y gpfs.crypto
+        sudo apt-get install -y gpfs.crypto
     fi
 elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo dnf install -y unzip python3 python3-pip jq numactl
