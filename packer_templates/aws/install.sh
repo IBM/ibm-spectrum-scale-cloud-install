@@ -27,6 +27,7 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo dnf install -y unzip python3 python3-pip jq numactl
     sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`
     sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils nftables iptables nvme-cli
+    sudo dnf install -y sssd-tools sssd openldap-clients
     sudo curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
     sudo unzip awscliv2.zip
     sudo ./aws/install
