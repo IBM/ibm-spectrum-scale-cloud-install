@@ -462,7 +462,6 @@ module "protocol_cluster_instances" {
   resource_tags        = var.scale_cluster_resource_tags
   vpc_region           = var.vpc_region
   ces_reserved_ip_ids  = values(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map))
-  vpc_rt_id            = data.ibm_is_vpc.vpc_rt_id.default_routing_table
   depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id, module.protocol_reserved_ip]
 }
 
@@ -487,7 +486,6 @@ module "storage_cluster_instances" {
   enable_sec_interface_storage = local.enable_sec_interface_storage
   enable_protocol              = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? true : false
   vpc_region                   = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
-  vpc_rt_id                    = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
   protocol_domain              = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
   protocol_subnet_id           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
   resource_tags                = var.scale_cluster_resource_tags
@@ -515,7 +513,6 @@ module "storage_cluster_bare_metal_server" {
   vsi_meta_public_key       = module.generate_storage_cluster_keys.public_key_content
   enable_protocol           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? true : false
   vpc_region                = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
-  vpc_rt_id                 = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? data.ibm_is_vpc.vpc_rt_id.default_routing_table : ""
   protocol_domain           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
   protocol_subnet_id        = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
   storage_private_key       = module.generate_storage_cluster_keys.private_key_content
@@ -572,7 +569,6 @@ module "storage_cluster_tie_breaker_instance" {
   enable_sec_interface_storage = local.enable_sec_interface_storage
   enable_protocol              = false
   vpc_region                   = ""
-  vpc_rt_id                    = ""
   protocol_domain              = ""
   protocol_subnet_id           = []
   resource_tags                = var.scale_cluster_resource_tags
@@ -599,7 +595,6 @@ module "storage_cluster_tie_breaker_instance_bm" {
   vsi_meta_public_key       = module.generate_storage_cluster_keys.public_key_content
   enable_protocol           = false
   vpc_region                = ""
-  vpc_rt_id                 = ""
   protocol_domain           = ""
   protocol_subnet_id        = []
   bms_boot_drive_encryption = false
@@ -780,10 +775,6 @@ locals {
   compute_management_node_id   = local.enable_sec_interface_compute ? values(module.compute_cluster_management_instance.secondary_interface_name_id_map) : values(module.compute_cluster_management_instance.instance_name_id_map)
   compute_management_node_ip   = local.enable_sec_interface_compute ? values(module.compute_cluster_management_instance.secondary_interface_name_ip_map) : values(module.compute_cluster_management_instance.instance_name_ip_map)
   compute_management_node_name = local.enable_sec_interface_compute ? keys(module.compute_cluster_management_instance.secondary_interface_name_id_map) : keys(module.compute_cluster_management_instance.instance_name_id_map)
-}
-
-data "ibm_is_vpc" "vpc_rt_id" {
-  identifier = var.vpc_id
 }
 
 module "write_compute_cluster_inventory" {

@@ -31,7 +31,6 @@ variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
-variable "vpc_rt_id" {}
 
 data "ibm_is_instance_profile" "itself" {
   name = var.vsi_profile
@@ -158,10 +157,8 @@ if [ "${var.enable_protocol}" == true ]; then
     systemctl restart NetworkManager
     ###### TODO: Fix Me ######
     echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
-    echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
+    echo 'export IC_SUBNET=${var.protocol_subnet_id[0]}' >> /root/.bashrc
     echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
-    echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
-    echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 fi
 EOF
 }

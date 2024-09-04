@@ -31,7 +31,6 @@ variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
-variable "vpc_rt_id" {}
 variable "storage_private_key" {}
 
 data "ibm_is_bare_metal_server_profile" "itself" {
@@ -135,10 +134,8 @@ if [ "${var.enable_protocol}" == true ]; then
     systemctl restart NetworkManager
     ###### TODO: Fix Me ######
     echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
-    echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
+    echo 'export IC_SUBNET=${var.protocol_subnet_id[0]}' >> /root/.bashrc
     echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
-    echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
-    echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 fi
 EOF
 }
@@ -149,10 +146,8 @@ locals {
     enable_protocol      = var.enable_protocol,
     protocol_domain      = var.protocol_domain,
     vpc_region           = var.vpc_region,
-    vpc_id               = var.vpc_id,
-    zones                = var.zones,
+    protocol_subnet_id   = var.protocol_subnet_id,
     resource_group_id    = var.resource_group_id,
-    vpc_rt_id            = var.vpc_rt_id,
     vsi_meta_private_key = base64encode(var.vsi_meta_private_key),
     vsi_meta_public_key  = base64encode(var.vsi_meta_public_key)
   }

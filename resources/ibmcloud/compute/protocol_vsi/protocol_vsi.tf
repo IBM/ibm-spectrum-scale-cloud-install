@@ -29,7 +29,6 @@ variable "resource_tags" {}
 variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 variable "vpc_region" {}
-variable "vpc_rt_id" {}
 variable "ces_reserved_ip_ids" {}
 variable "ces_server_type" {}
 
@@ -137,10 +136,8 @@ systemctl restart NetworkManager
 
 ###### TODO: Fix Me ######
 echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
-echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
+echo 'export IC_SUBNET=${var.zones[0]}' >> /root/.bashrc
 echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
-echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
-echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 EOF
 }
 
@@ -376,10 +373,8 @@ systemctl restart NetworkManager
 
 ###### TODO: Fix Me ######
 echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
-echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
+echo 'export IC_SUBNET=${var.zones[0]}' >> /root/.bashrc
 echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
-echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
-echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 EOF
 }
 
