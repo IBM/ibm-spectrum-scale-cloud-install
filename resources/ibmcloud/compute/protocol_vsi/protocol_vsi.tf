@@ -136,7 +136,7 @@ systemctl restart NetworkManager
 
 ###### TODO: Fix Me ######
 echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
-echo 'export IC_SUBNET=${var.zones[0]}' >> /root/.bashrc
+echo 'export IC_SUBNET=${var.protocol_subnet_id[0]}' >> /root/.bashrc
 echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
 EOF
 }
@@ -373,7 +373,7 @@ systemctl restart NetworkManager
 
 ###### TODO: Fix Me ######
 echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
-echo 'export IC_SUBNET=${var.zones[0]}' >> /root/.bashrc
+echo 'export IC_SUBNET=${var.protocol_subnet_id[0]}' >> /root/.bashrc
 echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
 EOF
 }
