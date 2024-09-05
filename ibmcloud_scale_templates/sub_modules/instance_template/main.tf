@@ -676,6 +676,8 @@ module "afm_cluster_instances" {
   vsi_meta_public_key          = module.generate_storage_cluster_keys.public_key_content
   scale_firewall_rules_enabled = true
   resource_tags                = var.scale_cluster_resource_tags
+  bms_boot_drive_encryption    = var.bms_boot_drive_encryption
+  storage_private_key          = module.generate_storage_cluster_keys.private_key_content
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
 

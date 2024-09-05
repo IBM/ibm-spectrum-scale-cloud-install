@@ -28,7 +28,8 @@ variable "resource_group_id" {}
 variable "resource_tags" {}
 variable "scale_firewall_rules_enabled" {}
 variable "afm_server_type" {}
-
+variable "bms_boot_drive_encryption" {}
+variable "storage_private_key" {}
 
 data "template_file" "metadata_startup_script_vsi" {
   template = <<EOF
@@ -206,6 +207,13 @@ resource "ibm_dns_resource_record" "ptr_itself_vsi" {
 ##########################################################################################################################
 ################ Bare Metal Server ################
 ##########################################################################################################################
+locals {
+  user_data_vars = {
+    dns_domain           = var.dns_domain,
+    vsi_meta_private_key = base64encode(var.vsi_meta_private_key),
+    vsi_meta_public_key  = base64encode(var.vsi_meta_public_key)
+  }
+}
 
 data "template_file" "metadata_startup_script_bm" {
   template = <<EOF
@@ -323,10 +331,52 @@ resource "ibm_is_bare_metal_server" "itself_bm" {
 
   vpc            = var.vpc_id
   resource_group = var.resource_group_id
-  user_data      = data.template_file.metadata_startup_script_bm.rendered
+  user_data      = var.bms_boot_drive_encryption == false ? data.template_file.metadata_startup_script_bm.rendered : templatefile("${path.module}/cloud_init.yml", local.user_data_vars)
   timeouts {
     create = "90m"
   }
+  enable_secure_boot = false
+  trusted_platform_module {
+    mode = "tpm_2"
+  }
+}
+
+resource "time_sleep" "wait_for_reboot_tolerate" {
+  count           = var.bms_boot_drive_encryption == true ? 1 : 0
+  create_duration = "400s"
+  depends_on      = [ibm_is_bare_metal_server.itself_bm]
+}
+
+resource "null_resource" "scale_boot_drive_reboot_tolerate_provisioner" {
+  for_each = var.bms_boot_drive_encryption == false ? {} : {
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      network_ip = element(tolist([for ip_details in ibm_is_bare_metal_server.itself_bm : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx)
+    }
+  }
+  connection {
+    type        = "ssh"
+    host        = each.value.network_ip
+    user        = "root"
+    private_key = var.storage_private_key
+    timeout     = "60m"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "while true; do",
+      "  lsblk | grep crypt",
+      "  if [[ \"$?\" -eq 0 ]]; then",
+      "    break",
+      "  fi",
+      "  echo \"Waiting for BMS to be rebooted and drive to get encrypted...\"",
+      "  sleep 10",
+      "done",
+      "lsblk",
+      "systemctl restart NetworkManager",
+      "echo \"Restarted NetworkManager\""
+    ]
+  }
+  depends_on = [time_sleep.wait_for_reboot_tolerate]
 }
 
 resource "ibm_dns_resource_record" "a_itself_bm" {
