@@ -99,7 +99,7 @@ write_files:
           systemctl restart NetworkManager
           ###### TODO: Fix Me ######
           echo 'export IC_REGION=${vpc_region}' >> /root/.bashrc
-          echo 'export IC_SUBNET=${protocol_subnet_id[0]}' >> /root/.bashrc
+          echo 'export IC_SUBNET=${protocol_subnet_id}' >> /root/.bashrc
           echo 'export IC_RG=${resource_group_id}' >> /root/.bashrc
       fi
     path: /usr/local/bin/scale_user_data.sh
