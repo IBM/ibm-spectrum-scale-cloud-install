@@ -440,29 +440,31 @@ module "protocol_reserved_ip" {
 }
 
 module "protocol_cluster_instances" {
-  source               = "../../../resources/ibmcloud/compute/protocol_vsi"
-  total_vsis           = var.colocate_protocol_cluster_instances == true ? 0 : var.total_protocol_cluster_instances
-  vsi_name_prefix      = format("%s-ces", var.resource_prefix)
-  ces_server_type      = local.ces_server_type
-  vpc_id               = var.vpc_id
-  resource_group_id    = var.resource_group_id
-  zones                = [var.vpc_availability_zones[0]]
-  vsi_image_id         = local.storage_instance_image_id
-  vsi_profile          = var.protocol_vsi_profile
-  dns_domain           = var.vpc_storage_cluster_dns_domain
-  dns_service_id       = var.vpc_storage_cluster_dns_service_id
-  dns_zone_id          = var.vpc_storage_cluster_dns_zone_id
-  vsi_subnet_id        = var.vpc_storage_cluster_private_subnets
-  vsi_security_group   = [module.storage_cluster_security_group.sec_group_id]
-  vsi_user_public_key  = data.ibm_is_ssh_key.storage_ssh_key[*].id
-  vsi_meta_private_key = module.generate_storage_cluster_keys.private_key_content
-  vsi_meta_public_key  = module.generate_storage_cluster_keys.public_key_content
-  protocol_domain      = var.vpc_protocol_cluster_dns_domain
-  protocol_subnet_id   = var.vpc_protocol_cluster_private_subnets
-  resource_tags        = var.scale_cluster_resource_tags
-  vpc_region           = var.vpc_region
-  ces_reserved_ip_ids  = values(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map))
-  depends_on           = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id, module.protocol_reserved_ip]
+  source                    = "../../../resources/ibmcloud/compute/protocol_vsi"
+  total_vsis                = var.colocate_protocol_cluster_instances == true ? 0 : var.total_protocol_cluster_instances
+  vsi_name_prefix           = format("%s-ces", var.resource_prefix)
+  ces_server_type           = local.ces_server_type
+  vpc_id                    = var.vpc_id
+  resource_group_id         = var.resource_group_id
+  zones                     = [var.vpc_availability_zones[0]]
+  vsi_image_id              = local.storage_instance_image_id
+  vsi_profile               = var.protocol_vsi_profile
+  dns_domain                = var.vpc_storage_cluster_dns_domain
+  dns_service_id            = var.vpc_storage_cluster_dns_service_id
+  dns_zone_id               = var.vpc_storage_cluster_dns_zone_id
+  vsi_subnet_id             = var.vpc_storage_cluster_private_subnets
+  vsi_security_group        = [module.storage_cluster_security_group.sec_group_id]
+  vsi_user_public_key       = data.ibm_is_ssh_key.storage_ssh_key[*].id
+  vsi_meta_private_key      = module.generate_storage_cluster_keys.private_key_content
+  vsi_meta_public_key       = module.generate_storage_cluster_keys.public_key_content
+  protocol_domain           = var.vpc_protocol_cluster_dns_domain
+  protocol_subnet_id        = var.vpc_protocol_cluster_private_subnets
+  resource_tags             = var.scale_cluster_resource_tags
+  vpc_region                = var.vpc_region
+  ces_reserved_ip_ids       = values(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map))
+  bms_boot_drive_encryption = var.bms_boot_drive_encryption
+  storage_private_key       = module.generate_storage_cluster_keys.private_key_content
+  depends_on                = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id, module.protocol_reserved_ip]
 }
 
 module "storage_cluster_instances" {
@@ -549,7 +551,7 @@ module "storage_cluster_management_instance" {
 }
 
 module "storage_cluster_tie_breaker_instance" {
-  count                        = var.storage_type == "scratch" ? 1 : 0 #local.tie_breaker_server_type == false ? 1 : 0
+  count                        = var.storage_type == "scratch" ? 1 : 0
   source                       = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   total_vsis                   = 1
   vsi_name_prefix              = format("%s-strg-tie", var.resource_prefix)
@@ -576,7 +578,7 @@ module "storage_cluster_tie_breaker_instance" {
 }
 
 module "storage_cluster_tie_breaker_instance_bm" {
-  count                     = var.storage_type == "persistent" ? 1 : 0 #local.tie_breaker_server_type == true ? 1 : 0
+  count                     = var.storage_type == "persistent" ? 1 : 0
   source                    = "../../../resources/ibmcloud/compute/bare_metal_server_multiple_vol"
   total_vsis                = 1
   vsi_name_prefix           = format("%s-strg-tie", var.resource_prefix)
@@ -597,8 +599,8 @@ module "storage_cluster_tie_breaker_instance_bm" {
   vpc_region                = ""
   protocol_domain           = ""
   protocol_subnet_id        = []
-  bms_boot_drive_encryption = false
-  storage_private_key       = ""
+  bms_boot_drive_encryption = var.bms_boot_drive_encryption
+  storage_private_key       = module.generate_storage_cluster_keys.private_key_content
   resource_tags             = var.scale_cluster_resource_tags
   depends_on                = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
