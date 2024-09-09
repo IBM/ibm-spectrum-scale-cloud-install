@@ -21,5 +21,5 @@ resource "aws_route_table" "itself" {
 }
 
 output "table_id" {
-  value = try(aws_route_table.itself.*.id, null)
+  value = try(aws_route_table.itself[*].id, null)
 }

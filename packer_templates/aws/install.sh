@@ -67,9 +67,11 @@ install_nfs() {
     if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
         if sudo grep -q jammy /etc/os-release; then
             sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/ganesha_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
+            sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_debs/ubuntu/ /' >> /etc/apt/sources.list.d/scale.list"
+            sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/smb_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
         fi
         sudo apt-get update
-        sudo apt-get -y install gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+        sudo apt-get -y install gpfs.nfs-ganesha gpfs.nfs-ganesha-doc gpfs.nfs-ganesha-gpfs gpfs.pm-ganesha gpfs.smb
     elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo '[NFSProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'name=IBM Storage Scale NFS Protocol Repository' >> /etc/yum.repos.d/scale.repo"
@@ -90,10 +92,12 @@ install_nfs() {
 install_smb() {
     if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
         if sudo grep -q jammy /etc/os-release; then
+            sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/ganesha_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
+            sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_debs/ubuntu/ /' >> /etc/apt/sources.list.d/scale.list"
             sudo sh -c "echo 'deb [trusted=yes] http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/smb_debs/ubuntu/ubuntu22 /' >> /etc/apt/sources.list.d/scale.list"
         fi
         sudo apt-get update
-        sudo apt-get -y install gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+        sudo apt-get -y install gpfs.nfs-ganesha gpfs.nfs-ganesha-doc gpfs.nfs-ganesha-gpfs gpfs.pm-ganesha gpfs.smb
     elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo '[SMBProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'name=IBM Storage Scale SMB Protocol Repository' >> /etc/yum.repos.d/scale.repo"

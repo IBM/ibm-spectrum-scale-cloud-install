@@ -23,5 +23,5 @@ resource "aws_nat_gateway" "itself" {
 }
 
 output "nat_gw_id" {
-  value = try(aws_nat_gateway.itself.*.id, null)
+  value = try(aws_nat_gateway.itself[*].id, null)
 }

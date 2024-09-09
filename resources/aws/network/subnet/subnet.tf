@@ -24,5 +24,5 @@ resource "aws_subnet" "itself" {
 }
 
 output "subnet_id" {
-  value = aws_subnet.itself.*.id
+  value = aws_subnet.itself[*].id
 }

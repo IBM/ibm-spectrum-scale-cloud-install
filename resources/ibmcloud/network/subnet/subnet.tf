@@ -28,9 +28,9 @@ resource "ibm_is_subnet" "itself" {
 }
 
 output "subnet_id" {
-  value = ibm_is_subnet.itself.*.id
+  value = ibm_is_subnet.itself[*].id
 }
 
 output "subnet_crn" {
-  value = ibm_is_subnet.itself.*.crn
+  value = ibm_is_subnet.itself[*].crn
 }

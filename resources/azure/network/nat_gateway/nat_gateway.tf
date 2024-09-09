@@ -17,5 +17,5 @@ resource "azurerm_nat_gateway" "itself" {
 }
 
 output "nat_gateway_id" {
-  value = try(azurerm_nat_gateway.itself[0].id, null)
+  value = try(azurerm_nat_gateway.itself[*].id, null)
 }

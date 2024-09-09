@@ -24,5 +24,5 @@ resource "ibm_is_public_gateway" "itself" {
 }
 
 output "public_gw_id" {
-  value = ibm_is_public_gateway.itself.*.id
+  value = ibm_is_public_gateway.itself[*].id
 }
