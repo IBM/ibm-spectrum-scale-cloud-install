@@ -24,5 +24,5 @@ resource "ibm_is_vpc_address_prefix" "itself" {
 }
 
 output "vpc_addr_prefix_id" {
-  value = ibm_is_vpc_address_prefix.itself.*.id
+  value = ibm_is_vpc_address_prefix.itself[*].id
 }

@@ -29,5 +29,5 @@ resource "ibm_resource_instance" "itself" {
 }
 
 output "resource_guid" {
-  value = ibm_resource_instance.itself.*.guid
+  value = ibm_resource_instance.itself[*].guid
 }

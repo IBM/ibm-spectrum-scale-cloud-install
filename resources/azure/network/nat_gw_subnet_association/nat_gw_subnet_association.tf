@@ -9,7 +9,7 @@ variable "nat_gateway_id" {}
 resource "azurerm_subnet_nat_gateway_association" "itself" {
   count          = var.turn_on ? length(var.subnet_id) : 0
   subnet_id      = element(var.subnet_id, count.index)
-  nat_gateway_id = var.nat_gateway_id
+  nat_gateway_id = element(var.nat_gateway_id, count.index)
 }
 
 output "subnet_association" {
