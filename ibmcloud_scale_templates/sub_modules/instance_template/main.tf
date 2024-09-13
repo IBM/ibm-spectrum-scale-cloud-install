@@ -31,7 +31,6 @@ locals {
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
   afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
   ces_server_type              = strcontains(var.protocol_vsi_profile, "metal")
-  #tie_breaker_server_type      = strcontains("cx2d-metal-96x192", "metal")
 }
 
 module "generate_compute_cluster_keys" {
@@ -1123,7 +1122,7 @@ module "client_configuration" {
   ldap_basedns                    = var.ldap_basedns
   ldap_server                     = local.ldap_server
   ldap_admin_password             = var.ldap_admin_password
-  depends_on                      = [module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.ldap_configuration] #, module.routing_table_routes]
+  depends_on                      = [module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.ldap_configuration]
 }
 
 module "remote_mount_configuration" {
