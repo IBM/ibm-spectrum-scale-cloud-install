@@ -448,11 +448,6 @@ resource "time_sleep" "wait_for_reboot_tolerate" {
 
 resource "null_resource" "scale_boot_drive_reboot_tolerate_provisioner" {
   count = var.bms_boot_drive_encryption == true && var.ces_server_type == true ? 1 : 0
-  # for_each = {
-  #   for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-  #     network_ip = var.bms_boot_drive_encryption == true && var.ces_server_type == true ? element(tolist([for ip_details in ibm_is_bare_metal_server.itself_bm : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]), idx) : ""
-  #   }
-  # }
   connection {
     type        = "ssh"
     host        = (tolist([for ip_details in ibm_is_bare_metal_server.itself_bm : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]))[count.index]
