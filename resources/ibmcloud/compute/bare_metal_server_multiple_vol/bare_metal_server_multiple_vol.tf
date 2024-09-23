@@ -32,6 +32,7 @@ variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
 variable "storage_private_key" {}
+variable "ces_reserved_ip_ids" {}
 
 locals {
   protocol_subnet_id = var.enable_protocol == true ? var.protocol_subnet_id[0] : ""
@@ -143,6 +144,40 @@ fi
 EOF
 }
 
+resource "ibm_is_virtual_network_interface" "vni" {
+  for_each = var.enable_protocol == false ? {} : {
+    # This assigns a subnet-id to each of the instance
+    # iteration.
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      sequence_string    = tostring(count_number)
+      protocol_subnet_id = var.enable_protocol == true ? element(var.protocol_subnet_id, idx) : ""
+    }
+  }
+  name                      = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+  allow_ip_spoofing         = false
+  enable_infrastructure_nat = true
+  subnet                    = each.value.protocol_subnet_id
+  resource_group            = var.resource_group_id
+  security_groups           = var.vsi_security_group
+  primary_ip {
+    auto_delete = true
+  }
+}
+
+resource "ibm_is_virtual_network_interface_ip" "vni_reserved_ip" {
+  for_each = var.enable_protocol == false ? {} : {
+    # iteration.
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      sequence_string    = tostring(count_number)
+      vni_id             = element(tolist([for id_details in ibm_is_virtual_network_interface.vni : id_details.id]), idx)
+      ces_reserved_ip_id = element(var.ces_reserved_ip_ids, idx)
+    }
+  }
+  virtual_network_interface = each.value.vni_id
+  reserved_ip               = each.value.ces_reserved_ip_id
+  depends_on                = [ibm_is_virtual_network_interface.vni]
+}
+
 locals {
   user_data_vars = {
     dns_domain           = var.dns_domain,
@@ -161,10 +196,10 @@ resource "ibm_is_bare_metal_server" "itself" {
     # This assigns a subnet-id to each of the instance
     # iteration.
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      sequence_string    = tostring(count_number)
-      subnet_id          = element(var.vsi_subnet_id, idx)
-      protocol_subnet_id = var.enable_protocol == true ? element(var.protocol_subnet_id, idx) : ""
-      zone               = element(var.zones, idx)
+      sequence_string = tostring(count_number)
+      subnet_id       = element(var.vsi_subnet_id, idx)
+      zone            = element(var.zones, idx)
+      vni_id          = var.enable_protocol == false ? "" : element(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id.id]), idx)
     }
   }
   profile = var.vsi_profile
@@ -174,21 +209,25 @@ resource "ibm_is_bare_metal_server" "itself" {
   keys    = var.vsi_user_public_key
   tags    = var.resource_tags
 
-  primary_network_interface {
-    name            = format("%s-%03s-pri", var.vsi_name_prefix, each.value.sequence_string)
-    subnet          = each.value.subnet_id
-    security_groups = var.vsi_security_group
+  primary_network_attachment {
+    name = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
+    virtual_network_interface {
+      name                      = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
+      allow_ip_spoofing         = false
+      auto_delete               = true
+      enable_infrastructure_nat = true
+      subnet                    = each.value.subnet_id
+      security_groups           = var.vsi_security_group
+    }
   }
 
-  dynamic "network_interfaces" {
+  dynamic "network_attachments" {
     for_each = var.enable_protocol == true ? [1] : []
     content {
-      name                      = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
-      subnet                    = each.value.protocol_subnet_id
-      enable_infrastructure_nat = true
-      allow_ip_spoofing         = true
-      security_groups           = var.vsi_security_group
-      allowed_vlans             = [101]
+      name = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+      virtual_network_interface {
+        id = each.value.vni_id
+      }
     }
   }
 
