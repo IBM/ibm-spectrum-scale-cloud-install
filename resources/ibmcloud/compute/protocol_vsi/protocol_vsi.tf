@@ -441,13 +441,13 @@ resource "ibm_is_bare_metal_server" "itself_bm" {
 }
 
 resource "time_sleep" "wait_for_reboot_tolerate" {
-  count           = var.bms_boot_drive_encryption == true && var.ces_server_type == true ? 1 : 0
+  count           = var.bms_boot_drive_encryption == true && var.ces_server_type == true && var.total_vsis > 0 ? 1 : 0
   create_duration = "400s"
   depends_on      = [ibm_is_bare_metal_server.itself_bm]
 }
 
 resource "null_resource" "scale_boot_drive_reboot_tolerate_provisioner" {
-  count = var.bms_boot_drive_encryption == true && var.ces_server_type == true ? 1 : 0
+  count = var.bms_boot_drive_encryption == true && var.ces_server_type == true && var.total_vsis > 0 ? 1 : 0
   connection {
     type        = "ssh"
     host        = (tolist([for ip_details in ibm_is_bare_metal_server.itself_bm : ip_details.primary_network_interface[0]["primary_ip"][0]["address"]]))[count.index]
