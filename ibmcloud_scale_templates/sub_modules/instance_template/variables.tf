@@ -508,7 +508,7 @@ variable "ldap_server" {
 variable "ldap_admin_password" {
   type        = string
   sensitive   = true
-  default     = ""
+  default     = "null"
   description = "The LDAP administrative password should be 8 to 20 characters long, with a mix of at least three alphabetic characters, including one uppercase and one lowercase letter. It must also include two numerical digits and at least one special character from (~@_+:) are required. It is important to avoid including the username in the password for enhanced security."
 }
 
