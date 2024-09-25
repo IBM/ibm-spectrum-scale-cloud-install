@@ -32,7 +32,6 @@ variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
 variable "storage_private_key" {}
-variable "ces_reserved_ip_ids" {}
 
 locals {
   protocol_subnet_id = var.enable_protocol == true ? var.protocol_subnet_id[0] : ""
@@ -162,20 +161,6 @@ resource "ibm_is_virtual_network_interface" "vni" {
   primary_ip {
     auto_delete = true
   }
-}
-
-resource "ibm_is_virtual_network_interface_ip" "vni_reserved_ip" {
-  for_each = var.enable_protocol == false ? {} : {
-    # iteration.
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      sequence_string    = tostring(count_number)
-      vni_id             = element(tolist([for id_details in ibm_is_virtual_network_interface.vni : id_details.id]), idx)
-      ces_reserved_ip_id = element(var.ces_reserved_ip_ids, idx)
-    }
-  }
-  virtual_network_interface = each.value.vni_id
-  reserved_ip               = each.value.ces_reserved_ip_id
-  depends_on                = [ibm_is_virtual_network_interface.vni]
 }
 
 locals {

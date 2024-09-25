@@ -460,10 +460,9 @@ module "protocol_cluster_instances" {
   protocol_subnet_id        = var.vpc_protocol_cluster_private_subnets
   resource_tags             = var.scale_cluster_resource_tags
   vpc_region                = var.vpc_region
-  ces_reserved_ip_ids       = values(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map))
   bms_boot_drive_encryption = var.bms_boot_drive_encryption
   storage_private_key       = module.generate_storage_cluster_keys.private_key_content
-  depends_on                = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id, module.protocol_reserved_ip]
+  depends_on                = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
 
 module "storage_cluster_instances" {
@@ -489,7 +488,6 @@ module "storage_cluster_instances" {
   vpc_region                   = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
   protocol_domain              = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
   protocol_subnet_id           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
-  ces_reserved_ip_ids          = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? values(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map)) : []
   resource_tags                = var.scale_cluster_resource_tags
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
@@ -517,7 +515,6 @@ module "storage_cluster_bare_metal_server" {
   vpc_region                = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_region : ""
   protocol_domain           = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_dns_domain : ""
   protocol_subnet_id        = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? var.vpc_protocol_cluster_private_subnets : []
-  ces_reserved_ip_ids       = var.total_protocol_cluster_instances > 0 && var.colocate_protocol_cluster_instances == true ? values(one(module.protocol_reserved_ip[*].reserved_ip_id_ip_map)) : []
   storage_private_key       = module.generate_storage_cluster_keys.private_key_content
   resource_tags             = var.scale_cluster_resource_tags
   depends_on                = [module.storage_cluster_ingress_security_rule, var.vpc_custom_resolver_id, module.storage_egress_security_rule]
@@ -574,7 +571,6 @@ module "storage_cluster_tie_breaker_instance" {
   vpc_region                   = ""
   protocol_domain              = ""
   protocol_subnet_id           = []
-  ces_reserved_ip_ids          = []
   resource_tags                = var.scale_cluster_resource_tags
   depends_on                   = [module.storage_cluster_ingress_security_rule, module.storage_cluster_ingress_security_rule_wo_bastion, module.storage_cluster_ingress_security_rule_wt_bastion, module.storage_egress_security_rule, var.vpc_custom_resolver_id]
 }
@@ -601,7 +597,6 @@ module "storage_cluster_tie_breaker_instance_bm" {
   vpc_region                = ""
   protocol_domain           = ""
   protocol_subnet_id        = []
-  ces_reserved_ip_ids       = []
   bms_boot_drive_encryption = var.bms_boot_drive_encryption
   storage_private_key       = module.generate_storage_cluster_keys.private_key_content
   resource_tags             = var.scale_cluster_resource_tags
