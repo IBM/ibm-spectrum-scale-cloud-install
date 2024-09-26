@@ -549,7 +549,7 @@ module "storage_cluster_management_instance" {
 }
 
 module "storage_cluster_tie_breaker_instance" {
-  count                        = var.storage_type == "scratch" ? 1 : 0
+  count                        = var.storage_type != "persistent" ? 1 : 0
   source                       = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   total_vsis                   = 1
   vsi_name_prefix              = format("%s-strg-tie", var.resource_prefix)
