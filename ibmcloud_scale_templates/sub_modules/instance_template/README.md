@@ -54,7 +54,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | Name | Version |
 |------|---------|
 | <a name="requirement_github"></a> [github](#requirement_github) | 5.41.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.67.1 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.68.0 |
 
 #### Inputs
 
@@ -129,6 +129,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_scale_encryption_admin_password"></a> [scale_encryption_admin_password](#input_scale_encryption_admin_password) | Password that is used for performing administrative operations for the GKLM.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. Visit this [page](https://www.ibm.com/docs/en/gklm/3.0.1?topic=roles-password-policy) to know more about password policy of GKLM. | `string` |
 | <a name="input_scale_encryption_admin_username"></a> [scale_encryption_admin_username](#input_scale_encryption_admin_username) | The default Admin username for Security Key Lifecycle Manager(GKLM). | `string` |
 | <a name="input_scale_encryption_enabled"></a> [scale_encryption_enabled](#input_scale_encryption_enabled) | To enable the encryption for the filesystem. Select true or false | `bool` |
+| <a name="input_scale_encryption_type"></a> [scale_encryption_type](#input_scale_encryption_type) | To enable filesystem encryption, specify either 'key_protect' or 'gklm'. If neither is specified, the default value will be 'null' and encryption is disabled | `string` |
 | <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
 | <a name="input_storage_bare_metal_osimage_id"></a> [storage_bare_metal_osimage_id](#input_storage_bare_metal_osimage_id) | Image Id to use for provisioning the storage Baremetal cluster instances. | `string` |
 | <a name="input_storage_bare_metal_osimage_name"></a> [storage_bare_metal_osimage_name](#input_storage_bare_metal_osimage_name) | Image name to use for provisioning the storage Baremetal cluster. | `string` |

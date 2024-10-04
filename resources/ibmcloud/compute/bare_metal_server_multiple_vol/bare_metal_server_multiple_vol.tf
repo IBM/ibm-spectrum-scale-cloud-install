@@ -31,8 +31,11 @@ variable "protocol_domain" {}
 variable "protocol_subnet_id" {}
 variable "enable_protocol" {}
 variable "vpc_region" {}
-variable "vpc_rt_id" {}
 variable "storage_private_key" {}
+
+locals {
+  protocol_subnet_id = var.enable_protocol == true ? var.protocol_subnet_id[0] : ""
+}
 
 data "ibm_is_bare_metal_server_profile" "itself" {
   name = var.vsi_profile
@@ -51,7 +54,6 @@ then
         package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables-nft nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
     elif grep -q "platform:el8" /etc/os-release
     then
-        subscription-manager repos --enable=rhel-8-for-x86_64-baseos-eus-rpms
         package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock"
     fi
 
@@ -135,12 +137,30 @@ if [ "${var.enable_protocol}" == true ]; then
     systemctl restart NetworkManager
     ###### TODO: Fix Me ######
     echo 'export IC_REGION=${var.vpc_region}' >> /root/.bashrc
-    echo 'export IC_ZONE=${var.zones[0]}' >> /root/.bashrc
+    echo 'export IC_SUBNET=${local.protocol_subnet_id}' >> /root/.bashrc
     echo 'export IC_RG=${var.resource_group_id}' >> /root/.bashrc
-    echo 'export IC_VPC=${var.vpc_id}' >> /root/.bashrc
-    echo 'export IC_RT=${var.vpc_rt_id}' >> /root/.bashrc
 fi
 EOF
+}
+
+resource "ibm_is_virtual_network_interface" "vni" {
+  for_each = var.enable_protocol == false ? {} : {
+    # This assigns a subnet-id to each of the instance
+    # iteration.
+    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
+      sequence_string    = tostring(count_number)
+      protocol_subnet_id = var.enable_protocol == true ? element(var.protocol_subnet_id, idx) : ""
+    }
+  }
+  name                      = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+  allow_ip_spoofing         = false
+  enable_infrastructure_nat = true
+  subnet                    = each.value.protocol_subnet_id
+  resource_group            = var.resource_group_id
+  security_groups           = var.vsi_security_group
+  primary_ip {
+    auto_delete = true
+  }
 }
 
 locals {
@@ -149,10 +169,8 @@ locals {
     enable_protocol      = var.enable_protocol,
     protocol_domain      = var.protocol_domain,
     vpc_region           = var.vpc_region,
-    vpc_id               = var.vpc_id,
-    zones                = var.zones,
+    protocol_subnet_id   = local.protocol_subnet_id,
     resource_group_id    = var.resource_group_id,
-    vpc_rt_id            = var.vpc_rt_id,
     vsi_meta_private_key = base64encode(var.vsi_meta_private_key),
     vsi_meta_public_key  = base64encode(var.vsi_meta_public_key)
   }
@@ -163,10 +181,10 @@ resource "ibm_is_bare_metal_server" "itself" {
     # This assigns a subnet-id to each of the instance
     # iteration.
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      sequence_string    = tostring(count_number)
-      subnet_id          = element(var.vsi_subnet_id, idx)
-      protocol_subnet_id = var.enable_protocol == true ? element(var.protocol_subnet_id, idx) : ""
-      zone               = element(var.zones, idx)
+      sequence_string = tostring(count_number)
+      subnet_id       = element(var.vsi_subnet_id, idx)
+      zone            = element(var.zones, idx)
+      vni_id          = var.enable_protocol == false ? "" : element(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id.id]), idx)
     }
   }
   profile = var.vsi_profile
@@ -176,21 +194,25 @@ resource "ibm_is_bare_metal_server" "itself" {
   keys    = var.vsi_user_public_key
   tags    = var.resource_tags
 
-  primary_network_interface {
-    name            = format("%s-%03s-pri", var.vsi_name_prefix, each.value.sequence_string)
-    subnet          = each.value.subnet_id
-    security_groups = var.vsi_security_group
+  primary_network_attachment {
+    name = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
+    virtual_network_interface {
+      name                      = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
+      allow_ip_spoofing         = false
+      auto_delete               = true
+      enable_infrastructure_nat = true
+      subnet                    = each.value.subnet_id
+      security_groups           = var.vsi_security_group
+    }
   }
 
-  dynamic "network_interfaces" {
+  dynamic "network_attachments" {
     for_each = var.enable_protocol == true ? [1] : []
     content {
-      name                      = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
-      subnet                    = each.value.protocol_subnet_id
-      enable_infrastructure_nat = true
-      allow_ip_spoofing         = true
-      security_groups           = var.vsi_security_group
-      allowed_vlans             = [101]
+      name = format("%s-%03s-eth1", var.vsi_name_prefix, each.value.sequence_string)
+      virtual_network_interface {
+        id = each.value.vni_id
+      }
     }
   }
 
