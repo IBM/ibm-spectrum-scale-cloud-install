@@ -397,8 +397,8 @@ locals {
     }
   }
   storage_instance_desc_ip_with_disk_mapping = {
-    for idx, vm_ipaddr in [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details["private_ip"]] :
-    vm_ipaddr => {
+    for idx, vm_dns in [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details["dns"]] :
+    vm_dns => {
       zone = var.vpc_availability_zones[2]
       disks = tomap({
         for jdx, disk in tolist(local.flatten_tie_disk) :
