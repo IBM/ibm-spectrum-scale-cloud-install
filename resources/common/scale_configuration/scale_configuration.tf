@@ -42,7 +42,7 @@ resource "local_file" "create_storage_tuning_parameters" {
  restripeOnDiskFailure=yes
  unmountOnDiskFail=meta
  readReplicaPolicy=local
- workerThreads=128
+ workerThreads=1024
  maxStatCache=0
  maxFilesToCache=64k
  ignorePrefetchLUNCount=yes
