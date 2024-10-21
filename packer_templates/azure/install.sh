@@ -8,6 +8,8 @@ if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
 elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     # Resize the root from default 2Gi
     sudo lvextend -r -l +100%FREE /dev/mapper/rootvg-rootlv
+    sudo dnf clean all
+    sudo dnf makecache
     sudo dnf install -y unzip python3 python3-pip jq numactl
     sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`
     sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils nftables iptables nvme-cli
