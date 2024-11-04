@@ -307,8 +307,8 @@ locals {
   # For nitro family the root volume = /dev/nvme0n1 and data volumes starts from /dev/nvme1n1
   # For non-nitro family the root volume = /dev/xvda and data volumes starts from /dev/nvme0n1
   storage_instance_ips_with_disk_mapping = {
-    for idx, vm_dns in [for instance in module.storage_cluster_instances : instance.instance_details["dns"]] :
-    vm_dns => {
+    for idx, vm_name in resource.null_resource.generate_storage_vm_name[*].triggers.vm_name :
+    format("%s.%s", vm_name, var.vpc_storage_cluster_dns_domain) => {
       zone = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
       disks = local.nvme_block_device_count > 0 && local.is_nitro_instance == false ? tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
@@ -316,21 +316,21 @@ locals {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
           device_name = element(local.instance_storage_device_names, jdx)
-        } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for vm_name in var.marked_vm_names_to_attach_disks : can(regex(vm_name, vm_dns))])
+        } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for marked_vm in var.marked_vm_names_to_attach_disks : can(regex(marked_vm, format("%s.%s", vm_name, var.vpc_storage_cluster_dns_domain)))])
         }) : local.is_nitro_instance ? tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
           device_name = element(slice(local.instance_storage_device_names, 1, length(local.instance_storage_device_names) - 1), jdx)
-        } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for vm_name in var.marked_vm_names_to_attach_disks : can(regex(vm_name, vm_dns))])
+        } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for marked_vm in var.marked_vm_names_to_attach_disks : can(regex(marked_vm, format("%s.%s", vm_name, var.vpc_storage_cluster_dns_domain)))])
         }) : tomap({
         for jdx, disk in tolist(local.flatten_disks_per_vm) :
         disk["name"] => {
           fs_name     = disk["fs_name"]
           pool        = disk["pool"]
           device_name = element(local.ebs_device_names, jdx)
-        } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for vm_name in var.marked_vm_names_to_attach_disks : can(regex(vm_name, vm_dns))])
+        } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for marked_vm in var.marked_vm_names_to_attach_disks : can(regex(marked_vm, format("%s.%s", vm_name, var.vpc_storage_cluster_dns_domain)))])
       })
     }
   }
