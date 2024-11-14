@@ -29,9 +29,9 @@ data "template_file" "metadata_startup_script" {
   template = <<-EOF
 #!/usr/bin/env bash
 
-# USER=ubuntu
+USER=ubuntu
 # basedns="${var.ldap_basedns}"
-# logfile="/tmp/user_data.log"
+logfile="/tmp/user_data.log"
 
 # basedomain=$(echo "$basedns" | awk -F'.' '{print $1}')
 # rootdomain=$(echo "$basedns" | awk -F'.' '{print $2}')
@@ -61,7 +61,7 @@ data "template_file" "metadata_startup_script" {
 # echo "BASE   dc=$basedomain,dc=$rootdomain" >> /etc/ldap/ldap.conf
 # echo "URI    ldap://localhost" >> /etc/ldap/ldap.conf
 # systemctl restart slapd
-# echo "Started OpenLDAP service" >> $logfile
+# echo "Started OpenLDAP service" >> $logfile 
 
 # # SSL certificate generation and OpenLDAP configuration
 # echo "Creating SSL certificate" >> $logfile
@@ -149,7 +149,7 @@ sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=
 sed -i "s/#MaxSessions 10/MaxSessions 32/" /etc/ssh/sshd_config
 sed -i "s/#MaxStartups 10:30:100/MaxStartups 30:30:100/" /etc/ssh/sshd_config
 systemctl restart sshd.service
-echo "Restarted SSHD service" >> $logfile
+# echo "Restarted SSHD service" >> $logfile
 
 # Set up passwordless SSH authentication
 echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
