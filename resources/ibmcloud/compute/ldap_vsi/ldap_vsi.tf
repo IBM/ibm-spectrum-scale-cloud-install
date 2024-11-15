@@ -22,15 +22,12 @@ variable "resource_group_id" {}
 variable "resource_tags" {}
 variable "vsi_meta_private_key" {}
 variable "vsi_meta_public_key" {}
-variable "ldap_basedns" {}
-variable "ldap_admin_password" {}
 
 data "template_file" "metadata_startup_script" {
   template = <<-EOF
 #!/usr/bin/env bash
 
 USER=ubuntu
-# basedns="${var.ldap_basedns}"
 logfile="/tmp/user_data.log"
 
 # Configure SSH settings

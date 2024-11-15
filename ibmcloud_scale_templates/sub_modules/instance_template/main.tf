@@ -270,8 +270,6 @@ module "ldap_instance" {
   vsi_meta_public_key  = var.enable_ldap == true && var.ldap_server == "null" ? module.generate_ldap_instance_keys.public_key_content : 0
   depends_on           = [module.generate_ldap_instance_keys, module.ldap_instance_security_group]
   resource_tags        = var.scale_cluster_resource_tags
-  ldap_admin_password  = var.ldap_admin_password
-  ldap_basedns         = var.ldap_basedns
 }
 
 data "ibm_is_ssh_key" "compute_ssh_key" {
@@ -1069,7 +1067,7 @@ module "storage_cluster_configuration" {
   ldap_basedns                        = var.ldap_basedns
   ldap_server                         = local.ldap_server
   ldap_admin_password                 = var.ldap_admin_password
-  ldap_server_cert                    = "" #var.ldap_server_cert
+  ldap_server_cert                    = var.ldap_server_cert
   depends_on                          = [module.ldap_configuration]
 }
 
