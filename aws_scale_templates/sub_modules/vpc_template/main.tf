@@ -182,7 +182,7 @@ module "compute_private_subnet" {
 # One protocol private subnet per provided AZ.
 module "protocol_private_subnet" {
   source       = "../../../resources/aws/network/subnet"
-  turn_on      = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && (var.vpc_protocol_private_subnets_cidr_blocks != null)) ? true : false
+  turn_on      = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.vpc_protocol_private_subnets_cidr_blocks != null ? true : false
   vpc_id       = module.vpc.vpc_id
   subnets_cidr = var.vpc_protocol_private_subnets_cidr_blocks
   avail_zones  = var.vpc_availability_zones
@@ -304,7 +304,7 @@ module "compute_private_route_table_association" {
 # Associate each protocol private subnet to one private route table.
 module "protocol_private_route_table_association" {
   source             = "../../../resources/aws/network/route_table_association"
-  turn_on            = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && (var.vpc_protocol_private_subnets_cidr_blocks != null)) ? true : false
+  turn_on            = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.vpc_protocol_private_subnets_cidr_blocks != null ? true : false
   total_associations = length(var.vpc_availability_zones)
   subnet_id          = module.protocol_private_subnet.subnet_id
   route_table_id     = module.protocol_private_route_table.table_id
