@@ -47,6 +47,7 @@ variable "filesets" {}
 variable "afm_cos_bucket_details" {}
 variable "afm_config_details" {}
 variable "afm_cluster_instance_names" {}
+variable "filesystem_mountpoint" {}
 
 resource "local_sensitive_file" "itself" {
   count    = (tobool(var.clone_complete) == true && var.write_inventory == 1) ? 1 : 0
@@ -93,7 +94,8 @@ resource "local_sensitive_file" "itself" {
     "filesets": ${var.filesets},
     "afm_cos_bucket_details": ${var.afm_cos_bucket_details},
     "afm_config_details": ${var.afm_config_details},
-    "afm_cluster_instance_names": ${var.afm_cluster_instance_names}
+    "afm_cluster_instance_names": ${var.afm_cluster_instance_names},
+    "filesystem_mountpoint": ${var.filesystem_mountpoint}
 
 }
 EOT

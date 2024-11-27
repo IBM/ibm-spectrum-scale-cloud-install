@@ -824,6 +824,7 @@ module "write_compute_cluster_inventory" {
   afm_cos_bucket_details                           = jsonencode([])
   afm_config_details                               = jsonencode([])
   afm_cluster_instance_names                       = jsonencode([])
+  filesystem_mountpoint                            = var.scale_encryption_type == "key_protect" ? jsonencode(element(split("/", var.storage_cluster_filesystem_mountpoint), length(split("/", var.storage_cluster_filesystem_mountpoint)) - 1)) : jsonencode("")
 }
 
 module "write_storage_cluster_inventory" {
@@ -873,6 +874,7 @@ module "write_storage_cluster_inventory" {
   afm_cos_bucket_details                           = local.enable_afm == true ? jsonencode(local.afm_cos_bucket_details) : jsonencode([])
   afm_config_details                               = local.enable_afm == true ? jsonencode(local.afm_config_details) : jsonencode([])
   afm_cluster_instance_names                       = jsonencode(local.afm_instance_names)
+  filesystem_mountpoint                            = var.scale_encryption_type == "key_protect" ? jsonencode(element(split("/", var.storage_cluster_filesystem_mountpoint), length(split("/", var.storage_cluster_filesystem_mountpoint)) - 1)) : jsonencode("")
 }
 
 module "write_cluster_inventory" {
@@ -922,6 +924,7 @@ module "write_cluster_inventory" {
   afm_cos_bucket_details                           = jsonencode([])
   afm_config_details                               = jsonencode([])
   afm_cluster_instance_names                       = jsonencode([])
+  filesystem_mountpoint                            = jsonencode("")
 }
 
 module "write_client_cluster_inventory" {
@@ -971,6 +974,7 @@ module "write_client_cluster_inventory" {
   afm_cos_bucket_details                           = jsonencode([])
   afm_config_details                               = jsonencode([])
   afm_cluster_instance_names                       = jsonencode([])
+  filesystem_mountpoint                            = jsonencode("")
 }
 
 module "compute_cluster_configuration" {
@@ -1006,6 +1010,7 @@ module "compute_cluster_configuration" {
   ldap_basedns                    = var.ldap_basedns
   ldap_server                     = local.ldap_server
   ldap_admin_password             = var.ldap_admin_password
+  enable_key_protect              = var.scale_encryption_type == "key_protect" ? "True" : "False"
   depends_on                      = [module.ldap_configuration]
 }
 
@@ -1068,6 +1073,7 @@ module "storage_cluster_configuration" {
   ldap_server                         = local.ldap_server
   ldap_admin_password                 = var.ldap_admin_password
   ldap_server_cert                    = var.ldap_server_cert
+  enable_key_protect                  = var.scale_encryption_type == "key_protect" ? "True" : "False"
   depends_on                          = [module.ldap_configuration]
 }
 
@@ -1179,8 +1185,6 @@ module "encryption_configuration" {
   scale_encryption_admin_default_password = var.scale_encryption_admin_default_password
   scale_encryption_admin_password         = var.scale_encryption_admin_password
   scale_encryption_admin_username         = var.scale_encryption_admin_username
-  kp_resource_prefix                      = var.resource_prefix
-  vpc_region                              = var.vpc_region
   scale_encryption_type                   = var.scale_encryption_type
   scale_encryption_servers                = var.scale_encryption_type == "gklm" ? jsonencode(one(module.gklm_instance[*].gklm_ip_addresses)) : jsonencode([])
   scale_encryption_servers_dns            = var.scale_encryption_type == "gklm" ? jsonencode(one(module.gklm_instance[*].gklm_dns_names)) : jsonencode([])
@@ -1192,7 +1196,6 @@ module "encryption_configuration" {
   storage_cluster_create_complete         = module.storage_cluster_configuration.storage_cluster_create_complete
   combined_cluster_create_complete        = module.combined_cluster_configuration.combined_cluster_create_complete
   remote_mount_create_complete            = module.remote_mount_configuration.remote_mount_create_complete
-  filesystem_mountpoint                   = element(split("/", var.storage_cluster_filesystem_mountpoint), length(split("/", var.storage_cluster_filesystem_mountpoint)) - 1)
   depends_on                              = [module.gklm_instance, module.compute_cluster_configuration, module.storage_cluster_configuration, module.combined_cluster_configuration, module.remote_mount_configuration]
 }
 
