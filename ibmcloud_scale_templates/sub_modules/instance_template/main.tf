@@ -1020,7 +1020,6 @@ module "storage_cluster_configuration" {
   clone_complete                      = module.prepare_ansible_configuration.clone_complete
   bastion_user                        = jsonencode(var.bastion_user)
   write_inventory_complete            = module.write_storage_cluster_inventory.write_inventory_complete
-  vpc_region                          = var.vpc_region
   inventory_format                    = var.inventory_format
   create_scale_cluster                = var.create_scale_cluster
   clone_path                          = var.scale_ansible_repo_clone_path
