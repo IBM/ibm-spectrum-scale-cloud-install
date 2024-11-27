@@ -233,6 +233,9 @@ def prepare_ansible_playbook(hosts_config, cluster_config, cluster_key_file):
      - {{ role: afm_cos_prepare, when: enable_afm }}
      - {{ role: afm_cos_install, when: "enable_afm and scale_packages_installed is false" }}
      - {{ role: afm_cos_configure, when: enable_afm }}
+     - {{ role: kp_encryption_prepare, when: "enable_key_protect and scale_cluster_type == 'storage'" }}
+     - {{ role: kp_encryption_configure, when: enable_key_protect }}
+     - {{ role: kp_encryption_apply, when: "enable_key_protect and scale_cluster_type == 'storage'" }}
 """.format(hosts_config=hosts_config, cluster_config=cluster_config,
            cluster_key_file=cluster_key_file)
     return content
