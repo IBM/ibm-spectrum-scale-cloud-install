@@ -61,10 +61,14 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | Name | Description | Type |
 |------|-------------|------|
 | <a name="input_afm_cos_config"></a> [afm_cos_config](#input_afm_cos_config) | Please provide details for the Cloud Object Storage (COS) instance, including information about the COS bucket, service credentials (HMAC key), AFM fileset, mode (such as Read-only (RO), Single writer (SW), Local updates (LU), and Independent writer (IW)), storage class (standard, vault, cold, or smart), and bucket type (single_site_location, region_location, cross_region_location). Note : The 'afm_cos_config' can contain up to 5 entries. For further details on COS bucket locations, refer to the relevant documentation https://cloud.ibm.com/docs/cloud-object-storage/basics?topic=cloud-object-storage-endpoints. | <pre>list(object({<br>    cos_instance         = string,<br>    bucket_name          = string,<br>    bucket_region        = string,<br>    cos_service_cred_key = string,<br>    afm_fileset          = string,<br>    mode                 = string,<br>    bucket_storage_class = string,<br>    bucket_type          = string<br>  }))</pre> |
+| <a name="input_comp_sg_id"></a> [comp_sg_id](#input_comp_sg_id) | Existing compute security group id | `string` |
+| <a name="input_gklm_sg_id"></a> [gklm_sg_id](#input_gklm_sg_id) | Existing gklm security group id | `string` |
+| <a name="input_ldap_sg_id"></a> [ldap_sg_id](#input_ldap_sg_id) | Existing ldap security group id | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group id. | `string` |
 | <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI | `string` |
 | <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
 | <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | The key pair to use to launch the storage cluster host. | `list(string)` |
+| <a name="input_strg_sg_id"></a> [strg_sg_id](#input_strg_sg_id) | Existing storage security group id | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
 | <a name="input_vpc_client_cluster_dns_service_id"></a> [vpc_client_cluster_dns_service_id](#input_vpc_client_cluster_dns_service_id) | IBM Cloud client cluster DNS service resource id. | `string` |
 | <a name="input_vpc_client_cluster_dns_zone_id"></a> [vpc_client_cluster_dns_zone_id](#input_vpc_client_cluster_dns_zone_id) | IBM Cloud client cluster DNS zone id. | `string` |

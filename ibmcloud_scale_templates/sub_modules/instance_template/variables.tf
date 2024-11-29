@@ -575,3 +575,23 @@ variable "afm_cos_config" {
   }))
   description = "Please provide details for the Cloud Object Storage (COS) instance, including information about the COS bucket, service credentials (HMAC key), AFM fileset, mode (such as Read-only (RO), Single writer (SW), Local updates (LU), and Independent writer (IW)), storage class (standard, vault, cold, or smart), and bucket type (single_site_location, region_location, cross_region_location). Note : The 'afm_cos_config' can contain up to 5 entries. For further details on COS bucket locations, refer to the relevant documentation https://cloud.ibm.com/docs/cloud-object-storage/basics?topic=cloud-object-storage-endpoints."
 }
+
+variable "strg_sg_id" {
+  type        = string
+  description = "Existing storage security group id"
+}
+
+variable "comp_sg_id" {
+  type        = string
+  description = "Existing compute security group id"
+}
+
+variable "gklm_sg_id" {
+  type        = string
+  description = "Existing gklm security group id"
+}
+
+variable "ldap_sg_id" {
+  type        = string
+  description = "Existing ldap security group id"
+}
