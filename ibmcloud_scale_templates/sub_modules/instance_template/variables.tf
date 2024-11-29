@@ -578,20 +578,30 @@ variable "afm_cos_config" {
 
 variable "strg_sg_id" {
   type        = string
+  default     = null
   description = "Existing storage security group id"
 }
 
 variable "comp_sg_id" {
   type        = string
+  default     = null
   description = "Existing compute security group id"
 }
 
 variable "gklm_sg_id" {
   type        = string
+  default     = null
   description = "Existing gklm security group id"
 }
 
 variable "ldap_sg_id" {
   type        = string
+  default     = null
   description = "Existing ldap security group id"
+}
+
+variable "key_protect_instance_id" {
+  type        = string
+  default     = null
+  description = "Existing Key Protect ID"
 }

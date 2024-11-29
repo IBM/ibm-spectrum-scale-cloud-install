@@ -640,6 +640,7 @@ module "gklm_instance" {
 module "key_protect_instance" {
   count                          = var.scale_encryption_enabled == true && var.scale_encryption_type == "key_protect" ? 1 : 0
   source                         = "../../../resources/ibmcloud/compute/key_protect"
+  key_protect_instance_id        = var.key_protect_instance_id
   resource_prefix                = var.resource_prefix
   vpc_region                     = var.vpc_region
   resource_group_id              = var.resource_group_id
