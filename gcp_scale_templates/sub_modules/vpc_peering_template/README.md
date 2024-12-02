@@ -1,103 +1,55 @@
-# Configure GCP VPC
+# Create GCP VPC(s) and Configure Peering
 
 The below steps will provision the GCP VPC required for the IBM Spectrum Scale cloud solution.
 
 1. Change the working directory to `gcp_scale_templates/sub_modules/vpc_template`.
 
     ```cli
-    cd ibm-spectrum-scale-cloud-install/gcp_scale_templates/sub_modules/vpc_template/
+    cd ibm-spectrum-scale-cloud-install/gcp_scale_templates/sub_modules/vpc_peering_template/
     ```
 
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
-    Minimal Example-1:
+    Minimal Example-1 (integrated mode):
 
     ```cli
     cat <<EOF > combined_1az.auto.tfvars.json
     {
-         "vpc_region": "us-central1",
-         "project_id": "spectrum-scale-XXXXXX",
-         "credential_json_path": "/home/gcp_data/spectrum-scale.json",
-         "vpc_cidr_block": "10.0.0.0/16",
-         "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
-         "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"],
-         "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.7.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-2:
-
-    ```cli
-    cat <<EOF > combined_3az.auto.tfvars.json
-    {
         "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json",
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
-        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"],
-        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.7.0/24", "10.0.8.0/24", "10.0.9.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-3:
-
-    ```cli
-    cat <<EOF > compute_1az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json",
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
-        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-4:
-
-    ```cli
-    cat <<EOF > compute_3az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
-        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-5:
-
-    ```cli
-    cat <<EOF > storage_1az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
-        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24"]
-    }
-    EOF
-    ```
-
-    Minimal Example-6:
-
-    ```cli
-    cat <<EOF > storage_3az.auto.tfvars.json
-    {
-        "vpc_region": "us-central1",
-        "project_id": "spectrum-scale-XXXXXX",
-        "credential_json_path": "/home/gcp_data/spectrum-scale.json" ,
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"],
-        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+        "project_id": "spectrum-scale-XXXXXX", // Replace with project id
+        "credential_json_path": "/home/gcp_data/spectrum-scale.json", // Replace with service json filepath
+        "custom_vpc": {},
+        "vpc_template_inputs":
+        {
+            "vpc-A": {
+                "cluster_type":                                    "Combined-compute-storage",
+                "project_id":                                      "spectrum-scale-XXXXXX", // Replace with project id
+                "credential_json_path":                            "/home/gcp_data/spectrum-scale.json", // Replace with service json filepath
+                "resource_prefix":                                 "scale-vpc-A",
+                "vpc_availability_zones":                          ["us-central1-c"],
+                "vpc_cidr_block":                                  "10.0.0.0/16",
+                "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.2.0/24"],
+                "vpc_description":                                 "This VPC is used by IBM Storage Scale (scale-vpc-A).",
+                "vpc_public_subnets_cidr_blocks":                  ["10.0.0.0/24"],
+                "vpc_region":                                      "us-central1",
+                "vpc_routing_mode":                                "REGIONAL",
+                "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.1.0/24"]
+            },
+            "vpc-B":  {
+                "cluster_type":                                    "Combined-compute-storage",
+                "project_id":                                      "spectrum-scale-XXXXXX", // Replace with project id
+                "credential_json_path":                            "/home/gcp_data/spectrum-scale.json", // Replace with service json filepath
+                "resource_prefix":                                 "scale-vpc-B",
+                "vpc_availability_zones":                          ["us-central1-c"],
+                "vpc_cidr_block":                                  "172.16.0.0/16",
+                "vpc_compute_cluster_private_subnets_cidr_blocks": ["172.16.2.0/24"],
+                "vpc_description":                                 "This VPC is used by IBM Storage Scale (scale-vpc-B).",
+                "vpc_public_subnets_cidr_blocks":                  ["172.16.0.0/24"],
+                "vpc_region":                                      "us-central1",
+                "vpc_routing_mode":                                "REGIONAL",
+                "vpc_storage_cluster_private_subnets_cidr_blocks": ["172.0.1.0/24"]
+            }
+        }
     }
     EOF
     ```
@@ -107,7 +59,10 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
 
-No requirements.
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
+| <a name="requirement_google"></a> [google](#requirement_google) | ~> 5.0 |
 
 #### Inputs
 
