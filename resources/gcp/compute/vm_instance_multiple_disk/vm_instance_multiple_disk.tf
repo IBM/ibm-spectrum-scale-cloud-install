@@ -46,7 +46,6 @@ data "template_file" "metadata_startup_script" {
 #!/usr/bin/env bash
 echo "${var.private_key_content}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
-echo "${var.public_key_content}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
 if [ ! -d "/var/mmfs/etc" ]; then
    mkdir -p "/var/mmfs/etc"
@@ -107,7 +106,10 @@ resource "google_compute_instance" "itself" {
   }
 
   metadata = {
-    ssh-keys               = format("%s:%s", var.ssh_user_name, file(var.ssh_public_key_path))
+    ssh-keys               = <<EOT
+      root:${var.public_key_content}
+      ${var.ssh_user_name}:${file(var.ssh_public_key_path)}
+      EOT
     block-project-ssh-keys = true
     vmdnssetting           = var.is_multizone ? "GlobalDefault" : "ZonalOnly"
   }
