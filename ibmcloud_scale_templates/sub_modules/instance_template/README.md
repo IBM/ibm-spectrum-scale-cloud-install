@@ -91,7 +91,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_client_vsi_osimage_name"></a> [client_vsi_osimage_name](#input_client_vsi_osimage_name) | Name of the image that you would like to use to create the client cluster nodes for the IBM Storage Scale cluster. The solution supports only stock images that use RHEL8.8 version. | `string` |
 | <a name="input_client_vsi_profile"></a> [client_vsi_profile](#input_client_vsi_profile) | Client nodes vis profile | `string` |
 | <a name="input_colocate_protocol_cluster_instances"></a> [colocate_protocol_cluster_instances](#input_colocate_protocol_cluster_instances) | Enable it to use storage instances as protocol instances | `bool` |
-| <a name="input_comp_sg_id"></a> [comp_sg_id](#input_comp_sg_id) | Existing compute security group id | `string` |
 | <a name="input_comp_sg_name"></a> [comp_sg_name](#input_comp_sg_name) | Existing compute security group name | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
@@ -110,7 +109,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_gklm_instance_dns_service_id"></a> [gklm_instance_dns_service_id](#input_gklm_instance_dns_service_id) | IBM Cloud GKLM Instance DNS service resource id. | `string` |
 | <a name="input_gklm_instance_dns_zone_id"></a> [gklm_instance_dns_zone_id](#input_gklm_instance_dns_zone_id) | IBM GKLM Instance DNS zone id. | `string` |
 | <a name="input_gklm_instance_key_pair"></a> [gklm_instance_key_pair](#input_gklm_instance_key_pair) | The key pair to use to launch the GKLM host. | `list(string)` |
-| <a name="input_gklm_sg_id"></a> [gklm_sg_id](#input_gklm_sg_id) | Existing gklm security group id | `string` |
 | <a name="input_gklm_sg_name"></a> [gklm_sg_name](#input_gklm_sg_name) | Existing gklm security group name | `string` |
 | <a name="input_gklm_vsi_osimage_id"></a> [gklm_vsi_osimage_id](#input_gklm_vsi_osimage_id) | Image id to use for provisioning the GKLM instances. | `string` |
 | <a name="input_gklm_vsi_osimage_name"></a> [gklm_vsi_osimage_name](#input_gklm_vsi_osimage_name) | Image name to use for provisioning the GKLM instances. | `string` |
@@ -122,7 +120,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_ldap_instance_key_pair"></a> [ldap_instance_key_pair](#input_ldap_instance_key_pair) | Name of the SSH key configured in your IBM Cloud account that is used to establish a connection to the LDAP Server. Make sure that the SSH key is present in the same resource group and region where the LDAP Servers are provisioned. If you do not have an SSH key in your IBM Cloud account, create one by using the [SSH keys](https://cloud.ibm.com/docs/vpc?topic=vpc-ssh-keys) instructions. | `list(string)` |
 | <a name="input_ldap_server"></a> [ldap_server](#input_ldap_server) | Provide the IP address for the existing LDAP server. If no address is given, a new LDAP server will be created. | `string` |
 | <a name="input_ldap_server_cert"></a> [ldap_server_cert](#input_ldap_server_cert) | Provide the existing LDAP server certificate. This value is required if the 'ldap_server' variable is not set to null. If the certificate is not provided or is invalid, the LDAP configuration may fail. | `string` |
-| <a name="input_ldap_sg_id"></a> [ldap_sg_id](#input_ldap_sg_id) | Existing ldap security group id | `string` |
 | <a name="input_ldap_sg_name"></a> [ldap_sg_name](#input_ldap_sg_name) | Existing ldap security group name | `string` |
 | <a name="input_ldap_user_name"></a> [ldap_user_name](#input_ldap_user_name) | Custom LDAP User for performing cluster operations. Note: Username should be between 4 to 32 characters, (any combination of lowercase and uppercase letters).[This value is ignored for an existing LDAP server] | `string` |
 | <a name="input_ldap_user_password"></a> [ldap_user_password](#input_ldap_user_password) | The LDAP user password should be 8 to 20 characters long, with a mix of at least three alphabetic characters, including one uppercase and one lowercase letter. It must also include two numerical digits and at least one special character from (~@_+:) are required.It is important to avoid including the username in the password for enhanced security.[This value is ignored for an existing LDAP server]. | `string` |
@@ -147,7 +144,6 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_storage_vsi_osimage_id"></a> [storage_vsi_osimage_id](#input_storage_vsi_osimage_id) | Image id to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_osimage_name"></a> [storage_vsi_osimage_name](#input_storage_vsi_osimage_name) | Image name to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_profile"></a> [storage_vsi_profile](#input_storage_vsi_profile) | Profile to be used for storage cluster virtual server instance. | `string` |
-| <a name="input_strg_sg_id"></a> [strg_sg_id](#input_strg_sg_id) | Existing storage security group id | `string` |
 | <a name="input_strg_sg_name"></a> [strg_sg_name](#input_strg_sg_name) | Existing storage security group name | `string` |
 | <a name="input_total_afm_cluster_instances"></a> [total_afm_cluster_instances](#input_total_afm_cluster_instances) | Total number of instance count that you need to provision for afm nodes and enable AFM. | `number` |
 | <a name="input_total_client_cluster_instances"></a> [total_client_cluster_instances](#input_total_client_cluster_instances) | Total number of client cluster instances that you need to provision. A minimum of 2 nodes and a maximum of 64 nodes are supported | `number` |
