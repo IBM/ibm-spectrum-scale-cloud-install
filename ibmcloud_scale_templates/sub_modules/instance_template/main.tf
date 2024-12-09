@@ -75,6 +75,42 @@ locals {
   deploy_sec_group_id = var.deploy_controller_sec_group_id == null ? module.deploy_security_group.sec_group_id : var.deploy_controller_sec_group_id
 }
 
+data "ibm_is_security_group" "strg_security_group" {
+  name = var.strg_sg_name
+}
+
+data "ibm_is_security_group" "comp_security_group" {
+  name = var.comp_sg_name
+}
+
+data "ibm_is_security_group" "gklm_security_group" {
+  name = var.gklm_sg_name
+}
+
+data "ibm_is_security_group" "ldap_security_group" {
+  name = var.ldap_sg_name
+}
+
+locals {
+  strg_sg_rules = try({ for remote in data.ibm_is_security_group.strg_security_group.rules[*] : remote.direction => remote.remote... }, {})
+  comp_sg_rules = try({ for remote in data.ibm_is_security_group.comp_security_group.rules[*] : remote.direction => remote.remote... }, {})
+  gklm_sg_rules = try({ for remote in data.ibm_is_security_group.gklm_security_group.rules[*] : remote.direction => remote.remote... }, {})
+  ldap_sg_rules = try({ for remote in data.ibm_is_security_group.ldap_security_group.rules[*] : remote.direction => remote.remote... }, {})
+}
+
+output "strg_sg_rules1" {
+  value = local.strg_sg_rules
+}
+output "strg_sg_rules2" {
+  value = local.comp_sg_rules
+}
+output "strg_sg_rules3" {
+  value = local.gklm_sg_rules
+}
+output "strg_sg_rules4" {
+  value = local.ldap_sg_rules
+}
+
 module "compute_cluster_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
   turn_on           = (var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.comp_sg_id == null ? true : false

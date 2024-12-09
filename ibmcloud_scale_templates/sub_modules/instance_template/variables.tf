@@ -605,3 +605,29 @@ variable "key_protect_instance_id" {
   default     = null
   description = "Existing Key Protect ID"
 }
+
+# Existing Security Group Variables
+
+variable "strg_sg_name" {
+  type        = string
+  default     = null
+  description = "Existing storage security group name"
+}
+
+variable "comp_sg_name" {
+  type        = string
+  default     = null
+  description = "Existing compute security group name"
+}
+
+variable "gklm_sg_name" {
+  type        = string
+  default     = null
+  description = "Existing gklm security group name"
+}
+
+variable "ldap_sg_name" {
+  type        = string
+  default     = null
+  description = "Existing ldap security group name"
+}

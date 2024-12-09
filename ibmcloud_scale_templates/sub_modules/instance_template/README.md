@@ -92,6 +92,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_client_vsi_profile"></a> [client_vsi_profile](#input_client_vsi_profile) | Client nodes vis profile | `string` |
 | <a name="input_colocate_protocol_cluster_instances"></a> [colocate_protocol_cluster_instances](#input_colocate_protocol_cluster_instances) | Enable it to use storage instances as protocol instances | `bool` |
 | <a name="input_comp_sg_id"></a> [comp_sg_id](#input_comp_sg_id) | Existing compute security group id | `string` |
+| <a name="input_comp_sg_name"></a> [comp_sg_name](#input_comp_sg_name) | Existing compute security group name | `string` |
 | <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI | `string` |
 | <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
@@ -110,6 +111,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_gklm_instance_dns_zone_id"></a> [gklm_instance_dns_zone_id](#input_gklm_instance_dns_zone_id) | IBM GKLM Instance DNS zone id. | `string` |
 | <a name="input_gklm_instance_key_pair"></a> [gklm_instance_key_pair](#input_gklm_instance_key_pair) | The key pair to use to launch the GKLM host. | `list(string)` |
 | <a name="input_gklm_sg_id"></a> [gklm_sg_id](#input_gklm_sg_id) | Existing gklm security group id | `string` |
+| <a name="input_gklm_sg_name"></a> [gklm_sg_name](#input_gklm_sg_name) | Existing gklm security group name | `string` |
 | <a name="input_gklm_vsi_osimage_id"></a> [gklm_vsi_osimage_id](#input_gklm_vsi_osimage_id) | Image id to use for provisioning the GKLM instances. | `string` |
 | <a name="input_gklm_vsi_osimage_name"></a> [gklm_vsi_osimage_name](#input_gklm_vsi_osimage_name) | Image name to use for provisioning the GKLM instances. | `string` |
 | <a name="input_gklm_vsi_profile"></a> [gklm_vsi_profile](#input_gklm_vsi_profile) | Profile to be used for GKLM virtual server instance. | `string` |
@@ -121,6 +123,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_ldap_server"></a> [ldap_server](#input_ldap_server) | Provide the IP address for the existing LDAP server. If no address is given, a new LDAP server will be created. | `string` |
 | <a name="input_ldap_server_cert"></a> [ldap_server_cert](#input_ldap_server_cert) | Provide the existing LDAP server certificate. This value is required if the 'ldap_server' variable is not set to null. If the certificate is not provided or is invalid, the LDAP configuration may fail. | `string` |
 | <a name="input_ldap_sg_id"></a> [ldap_sg_id](#input_ldap_sg_id) | Existing ldap security group id | `string` |
+| <a name="input_ldap_sg_name"></a> [ldap_sg_name](#input_ldap_sg_name) | Existing ldap security group name | `string` |
 | <a name="input_ldap_user_name"></a> [ldap_user_name](#input_ldap_user_name) | Custom LDAP User for performing cluster operations. Note: Username should be between 4 to 32 characters, (any combination of lowercase and uppercase letters).[This value is ignored for an existing LDAP server] | `string` |
 | <a name="input_ldap_user_password"></a> [ldap_user_password](#input_ldap_user_password) | The LDAP user password should be 8 to 20 characters long, with a mix of at least three alphabetic characters, including one uppercase and one lowercase letter. It must also include two numerical digits and at least one special character from (~@_+:) are required.It is important to avoid including the username in the password for enhanced security.[This value is ignored for an existing LDAP server]. | `string` |
 | <a name="input_ldap_vsi_osimage_name"></a> [ldap_vsi_osimage_name](#input_ldap_vsi_osimage_name) | Image name to be used for provisioning the LDAP instances. Note: Debian based OS are only supported for the LDAP feature. | `string` |
@@ -145,6 +148,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_storage_vsi_osimage_name"></a> [storage_vsi_osimage_name](#input_storage_vsi_osimage_name) | Image name to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_vsi_profile"></a> [storage_vsi_profile](#input_storage_vsi_profile) | Profile to be used for storage cluster virtual server instance. | `string` |
 | <a name="input_strg_sg_id"></a> [strg_sg_id](#input_strg_sg_id) | Existing storage security group id | `string` |
+| <a name="input_strg_sg_name"></a> [strg_sg_name](#input_strg_sg_name) | Existing storage security group name | `string` |
 | <a name="input_total_afm_cluster_instances"></a> [total_afm_cluster_instances](#input_total_afm_cluster_instances) | Total number of instance count that you need to provision for afm nodes and enable AFM. | `number` |
 | <a name="input_total_client_cluster_instances"></a> [total_client_cluster_instances](#input_total_client_cluster_instances) | Total number of client cluster instances that you need to provision. A minimum of 2 nodes and a maximum of 64 nodes are supported | `number` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of instances to be launched for compute cluster. | `number` |
@@ -176,4 +180,8 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
+| <a name="output_strg_sg_rules1"></a> [strg_sg_rules1](#output_strg_sg_rules1) | n/a |
+| <a name="output_strg_sg_rules2"></a> [strg_sg_rules2](#output_strg_sg_rules2) | n/a |
+| <a name="output_strg_sg_rules3"></a> [strg_sg_rules3](#output_strg_sg_rules3) | n/a |
+| <a name="output_strg_sg_rules4"></a> [strg_sg_rules4](#output_strg_sg_rules4) | n/a |
 <!-- END_TF_DOCS -->
