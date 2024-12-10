@@ -31,10 +31,10 @@ locals {
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
   afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
   ces_server_type              = strcontains(var.protocol_vsi_profile, "metal")
-  existing_strg_sg_id          = var.strg_sg_name != null ? [data.ibm_is_security_group.strg_security_group.id] : [module.storage_cluster_security_group.sec_group_id]
-  existing_comp_sg_id          = var.comp_sg_name != null ? [data.ibm_is_security_group.comp_security_group.id] : [module.compute_cluster_security_group.sec_group_id]
-  existing_gklm_sg_id          = var.gklm_sg_name != null ? [data.ibm_is_security_group.gklm_security_group.id] : [module.gklm_instance_security_group.sec_group_id]
-  existing_ldap_sg_id          = var.ldap_sg_name != null ? [data.ibm_is_security_group.ldap_security_group.id] : [module.ldap_instance_security_group.sec_group_id]
+  existing_strg_sg_id          = var.strg_sg_name != null ? [data.ibm_is_security_group.strg_security_group[0].id] : [module.storage_cluster_security_group.sec_group_id]
+  existing_comp_sg_id          = var.comp_sg_name != null ? [data.ibm_is_security_group.comp_security_group[0].id] : [module.compute_cluster_security_group.sec_group_id]
+  existing_gklm_sg_id          = var.gklm_sg_name != null ? [data.ibm_is_security_group.gklm_security_group[0].id] : [module.gklm_instance_security_group.sec_group_id]
+  existing_ldap_sg_id          = var.ldap_sg_name != null ? [data.ibm_is_security_group.ldap_security_group[0].id] : [module.ldap_instance_security_group.sec_group_id]
 
 }
 
