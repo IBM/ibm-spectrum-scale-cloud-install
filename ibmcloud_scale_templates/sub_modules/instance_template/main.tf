@@ -77,18 +77,22 @@ locals {
 }
 
 data "ibm_is_security_group" "strg_security_group" {
+  count = var.strg_sg_name != null ? 1 : 0
   name = var.strg_sg_name
 }
 
 data "ibm_is_security_group" "comp_security_group" {
+  count = var.comp_sg_name != null ? 1 : 0
   name = var.comp_sg_name
 }
 
 data "ibm_is_security_group" "gklm_security_group" {
+  count = var.gklm_sg_name != null ? 1 : 0
   name = var.gklm_sg_name
 }
 
 data "ibm_is_security_group" "ldap_security_group" {
+  count = var.ldap_sg_name != null ? 1 : 0
   name = var.ldap_sg_name
 }
 
