@@ -176,8 +176,4 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
-| <a name="output_strg_sg_rules1"></a> [strg_sg_rules1](#output_strg_sg_rules1) | n/a |
-| <a name="output_strg_sg_rules2"></a> [strg_sg_rules2](#output_strg_sg_rules2) | n/a |
-| <a name="output_strg_sg_rules3"></a> [strg_sg_rules3](#output_strg_sg_rules3) | n/a |
-| <a name="output_strg_sg_rules4"></a> [strg_sg_rules4](#output_strg_sg_rules4) | n/a |
 <!-- END_TF_DOCS -->
