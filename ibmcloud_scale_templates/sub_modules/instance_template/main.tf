@@ -31,10 +31,10 @@ locals {
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
   afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
   ces_server_type              = strcontains(var.protocol_vsi_profile, "metal")
-  existing_strg_sg_id          = var.strg_sg_name != null ? [data.ibm_is_security_group.strg_security_group[*].id] : [module.storage_cluster_security_group.sec_group_id]
-  existing_comp_sg_id          = var.comp_sg_name != null ? [data.ibm_is_security_group.comp_security_group[*].id] : [module.compute_cluster_security_group.sec_group_id]
-  existing_gklm_sg_id          = var.gklm_sg_name != null ? [data.ibm_is_security_group.gklm_security_group[*].id] : [module.gklm_instance_security_group.sec_group_id]
-  existing_ldap_sg_id          = var.ldap_sg_name != null ? [data.ibm_is_security_group.ldap_security_group[*].id] : [module.ldap_instance_security_group.sec_group_id]
+  existing_strg_sg_id          = var.strg_sg_name != null ? flatten([data.ibm_is_security_group.strg_security_group[*].id]) : [module.storage_cluster_security_group.sec_group_id]
+  existing_comp_sg_id          = var.comp_sg_name != null ? flatten([data.ibm_is_security_group.comp_security_group[*].id]) : [module.compute_cluster_security_group.sec_group_id]
+  existing_gklm_sg_id          = var.gklm_sg_name != null ? flatten([data.ibm_is_security_group.gklm_security_group[*].id]) : [module.gklm_instance_security_group.sec_group_id]
+  existing_ldap_sg_id          = var.ldap_sg_name != null ? flatten([data.ibm_is_security_group.ldap_security_group[*].id]) : [module.ldap_instance_security_group.sec_group_id]
 
 }
 
@@ -105,47 +105,47 @@ locals {
 
   # Storage Security group validation
   validate_strg_sg_in_strg_sg     = (var.strg_sg_name != null && contains(local.strg_sg_rules, data.ibm_is_security_group.strg_security_group[*].id))
-  strg_sg_in_strg_sg_msg          = "Storage security group is not present in Storage security group"
-  validate_strg_sg_in_strg_sg_chk = regex("^${local.strg_sg_in_strg_sg_msg}$", (local.validate_strg_sg_in_strg_sg ? local.strg_sg_in_strg_sg_msg : ""))
+  strg_sg_in_strg_sg_msg          = var.strg_sg_name != null ? "Storage security group is not present in Storage security group" : ""
+  validate_strg_sg_in_strg_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_strg_sg_msg}$", (local.validate_strg_sg_in_strg_sg ? local.strg_sg_in_strg_sg_msg : "")) : true
 
   validate_comp_sg_in_strg_sg     = (var.comp_sg_name != null && contains(local.strg_sg_rules, data.ibm_is_security_group.comp_security_group[*].id))
-  comp_sg_in_strg_sg_msg          = "Compute security group is not present in Storage security group"
-  validate_comp_sg_in_strg_sg_chk = regex("^${local.comp_sg_in_strg_sg_msg}$", (local.validate_comp_sg_in_strg_sg ? local.comp_sg_in_strg_sg_msg : ""))
+  comp_sg_in_strg_sg_msg          = var.comp_sg_name != null ? "Compute security group is not present in Storage security group" : ""
+  validate_comp_sg_in_strg_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_strg_sg_msg}$", (local.validate_comp_sg_in_strg_sg ? local.comp_sg_in_strg_sg_msg : "")) : true
 
   # Compute Security group validation
-  validate_strg_sg_in_comp_sg     = (var.comp_sg_name != null && contains(local.comp_sg_rules, data.ibm_is_security_group.strg_security_group[*].id))
-  strg_sg_in_comp_sg_msg          = "Storage security group is not present in Compute security group"
-  validate_strg_sg_in_comp_sg_chk = regex("^${local.strg_sg_in_comp_sg_msg}$", (local.validate_strg_sg_in_comp_sg ? local.strg_sg_in_comp_sg_msg : ""))
+  validate_strg_sg_in_comp_sg     = (var.strg_sg_name != null && contains(local.comp_sg_rules, data.ibm_is_security_group.strg_security_group[*].id))
+  strg_sg_in_comp_sg_msg          = var.strg_sg_name != null ? "Storage security group is not present in Compute security group" : ""
+  validate_strg_sg_in_comp_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_comp_sg_msg}$", (local.validate_strg_sg_in_comp_sg ? local.strg_sg_in_comp_sg_msg : "")) : true
 
   validate_comp_sg_in_comp_sg     = (var.comp_sg_name != null && contains(local.comp_sg_rules, data.ibm_is_security_group.comp_security_group[*].id))
-  comp_sg_in_comp_sg_msg          = "Compute security group is not present in Compute security group"
-  validate_comp_sg_in_comp_sg_chk = regex("^${local.comp_sg_in_comp_sg_msg}$", (local.validate_comp_sg_in_comp_sg ? local.comp_sg_in_comp_sg_msg : ""))
+  comp_sg_in_comp_sg_msg          = var.comp_sg_name != null ? "Compute security group is not present in Compute security group" : ""
+  validate_comp_sg_in_comp_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_comp_sg_msg}$", (local.validate_comp_sg_in_comp_sg ? local.comp_sg_in_comp_sg_msg : "")) : true
 
   # GKLM Security group validation
   validate_strg_sg_in_gklm_sg     = (var.gklm_sg_name != null && contains(local.gklm_sg_rules, data.ibm_is_security_group.strg_security_group[*].id))
-  strg_sg_in_gklm_sg_msg          = "Storage security group is not present in GKLM security group"
-  validate_strg_sg_in_gklm_sg_chk = regex("^${local.strg_sg_in_gklm_sg_msg}$", (local.validate_strg_sg_in_gklm_sg ? local.strg_sg_in_gklm_sg_msg : ""))
+  strg_sg_in_gklm_sg_msg          = var.gklm_sg_name != null ? "Storage security group is not present in GKLM security group" : ""
+  validate_strg_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.strg_sg_in_gklm_sg_msg}$", (local.validate_strg_sg_in_gklm_sg ? local.strg_sg_in_gklm_sg_msg : "")) : true
 
   validate_comp_sg_in_gklm_sg     = (var.gklm_sg_name != null && contains(local.gklm_sg_rules, data.ibm_is_security_group.comp_security_group[*].id))
-  comp_sg_in_gklm_sg_msg          = "Compute security group is not present in GKLM security group"
-  validate_comp_sg_in_gklm_sg_chk = regex("^${local.comp_sg_in_gklm_sg_msg}$", (local.validate_comp_sg_in_gklm_sg ? local.comp_sg_in_gklm_sg_msg : ""))
+  comp_sg_in_gklm_sg_msg          = var.gklm_sg_name != null ? "Compute security group is not present in GKLM security group" : ""
+  validate_comp_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.comp_sg_in_gklm_sg_msg}$", (local.validate_comp_sg_in_gklm_sg ? local.comp_sg_in_gklm_sg_msg : "")) : true
 
   validate_gklm_sg_in_gklm_sg     = (var.gklm_sg_name != null && contains(local.gklm_sg_rules, data.ibm_is_security_group.gklm_security_group[*].id))
-  gklm_sg_in_gklm_sg_msg          = "GKLM security group is not present in GKLM security group"
-  validate_gklm_sg_in_gklm_sg_chk = regex("^${local.gklm_sg_in_gklm_sg_msg}$", (local.validate_gklm_sg_in_gklm_sg ? local.gklm_sg_in_gklm_sg_msg : ""))
+  gklm_sg_in_gklm_sg_msg          = var.gklm_sg_name != null ? "GKLM security group is not present in GKLM security group" : ""
+  validate_gklm_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.gklm_sg_in_gklm_sg_msg}$", (local.validate_gklm_sg_in_gklm_sg ? local.gklm_sg_in_gklm_sg_msg : "")) : true
 
   # LDAP Security group validation
   validate_strg_sg_in_ldap_sg     = (var.ldap_sg_name != null && contains(local.ldap_sg_rules, data.ibm_is_security_group.strg_security_group[*].id))
-  strg_sg_in_ldap_sg_msg          = "Storage security group is not present in LDAP security group"
-  validate_strg_sg_in_ldap_sg_chk = regex("^${local.strg_sg_in_ldap_sg_msg}$", (local.validate_strg_sg_in_ldap_sg ? local.strg_sg_in_ldap_sg_msg : ""))
+  strg_sg_in_ldap_sg_msg          = var.ldap_sg_name != null ? "Storage security group is not present in LDAP security group" : ""
+  validate_strg_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.strg_sg_in_ldap_sg_msg}$", (local.validate_strg_sg_in_ldap_sg ? local.strg_sg_in_ldap_sg_msg : "")) : true
 
   validate_comp_sg_in_ldap_sg     = (var.ldap_sg_name != null && contains(local.ldap_sg_rules, data.ibm_is_security_group.comp_security_group[*].id))
-  comp_sg_in_ldap_sg_msg          = "Compute security group is not present in LDAP security group"
-  validate_comp_sg_in_ldap_sg_chk = regex("^${local.comp_sg_in_ldap_sg_msg}$", (local.validate_comp_sg_in_ldap_sg ? local.comp_sg_in_ldap_sg_msg : ""))
+  comp_sg_in_ldap_sg_msg          = var.ldap_sg_name != null ? "Compute security group is not present in LDAP security group" : ""
+  validate_comp_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.comp_sg_in_ldap_sg_msg}$", (local.validate_comp_sg_in_ldap_sg ? local.comp_sg_in_ldap_sg_msg : "")) : true
 
   validate_ldap_sg_in_ldap_sg     = (var.ldap_sg_name != null && contains(local.ldap_sg_rules, data.ibm_is_security_group.ldap_security_group[*].id))
-  ldap_sg_in_ldap_sg_msg          = "LDAP security group is not present in LDAP security group"
-  validate_ldap_sg_in_ldap_sg_chk = regex("^${local.ldap_sg_in_ldap_sg_msg}$", (local.validate_ldap_sg_in_ldap_sg ? local.ldap_sg_in_ldap_sg_msg : ""))
+  ldap_sg_in_ldap_sg_msg          = var.ldap_sg_name != null ? "LDAP security group is not present in LDAP security group" : ""
+  validate_ldap_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.ldap_sg_in_ldap_sg_msg}$", (local.validate_ldap_sg_in_ldap_sg ? local.ldap_sg_in_ldap_sg_msg : "")) : true
 }
 
 module "compute_cluster_security_group" {
