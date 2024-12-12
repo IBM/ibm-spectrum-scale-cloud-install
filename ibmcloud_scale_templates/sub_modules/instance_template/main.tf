@@ -96,36 +96,11 @@ data "ibm_is_security_group" "ldap_security_group" {
   name  = var.ldap_sg_name
 }
 
-output "sg_comp" {
-  value = local.comp_sg_rules
-}
-
-output "sg" {
-  value = local.validate_strg_sg_in_comp_sg
-}
-
-output "sg_check" {
-  value = local.validate_strg_sg_in_comp_sg_chk
-}
-
 locals {
-
   strg_sg_rules = flatten([for remote in data.ibm_is_security_group.strg_security_group[*].rules[*] : remote[*].remote])
   comp_sg_rules = flatten([for remote in data.ibm_is_security_group.comp_security_group[*].rules[*] : remote[*].remote])
   gklm_sg_rules = flatten([for remote in data.ibm_is_security_group.gklm_security_group[*].rules[*] : remote[*].remote])
   ldap_sg_rules = flatten([for remote in data.ibm_is_security_group.ldap_security_group[*].rules[*] : remote[*].remote])
-
-  # # Compute Security group validation
-  # validate_strg_sg_in_comp_sg = var.strg_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  # strg_sg_in_comp_sg_msg      = "Storage security group is not present in Compute security group"
-  # # tflint-ignore: terraform_unused_declarations
-  # validate_strg_sg_in_comp_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_comp_sg_msg}$", (local.validate_strg_sg_in_comp_sg ? local.strg_sg_in_comp_sg_msg : "")) : true
-
-  # validate_comp_sg_in_comp_sg = (var.comp_sg_name != null && contains(local.comp_sg_rules, data.ibm_is_security_group.comp_security_group[*].id))
-  # comp_sg_in_comp_sg_msg      = "Compute security group is not present in Compute security group"
-  # # tflint-ignore: terraform_unused_declarations
-  # validate_comp_sg_in_comp_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_comp_sg_msg}$", (local.validate_comp_sg_in_comp_sg ? local.comp_sg_in_comp_sg_msg : "")) : true
-
 
   # Storage Security group validation
   validate_strg_sg_in_strg_sg = var.strg_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
