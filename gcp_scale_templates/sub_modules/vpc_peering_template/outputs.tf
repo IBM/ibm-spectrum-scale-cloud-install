@@ -1,15 +1,15 @@
-output "vpc_details" {
+output "parent_vpc_pairs_state" {
   value = {
-    for key, resource in module.create_vpc_networks :
-    key => resource.vpc_ref
+    for key, resource in module.parent_vpc_peering :
+    resource.peer_details.name => resource.peer_details
   }
-  description = "Key-Value of vpc to its self-link."
+  description = "vpc peer names to its state."
 }
 
-output "vpc_pairs_state" {
+output "child_vpc_pairs_state" {
   value = {
-    for key, resource in module.vpc_peering :
-    key => resource.peer_state
+    for key, resource in module.child_vpc_peering :
+    resource.peer_details.name => resource.peer_details
   }
-  description = "Key-Value of vpc peer names to its state."
+  description = "vpc peer names to its state."
 }

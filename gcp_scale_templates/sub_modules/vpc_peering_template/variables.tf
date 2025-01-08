@@ -16,25 +16,16 @@ variable "vpc_region" {
   description = "Region where the resources will be created."
 }
 
-variable "vpc_template_inputs" {
-  type = map(object({
-    cluster_type                                    = string
-    project_id                                      = string
-    credential_json_path                            = string
-    resource_prefix                                 = string
-    vpc_availability_zones                          = list(string),
-    vpc_cidr_block                                  = string,
-    vpc_compute_cluster_private_subnets_cidr_blocks = list(string)
-    vpc_description                                 = string
-    vpc_public_subnets_cidr_blocks                  = list(string)
-    vpc_region                                      = string
-    vpc_routing_mode                                = string,
-    vpc_storage_cluster_private_subnets_cidr_blocks = list(string)
-  }))
-  description = "Inputs required for VPC template (the vpc inputs defined here will be created)."
+# {"vpc_name": "vpc_self_link"}
+variable "storage_vpc_details" {
+  type        = map(string)
+  nullable    = false
+  description = "Map of VPC details in where the storage cluster resides."
 }
 
-variable "custom_vpc" {
-  type        = map(map(string))
-  description = "Custom vpc input(s) which will be paired with either the created vpc(s) or among them self"
+# {"vpc_name_1": "vpc_self_link_1", "vpc_name_2": "vpc_self_link_2", ...., "vpc_name_N": "vpc_self_link_N"}
+variable "compute_vpc_details" {
+  type        = map(string)
+  nullable    = false
+  description = "Map of VPC details(s) and their URI where the compute/client cluster(s) resides."
 }

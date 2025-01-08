@@ -10,6 +10,11 @@ resource "google_compute_network_peering" "itself" {
   export_custom_routes = true
 }
 
-output "peer_state" {
-  value = google_compute_network_peering.itself.state
+output "peer_details" {
+  value = tomap({
+    "name"         = format("%s-%s", basename(var.network_a), basename(var.network_b))
+    "network"      = var.network_a
+    "peer_network" = var.network_b
+    "state"        = google_compute_network_peering.itself.state
+  })
 }

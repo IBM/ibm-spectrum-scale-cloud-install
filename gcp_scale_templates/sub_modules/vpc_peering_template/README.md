@@ -1,6 +1,6 @@
 # Create GCP VPC(s) and Configure Peering
 
-The below steps will provision the GCP VPC required for the IBM Spectrum Scale cloud solution.
+The below steps will peer the GCP VPC(s) required for the IBM Spectrum Scale cloud solution.
 
 1. Change the working directory to `gcp_scale_templates/sub_modules/vpc_template`.
 
@@ -10,49 +10,24 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 
 2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
 
-    Minimal Example-1 (integrated mode):
+    Minimal Example-1:
 
     ```cli
-    cat <<EOF > combined_1az.auto.tfvars.json
+    cat <<EOF > inputs.auto.tfvars.json
     {
         "vpc_region": "us-central1",
         "project_id": "spectrum-scale-XXXXXX", // Replace with project id
         "credential_json_path": "/home/gcp_data/spectrum-scale.json", // Replace with service json filepath
-        "custom_vpc": {},
-        "vpc_template_inputs":
-        {
-            "vpc-A": {
-                "cluster_type":                                    "Combined-compute-storage",
-                "project_id":                                      "spectrum-scale-XXXXXX", // Replace with project id
-                "credential_json_path":                            "/home/gcp_data/spectrum-scale.json", // Replace with service json filepath
-                "resource_prefix":                                 "scale-vpc-A",
-                "vpc_availability_zones":                          ["us-central1-c"],
-                "vpc_cidr_block":                                  "10.0.0.0/16",
-                "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.2.0/24"],
-                "vpc_description":                                 "This VPC is used by IBM Storage Scale (scale-vpc-A).",
-                "vpc_public_subnets_cidr_blocks":                  ["10.0.0.0/24"],
-                "vpc_region":                                      "us-central1",
-                "vpc_routing_mode":                                "REGIONAL",
-                "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.1.0/24"]
-            },
-            "vpc-B":  {
-                "cluster_type":                                    "Combined-compute-storage",
-                "project_id":                                      "spectrum-scale-XXXXXX", // Replace with project id
-                "credential_json_path":                            "/home/gcp_data/spectrum-scale.json", // Replace with service json filepath
-                "resource_prefix":                                 "scale-vpc-B",
-                "vpc_availability_zones":                          ["us-central1-c"],
-                "vpc_cidr_block":                                  "172.16.0.0/16",
-                "vpc_compute_cluster_private_subnets_cidr_blocks": ["172.16.2.0/24"],
-                "vpc_description":                                 "This VPC is used by IBM Storage Scale (scale-vpc-B).",
-                "vpc_public_subnets_cidr_blocks":                  ["172.16.0.0/24"],
-                "vpc_region":                                      "us-central1",
-                "vpc_routing_mode":                                "REGIONAL",
-                "vpc_storage_cluster_private_subnets_cidr_blocks": ["172.0.1.0/24"]
-            }
+        "storage_vpc_details": {"storage-nw-parent": "projects/spectrum-scale-XXXXXX/global/networks/storage-nw-parent"},
+        "compute_vpc_details": {
+            "client-nw-child-1": "projects/spectrum-scale-XXXXXX/global/networks/client-nw-child-1",
+            "client-nw-child-2": "projects/spectrum-scale-XXXXXX/global/networks/client-nw-child-2"
         }
     }
     EOF
     ```
+
+    Note: The client cluster vpc(s) can be added/extended after initial peer relationships.
 
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
