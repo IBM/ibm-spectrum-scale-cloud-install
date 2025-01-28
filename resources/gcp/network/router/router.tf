@@ -2,17 +2,8 @@
   Creates new GCP cloud router.
 */
 
-variable "router_name" {
-  type        = string
-  default     = "spectrum-scale-router"
-  description = "GCP Cloud router name"
-}
-
-variable "vpc_name" {
-  type        = string
-  description = "Reference to the network to which this router belongs"
-}
-
+variable "router_name" {}
+variable "vpc_name" {}
 variable "turn_on" {}
 
 resource "google_compute_router" "itself" {
