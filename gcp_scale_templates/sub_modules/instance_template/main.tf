@@ -32,7 +32,7 @@ module "cluster_ingress_security_rule_using_jumphost_connection" {
   source               = "../../../resources/gcp/security/security_group_tag"
   turn_on              = var.using_jumphost_connection ? true : false
   firewall_name_prefix = format("%s-bastion-to-cluster", var.resource_prefix)
-  firewall_description = "Allow traffic betwen bastion instances and scale instances"
+  firewall_description = "Allow traffic between bastion instances and scale instances"
   vpc_ref              = var.vpc_ref
   source_tags          = [var.bastion_security_group_ref]
   target_tags          = [local.scale_cluster_network_tag]
@@ -45,7 +45,7 @@ module "cluster_ingress_security_rule_using_cloud_connection" {
   source               = "../../../resources/gcp/security/security_group_tag"
   turn_on              = var.using_cloud_connection ? true : false
   firewall_name_prefix = format("%s-cloudvm-to-cluster", var.resource_prefix)
-  firewall_description = "Allow traffic betwen cloudvm instances and scale instances"
+  firewall_description = "Allow traffic between cloudvm instances and scale instances"
   vpc_ref              = var.vpc_ref
   source_tags          = [var.client_security_group_ref]
   target_tags          = [local.scale_cluster_network_tag]
@@ -178,7 +178,7 @@ module "gateway_instances" {
 
 module "protocol_instances" {
   for_each                     = local.protocol_vm_subnet_map
-  source                       = "../../../resources/gcp/compute/vm_instance_0_disk"
+  source                       = "../../../resources/gcp/compute/vm_instance_ip_fwd"
   instance_name                = each.key
   zone                         = each.value["zone"]
   subnet_name                  = each.value["subnet"]
