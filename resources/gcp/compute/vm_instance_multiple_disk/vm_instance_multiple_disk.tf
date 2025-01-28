@@ -70,6 +70,7 @@ EOF
 #tfsec:ignore:google-compute-enable-shielded-vm-im
 #tfsec:ignore:google-compute-enable-shielded-vm-vtpm
 #tfsec:ignore:google-compute-vm-disk-encryption-customer-key
+#tfsec:ignore:avd-gcp-0067
 resource "google_compute_instance" "itself" {
   name         = var.instance_name
   machine_type = var.machine_type
@@ -123,6 +124,9 @@ resource "google_compute_instance" "itself" {
 
   lifecycle {
     ignore_changes = all
+  }
+  scheduling {
+    on_host_maintenance = "TERMINATE"
   }
 }
 
