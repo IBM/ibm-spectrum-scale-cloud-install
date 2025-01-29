@@ -1,29 +1,33 @@
 /*
-  Creates GCP VM instance without additional(Persistent/Ephemeral) disks (i.e. compute instances)
+  Creates GCP VM instance with a static route from
 */
 
-variable "vpc_region" {}
-variable "zone" {}
-variable "subnet_name" {}
-variable "is_multizone" {}
-variable "service_email" {}
-variable "scopes" {}
-variable "instance_name" {}
-variable "ssh_public_key_path" {}
-variable "machine_type" {}
 variable "boot_disk_size" {}
 variable "boot_disk_type" {}
 variable "boot_image" {}
-variable "ssh_user_name" {}
+variable "ces_ip_address" {}
+variable "instance_name" {}
+variable "is_multizone" {}
+variable "machine_type" {}
+variable "network_name" {}
+variable "network_tags" {}
 variable "private_key_content" {}
 variable "public_key_content" {}
-variable "vpc_forward_dns_zone" {}
+variable "root_device_kms_key_ref" {}
+variable "root_device_kms_key_ring_ref" {}
+variable "rule_priority" {}
+variable "scopes" {}
+variable "service_email" {}
+variable "ssh_public_key_path" {}
+variable "ssh_user_name" {}
+variable "subnet_name" {}
 variable "vpc_dns_domain" {}
+variable "vpc_forward_dns_zone" {}
+variable "vpc_region" {}
 variable "vpc_reverse_dns_zone" {}
 variable "vpc_reverse_dns_domain" {}
-variable "root_device_kms_key_ring_ref" {}
-variable "root_device_kms_key_ref" {}
-variable "network_tags" {}
+variable "zone" {}
+
 
 data "google_kms_key_ring" "itself" {
   count    = var.root_device_kms_key_ring_ref != null ? 1 : 0
@@ -115,6 +119,15 @@ resource "google_dns_record_set" "ptr_itself" {
   rrdatas      = [format("%s.%s.", google_compute_instance.itself.name, var.vpc_dns_domain)] # Trailing dot is required
 }
 
+resource "google_compute_route" "itself" {
+  name              = format("ces-%s", join("", split(".", var.ces_ip_address)))
+  dest_range        = format("%s/32", var.ces_ip_address)
+  network           = var.network_name
+  next_hop_instance = var.instance_name
+  priority          = var.rule_priority
+  depends_on        = [google_compute_instance.itself]
+}
+
 # Ex: id: projects/spectrum-scale-xyz/zones/us-central1-b/instances/test-compute-2,  regex o/p: test-compute-2
 output "instance_details" {
   value = {
@@ -123,4 +136,12 @@ output "instance_details" {
     dns        = format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.vpc_dns_domain)
     zone       = regex("^projects/[^/]+/zones/([^/]+)/instances/.*$", google_compute_instance.itself.id)[0]
   }
+}
+
+output "route_id" {
+  value = google_compute_route.itself.id
+}
+
+output "route_uri" {
+  value = google_compute_router.itself.self_link
 }
