@@ -200,6 +200,9 @@ module "protocol_instances" {
   vpc_reverse_dns_domain       = var.vpc_reverse_dns_domain
   service_email                = var.service_email
   scopes                       = var.scopes
+  rule_priority                = each.value["rule_priority"]
+  ces_ip_address               = each.value["ces_ip_address"]
+  network_name                 = basename(var.vpc_ref)
   network_tags                 = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
   depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection]
 }

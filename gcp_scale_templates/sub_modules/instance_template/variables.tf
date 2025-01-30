@@ -34,6 +34,12 @@ variable "bastion_user" {
   description = "Bastion login username."
 }
 
+variable "ces_ip_address" {
+  type        = list(string)
+  nullable    = true
+  description = "CES IP addresses (length must be equal to number of protocol nodes)."
+}
+
 variable "client_security_group_ref" {
   type        = string
   nullable    = true
@@ -320,57 +326,15 @@ variable "using_rest_api_remote_mount" {
   description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
 }
 
-
-
-
-
-
-
-
-
-
-
-
 variable "vpc_availability_zones" {
   type        = list(string)
   nullable    = false
   description = "A list of availability zones names or ids in the region."
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Note:
 # 1. A private DNS Zone name will be created "resource_prefix" to store A/forward records
-# 2. A seperae private DNS zone name will be created with "resource_prefix-reverse" to store PTR records
+# 2. A seperate private DNS zone name will be created with "resource_prefix-reverse" to store PTR records
 variable "vpc_compute_cluster_dns_domain" { # equivalent to DNS name
   type        = string
   nullable    = true
