@@ -5,7 +5,7 @@
 variable "boot_disk_size" {}
 variable "boot_disk_type" {}
 variable "boot_image" {}
-variable "ces_ip_address" {}
+variable "ces_ipaddress" {}
 variable "instance_name" {}
 variable "is_multizone" {}
 variable "machine_type" {}
@@ -47,6 +47,8 @@ data "template_file" "metadata_startup_script" {
 echo "${var.private_key_content}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+sysctl -p
 EOF
 }
 
@@ -119,13 +121,35 @@ resource "google_dns_record_set" "ptr_itself" {
   rrdatas      = [format("%s.%s.", google_compute_instance.itself.name, var.vpc_dns_domain)] # Trailing dot is required
 }
 
+# Add static route for the CES ip address
 resource "google_compute_route" "itself" {
-  name              = format("ces-%s", join("", split(".", var.ces_ip_address)))
-  dest_range        = format("%s/32", var.ces_ip_address)
-  network           = var.network_name
-  next_hop_instance = var.instance_name
-  priority          = var.rule_priority
-  depends_on        = [google_compute_instance.itself]
+  name                   = format("ces-%s", join("", split(".", var.ces_ipaddress)))
+  dest_range             = format("%s/32", var.ces_ipaddress)
+  network                = var.network_name
+  next_hop_instance      = var.instance_name
+  priority               = var.rule_priority
+  next_hop_instance_zone = var.zone
+  depends_on             = [google_compute_instance.itself]
+}
+
+# Add the CES ip address as 'A' record to DNS
+resource "google_dns_record_set" "ces_a_itself" {
+  name         = format("%s-ces.%s.", google_compute_instance.itself.name, var.vpc_dns_domain) # Trailing dot is required
+  type         = "A"
+  managed_zone = var.vpc_forward_dns_zone
+  ttl          = 300
+  rrdatas      = [var.ces_ipaddress]
+  depends_on   = [google_compute_instance.itself, google_compute_route.itself]
+}
+
+# Add the CES instance reverse lookup as 'PTR' record to DNS
+resource "google_dns_record_set" "ces_ptr_itself" {
+  name         = format("%s.%s.%s.%s.", split(".", var.ces_ipaddress)[3], split(".", var.ces_ipaddress)[2], split(".", var.ces_ipaddress)[1], var.vpc_reverse_dns_domain) # Trailing dot is required
+  type         = "PTR"
+  managed_zone = var.vpc_reverse_dns_zone
+  ttl          = 300
+  rrdatas      = [format("%s-ces.%s.", google_compute_instance.itself.name, var.vpc_dns_domain)] # Trailing dot is required
+  depends_on   = [google_compute_instance.itself, google_compute_route.itself]
 }
 
 # Ex: id: projects/spectrum-scale-xyz/zones/us-central1-b/instances/test-compute-2,  regex o/p: test-compute-2
