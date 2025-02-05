@@ -21,6 +21,8 @@ variable "service_email" {}
 variable "ssh_public_key_path" {}
 variable "ssh_user_name" {}
 variable "subnet_name" {}
+variable "vpc_ces_reverse_dns_zone" {}
+variable "vpc_ces_reverse_dns_domain" {}
 variable "vpc_dns_domain" {}
 variable "vpc_forward_dns_zone" {}
 variable "vpc_region" {}
@@ -144,9 +146,9 @@ resource "google_dns_record_set" "ces_a_itself" {
 
 # Add the CES instance reverse lookup as 'PTR' record to DNS
 resource "google_dns_record_set" "ces_ptr_itself" {
-  name         = format("%s.%s.%s.%s.", split(".", var.ces_ipaddress)[3], split(".", var.ces_ipaddress)[2], split(".", var.ces_ipaddress)[1], var.vpc_reverse_dns_domain) # Trailing dot is required
+  name         = format("%s.%s.%s.%s.", split(".", var.ces_ipaddress)[3], split(".", var.ces_ipaddress)[2], split(".", var.ces_ipaddress)[1], var.vpc_ces_reverse_dns_domain) # Trailing dot is required
   type         = "PTR"
-  managed_zone = var.vpc_reverse_dns_zone
+  managed_zone = var.vpc_ces_reverse_dns_zone
   ttl          = 300
   rrdatas      = [format("%s-ces.%s.", google_compute_instance.itself.name, var.vpc_dns_domain)] # Trailing dot is required
   depends_on   = [google_compute_instance.itself, google_compute_route.itself]
@@ -167,5 +169,5 @@ output "route_id" {
 }
 
 output "route_uri" {
-  value = google_compute_router.itself.self_link
+  value = google_compute_route.itself.self_link
 }

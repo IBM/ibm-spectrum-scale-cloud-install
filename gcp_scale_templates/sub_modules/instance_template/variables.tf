@@ -332,6 +332,18 @@ variable "vpc_availability_zones" {
   description = "A list of availability zones names or ids in the region."
 }
 
+variable "vpc_ces_reverse_dns_zone" {
+  type        = string
+  nullable    = true
+  description = "GCP Cloud DNS domain name to be used for storage/ces nodes."
+}
+
+variable "vpc_ces_reverse_dns_domain" {
+  type        = string
+  nullable    = true
+  description = "DNS reverse domain (Ex: 192.in-addr.arpa)."
+}
+
 # Note:
 # 1. A private DNS Zone name will be created "resource_prefix" to store A/forward records
 # 2. A seperate private DNS zone name will be created with "resource_prefix-reverse" to store PTR records
