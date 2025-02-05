@@ -180,6 +180,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_bastion_security_group_ref"></a> [bastion_security_group_ref](#input_bastion_security_group_ref) | Bastion security group reference (id/self-link). | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
+| <a name="input_ces_ip_address"></a> [ces_ip_address](#input_ces_ip_address) | CES IP addresses (length must be equal to number of protocol nodes). | `list(string)` |
 | <a name="input_client_security_group_ref"></a> [client_security_group_ref](#input_client_security_group_ref) | Client security group reference (id/self-link). | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_compute_cluster_boot_disk_size"></a> [compute_cluster_boot_disk_size](#input_compute_cluster_boot_disk_size) | Compute instances boot disk size in gigabytes. | `string` |
@@ -226,6 +227,8 @@ The following steps will provision GCP resources (compute and storage instances 
 | <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
 | <a name="input_using_rest_api_remote_mount"></a> [using_rest_api_remote_mount](#input_using_rest_api_remote_mount) | If false, skips GUI initialization on compute cluster for remote mount configuration. | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
+| <a name="input_vpc_ces_reverse_dns_domain"></a> [vpc_ces_reverse_dns_domain](#input_vpc_ces_reverse_dns_domain) | DNS reverse domain (Ex: 192.in-addr.arpa). | `string` |
+| <a name="input_vpc_ces_reverse_dns_zone"></a> [vpc_ces_reverse_dns_zone](#input_vpc_ces_reverse_dns_zone) | GCP Cloud DNS domain name to be used for storage/ces nodes. | `string` |
 | <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | GCP Cloud DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
 | <a name="input_vpc_forward_dns_zone"></a> [vpc_forward_dns_zone](#input_vpc_forward_dns_zone) | GCP Cloud DNS zone name to be used for scale cluster (Ex: example-zone). | `string` |

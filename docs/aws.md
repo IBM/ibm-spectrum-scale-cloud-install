@@ -65,9 +65,9 @@ The terraform templates provided in this repository offer following features;
       # unzip awscliv2.zip
       # sudo ./aws/install
       ```
- 
+
     - Configuration AWS CLI
- 
+
       ```bash
       # aws configure
       AWS Access Key ID: <Access key ID>
