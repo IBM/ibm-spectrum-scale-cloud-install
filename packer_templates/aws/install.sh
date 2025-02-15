@@ -59,7 +59,7 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     fi
 fi
 
-ces_failback() {
+ces_failover() {
     sudo cp /usr/lpp/mmfs/samples/cloud/ces_middleware/mmcesExtendedIpMgmt.aws /var/mmfs/etc/mmcesExtendedIpMgmt
 }
 
@@ -136,34 +136,34 @@ case "$INSTALL_PROTOCOLS" in
         echo "skipping protocol rpm/debs installation"
         ;;
     nfs)
-        ces_failback
+        ces_failover
         install_nfs
         ;;
     smb)
-        ces_failback
+        ces_failover
         install_smb
         ;;
     s3)
-        ces_failback
+        ces_failover
         install_s3
         ;;
     nfs-s3)
-        ces_failback
+        ces_failover
         install_nfs
         install_s3
         ;;
     nfs-smb)
-        ces_failback
+        ces_failover
         install_nfs
         install_smb
         ;;
     smb-s3)
-        ces_failback
+        ces_failover
         install_smb
         install_s3
         ;;
     *)
-        ces_failback
+        ces_failover
         install_nfs
         install_smb
         install_s3
