@@ -11,7 +11,7 @@
     8. VPC s3 endpoint
 
     Notes:
-    - Storage and compute are seperated and would require different subnets.
+    - Storage and compute are separated and would require different subnets.
     - Public subnets are also enabled with vpc s3 endpoint.
 */
 
@@ -95,7 +95,7 @@ module "protocol_eip" {
   total_eips = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? length(var.vpc_availability_zones) : 0
 }
 
-# Storage public subnet id registred to NAT gateway.
+# Storage public subnet id registered to NAT gateway.
 module "storage_nat_gateway" {
   source           = "../../../resources/aws/network/nat_gw"
   turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false
@@ -106,7 +106,7 @@ module "storage_nat_gateway" {
   vpc_tags         = var.vpc_tags
 }
 
-# Compute public subnet id registred to NAT gateway.
+# Compute public subnet id registered to NAT gateway.
 module "compute_nat_gateway" {
   source           = "../../../resources/aws/network/nat_gw"
   turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false
@@ -117,7 +117,7 @@ module "compute_nat_gateway" {
   vpc_tags         = var.vpc_tags
 }
 
-# Protocol public subnet id registred to NAT gateway.
+# Protocol public subnet id registered to NAT gateway.
 module "protocol_nat_gateway" {
   source           = "../../../resources/aws/network/nat_gw"
   turn_on          = var.vpc_public_subnets_cidr_blocks != null ? true : false

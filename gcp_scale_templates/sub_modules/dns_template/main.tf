@@ -34,3 +34,13 @@ module "reverse_dns_zone" {
   vpc_network = var.vpc_ref
   description = var.vpc_reverse_dns_zone_description
 }
+
+# Create a new CES reverse private DNS Zone in cloud DNS.
+module "ces_reverse_dns_zone" {
+  source      = "../../../resources/gcp/network/cloud_dns"
+  turn_on     = var.create_dns_zone ? true : false
+  zone_name   = var.vpc_ces_reverse_dns_zone
+  dns_name    = format("%s.", var.vpc_ces_reverse_dns_name) # Trailing dot is required (Ex: "179.in-addr.arpa.")
+  vpc_network = var.vpc_ref
+  description = var.vpc_ces_reverse_dns_zone_description
+}

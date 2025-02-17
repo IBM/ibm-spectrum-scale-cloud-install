@@ -22,6 +22,24 @@ variable "project_id" {
   description = "GCP project ID to manage resources."
 }
 
+variable "vpc_ces_reverse_dns_name" {
+  type        = string
+  nullable    = false
+  description = "GCP cloud dns reverse dns name (Ex: 10.in-addr.arpa)."
+}
+
+variable "vpc_ces_reverse_dns_zone" {
+  type        = string
+  nullable    = true
+  description = "GCP cloud dns reverse zone lookup to be used for scale cluster (Ex: example-zone-reverse)."
+}
+
+variable "vpc_ces_reverse_dns_zone_description" {
+  type        = string
+  nullable    = true
+  description = "DNS zone description."
+}
+
 variable "vpc_compute_cluster_dns_zone" {
   type        = string
   nullable    = true
