@@ -23,11 +23,30 @@ if [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'repo_gpgcheck=0' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=0' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs*
+    sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license*
+    if sudo dnf search gpfs.adv | grep -q "gpfs.adv"; then
+        sudo dnf install -y gpfs.adv
+    fi
+    if sudo dnf search gpfs.crypto | grep -q "gpfs.crypto"; then
+        sudo dnf install -y gpfs.crypto
+    fi
 fi
 
 ces_failover() {
     sudo cp /usr/lpp/mmfs/samples/cloud/ces_middleware/mmcesExtendedIpMgmt.gcp /var/mmfs/etc/mmcesExtendedIpMgmt
+}
+
+install_nfs() {
+    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+    sudo dnf install -y gpfs.pm-ganesha
+}
+
+install_smb() {
+    sudo dnf install -y gpfs.smb
+}
+
+install_s3() {
+    sudo dnf install -y gpfs.mms3 noobaa-core
 }
 
 case "$INSTALL_PROTOCOLS" in

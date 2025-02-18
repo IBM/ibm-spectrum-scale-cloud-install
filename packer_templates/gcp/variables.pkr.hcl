@@ -14,6 +14,12 @@ variable "image_description" {
   description = "The description to set for the resulting image."
 }
 
+variable "install_protocols" {
+  type        = string
+  default     = "*"
+  description = "Flag to determine whether to install protocol packages or not."
+}
+
 variable "instance_type" {
   type        = string
   description = "The GCP VM machine type to use while building the image."

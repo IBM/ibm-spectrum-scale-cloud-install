@@ -54,6 +54,7 @@ sysctl -p
 EOF
 }
 
+#tfsec:ignore:AVD-GCP-0067
 #tfsec:ignore:google-compute-enable-shielded-vm-im
 #tfsec:ignore:google-compute-enable-shielded-vm-vtpm
 resource "google_compute_instance" "itself" {
@@ -157,10 +158,11 @@ resource "google_dns_record_set" "ces_ptr_itself" {
 # Ex: id: projects/spectrum-scale-xyz/zones/us-central1-b/instances/test-compute-2,  regex o/p: test-compute-2
 output "instance_details" {
   value = {
-    private_ip = google_compute_instance.itself.network_interface[0].network_ip
-    id         = google_compute_instance.itself.id
-    dns        = format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.vpc_dns_domain)
-    zone       = regex("^projects/[^/]+/zones/([^/]+)/instances/.*$", google_compute_instance.itself.id)[0]
+    private_ip     = google_compute_instance.itself.network_interface[0].network_ip
+    id             = google_compute_instance.itself.id
+    dns            = format("%s.%s", regex("^projects/[^/]+/zones/[^/]+/instances/([^/]+)$", google_compute_instance.itself.id)[0], var.vpc_dns_domain)
+    zone           = regex("^projects/[^/]+/zones/([^/]+)/instances/.*$", google_compute_instance.itself.id)[0]
+    ces_private_ip = var.ces_ipaddress
   }
 }
 
