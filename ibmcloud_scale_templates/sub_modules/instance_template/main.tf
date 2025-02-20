@@ -31,10 +31,11 @@ locals {
   enable_afm                   = var.total_afm_cluster_instances > 0 ? true : false
   afm_server_type              = strcontains(var.afm_vsi_profile, "metal")
   ces_server_type              = strcontains(var.protocol_vsi_profile, "metal")
-  existing_strg_sg_id          = var.strg_sg_id != null ? [var.strg_sg_id] : [module.storage_cluster_security_group.sec_group_id]
-  existing_comp_sg_id          = var.comp_sg_id != null ? [var.comp_sg_id] : [module.compute_cluster_security_group.sec_group_id]
-  existing_gklm_sg_id          = var.gklm_sg_id != null ? [var.gklm_sg_id] : [module.gklm_instance_security_group.sec_group_id]
-  existing_ldap_sg_id          = var.ldap_sg_id != null ? [var.ldap_sg_id] : [module.ldap_instance_security_group.sec_group_id]
+  existing_strg_sg_id          = var.strg_sg_name != null ? flatten([data.ibm_is_security_group.strg_security_group[*].id]) : [module.storage_cluster_security_group.sec_group_id]
+  existing_comp_sg_id          = var.comp_sg_name != null ? flatten([data.ibm_is_security_group.comp_security_group[*].id]) : [module.compute_cluster_security_group.sec_group_id]
+  existing_gklm_sg_id          = var.gklm_sg_name != null ? flatten([data.ibm_is_security_group.gklm_security_group[*].id]) : [module.gklm_instance_security_group.sec_group_id]
+  existing_ldap_sg_id          = var.ldap_sg_name != null ? flatten([data.ibm_is_security_group.ldap_security_group[*].id]) : [module.ldap_instance_security_group.sec_group_id]
+
 }
 
 module "generate_compute_cluster_keys" {
@@ -75,9 +76,90 @@ locals {
   deploy_sec_group_id = var.deploy_controller_sec_group_id == null ? module.deploy_security_group.sec_group_id : var.deploy_controller_sec_group_id
 }
 
+data "ibm_is_security_group" "strg_security_group" {
+  count = var.strg_sg_name != null ? 1 : 0
+  name  = var.strg_sg_name
+}
+
+data "ibm_is_security_group" "comp_security_group" {
+  count = var.comp_sg_name != null ? 1 : 0
+  name  = var.comp_sg_name
+}
+
+data "ibm_is_security_group" "gklm_security_group" {
+  count = var.gklm_sg_name != null ? 1 : 0
+  name  = var.gklm_sg_name
+}
+
+data "ibm_is_security_group" "ldap_security_group" {
+  count = var.ldap_sg_name != null ? 1 : 0
+  name  = var.ldap_sg_name
+}
+
+locals {
+  strg_sg_rules = flatten([for remote in data.ibm_is_security_group.strg_security_group[*].rules[*] : remote[*].remote])
+  comp_sg_rules = flatten([for remote in data.ibm_is_security_group.comp_security_group[*].rules[*] : remote[*].remote])
+  gklm_sg_rules = flatten([for remote in data.ibm_is_security_group.gklm_security_group[*].rules[*] : remote[*].remote])
+  ldap_sg_rules = flatten([for remote in data.ibm_is_security_group.ldap_security_group[*].rules[*] : remote[*].remote])
+
+  # Storage Security group validation
+  validate_strg_sg_in_strg_sg = var.strg_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
+  strg_sg_in_strg_sg_msg      = "Storage security group is not present in Storage security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_strg_sg_in_strg_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_strg_sg_msg}$", (local.validate_strg_sg_in_strg_sg ? local.strg_sg_in_strg_sg_msg : "")) : true
+
+  validate_comp_sg_in_strg_sg = var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
+  comp_sg_in_strg_sg_msg      = "Compute security group is not present in Storage security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_comp_sg_in_strg_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_strg_sg_msg}$", (local.validate_comp_sg_in_strg_sg ? local.comp_sg_in_strg_sg_msg : "")) : true
+
+  # Compute Security group validation
+  validate_strg_sg_in_comp_sg = var.total_compute_cluster_instances > 0 && var.strg_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
+  strg_sg_in_comp_sg_msg      = "Storage security group is not present in Compute security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_strg_sg_in_comp_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_comp_sg_msg}$", (local.validate_strg_sg_in_comp_sg ? local.strg_sg_in_comp_sg_msg : "")) : true
+
+  validate_comp_sg_in_comp_sg = var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
+  comp_sg_in_comp_sg_msg      = "Compute security group is not present in Compute security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_comp_sg_in_comp_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_comp_sg_msg}$", (local.validate_comp_sg_in_comp_sg ? local.comp_sg_in_comp_sg_msg : "")) : true
+
+  # GKLM Security group validation
+  validate_strg_sg_in_gklm_sg = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_sg_name != null && var.strg_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
+  strg_sg_in_gklm_sg_msg      = "Storage security group is not present in GKLM security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_strg_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.strg_sg_in_gklm_sg_msg}$", (local.validate_strg_sg_in_gklm_sg ? local.strg_sg_in_gklm_sg_msg : "")) : true
+
+  validate_comp_sg_in_gklm_sg = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null && var.gklm_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
+  comp_sg_in_gklm_sg_msg      = "Compute security group is not present in GKLM security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_comp_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.comp_sg_in_gklm_sg_msg}$", (local.validate_comp_sg_in_gklm_sg ? local.comp_sg_in_gklm_sg_msg : "")) : true
+
+  validate_gklm_sg_in_gklm_sg = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.gklm_security_group[*].id)[0]) : true
+  gklm_sg_in_gklm_sg_msg      = "GKLM security group is not present in GKLM security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_gklm_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.gklm_sg_in_gklm_sg_msg}$", (local.validate_gklm_sg_in_gklm_sg ? local.gklm_sg_in_gklm_sg_msg : "")) : true
+
+  # LDAP Security group validation
+  validate_strg_sg_in_ldap_sg = var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null && var.strg_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
+  strg_sg_in_ldap_sg_msg      = "Storage security group is not present in LDAP security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_strg_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.strg_sg_in_ldap_sg_msg}$", (local.validate_strg_sg_in_ldap_sg ? local.strg_sg_in_ldap_sg_msg : "")) : true
+
+  validate_comp_sg_in_ldap_sg = var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
+  comp_sg_in_ldap_sg_msg      = "Compute security group is not present in LDAP security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_comp_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.comp_sg_in_ldap_sg_msg}$", (local.validate_comp_sg_in_ldap_sg ? local.comp_sg_in_ldap_sg_msg : "")) : true
+
+  validate_ldap_sg_in_ldap_sg = var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.ldap_security_group[*].id)[0]) : true
+  ldap_sg_in_ldap_sg_msg      = "LDAP security group is not present in LDAP security group"
+  # tflint-ignore: terraform_unused_declarations
+  validate_ldap_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.ldap_sg_in_ldap_sg_msg}$", (local.validate_ldap_sg_in_ldap_sg ? local.ldap_sg_in_ldap_sg_msg : "")) : true
+}
+
 module "compute_cluster_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = (var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.comp_sg_id == null ? true : false
+  turn_on           = (var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.comp_sg_name == null ? true : false
   sec_group_name    = [format("%s-compute-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
@@ -87,7 +169,7 @@ module "compute_cluster_security_group" {
 # FIXME - Fine grain port inbound is needed, but hits limitation of 5 rules
 module "compute_cluster_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = ((var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.using_jumphost_connection == false && var.comp_sg_id == null) ? 3 : 0
+  total_rules              = ((var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.using_jumphost_connection == false && var.comp_sg_name == null) ? 3 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
@@ -95,7 +177,7 @@ module "compute_cluster_ingress_security_rule" {
 
 module "compute_cluster_ingress_security_rule_wt_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = ((var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null && var.comp_sg_id == null) ? 3 : 0
+  total_rules              = ((var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null && var.comp_sg_name == null) ? 3 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
@@ -103,7 +185,7 @@ module "compute_cluster_ingress_security_rule_wt_bastion" {
 
 module "compute_cluster_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = ((var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null && var.comp_sg_id == null) ? 2 : 0
+  total_rules              = ((var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null && var.comp_sg_name == null) ? 2 : 0
   security_group_id        = [module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.compute_cluster_security_group.sec_group_id]
@@ -111,7 +193,7 @@ module "compute_cluster_ingress_security_rule_wo_bastion" {
 
 module "compute_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
-  turn_on            = (var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.comp_sg_id == null ? true : false
+  turn_on            = (var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.comp_sg_name == null ? true : false
   security_group_ids = module.compute_cluster_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = "0.0.0.0/0"
@@ -119,7 +201,7 @@ module "compute_egress_security_rule" {
 
 module "storage_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
-  turn_on            = var.total_storage_cluster_instances > 0 && var.strg_sg_id == null ? true : false
+  turn_on            = var.total_storage_cluster_instances > 0 && var.strg_sg_name == null ? true : false
   security_group_ids = module.storage_cluster_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = "0.0.0.0/0"
@@ -127,7 +209,7 @@ module "storage_egress_security_rule" {
 
 module "gklm_instance_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
-  turn_on            = (var.scale_encryption_enabled && var.scale_encryption_type == "gklm" && var.gklm_sg_id == null) ? true : false
+  turn_on            = (var.scale_encryption_enabled && var.scale_encryption_type == "gklm" && var.gklm_sg_name == null) ? true : false
   security_group_ids = module.gklm_instance_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = "0.0.0.0/0"
@@ -135,7 +217,7 @@ module "gklm_instance_egress_security_rule" {
 
 module "ldap_instance_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
-  turn_on            = var.enable_ldap && var.ldap_server == "null" && var.ldap_sg_id == null
+  turn_on            = var.enable_ldap && var.ldap_server == "null" && var.ldap_sg_name == null
   security_group_ids = module.ldap_instance_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = "0.0.0.0/0"
@@ -143,7 +225,7 @@ module "ldap_instance_egress_security_rule" {
 
 module "storage_cluster_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = var.total_storage_cluster_instances > 0 && var.strg_sg_id == null ? true : false
+  turn_on           = var.total_storage_cluster_instances > 0 && var.strg_sg_name == null ? true : false
   sec_group_name    = [format("%s-storage-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
@@ -152,7 +234,7 @@ module "storage_cluster_security_group" {
 
 module "storage_cluster_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == false && var.strg_sg_id == null) ? 3 : 0
+  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == false && var.strg_sg_name == null) ? 3 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -160,7 +242,7 @@ module "storage_cluster_ingress_security_rule" {
 
 module "storage_cluster_ingress_security_rule_wt_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null && var.strg_sg_id == null) ? 3 : 0
+  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null && var.strg_sg_name == null) ? 3 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -168,7 +250,7 @@ module "storage_cluster_ingress_security_rule_wt_bastion" {
 
 module "storage_cluster_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null && var.strg_sg_id == null) ? 2 : 0
+  total_rules              = (var.total_storage_cluster_instances > 0 && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null && var.strg_sg_name == null) ? 2 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -176,7 +258,7 @@ module "storage_cluster_ingress_security_rule_wo_bastion" {
 
 module "bicluster_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.total_storage_cluster_instances > 0 && (var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.strg_sg_id == null) ? 2 : 0
+  total_rules              = (var.total_storage_cluster_instances > 0 && (var.total_client_cluster_instances > 0 || var.total_compute_cluster_instances > 0) && var.strg_sg_name == null) ? 2 : 0
   security_group_id        = [module.storage_cluster_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id]
   sg_direction             = ["inbound", "inbound"]
   source_security_group_id = [module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -184,7 +266,7 @@ module "bicluster_ingress_security_rule" {
 
 module "gklm_instance_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = var.scale_encryption_enabled && var.scale_encryption_type == "gklm" && var.gklm_sg_id == null ? true : false
+  turn_on           = var.scale_encryption_enabled && var.scale_encryption_type == "gklm" && var.gklm_sg_name == null ? true : false
   sec_group_name    = [format("%s-gklm-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
@@ -193,7 +275,7 @@ module "gklm_instance_security_group" {
 
 module "gklm_instance_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == false && var.gklm_sg_id == null) ? 5 : 0
+  total_rules              = (var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == false && var.gklm_sg_name == null) ? 5 : 0
   security_group_id        = [module.gklm_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.gklm_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -201,7 +283,7 @@ module "gklm_instance_ingress_security_rule" {
 
 module "gklm_instance_ingress_security_rule_wt_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null && var.gklm_sg_id == null) ? 5 : 0
+  total_rules              = (var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null && var.gklm_sg_name == null) ? 5 : 0
   security_group_id        = [module.gklm_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.gklm_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -209,7 +291,7 @@ module "gklm_instance_ingress_security_rule_wt_bastion" {
 
 module "gklm_instance_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null && var.gklm_sg_id == null) ? 4 : 0
+  total_rules              = (var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null && var.gklm_sg_name == null) ? 4 : 0
   security_group_id        = [module.gklm_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.gklm_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -217,7 +299,7 @@ module "gklm_instance_ingress_security_rule_wo_bastion" {
 
 module "ldap_instance_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = var.enable_ldap && var.ldap_server == "null" && var.ldap_sg_id == null
+  turn_on           = var.enable_ldap && var.ldap_server == "null" && var.ldap_sg_name == null
   sec_group_name    = [format("%s-ldap-sg", var.resource_prefix)]
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
@@ -226,7 +308,7 @@ module "ldap_instance_security_group" {
 
 module "ldap_instance_ingress_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == false && var.ldap_sg_id == null) ? 5 : 0
+  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == false && var.ldap_sg_name == null) ? 5 : 0
   security_group_id        = [module.ldap_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -234,7 +316,7 @@ module "ldap_instance_ingress_security_rule" {
 
 module "ldap_instance_ingress_security_rule_wt_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null && var.ldap_sg_id == null) ? 5 : 0
+  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id != null && var.ldap_sg_name == null) ? 5 : 0
   security_group_id        = [module.ldap_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id, local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
@@ -242,7 +324,7 @@ module "ldap_instance_ingress_security_rule_wt_bastion" {
 
 module "ldap_instance_ingress_security_rule_wo_bastion" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
-  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null && var.ldap_sg_id == null) ? 4 : 0
+  total_rules              = (var.enable_ldap == true && var.ldap_server == "null" && var.using_jumphost_connection == true && var.deploy_controller_sec_group_id == null && var.ldap_sg_name == null) ? 4 : 0
   security_group_id        = [module.ldap_instance_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [local.deploy_sec_group_id, module.ldap_instance_security_group.sec_group_id, module.compute_cluster_security_group.sec_group_id, module.storage_cluster_security_group.sec_group_id]
