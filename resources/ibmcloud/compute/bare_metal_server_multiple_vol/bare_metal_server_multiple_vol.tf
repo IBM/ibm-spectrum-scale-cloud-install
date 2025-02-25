@@ -302,6 +302,28 @@ resource "ibm_dns_resource_record" "ptr_itself" {
 }
 
 
+locals {
+  disk0_interface_type = data.ibm_is_bare_metal_server_profile.itself.disks[0].supported_interface_types[0].default
+  nvme_disk_count      = data.ibm_is_bare_metal_server_profile.itself.disks[1].quantity[0].value
+
+  # Determine starting disk based on disk0 interface type
+  nvme_start_disk = local.disk0_interface_type == "sata" ? "0" : "1"
+
+  # Generate NVMe device list up to 36 disks
+  all_nvme_disks = [
+    "/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", 
+    "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1",
+    "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1", "/dev/nvme16n1", "/dev/nvme17n1",
+    "/dev/nvme18n1", "/dev/nvme19n1", "/dev/nvme20n1", "/dev/nvme21n1", "/dev/nvme22n1", "/dev/nvme23n1",
+    "/dev/nvme24n1", "/dev/nvme25n1", "/dev/nvme26n1", "/dev/nvme27n1", "/dev/nvme28n1", "/dev/nvme29n1",
+    "/dev/nvme30n1",  "/dev/nvme31n1", "/dev/nvme32n1", "/dev/nvme33n1", "/dev/nvme34n1", "/dev/nvme35n1"
+  ]
+
+  # Select only the required number of disks
+  selected_nvme_disks = slice(local.all_nvme_disks, local.nvme_start_disk, local.nvme_disk_count+local.nvme_start_disk)
+}
+
+
 output "instance_ids" {
   value      = try(toset([for instance_details in ibm_is_bare_metal_server.itself : instance_details.id]), [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
@@ -313,8 +335,7 @@ output "instance_private_ips" {
 }
 
 output "instance_ips_with_vol_mapping" {
-  value = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.name =>
-  data.ibm_is_bare_metal_server_profile.itself.disks[1].quantity[0].value == 8 ? ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"] : ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1"] }, {})
+  value = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => local.selected_nvme_disks }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
 
