@@ -500,8 +500,8 @@ resource "ibm_dns_resource_record" "ptr_itself_bm" {
 
 
 locals {
-  disk0_interface_type = data.ibm_is_bare_metal_server_profile.itself.disks[0].supported_interface_types[0].default
-  nvme_disk_count      = data.ibm_is_bare_metal_server_profile.itself.disks[1].quantity[0].value
+  disk0_interface_type = data.ibm_is_bare_metal_server_profile.itself[*].disks[0].supported_interface_types[0].default
+  nvme_disk_count      = var.ces_server_type == false ? [] : data.ibm_is_bare_metal_server_profile.itself[*].disks[1].quantity[0].value
 
   # Determine starting disk based on disk0 interface type
   nvme_start_disk = local.disk0_interface_type == "sata" ? "0" : "1"
@@ -517,7 +517,7 @@ locals {
   ]
 
   # Select only the required number of disks
-  selected_nvme_disks = slice(local.all_nvme_disks, local.nvme_start_disk, local.nvme_disk_count+local.nvme_start_disk)
+  selected_nvme_disks = var.ces_server_type == false ? [] :  slice(local.all_nvme_disks, local.nvme_start_disk, local.nvme_disk_count+local.nvme_start_disk)
 }
 
 
