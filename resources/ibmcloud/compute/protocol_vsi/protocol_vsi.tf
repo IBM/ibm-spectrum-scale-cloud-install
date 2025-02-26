@@ -499,7 +499,7 @@ resource "ibm_dns_resource_record" "ptr_itself_bm" {
 ##########################################################################################################################
 
 locals {
-  disk0_interface_type = data.ibm_is_bare_metal_server_profile.itself[0].disks[0].supported_interface_types[0].default
+  disk0_interface_type = var.ces_server_type == false ? "" : data.ibm_is_bare_metal_server_profile.itself[0].disks[0].supported_interface_types[0].default
   disk_count           = var.ces_server_type == false ? 0 : data.ibm_is_bare_metal_server_profile.itself[0].disks[1].quantity[0].value
 
   # Determine starting disk based on disk0 interface type
