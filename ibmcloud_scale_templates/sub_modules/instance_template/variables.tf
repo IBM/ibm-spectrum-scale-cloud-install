@@ -607,3 +607,9 @@ variable "ldap_sg_name" {
   default     = null
   description = "Existing ldap security group name"
 }
+
+variable "enable_sg_validation" {
+  type        = bool
+  default     = true
+  description = "Security group validation."
+}

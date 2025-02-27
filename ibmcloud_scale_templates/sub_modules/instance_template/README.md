@@ -103,6 +103,7 @@ Below steps will provision IBM Cloud resources (compute and storage instances in
 | <a name="input_create_separate_namespaces"></a> [create_separate_namespaces](#input_create_separate_namespaces) | Flag to select if separate namespace needs to be created for compute instances. | `bool` |
 | <a name="input_deploy_controller_sec_group_id"></a> [deploy_controller_sec_group_id](#input_deploy_controller_sec_group_id) | Deployment controller security group id. Default: null | `string` |
 | <a name="input_enable_ldap"></a> [enable_ldap](#input_enable_ldap) | Set this option to true to enable LDAP for IBM Cloud HPC, with the default value set to false. | `bool` |
+| <a name="input_enable_sg_validation"></a> [enable_sg_validation](#input_enable_sg_validation) | Security group validation. | `bool` |
 | <a name="input_filesets"></a> [filesets](#input_filesets) | Mount point(s) and size(s) in GB of file share(s) that can be used to customize shared file storage layout. Provide the details for up to 5 file shares. | <pre>list(object({<br>    mount_path = string,<br>    size       = number<br>  }))</pre> |
 | <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` |
 | <a name="input_gklm_instance_dns_domain"></a> [gklm_instance_dns_domain](#input_gklm_instance_dns_domain) | IBM Cloud DNS domain name to be used for GKLM instances. | `string` |
