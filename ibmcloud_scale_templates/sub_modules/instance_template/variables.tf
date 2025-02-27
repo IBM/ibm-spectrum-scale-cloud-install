@@ -576,6 +576,8 @@ variable "afm_cos_config" {
   description = "Please provide details for the Cloud Object Storage (COS) instance, including information about the COS bucket, service credentials (HMAC key), AFM fileset, mode (such as Read-only (RO), Single writer (SW), Local updates (LU), and Independent writer (IW)), storage class (standard, vault, cold, or smart), and bucket type (single_site_location, region_location, cross_region_location). Note : The 'afm_cos_config' can contain up to 5 entries. For further details on COS bucket locations, refer to the relevant documentation https://cloud.ibm.com/docs/cloud-object-storage/basics?topic=cloud-object-storage-endpoints."
 }
 
+# Existing Key Protect instance Details
+
 variable "key_protect_instance_id" {
   type        = string
   default     = null
@@ -611,5 +613,5 @@ variable "ldap_sg_name" {
 variable "enable_sg_validation" {
   type        = bool
   default     = true
-  description = "Security group validation."
+  description = "Enable or disable security group validation."
 }

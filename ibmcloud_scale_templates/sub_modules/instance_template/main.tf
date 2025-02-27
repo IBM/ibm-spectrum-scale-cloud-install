@@ -104,55 +104,55 @@ locals {
 
   # Storage Security group validation
   validate_strg_sg_in_strg_sg = var.enable_sg_validation == true && var.strg_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  strg_sg_in_strg_sg_msg      = "Storage security group is not present in Storage security group"
+  strg_sg_in_strg_sg_msg      = "The storage security group does not include the storage security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_strg_sg_in_strg_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_strg_sg_msg}$", (local.validate_strg_sg_in_strg_sg ? local.strg_sg_in_strg_sg_msg : "")) : true
 
   validate_comp_sg_in_strg_sg = var.enable_sg_validation == true && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
-  comp_sg_in_strg_sg_msg      = "Compute security group is not present in Storage security group"
+  comp_sg_in_strg_sg_msg      = "The storage security group does not include the compute security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_comp_sg_in_strg_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_strg_sg_msg}$", (local.validate_comp_sg_in_strg_sg ? local.comp_sg_in_strg_sg_msg : "")) : true
 
   # Compute Security group validation
   validate_strg_sg_in_comp_sg = var.enable_sg_validation == true && var.total_compute_cluster_instances > 0 && var.strg_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  strg_sg_in_comp_sg_msg      = "Storage security group is not present in Compute security group"
+  strg_sg_in_comp_sg_msg      = "The compute security group does not include the storage security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_strg_sg_in_comp_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_comp_sg_msg}$", (local.validate_strg_sg_in_comp_sg ? local.strg_sg_in_comp_sg_msg : "")) : true
 
   validate_comp_sg_in_comp_sg = var.enable_sg_validation == true && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
-  comp_sg_in_comp_sg_msg      = "Compute security group is not present in Compute security group"
+  comp_sg_in_comp_sg_msg      = "The compute security group does not include the compute security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_comp_sg_in_comp_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_comp_sg_msg}$", (local.validate_comp_sg_in_comp_sg ? local.comp_sg_in_comp_sg_msg : "")) : true
 
   # GKLM Security group validation
   validate_strg_sg_in_gklm_sg = var.enable_sg_validation == true && var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_sg_name != null && var.strg_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  strg_sg_in_gklm_sg_msg      = "Storage security group is not present in GKLM security group"
+  strg_sg_in_gklm_sg_msg      = "The GKLM security group does not include the storage security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_strg_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.strg_sg_in_gklm_sg_msg}$", (local.validate_strg_sg_in_gklm_sg ? local.strg_sg_in_gklm_sg_msg : "")) : true
 
   validate_comp_sg_in_gklm_sg = var.enable_sg_validation == true && var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null && var.gklm_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
-  comp_sg_in_gklm_sg_msg      = "Compute security group is not present in GKLM security group"
+  comp_sg_in_gklm_sg_msg      = "The GKLM security group does not include the compute security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_comp_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.comp_sg_in_gklm_sg_msg}$", (local.validate_comp_sg_in_gklm_sg ? local.comp_sg_in_gklm_sg_msg : "")) : true
 
   validate_gklm_sg_in_gklm_sg = var.enable_sg_validation == true && var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.gklm_security_group[*].id)[0]) : true
-  gklm_sg_in_gklm_sg_msg      = "GKLM security group is not present in GKLM security group"
+  gklm_sg_in_gklm_sg_msg      = "The GKLM security group does not include the GKLM security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_gklm_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.gklm_sg_in_gklm_sg_msg}$", (local.validate_gklm_sg_in_gklm_sg ? local.gklm_sg_in_gklm_sg_msg : "")) : true
 
   # LDAP Security group validation
   validate_strg_sg_in_ldap_sg = var.enable_sg_validation == true && var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null && var.strg_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  strg_sg_in_ldap_sg_msg      = "Storage security group is not present in LDAP security group"
+  strg_sg_in_ldap_sg_msg      = "The LDAP security group does not include the storage security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_strg_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.strg_sg_in_ldap_sg_msg}$", (local.validate_strg_sg_in_ldap_sg ? local.strg_sg_in_ldap_sg_msg : "")) : true
 
   validate_comp_sg_in_ldap_sg = var.enable_sg_validation == true && var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
-  comp_sg_in_ldap_sg_msg      = "Compute security group is not present in LDAP security group"
+  comp_sg_in_ldap_sg_msg      = "The LDAP security group does not include the compute security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_comp_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.comp_sg_in_ldap_sg_msg}$", (local.validate_comp_sg_in_ldap_sg ? local.comp_sg_in_ldap_sg_msg : "")) : true
 
   validate_ldap_sg_in_ldap_sg = var.enable_sg_validation == true && var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.ldap_security_group[*].id)[0]) : true
-  ldap_sg_in_ldap_sg_msg      = "LDAP security group is not present in LDAP security group"
+  ldap_sg_in_ldap_sg_msg      = "The LDAP security group does not include the LDAP security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_ldap_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.ldap_sg_in_ldap_sg_msg}$", (local.validate_ldap_sg_in_ldap_sg ? local.ldap_sg_in_ldap_sg_msg : "")) : true
 }
