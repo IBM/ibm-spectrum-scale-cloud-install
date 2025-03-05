@@ -213,6 +213,7 @@ locals {
     vsi_meta_private_key = base64encode(var.vsi_meta_private_key),
     vsi_meta_public_key  = base64encode(var.vsi_meta_public_key)
   }
+  sapphire_rapids_profile_check = strcontains(var.vsi_profile, "3-metal") || strcontains(var.vsi_profile, "3d-metal")
 }
 
 data "template_file" "metadata_startup_script_bm" {
@@ -315,12 +316,13 @@ resource "ibm_is_bare_metal_server" "itself_bm" {
       zone            = element(var.zones, idx)
     }
   }
-  profile = var.vsi_profile
-  name    = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
-  image   = var.vsi_image_id
-  zone    = each.value.zone
-  keys    = var.vsi_user_public_key
-  tags    = var.resource_tags
+  bandwidth = local.sapphire_rapids_profile_check == true ? 200000 : 100000
+  profile   = var.vsi_profile
+  name      = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
+  image     = var.vsi_image_id
+  zone      = each.value.zone
+  keys      = var.vsi_user_public_key
+  tags      = var.resource_tags
 
   primary_network_interface {
     name            = format("%s-%03s-pri", var.vsi_name_prefix, each.value.sequence_string)
@@ -416,5 +418,10 @@ output "storage_cluster_instance_name_id_map_vsi_bm" {
 
 output "storage_cluster_instance_name_ip_map_vsi_bm" {
   value      = var.afm_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => instance_details.primary_network_interface[0]["primary_ip"][0]["address"] }, {}) : try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi, ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
+}
+
+output "instance_bandwidth" {
+  value      = var.afm_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => instance_details.bandwidth }, {}) : {}
   depends_on = [ibm_dns_resource_record.a_itself_vsi, ibm_dns_resource_record.ptr_itself_vsi, ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
 }

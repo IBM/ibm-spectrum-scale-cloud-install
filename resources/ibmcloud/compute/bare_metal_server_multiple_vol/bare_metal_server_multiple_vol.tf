@@ -174,6 +174,7 @@ locals {
     vsi_meta_private_key = base64encode(var.vsi_meta_private_key),
     vsi_meta_public_key  = base64encode(var.vsi_meta_public_key)
   }
+  sapphire_rapids_profile_check = strcontains(var.vsi_profile, "3-metal") || strcontains(var.vsi_profile, "3d-metal")
 }
 
 resource "ibm_is_bare_metal_server" "itself" {
@@ -187,12 +188,13 @@ resource "ibm_is_bare_metal_server" "itself" {
       vni_id          = var.enable_protocol == false ? "" : element(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id.id]), idx)
     }
   }
-  profile = var.vsi_profile
-  name    = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
-  image   = var.vsi_image_id
-  zone    = each.value.zone
-  keys    = var.vsi_user_public_key
-  tags    = var.resource_tags
+  bandwidth = local.sapphire_rapids_profile_check == true ? 200000 : 100000
+  profile   = var.vsi_profile
+  name      = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
+  image     = var.vsi_image_id
+  zone      = each.value.zone
+  keys      = var.vsi_user_public_key
+  tags      = var.resource_tags
 
   primary_network_attachment {
     name = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
@@ -354,5 +356,10 @@ output "storage_cluster_instance_name_ip_map" {
 
 output "secondary_interface_name_ip_map" {
   value      = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
+}
+
+output "instance_bandwidth" {
+  value      = try({ for instance_details in ibm_is_bare_metal_server.itself : instance_details.name => instance_details.bandwidth }, {})
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }
