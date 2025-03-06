@@ -18,7 +18,7 @@ module "generate_storage_cluster_keys" {
 module "allow_traffic_within_scale_vms" {
   source               = "../../../resources/gcp/security/security_group_tag"
   turn_on              = (var.cluster_type == "Compute-only" || var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
-  firewall_name_prefix = format("%s-cluster-tag", var.resource_prefix)
+  firewall_name_prefix = local.scale_cluster_network_tag
   firewall_description = "Allow traffic within scale instances"
   vpc_ref              = var.vpc_ref
   source_tags          = [local.scale_cluster_network_tag]
@@ -51,6 +51,31 @@ module "cluster_ingress_security_rule_using_cloud_connection" {
   target_tags          = [local.scale_cluster_network_tag]
   tcp_ports            = ["22", "443"]
   udp_ports            = []
+}
+
+# Create protocol/ces nodes specific security group
+module "allow_traffic_within_ces_vms" {
+  source               = "../../../resources/gcp/security/security_group_tag"
+  turn_on              = var.total_protocol_instances > 0 ? true : false
+  firewall_name_prefix = local.scale_ces_network_tag
+  firewall_description = "Allow protocol traffic to ces instances"
+  vpc_ref              = var.vpc_ref
+  source_tags          = [local.scale_ces_network_tag]
+  target_tags          = [local.scale_ces_network_tag]
+  tcp_ports            = local.ces_traffic_ports
+  udp_ports            = []
+}
+
+# Allow traffic from ces/route ip addresses to ces/protocol vms
+module "allow_traffic_from_ces_route_to_protocol_vms" {
+  source               = "../../../resources/gcp/security/security_rule_target_tags"
+  turn_on              = var.total_protocol_instances > 0 ? true : false
+  firewall_name_prefix = local.scale_ces_route_tag
+  firewall_description = "Allow ICMP traffic from ces routes to ces vms"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = var.ces_ip_address
+  ports                = []
+  target_tags          = [local.scale_ces_network_tag]
 }
 
 # Creates compute instances
@@ -205,7 +230,7 @@ module "protocol_instances" {
   vpc_ces_reverse_dns_zone     = var.vpc_ces_reverse_dns_zone
   vpc_ces_reverse_dns_domain   = var.vpc_ces_reverse_dns_domain
   network_name                 = basename(var.vpc_ref)
-  network_tags                 = var.using_direct_connection ? null : [local.scale_cluster_network_tag]
+  network_tags                 = var.using_direct_connection ? null : [local.scale_cluster_network_tag, local.scale_ces_network_tag, local.scale_ces_route_tag]
   depends_on                   = [module.allow_traffic_within_scale_vms, module.cluster_ingress_security_rule_using_jumphost_connection, module.cluster_ingress_security_rule_using_cloud_connection]
 }
 

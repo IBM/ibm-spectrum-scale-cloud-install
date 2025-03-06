@@ -91,7 +91,7 @@ module "cluster_instance_iam_profile" {
   iam_host_role                = module.cluster_host_iam_policy.role_policy_name
 }
 
-# Create Scale cluster security group
+# Create cluster security group
 module "cluster_security_group" {
   source                = "../../../resources/aws/security/security_group"
   turn_on               = true
@@ -101,7 +101,7 @@ module "cluster_security_group" {
   sec_group_tag         = ["scale-sec-group"]
 }
 
-# Create Scale cluster security group
+# Create protocol/ces nodes specific security group
 module "protocol_security_group" {
   source                = "../../../resources/aws/security/security_group"
   turn_on               = var.total_protocol_instances > 0 ? true : false
