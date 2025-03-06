@@ -11,7 +11,10 @@ locals {
 
   tcp_port_scale_cluster    = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
   udp_port_scale_cluster    = ["47443", "4739"]
+  ces_traffic_ports         = [4379]
   scale_cluster_network_tag = format("%s-cluster-tag", var.resource_prefix)
+  scale_ces_network_tag     = format("%s-ces-tag", var.resource_prefix)
+  scale_ces_route_tag       = format("%s-route-tag", var.resource_prefix)
   gpfs_base_rpm_path        = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   scale_version             = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
 }
