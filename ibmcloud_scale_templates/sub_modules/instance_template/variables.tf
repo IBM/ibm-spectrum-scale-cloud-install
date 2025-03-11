@@ -276,6 +276,12 @@ variable "storage_bare_metal_server_profile" {
   description = "Specify the virtual server instance profile type name to be used to create the Baremetal Storage nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
 }
 
+variable "tie_breaker_bare_metal_server_profile" {
+  type        = string
+  default     = null
+  description = "Specify the virtual server instance profile type name to be used to create the Baremetal tie breaker nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
+}
+
 variable "storage_bare_metal_osimage_name" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"
