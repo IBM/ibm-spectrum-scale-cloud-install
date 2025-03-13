@@ -279,7 +279,7 @@ variable "storage_bare_metal_server_profile" {
 variable "tie_breaker_bare_metal_server_profile" {
   type        = string
   default     = "cx2d-metal-96x192"
-  description = "Specify the virtual server instance profile type name to be used to create the Baremetal tie breaker nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
+  description = "Specify the bare metal server profile type name to be used for creating the bare metal Tie breaker node. If no value is provided, the storage bare metal server profile will be used as the default. For more information, see [bare metal server profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui). [Tie Breaker Node](https://www.ibm.com/docs/en/storage-scale/5.2.2?topic=quorum-node-tiebreaker-disks)"
 }
 
 variable "storage_bare_metal_osimage_name" {
@@ -592,32 +592,32 @@ variable "afm_cos_config" {
 
 # Existing Security Group Variables
 
+variable "enable_sg_validation" {
+  type        = bool
+  default     = true
+  description = "Enable or disable security group validation. Security group validation ensures that the specified security groups are properly assigned"
+}
+
 variable "strg_sg_name" {
   type        = string
   default     = null
-  description = "Existing storage security group name"
+  description = "Existing storage security group name for storage nodes"
 }
 
 variable "comp_sg_name" {
   type        = string
   default     = null
-  description = "Existing compute security group name"
+  description = "Existing compute security group name for compute nodes"
 }
 
 variable "gklm_sg_name" {
   type        = string
   default     = null
-  description = "Existing gklm security group name"
+  description = "Existing gklm security group name for gklm nodes"
 }
 
 variable "ldap_sg_name" {
   type        = string
   default     = null
-  description = "Existing ldap security group name"
-}
-
-variable "enable_sg_validation" {
-  type        = bool
-  default     = true
-  description = "Enable or disable security group validation."
+  description = "Existing ldap security group name for ldap nodes"
 }
