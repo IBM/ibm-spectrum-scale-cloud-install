@@ -668,7 +668,7 @@ module "storage_cluster_tie_breaker_instance_bm" {
   resource_group_id         = var.resource_group_id
   zones                     = [var.vpc_availability_zones[0]]
   vsi_image_id              = local.storage_instance_image_id
-  vsi_profile               = var.tie_breaker_bare_metal_server_profile
+  vsi_profile               = var.tie_breaker_bare_metal_server_profile == null ? var.storage_bare_metal_server_profile : var.tie_breaker_bare_metal_server_profile
   dns_domain                = var.vpc_storage_cluster_dns_domain
   dns_service_id            = var.vpc_storage_cluster_dns_service_id
   dns_zone_id               = var.vpc_storage_cluster_dns_zone_id
