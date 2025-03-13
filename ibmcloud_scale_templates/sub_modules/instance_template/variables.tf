@@ -276,6 +276,12 @@ variable "storage_bare_metal_server_profile" {
   description = "Specify the virtual server instance profile type name to be used to create the Baremetal Storage nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
 }
 
+variable "tie_breaker_bare_metal_server_profile" {
+  type        = string
+  default     = null
+  description = "Specify the virtual server instance profile type name to be used to create the Baremetal tie breaker nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
+}
+
 variable "storage_bare_metal_osimage_name" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"
@@ -390,6 +396,14 @@ variable "scale_encryption_admin_password" {
   type        = string
   default     = null
   description = "Password that is used for performing administrative operations for the GKLM.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. Visit this [page](https://www.ibm.com/docs/en/gklm/3.0.1?topic=roles-password-policy) to know more about password policy of GKLM. "
+}
+
+# Existing Key Protect instance Details
+
+variable "key_protect_instance_id" {
+  type        = string
+  default     = null
+  description = "An existing Key Protect instance used for filesystem encryption"
 }
 
 # CES Variables
@@ -576,12 +590,6 @@ variable "afm_cos_config" {
   description = "Please provide details for the Cloud Object Storage (COS) instance, including information about the COS bucket, service credentials (HMAC key), AFM fileset, mode (such as Read-only (RO), Single writer (SW), Local updates (LU), and Independent writer (IW)), storage class (standard, vault, cold, or smart), and bucket type (single_site_location, region_location, cross_region_location). Note : The 'afm_cos_config' can contain up to 5 entries. For further details on COS bucket locations, refer to the relevant documentation https://cloud.ibm.com/docs/cloud-object-storage/basics?topic=cloud-object-storage-endpoints."
 }
 
-variable "key_protect_instance_id" {
-  type        = string
-  default     = null
-  description = "Existing Key Protect ID"
-}
-
 # Existing Security Group Variables
 
 variable "strg_sg_name" {
@@ -606,4 +614,10 @@ variable "ldap_sg_name" {
   type        = string
   default     = null
   description = "Existing ldap security group name"
+}
+
+variable "enable_sg_validation" {
+  type        = bool
+  default     = true
+  description = "Enable or disable security group validation."
 }

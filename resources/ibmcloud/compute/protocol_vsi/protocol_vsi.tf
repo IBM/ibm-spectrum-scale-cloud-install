@@ -374,6 +374,7 @@ locals {
     vsi_meta_private_key = base64encode(var.vsi_meta_private_key),
     vsi_meta_public_key  = base64encode(var.vsi_meta_public_key)
   }
+  sapphire_rapids_profile_check = strcontains(var.vsi_profile, "3-metal") || strcontains(var.vsi_profile, "3d-metal")
 }
 
 resource "ibm_is_bare_metal_server" "itself_bm" {
@@ -387,12 +388,13 @@ resource "ibm_is_bare_metal_server" "itself_bm" {
       vni_id          = element(tolist([for vni_id in ibm_is_virtual_network_interface.vni : vni_id.id]), idx)
     }
   }
-  profile = var.vsi_profile
-  name    = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
-  image   = var.vsi_image_id
-  zone    = each.value.zone
-  keys    = var.vsi_user_public_key
-  tags    = var.resource_tags
+  bandwidth = local.sapphire_rapids_profile_check == true ? 200000 : 100000
+  profile   = var.vsi_profile
+  name      = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
+  image     = var.vsi_image_id
+  zone      = each.value.zone
+  keys      = var.vsi_user_public_key
+  tags      = var.resource_tags
 
   primary_network_attachment {
     name = format("%s-%03s-eth0", var.vsi_name_prefix, each.value.sequence_string)
@@ -498,6 +500,27 @@ resource "ibm_dns_resource_record" "ptr_itself_bm" {
 ############### Outputs ################
 ##########################################################################################################################
 
+locals {
+  disk0_interface_type = var.ces_server_type == false ? "" : data.ibm_is_bare_metal_server_profile.itself[0].disks[0].supported_interface_types[0].default
+  disk_count           = var.ces_server_type == false ? 0 : data.ibm_is_bare_metal_server_profile.itself[0].disks[1].quantity[0].value
+
+  # Determine starting disk based on disk0 interface type
+  nvme_start_disk = local.disk0_interface_type == "sata" ? "0" : "1"
+
+  # Generate NVMe device list up to 36 disks
+  all_disks = [
+    "/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1",
+    "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1",
+    "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1", "/dev/nvme16n1", "/dev/nvme17n1",
+    "/dev/nvme18n1", "/dev/nvme19n1", "/dev/nvme20n1", "/dev/nvme21n1", "/dev/nvme22n1", "/dev/nvme23n1",
+    "/dev/nvme24n1", "/dev/nvme25n1", "/dev/nvme26n1", "/dev/nvme27n1", "/dev/nvme28n1", "/dev/nvme29n1",
+    "/dev/nvme30n1", "/dev/nvme31n1", "/dev/nvme32n1", "/dev/nvme33n1", "/dev/nvme34n1", "/dev/nvme35n1"
+  ]
+
+  # Select only the required number of disks
+  selected_disks = var.ces_server_type == false ? [] : slice(local.all_disks, local.nvme_start_disk, local.disk_count + local.nvme_start_disk)
+}
+
 output "instance_ids" {
   value      = var.ces_server_type == true ? try(toset([for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.id]), []) : try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself, ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
@@ -509,8 +532,7 @@ output "instance_private_ips" {
 }
 
 output "instance_ips_with_vol_mapping" {
-  value = var.ces_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name =>
-  data.ibm_is_bare_metal_server_profile.itself[0].disks[1].quantity[0].value == 8 ? ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1"] : ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/nvme2n1", "/dev/nvme3n1", "/dev/nvme4n1", "/dev/nvme5n1", "/dev/nvme6n1", "/dev/nvme7n1", "/dev/nvme8n1", "/dev/nvme9n1", "/dev/nvme10n1", "/dev/nvme11n1", "/dev/nvme12n1", "/dev/nvme13n1", "/dev/nvme14n1", "/dev/nvme15n1"] }, {}) : {}
+  value      = var.ces_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => local.selected_disks }, {}) : {}
   depends_on = [ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
 }
 
@@ -530,5 +552,10 @@ output "instance_name_ip_map" {
 
 output "secondary_interface_name_ip_map" {
   value      = var.ces_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => flatten(instance_details.network_interfaces[*]["primary_ip"][*]["address"])[0] }, {}) : try({ for instance_details in ibm_is_instance.itself : instance_details.network_interfaces[0]["name"] => instance_details.network_interfaces[0]["primary_ipv4_address"] }, {})
+  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself, ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
+}
+
+output "instance_bandwidth" {
+  value      = var.ces_server_type == true ? try({ for instance_details in ibm_is_bare_metal_server.itself_bm : instance_details.name => instance_details.bandwidth }, {}) : {}
   depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself, ibm_dns_resource_record.a_itself_bm, ibm_dns_resource_record.ptr_itself_bm]
 }

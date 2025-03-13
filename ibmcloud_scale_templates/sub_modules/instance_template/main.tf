@@ -103,56 +103,56 @@ locals {
   ldap_sg_rules = flatten([for remote in data.ibm_is_security_group.ldap_security_group[*].rules[*] : remote[*].remote])
 
   # Storage Security group validation
-  validate_strg_sg_in_strg_sg = var.strg_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  strg_sg_in_strg_sg_msg      = "Storage security group is not present in Storage security group"
+  validate_strg_sg_in_strg_sg = var.enable_sg_validation == true && var.strg_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
+  strg_sg_in_strg_sg_msg      = "The storage security group does not include the storage security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_strg_sg_in_strg_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_strg_sg_msg}$", (local.validate_strg_sg_in_strg_sg ? local.strg_sg_in_strg_sg_msg : "")) : true
 
-  validate_comp_sg_in_strg_sg = var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
-  comp_sg_in_strg_sg_msg      = "Compute security group is not present in Storage security group"
+  validate_comp_sg_in_strg_sg = var.enable_sg_validation == true && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.strg_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
+  comp_sg_in_strg_sg_msg      = "The storage security group does not include the compute security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_comp_sg_in_strg_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_strg_sg_msg}$", (local.validate_comp_sg_in_strg_sg ? local.comp_sg_in_strg_sg_msg : "")) : true
 
   # Compute Security group validation
-  validate_strg_sg_in_comp_sg = var.total_compute_cluster_instances > 0 && var.strg_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  strg_sg_in_comp_sg_msg      = "Storage security group is not present in Compute security group"
+  validate_strg_sg_in_comp_sg = var.enable_sg_validation == true && var.total_compute_cluster_instances > 0 && var.strg_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
+  strg_sg_in_comp_sg_msg      = "The compute security group does not include the storage security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_strg_sg_in_comp_sg_chk = var.strg_sg_name != null ? regex("^${local.strg_sg_in_comp_sg_msg}$", (local.validate_strg_sg_in_comp_sg ? local.strg_sg_in_comp_sg_msg : "")) : true
 
-  validate_comp_sg_in_comp_sg = var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
-  comp_sg_in_comp_sg_msg      = "Compute security group is not present in Compute security group"
+  validate_comp_sg_in_comp_sg = var.enable_sg_validation == true && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.comp_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
+  comp_sg_in_comp_sg_msg      = "The compute security group does not include the compute security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_comp_sg_in_comp_sg_chk = var.comp_sg_name != null ? regex("^${local.comp_sg_in_comp_sg_msg}$", (local.validate_comp_sg_in_comp_sg ? local.comp_sg_in_comp_sg_msg : "")) : true
 
   # GKLM Security group validation
-  validate_strg_sg_in_gklm_sg = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_sg_name != null && var.strg_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  strg_sg_in_gklm_sg_msg      = "Storage security group is not present in GKLM security group"
+  validate_strg_sg_in_gklm_sg = var.enable_sg_validation == true && var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_sg_name != null && var.strg_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
+  strg_sg_in_gklm_sg_msg      = "The GKLM security group does not include the storage security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_strg_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.strg_sg_in_gklm_sg_msg}$", (local.validate_strg_sg_in_gklm_sg ? local.strg_sg_in_gklm_sg_msg : "")) : true
 
-  validate_comp_sg_in_gklm_sg = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null && var.gklm_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
-  comp_sg_in_gklm_sg_msg      = "Compute security group is not present in GKLM security group"
+  validate_comp_sg_in_gklm_sg = var.enable_sg_validation == true && var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null && var.gklm_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
+  comp_sg_in_gklm_sg_msg      = "The GKLM security group does not include the compute security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_comp_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.comp_sg_in_gklm_sg_msg}$", (local.validate_comp_sg_in_gklm_sg ? local.comp_sg_in_gklm_sg_msg : "")) : true
 
-  validate_gklm_sg_in_gklm_sg = var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.gklm_security_group[*].id)[0]) : true
-  gklm_sg_in_gklm_sg_msg      = "GKLM security group is not present in GKLM security group"
+  validate_gklm_sg_in_gklm_sg = var.enable_sg_validation == true && var.scale_encryption_enabled == true && var.scale_encryption_type == "gklm" && var.gklm_sg_name != null ? contains(local.gklm_sg_rules, tolist(data.ibm_is_security_group.gklm_security_group[*].id)[0]) : true
+  gklm_sg_in_gklm_sg_msg      = "The GKLM security group does not include the GKLM security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_gklm_sg_in_gklm_sg_chk = var.gklm_sg_name != null ? regex("^${local.gklm_sg_in_gklm_sg_msg}$", (local.validate_gklm_sg_in_gklm_sg ? local.gklm_sg_in_gklm_sg_msg : "")) : true
 
   # LDAP Security group validation
-  validate_strg_sg_in_ldap_sg = var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null && var.strg_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
-  strg_sg_in_ldap_sg_msg      = "Storage security group is not present in LDAP security group"
+  validate_strg_sg_in_ldap_sg = var.enable_sg_validation == true && var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null && var.strg_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.strg_security_group[*].id)[0]) : true
+  strg_sg_in_ldap_sg_msg      = "The LDAP security group does not include the storage security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_strg_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.strg_sg_in_ldap_sg_msg}$", (local.validate_strg_sg_in_ldap_sg ? local.strg_sg_in_ldap_sg_msg : "")) : true
 
-  validate_comp_sg_in_ldap_sg = var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
-  comp_sg_in_ldap_sg_msg      = "Compute security group is not present in LDAP security group"
+  validate_comp_sg_in_ldap_sg = var.enable_sg_validation == true && var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null && var.total_compute_cluster_instances > 0 && var.comp_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.comp_security_group[*].id)[0]) : true
+  comp_sg_in_ldap_sg_msg      = "The LDAP security group does not include the compute security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_comp_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.comp_sg_in_ldap_sg_msg}$", (local.validate_comp_sg_in_ldap_sg ? local.comp_sg_in_ldap_sg_msg : "")) : true
 
-  validate_ldap_sg_in_ldap_sg = var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.ldap_security_group[*].id)[0]) : true
-  ldap_sg_in_ldap_sg_msg      = "LDAP security group is not present in LDAP security group"
+  validate_ldap_sg_in_ldap_sg = var.enable_sg_validation == true && var.enable_ldap == true && var.ldap_server == "null" && var.ldap_sg_name != null ? contains(local.ldap_sg_rules, tolist(data.ibm_is_security_group.ldap_security_group[*].id)[0]) : true
+  ldap_sg_in_ldap_sg_msg      = "The LDAP security group does not include the LDAP security group as a rule."
   # tflint-ignore: terraform_unused_declarations
   validate_ldap_sg_in_ldap_sg_chk = var.ldap_sg_name != null ? regex("^${local.ldap_sg_in_ldap_sg_msg}$", (local.validate_ldap_sg_in_ldap_sg ? local.ldap_sg_in_ldap_sg_msg : "")) : true
 }
@@ -668,7 +668,7 @@ module "storage_cluster_tie_breaker_instance_bm" {
   resource_group_id         = var.resource_group_id
   zones                     = [var.vpc_availability_zones[0]]
   vsi_image_id              = local.storage_instance_image_id
-  vsi_profile               = "cx2d-metal-96x192"
+  vsi_profile               = var.tie_breaker_bare_metal_server_profile
   dns_domain                = var.vpc_storage_cluster_dns_domain
   dns_service_id            = var.vpc_storage_cluster_dns_service_id
   dns_zone_id               = var.vpc_storage_cluster_dns_zone_id
@@ -1126,16 +1126,16 @@ module "storage_cluster_configuration" {
   strg_desc_bandwidth                 = data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
   strg_memory                         = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   strg_vcpus_count                    = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
-  strg_bandwidth                      = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  strg_bandwidth                      = var.storage_type == "persistent" ? values(one(module.storage_cluster_bare_metal_server[*].instance_bandwidth))[0] : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
   proto_memory                        = (local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false) ? local.ces_server_type == false ? data.ibm_is_instance_profile.protocol_profile_vsi[0].memory[0].value : data.ibm_is_bare_metal_server_profile.protocol_profile_bm[0].memory[0].value : jsonencode(0)
   proto_vcpus_count                   = (local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false) ? local.ces_server_type == false ? data.ibm_is_instance_profile.protocol_profile_vsi[0].vcpu_count[0].value : data.ibm_is_bare_metal_server_profile.protocol_profile_bm[0].cpu_core_count[0].value : jsonencode(0)
-  proto_bandwidth                     = (local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false) ? local.ces_server_type == false ? data.ibm_is_instance_profile.protocol_profile_vsi[0].bandwidth[0].value : data.ibm_is_bare_metal_server_profile.protocol_profile_bm[0].bandwidth[0].value : jsonencode(0)
+  proto_bandwidth                     = (local.scale_ces_enabled == true && var.colocate_protocol_cluster_instances == false) ? local.ces_server_type == false ? data.ibm_is_instance_profile.protocol_profile_vsi[0].bandwidth[0].value : values(one(module.protocol_cluster_instances[*].instance_bandwidth))[0] : jsonencode(0)
   strg_proto_memory                   = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].memory[0].value : data.ibm_is_instance_profile.storage_profile.memory[0].value
   strg_proto_vcpus_count              = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.storage_profile.vcpu_count[0].value
-  strg_proto_bandwidth                = var.storage_type == "persistent" ? data.ibm_is_bare_metal_server_profile.storage_bare_metal_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
+  strg_proto_bandwidth                = var.storage_type == "persistent" ? values(one(module.storage_cluster_bare_metal_server[*].instance_bandwidth))[0] : data.ibm_is_instance_profile.storage_profile.bandwidth[0].value
   afm_memory                          = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].memory[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].memory[0].value
   afm_vcpus_count                     = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].cpu_core_count[0].value * data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].cpu_socket_count[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].vcpu_count[0].value
-  afm_bandwidth                       = local.afm_server_type == true ? data.ibm_is_bare_metal_server_profile.afm_vsi_bm_server_profile[0].bandwidth[0].value : data.ibm_is_instance_profile.afm_vsi_server_profile[0].bandwidth[0].value
+  afm_bandwidth                       = local.afm_server_type == true ? values(one(module.afm_cluster_instances[*].instance_bandwidth))[0] : data.ibm_is_instance_profile.afm_vsi_server_profile[0].bandwidth[0].value
   disk_type                           = "network-attached"
   max_data_replicas                   = 3
   max_metadata_replicas               = 3
