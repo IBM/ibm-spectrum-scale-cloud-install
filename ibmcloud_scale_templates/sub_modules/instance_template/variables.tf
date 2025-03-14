@@ -601,23 +601,23 @@ variable "enable_sg_validation" {
 variable "strg_sg_name" {
   type        = string
   default     = null
-  description = "Existing storage security group name for storage nodes"
+  description = "Provide the security group name to provision the storage nodes. If set to null, the solution will automatically create the necessary security group and rules. If you choose to use an existing security group, ensure it has the appropriate rules configured for the storage nodes to function properly."
 }
 
 variable "comp_sg_name" {
   type        = string
   default     = null
-  description = "Existing compute security group name for compute nodes"
+  description = "Provide the security group name to provision the compute nodes. If set to null, the solution will automatically create the necessary security group and rules. If you choose to use an existing security group, ensure it has the appropriate rules configured for the compute nodes to function properly."
 }
 
 variable "gklm_sg_name" {
   type        = string
   default     = null
-  description = "Existing gklm security group name for gklm nodes"
+  description = "Provide the security group name to provision the gklm nodes. If set to null, the solution will automatically create the necessary security group and rules. If you choose to use an existing security group, ensure it has the appropriate rules configured for the gklm nodes to function properly."
 }
 
 variable "ldap_sg_name" {
   type        = string
   default     = null
-  description = "Existing ldap security group name for ldap nodes"
+  description = "Provide the security group name to provision the ldap nodes. If set to null, the solution will automatically create the necessary security group and rules. If you choose to use an existing security group, ensure it has the appropriate rules configured for the ldap nodes to function properly."
 }
