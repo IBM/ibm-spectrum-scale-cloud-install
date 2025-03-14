@@ -278,8 +278,8 @@ variable "storage_bare_metal_server_profile" {
 
 variable "tie_breaker_bare_metal_server_profile" {
   type        = string
-  default     = null
-  description = "Specify the virtual server instance profile type name to be used to create the Baremetal tie breaker nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
+  default     = "cx2d-metal-96x192"
+  description = "Specify the bare metal server profile type name to be used for creating the bare metal Tie breaker node. If no value is provided, the storage bare metal server profile will be used as the default. For more information, see [bare metal server profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui). [Tie Breaker Node](https://www.ibm.com/docs/en/storage-scale/5.2.2?topic=quorum-node-tiebreaker-disks)"
 }
 
 variable "storage_bare_metal_osimage_name" {
@@ -592,32 +592,32 @@ variable "afm_cos_config" {
 
 # Existing Security Group Variables
 
+variable "enable_sg_validation" {
+  type        = bool
+  default     = true
+  description = "Enable or disable security group validation. Security group validation ensures that the specified security groups are properly assigned"
+}
+
 variable "strg_sg_name" {
   type        = string
   default     = null
-  description = "Existing storage security group name"
+  description = "Provide the security group name to provision the storage nodes. If set to null, the solution will automatically create the necessary security group and rules. If you choose to use an existing security group, ensure it has the appropriate rules configured for the storage nodes to function properly."
 }
 
 variable "comp_sg_name" {
   type        = string
   default     = null
-  description = "Existing compute security group name"
+  description = "Provide the security group name to provision the compute nodes. If set to null, the solution will automatically create the necessary security group and rules. If you choose to use an existing security group, ensure it has the appropriate rules configured for the compute nodes to function properly."
 }
 
 variable "gklm_sg_name" {
   type        = string
   default     = null
-  description = "Existing gklm security group name"
+  description = "Provide the security group name to provision the gklm nodes. If set to null, the solution will automatically create the necessary security group and rules. If you choose to use an existing security group, ensure it has the appropriate rules configured for the gklm nodes to function properly."
 }
 
 variable "ldap_sg_name" {
   type        = string
   default     = null
-  description = "Existing ldap security group name"
-}
-
-variable "enable_sg_validation" {
-  type        = bool
-  default     = true
-  description = "Enable or disable security group validation."
+  description = "Provide the security group name to provision the ldap nodes. If set to null, the solution will automatically create the necessary security group and rules. If you choose to use an existing security group, ensure it has the appropriate rules configured for the ldap nodes to function properly."
 }
