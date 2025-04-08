@@ -39,6 +39,24 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo '[IBMScaleAPIRepository]' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'name=IBM Storage Scale API Repository' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/scaleapi_rpms/' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo '[Kakfa]' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'name=IBM Storage Scale Kakfa Repository' >> /etc/yum.repos.d/scale.repo"
+    if sudo grep -q el8 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/gpfs_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el9 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/gpfs_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    fi
+    sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo '[ZimonRepository]' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'name=IBM Storage Scale Zimon Repository' >> /etc/yum.repos.d/scale.repo"
     if sudo grep -q el8 /etc/os-release; then
@@ -50,7 +68,7 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license*
+    sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license* gpfs.librdkafka* gpfs.scaleapi*
     if sudo dnf search gpfs.adv | grep -q "gpfs.adv"; then
         sudo dnf install -y gpfs.adv
     fi
