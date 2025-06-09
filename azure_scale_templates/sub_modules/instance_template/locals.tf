@@ -1,11 +1,17 @@
 locals {
-  compute_or_combined = ((var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") && var.total_compute_cluster_instances > 0) ? true : false
-  storage_or_combined = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
-  storage_and_gateway = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
+  compute_or_combined  = ((var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") && var.total_compute_cluster_instances > 0) ? true : false
+  storage_or_combined  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
+  storage_and_protocol = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_protocol_instances > 0) ? true : false
+  storage_and_gateway  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
 
   tcp_port_scale_cluster         = ["22", "1191", "60000-61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
   udp_port_scale_cluster         = ["47443", "4739"]
   tcp_port_bastion_scale_cluster = ["22", "443"]
+
+  # Internode protocol ports
+  protocol_traffic_ports                   = [4379]
+  protocol_traffic_to_ports                = [4379]
+  protocol_nodes_security_rule_description = ["Allow traffic within protocol instances"]
 
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",
@@ -273,6 +279,44 @@ locals {
           device_name = format("disk/azure/scsi1/lun%s", jdx)
         } if length(var.marked_vm_names_to_attach_disks) == 0 || anytrue([for marked_vm in var.marked_vm_names_to_attach_disks : can(regex(marked_vm, format("%s.%s", vm_name, var.vpc_storage_cluster_dns_domain)))])
       })
+    }
+  }
+}
+
+/*
+    Generate a list of protocol vm name(s).
+    Ex: vm_list = ["vm-protocol-1", "vm-protocol-2",]
+*/
+resource "null_resource" "generate_protocol_vm_name" {
+  count = local.storage_and_protocol ? var.total_protocol_instances : 0
+  triggers = {
+    vm_name = format("%s-protocol-%s", var.resource_prefix, count.index + 1)
+  }
+}
+
+/*
+    Generate a map using protocol vm name key and values of subnet.
+    Ex:
+        protocol_vm_subnet_map = {
+            "vm-protocol-1" = {
+                "base_subnet" = "test-private-subnet-1"
+                "ces_subnet" = "ces-private-subnet-1"
+            }
+            "vm-protocol-2" = {
+                "base_subnet" = "test-private-subnet-2"
+                "ces_subnet" = "ces-private-subnet-2"
+            }
+        }
+*/
+locals {
+  protocol_vm_subnet_map = {
+    for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
+    vm_name => {
+      # Consider only first 2 elements
+      zone           = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
+      base_subnet    = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
+      ces_subnet     = length(var.vpc_protocol_private_subnets) > 1 ? element(slice(var.vpc_protocol_private_subnets, 0, 2), idx) : element(var.vpc_protocol_private_subnets, idx)
+      ces_ip_address = element(var.ces_ip_address, idx)
     }
   }
 }

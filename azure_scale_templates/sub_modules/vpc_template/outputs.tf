@@ -8,6 +8,16 @@ output "vpc_compute_nat_gateways" {
   description = "List of IDs of compute cluster nat gateway."
 }
 
+output "vpc_protocol_nat_gateways" {
+  value       = module.protocol_nat_gateway.nat_gateway_id
+  description = "List of IDs of protocol NAT Gateway."
+}
+
+output "vpc_protocol_private_subnets" {
+  value       = module.protocol_private_subnet.subnet_id
+  description = "List of IDs of protocol cluster private subnets."
+}
+
 output "vpc_public_subnets" {
   value       = module.public_subnet.subnet_id
   description = "List of IDs of public subnets."

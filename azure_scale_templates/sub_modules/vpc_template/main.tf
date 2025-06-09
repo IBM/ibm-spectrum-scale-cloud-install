@@ -128,6 +128,51 @@ module "nat_strg_private_snet_association" {
   nat_gateway_id = module.storage_nat_gateway.nat_gateway_id
 }
 
+# Create nat gateway public ip for protocol subnet
+module "protocol_public_ip" {
+  source              = "../../../resources/azure/network/public_ip"
+  turn_on             = ((var.vpc_public_subnets_cidr_blocks != null && var.vpc_protocol_private_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
+  public_ip_name      = format("%s-protocol-nat-pubip", var.resource_prefix)
+  resource_group_name = var.resource_group_name
+  location            = var.vpc_region
+}
+
+# Create a NAT associated to protocol subnet
+module "protocol_nat_gateway" {
+  source              = "../../../resources/azure/network/nat_gateway"
+  turn_on             = ((var.vpc_public_subnets_cidr_blocks != null && var.vpc_protocol_private_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
+  name                = format("%s-protocol-pvt-%s", var.resource_prefix, "nat")
+  location            = var.vpc_region
+  resource_group_name = var.resource_group_name
+}
+
+# Associate public ip to storage nat gateway
+module "protocol_nat_public_pip_association" {
+  source               = "../../../resources/azure/network/nat_gw_publicip_association"
+  turn_on              = ((var.vpc_public_subnets_cidr_blocks != null && var.vpc_protocol_private_subnets_cidr_blocks != null) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage")) ? true : false
+  public_ip_address_id = module.protocol_public_ip.id
+  nat_gateway_id       = module.protocol_nat_gateway.nat_gateway_id
+}
+
+# Protocol private subnet
+module "protocol_private_subnet" {
+  source              = "../../../resources/azure/network/subnet"
+  turn_on             = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.vpc_protocol_private_subnets_cidr_blocks != null ? true : false
+  resource_group_name = var.resource_group_name
+  subnet_name_prefix  = format("%s-%s", var.resource_prefix, "protocol-pvt")
+  address_prefixes    = var.vpc_protocol_private_subnets_cidr_blocks
+  vnet_name           = module.vnet.vnet_name
+  service_endpoints   = ["Microsoft.Storage"]
+}
+
+# Associate nat gateway to protocol subnet
+module "nat_protocol_private_snet_association" {
+  source         = "../../../resources/azure/network/nat_gw_subnet_association"
+  turn_on        = (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
+  subnet_id      = module.protocol_private_subnet.subnet_id
+  nat_gateway_id = module.protocol_nat_gateway.nat_gateway_id
+}
+
 # Public subnet for azure fully managed Bastion service
 module "public_subnet_bastion_service" {
   count               = var.vpc_bastion_service_subnets_cidr_blocks != null ? length(var.vpc_bastion_service_subnets_cidr_blocks) : 0
@@ -148,6 +193,6 @@ module "vnet_network_security_group" {
 # Associate NSG to all the subnets of the VNet
 module "associate_nsg_wth_subnet" {
   source                    = "../../../resources/azure/security/network_security_group_association"
-  subnet_ids                = concat(module.public_subnet.subnet_id, module.storage_private_subnet.subnet_id, module.compute_private_subnet.subnet_id)
+  subnet_ids                = concat(module.public_subnet.subnet_id, module.storage_private_subnet.subnet_id, module.compute_private_subnet.subnet_id, module.protocol_private_subnet.subnet_id)
   network_security_group_id = module.vnet_network_security_group.sec_group_id
 }

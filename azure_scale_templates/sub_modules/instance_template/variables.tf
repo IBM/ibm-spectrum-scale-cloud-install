@@ -34,6 +34,12 @@ variable "bastion_user" {
   description = "Bastion login username."
 }
 
+variable "ces_ip_address" {
+  type        = list(string)
+  nullable    = true
+  description = "CES IP addresses (length must be equal to number of protocol nodes)."
+}
+
 variable "client_id" {
   type        = string
   nullable    = false
@@ -173,6 +179,12 @@ variable "nsg_rule_start_index" {
   description = "Specifies the network security group rule priority start index."
 }
 
+variable "protocol_instance_type" {
+  type        = string
+  nullable    = true
+  description = "Instance type to use for provisioning the protocol instances."
+}
+
 variable "resource_group_name" {
   type        = string
   nullable    = false
@@ -280,7 +292,13 @@ variable "total_compute_cluster_instances" {
 variable "total_gateway_instances" {
   type        = number
   nullable    = true
-  description = "Number of EC2 instances to be launched for gateway nodes."
+  description = "Number of Azure instances (vms) to be launched for gateway nodes."
+}
+
+variable "total_protocol_instances" {
+  type        = number
+  nullable    = true
+  description = "Number of Azure instances (vms) to be launched for protocol nodes."
 }
 
 variable "total_storage_cluster_instances" {
@@ -343,6 +361,12 @@ variable "vpc_network_security_group_ref" {
   type        = string
   nullable    = false
   description = "VNet network security group id/reference."
+}
+
+variable "vpc_protocol_private_subnets" {
+  type        = list(string)
+  nullable    = true
+  description = "List of IDs of protocol private subnets."
 }
 
 variable "vpc_region" {

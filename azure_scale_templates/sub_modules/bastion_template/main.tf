@@ -13,6 +13,7 @@ locals {
 # Create bastion/jumphost Application Security Group (ASG)
 module "bastion_app_security_grp" {
   source              = "../../../resources/azure/security/application_security_group"
+  turn_on             = true
   resource_prefix     = "${var.resource_prefix}-bastion-sec-group"
   location            = var.vpc_region
   resource_group_name = var.resource_group_name
