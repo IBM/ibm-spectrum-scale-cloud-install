@@ -54,14 +54,17 @@ updateTerraformDocs(){
     done
 }
 
-echo "Generating AWS terraform-docs"
+echo "Generating AWS docs"
 updateTerraformDocs "${awsDocModules[@]}"
 
-echo "Generating Azure terraform-docs"
+echo "Generating Azure docs"
 updateTerraformDocs "${azureDocModules[@]}"
 
-echo "Generating IBM Cloud terraform-docs"
+echo "Generating IBM Cloud docs"
 updateTerraformDocs "${ibmDocModules[@]}"
 
-echo "Generating GCP Cloud terraform-docs"
+echo "Generating GCP Cloud docs"
 updateTerraformDocs "${gcpDocModules[@]}"
+
+echo "Generating AWS planning docs"
+updateTerraformDocs "${planningDoc[@]}"
