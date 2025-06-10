@@ -33,6 +33,10 @@ gcpDocModules=(
     "$root_dir/gcp_scale_templates/sub_modules/instance_template"
 )
 
+planningDoc=(
+    "$root_dir/planning/aws"
+)
+
 #Updates terraform docs if not already updated
 updateTerraformDocs(){
     checkAndUpdateModules=("$@")
