@@ -1,6 +1,7 @@
 #!/bin/bash
 set -ex
 
+arch=$(uname -m)
 sleep 30
 if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
     echo "debconf debconf/frontend select Noninteractive" | sudo debconf-set-selections
@@ -28,7 +29,11 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`
     sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils nftables iptables nvme-cli
     sudo dnf install -y sssd-tools sssd openldap-clients
-    sudo curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+    if [[ "$arch" == arm* || "$arch" == aarch64 ]]; then
+        sudo curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip
+    else
+        sudo curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip
+    fi
     sudo unzip awscliv2.zip
     sudo ./aws/install
     sudo rm -rf awscliv2.zip

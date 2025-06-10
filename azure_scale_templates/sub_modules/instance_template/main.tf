@@ -20,7 +20,17 @@ module "generate_storage_cluster_keys" {
 # Create scale cluster application security group
 module "cluster_security_group" {
   source              = "../../../resources/azure/security/application_security_group"
+  turn_on             = true
   resource_prefix     = "${var.resource_prefix}-cls-sec-group"
+  location            = var.vpc_region
+  resource_group_name = var.resource_group_name
+}
+
+# Create protocol/ces nodes specific application security group
+module "protocol_security_group" {
+  source              = "../../../resources/azure/security/application_security_group"
+  turn_on             = var.total_protocol_instances > 0 ? true : false
+  resource_prefix     = "${var.resource_prefix}-protocol-sec-group"
   location            = var.vpc_region
   resource_group_name = var.resource_group_name
 }
@@ -58,9 +68,26 @@ module "cluster_ingress_security_rule_using_jumphost_connection" {
   destination_application_security_group_ids = [module.cluster_security_group.asg_id]
   network_security_group_name                = var.vpc_network_security_group_ref
   resource_group_name                        = var.resource_group_name
-  description                                = "Allow traffic betwen bastion instances and scale instances"
+  description                                = "Allow traffic between bastion instances and scale instances"
 }
 
+# Allow scale/gpfs tcp traffic the scale protocol vm(s)
+module "allow_traffic_within_protocol_vms" {
+  source                                     = "../../../resources/azure/security/nsg_source_destination_app_sec_grp"
+  total_rules                                = local.storage_and_protocol ? length(local.protocol_traffic_ports) : 0
+  rule_names_prefix                          = "${var.resource_prefix}-protocol-allow"
+  direction                                  = ["Inbound"]
+  access                                     = ["Allow"]
+  protocol                                   = [for i in range(length(local.protocol_traffic_ports)) : "Tcp"]
+  source_port_range                          = ["*"]
+  destination_port_range                     = local.protocol_traffic_to_ports
+  priority                                   = [for i in range(length(local.protocol_traffic_ports)) : format("%s", i + 400 + var.nsg_rule_start_index)]
+  network_security_group_name                = var.vpc_network_security_group_ref
+  resource_group_name                        = var.resource_group_name
+  source_application_security_group_ids      = [module.cluster_security_group.asg_id, module.protocol_security_group.asg_id]
+  destination_application_security_group_ids = [module.protocol_security_group.asg_id]
+  description                                = local.protocol_nodes_security_rule_description
+}
 module "proximity_group" {
   turn_on              = local.create_placement_group
   source               = "../../../resources/azure/compute/proximity_placement_group"
@@ -199,6 +226,32 @@ module "gateway_instances" {
   ssh_public_key_path           = var.storage_cluster_public_key_path
   subnet_id                     = each.value["subnet"]
   vm_size                       = var.gateway_instance_type
+}
+
+module "protocol_instances" {
+  for_each                      = local.protocol_vm_subnet_map
+  source                        = "../../../resources/azure/compute/vm_multiple_nic"
+  name_prefix                   = each.key
+  application_security_group_id = module.protocol_security_group.asg_id
+  availability_zone             = each.value["zone"]
+  dns_domain                    = var.vpc_storage_cluster_dns_domain
+  forward_dns_zone              = var.vpc_forward_dns_zone
+  location                      = var.vpc_region
+  login_username                = var.instances_ssh_user_name
+  meta_private_key              = module.generate_storage_cluster_keys.private_key_content
+  meta_public_key               = module.generate_storage_cluster_keys.public_key_content
+  os_disk_caching               = var.storage_cluster_os_disk_caching
+  os_disk_encryption_set_id     = module.os_disk_encryption_set.enc_set_id
+  os_storage_account_type       = var.storage_cluster_boot_disk_type
+  proximity_placement_group_id  = null
+  resource_group_name           = var.resource_group_name
+  reverse_dns_zone              = var.vpc_reverse_dns_zone
+  source_image_id               = var.storage_cluster_image_ref
+  ssh_public_key_path           = var.storage_cluster_public_key_path
+  base_subnet_id                = each.value["base_subnet"]
+  ces_subnet_id                 = each.value["ces_subnet"]
+  ces_ipaddress                 = each.value["ces_ip_address"]
+  vm_size                       = var.protocol_instance_type
 }
 
 module "prepare_ansible_configuration" {

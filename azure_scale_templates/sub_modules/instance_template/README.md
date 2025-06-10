@@ -154,7 +154,7 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 3.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 4.0 |
 
 #### Inputs
 
@@ -166,6 +166,7 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 | <a name="input_bastion_security_group_ref"></a> [bastion_security_group_ref](#input_bastion_security_group_ref) | Bastion security group reference (id/self-link). | `string` |
 | <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
 | <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
+| <a name="input_ces_ip_address"></a> [ces_ip_address](#input_ces_ip_address) | CES IP addresses (length must be equal to number of protocol nodes). | `list(string)` |
 | <a name="input_client_id"></a> [client_id](#input_client_id) | The Active Directory service principal associated with your account. | `string` |
 | <a name="input_client_secret"></a> [client_secret](#input_client_secret) | The password or secret for your service principal. | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
@@ -186,6 +187,7 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 | <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. | `string` |
 | <a name="input_marked_vm_names_to_attach_disks"></a> [marked_vm_names_to_attach_disks](#input_marked_vm_names_to_attach_disks) | Specify the instance names for which disks needs to be attached | `list(string)` |
 | <a name="input_nsg_rule_start_index"></a> [nsg_rule_start_index](#input_nsg_rule_start_index) | Specifies the network security group rule priority start index. | `number` |
+| <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
 | <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | The name of a new resource group in which the resources will be created. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_root_device_key_vault_key_ref"></a> [root_device_key_vault_key_ref](#input_root_device_key_vault_key_ref) | Azure Key vault key reference to use when encrypting the OS disk. | `string` |
@@ -203,7 +205,8 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 | <a name="input_subscription_id"></a> [subscription_id](#input_subscription_id) | The subscription ID to use. | `string` |
 | <a name="input_tenant_id"></a> [tenant_id](#input_tenant_id) | The Active Directory tenant identifier, must provide when using service principals. | `string` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of Azure instances (vms) to be launched for compute cluster. | `number` |
-| <a name="input_total_gateway_instances"></a> [total_gateway_instances](#input_total_gateway_instances) | Number of EC2 instances to be launched for gateway nodes. | `number` |
+| <a name="input_total_gateway_instances"></a> [total_gateway_instances](#input_total_gateway_instances) | Number of Azure instances (vms) to be launched for gateway nodes. | `number` |
+| <a name="input_total_protocol_instances"></a> [total_protocol_instances](#input_total_protocol_instances) | Number of Azure instances (vms) to be launched for protocol nodes. | `number` |
 | <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of Azure instances (vms) to be launched for storage cluster. | `number` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
@@ -213,6 +216,7 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
 | <a name="input_vpc_forward_dns_zone"></a> [vpc_forward_dns_zone](#input_vpc_forward_dns_zone) | DNS zone name to be used for scale cluster (Ex: example-zone). | `string` |
 | <a name="input_vpc_network_security_group_ref"></a> [vpc_network_security_group_ref](#input_vpc_network_security_group_ref) | VNet network security group id/reference. | `string` |
+| <a name="input_vpc_protocol_private_subnets"></a> [vpc_protocol_private_subnets](#input_vpc_protocol_private_subnets) | List of IDs of protocol private subnets. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The location/region of the vnet to create. Examples are East US, West US, etc. | `string` |
 | <a name="input_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#input_vpc_reverse_dns_zone) | DNS reverse zone lookup to be used for scale cluster (Ex: 10.in-addr.arpa). | `string` |
 | <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | DNS domain name to be used for storage cluster. | `string` |
@@ -228,6 +232,8 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security ids. |
 | <a name="output_gateway_instance_details"></a> [gateway_instance_details](#output_gateway_instance_details) | Gateway instance details (map of id, private_ip, dns) |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | Placement group id. |
+| <a name="output_protocol_cluster_security_group_id"></a> [protocol_cluster_security_group_id](#output_protocol_cluster_security_group_id) | Protocol cluster security group ids. |
+| <a name="output_protocol_instance_details"></a> [protocol_instance_details](#output_protocol_instance_details) | Protocol instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_dec_instance_details"></a> [storage_cluster_dec_instance_details](#output_storage_cluster_dec_instance_details) | Storage cluster desc instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_instance_details"></a> [storage_cluster_instance_details](#output_storage_cluster_instance_details) | Storage cluster instance details (map of id, private_ip, dns) |

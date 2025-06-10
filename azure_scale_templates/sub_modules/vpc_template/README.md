@@ -43,7 +43,7 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 3.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 4.0 |
 
 #### Inputs
 
@@ -60,6 +60,7 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 | <a name="input_vpc_bastion_service_subnets_cidr_blocks"></a> [vpc_bastion_service_subnets_cidr_blocks](#input_vpc_bastion_service_subnets_cidr_blocks) | List of CIDR blocks for azure fully managed bastion subnet. | `list(string)` |
 | <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the vpc. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks for compute cluster private subnets. | `list(string)` |
+| <a name="input_vpc_protocol_private_subnets_cidr_blocks"></a> [vpc_protocol_private_subnets_cidr_blocks](#input_vpc_protocol_private_subnets_cidr_blocks) | List of cidr_blocks of protocol private subnets. | `list(string)` |
 | <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of cidr_blocks of public subnets. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The location/region of the vpc to create. Examples are East US, West US, etc. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks for storage cluster private subnets. | `list(string)` |
@@ -72,6 +73,8 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vpc_compute_nat_gateways"></a> [vpc_compute_nat_gateways](#output_vpc_compute_nat_gateways) | List of IDs of compute cluster nat gateway. |
 | <a name="output_vpc_network_security_group_ref"></a> [vpc_network_security_group_ref](#output_vpc_network_security_group_ref) | VNet network security group id/reference. |
+| <a name="output_vpc_protocol_nat_gateways"></a> [vpc_protocol_nat_gateways](#output_vpc_protocol_nat_gateways) | List of IDs of protocol NAT Gateway. |
+| <a name="output_vpc_protocol_private_subnets"></a> [vpc_protocol_private_subnets](#output_vpc_protocol_private_subnets) | List of IDs of protocol cluster private subnets. |
 | <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
 | <a name="output_vpc_ref"></a> [vpc_ref](#output_vpc_ref) | The ID of the vpc. |
 | <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |

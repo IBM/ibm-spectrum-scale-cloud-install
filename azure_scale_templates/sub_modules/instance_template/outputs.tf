@@ -28,6 +28,16 @@ output "placement_group_id" {
   description = "Placement group id."
 }
 
+output "protocol_instance_details" {
+  value       = [for instance in module.protocol_instances : instance.instance_details]
+  description = "Protocol instance details (map of id, private_ip, dns)"
+}
+
+output "protocol_cluster_security_group_id" {
+  value       = module.protocol_security_group.asg_id
+  description = "Protocol cluster security group ids."
+}
+
 output "storage_cluster_desc_data_volume_mapping" {
   value       = local.storage_instance_desc_ip_with_disk_mapping
   description = "Mapping of storage cluster desc instance ip vs. device path."
