@@ -33,6 +33,10 @@ gcpDocModules=(
     "$root_dir/gcp_scale_templates/sub_modules/instance_template"
 )
 
+planningDoc=(
+    "$root_dir/planning/aws"
+)
+
 #Updates terraform docs if not already updated
 updateTerraformDocs(){
     checkAndUpdateModules=("$@")
@@ -50,14 +54,17 @@ updateTerraformDocs(){
     done
 }
 
-echo "Generating AWS terraform-docs"
+echo "Generating AWS docs"
 updateTerraformDocs "${awsDocModules[@]}"
 
-echo "Generating Azure terraform-docs"
+echo "Generating Azure docs"
 updateTerraformDocs "${azureDocModules[@]}"
 
-echo "Generating IBM Cloud terraform-docs"
+echo "Generating IBM Cloud docs"
 updateTerraformDocs "${ibmDocModules[@]}"
 
-echo "Generating GCP Cloud terraform-docs"
+echo "Generating GCP Cloud docs"
 updateTerraformDocs "${gcpDocModules[@]}"
+
+echo "Generating AWS planning docs"
+updateTerraformDocs "${planningDoc[@]}"
