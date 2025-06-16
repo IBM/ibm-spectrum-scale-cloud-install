@@ -1,5 +1,5 @@
 /*
-    Creates VNET for IBM storage scale cloud deployment with below resources.
+    Creates VNET for IBM Storage scale cloud deployment with below resources.
 
     1. Resource group
     2. Vnet
