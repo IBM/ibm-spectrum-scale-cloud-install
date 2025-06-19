@@ -13,25 +13,45 @@ Below steps will provision IBM Cloud VPC required for IBM Spectrum Scale cloud s
     | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zones` keyword. Ex: `"vpc_availability_zones"=["us-south-1", "us-south-2", "us-south-3"]` |
     | --- |
 
-    Minimal Example:
+    Minimal Example (Multi-Az):
 
     ```json
     {
+        "cluster_type": "Storage-only",
+        "ibmcloud_api_key": "xxx",
+        "create_resource_group": true,
+        "resource_group_name": "test-rg",
+        "resource_prefix": "test-vpc",
         "vpc_region": "us-south",
-        "resource_group_id": "5c5d77eb1c3f4cd4b158dbbf62b5841c",
-        "vpc_availability_zones": ["us-south-1"]
+        "vpc_availability_zones": ["us-south-1", "us-south-2", "us-south-3"],
+        "vpc_cidr_block": "10.0.0.0/16",
+        "vpc_public_subnets_cidr_blocks": ["10.0.0.0/24", "10.0.67.0/24", "10.0.134.0/24"],
+        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.68.0/24", "10.0.135.0/24"],
+        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.2.0/24", "10.0.69.0/24", "10.0.136.0/24"],
+        "vpc_protocol_private_subnets_cidr_blocks": ["10.0.3.0/24", "10.0.70.0/24", "10.0.137.0/24"]
     }
     ```
 
-3. Export your IBM Cloud credentials by exporting the `IC_API_KEY` as environment variables.
+    Minimal Example (Single-Az):
 
-    Example:
+    ```json
+    {
+        "cluster_type": "Storage-only",
+        "ibmcloud_api_key": "xxx",
+        "create_resource_group": true,
+        "resource_group_name": "test-rg",
+        "resource_prefix": "test-vpc",
+        "vpc_region": "us-south",
+        "vpc_availability_zones": ["us-south-1"],
+        "vpc_cidr_block": "10.0.0.0/16",
+        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
+        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.2.0/24"],
+        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.3.0/24"],
+        "vpc_protocol_private_subnets_cidr_blocks": ["10.0.4.0/24"]
+    }
+    ```
 
-   ```cli
-   export IC_API_KEY=68jfz8VDfQzMNUFE_JcU5mCqd6zSmmznrwUbZqwrKJ5k
-   ```
-
-4. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
 <!-- BEGIN_TF_DOCS -->
 #### Requirements

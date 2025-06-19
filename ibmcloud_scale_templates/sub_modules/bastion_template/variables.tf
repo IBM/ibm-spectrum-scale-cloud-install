@@ -1,27 +1,38 @@
-variable "vpc_region" {
+variable "bastion_image_ref" {
   type        = string
-  description = "The region where IBM Cloud operations will take place. Examples are us-east, us-south, etc."
+  nullable    = false
+  description = "Bastion AMI Image id."
 }
 
-variable "vpc_availability_zones" {
-  type        = list(string)
-  description = "A list of availability zones names or ids in the region."
+variable "bastion_instance_type" {
+  type        = string
+  nullable    = false
+  description = "Instance type to use for the bastion instance."
 }
 
-variable "resource_prefix" {
+variable "bastion_key_pair" {
   type        = string
-  default     = "spectrum-scale"
-  description = "Prefix is added to all resources that are created."
+  nullable    = false
+  description = "The key pair to use to launch the bastion host."
 }
 
-variable "resource_group_id" {
-  type        = string
-  description = "IBM Cloud resource group id."
+variable "bastion_public_ssh_port" {
+  type        = number
+  nullable    = false
+  description = "Set the SSH port to use from desktop to the bastion."
 }
 
-variable "vpc_id" {
+variable "desired_instance_count" {
+  type        = number
+  nullable    = false
+  description = "Bastion instance desired count."
+}
+
+variable "ibmcloud_api_key" {
   type        = string
-  description = "VPC id were to deploy the bastion."
+  nullable    = false
+  sensitive   = true
+  description = "The IBM Cloud platform API key."
 }
 
 variable "remote_cidr_blocks" {
@@ -30,24 +41,36 @@ variable "remote_cidr_blocks" {
   description = "List of CIDRs that can access to the bastion. Default : 0.0.0.0/0"
 }
 
-variable "bastion_osimage_name" {
+variable "resource_group_name" {
   type        = string
-  default     = "ibm-ubuntu-20-04-2-minimal-amd64-1"
-  description = "Bastion OS image name."
+  nullable    = true
+  description = "The name of a resource group in which the resources will be created."
 }
 
-variable "bastion_vsi_profile" {
+variable "resource_prefix" {
   type        = string
-  default     = "cx2-2x4"
-  description = "Profile to be used for Bastion virtual server instance."
+  nullable    = false
+  description = "Prefix is added to all resources that are created. Example: ibm-storage-scale"
 }
 
-variable "bastion_key_pair" {
+variable "vpc_region" {
   type        = string
-  description = "The key pair to use to launch the bastion host."
+  description = "The region where IBM Cloud operations will take place. Examples are us-east, us-south, etc."
 }
 
-variable "bastion_subnet_id" {
+variable "vpc_auto_scaling_group_subnets" {
+  type        = list(string)
+  nullable    = false
+  description = "List of subnet were the Auto Scaling Group will deploy the instances."
+}
+
+variable "vpc_availability_zones" {
+  type        = list(string)
+  description = "A list of availability zones names or ids in the region."
+}
+
+variable "vpc_ref" {
   type        = string
-  description = "Subnet id to be used for Bastion virtual server instance."
+  nullable    = false
+  description = "VPC id were to deploy the bastion."
 }

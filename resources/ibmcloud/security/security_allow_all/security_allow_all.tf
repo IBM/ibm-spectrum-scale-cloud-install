@@ -10,18 +10,17 @@ terraform {
   }
 }
 
-variable "turn_on" {}
 variable "security_group_ids" {}
 variable "sg_direction" {}
 variable "remote_ip_addr" {}
 
 resource "ibm_is_security_group_rule" "itself" {
-  count     = tobool(var.turn_on) == true ? 1 : 0
+  for_each  = toset(var.remote_ip_addr)
   group     = var.security_group_ids
   direction = var.sg_direction
-  remote    = var.remote_ip_addr
+  remote    = each.key
 }
 
 output "security_rule_id" {
-  value = ibm_is_security_group_rule.itself[*].id
+  value = [for rule in ibm_is_security_group_rule.itself : rule.id]
 }
