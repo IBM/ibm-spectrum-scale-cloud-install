@@ -45,7 +45,7 @@ The below steps will provision the AWS Bastion instance required for the IBM Spe
 | <a name="input_desired_instance_count"></a> [desired_instance_count](#input_desired_instance_count) | Bastion instance desired count. | `number` |
 | <a name="input_remote_cidr_blocks"></a> [remote_cidr_blocks](#input_remote_cidr_blocks) | List of CIDRs that can access to the bastion. Example: 0.0.0.0/0 | `list(string)` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
-| <a name="input_vpc_auto_scaling_group_subnets"></a> [vpc_auto_scaling_group_subnets](#input_vpc_auto_scaling_group_subnets) | List of subnet were the Auto Scalling Group will deploy the instances. | `list(string)` |
+| <a name="input_vpc_auto_scaling_group_subnets"></a> [vpc_auto_scaling_group_subnets](#input_vpc_auto_scaling_group_subnets) | List of subnet were the Auto Scaling Group will deploy the instances. | `list(string)` |
 | <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc. | `string` |
 

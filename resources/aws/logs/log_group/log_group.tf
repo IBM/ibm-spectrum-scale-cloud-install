@@ -5,6 +5,7 @@
 variable "log_group_name_prefix" {}
 
 #tfsec:ignore:AWS089
+#tfsec:ignore:AVD-AWS-0017
 resource "aws_cloudwatch_log_group" "itself" {
   name_prefix = var.log_group_name_prefix
 }

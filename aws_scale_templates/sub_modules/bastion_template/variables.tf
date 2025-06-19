@@ -49,7 +49,7 @@ variable "bastion_key_pair" {
 variable "vpc_auto_scaling_group_subnets" {
   type        = list(string)
   nullable    = false
-  description = "List of subnet were the Auto Scalling Group will deploy the instances."
+  description = "List of subnet were the Auto Scaling Group will deploy the instances."
 }
 
 variable "desired_instance_count" {
