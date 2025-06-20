@@ -13,14 +13,18 @@ terraform {
 variable "asg_name" {}
 variable "launch_template_id" {}
 variable "desired_instance_count" {}
-variable "subnet_ids" {}
+variable "subnets" {}
 
+data "ibm_is_subnet" "itself" {
+  for_each = toset(var.subnets)
+  name     = each.key
+}
 
 resource "ibm_is_instance_group" "itself" {
   name              = var.asg_name
   instance_template = var.launch_template_id
   instance_count    = var.desired_instance_count
-  subnets           = var.subnet_ids
+  subnets           = [for subnet in data.ibm_is_subnet.itself : subnet.id]
 }
 
 data "ibm_is_instances" "itself" {

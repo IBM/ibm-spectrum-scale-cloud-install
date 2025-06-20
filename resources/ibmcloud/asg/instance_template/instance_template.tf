@@ -14,16 +14,23 @@ variable "resource_group_id" {}
 variable "launch_template_name" {}
 variable "instance_type" {}
 variable "image_id" {}
-variable "vpc_id" {}
+variable "vpc" {}
 variable "zone" {}
-variable "subnet_id" {}
+variable "subnet" {}
 variable "key_name" {}
 variable "security_groups" {}
 
+data "ibm_is_vpc" "itself" {
+  name = var.vpc
+}
+
+data "ibm_is_subnet" "itself" {
+  name = var.subnet
+}
 
 resource "ibm_is_instance_template" "itself" {
   name           = var.launch_template_name
-  vpc            = var.vpc_id
+  vpc            = data.ibm_is_vpc.itself.id
   zone           = var.zone
   resource_group = var.resource_group_id
   image          = var.image_id
@@ -31,7 +38,7 @@ resource "ibm_is_instance_template" "itself" {
 
   primary_network_interface {
     name            = format("%s-nic", var.launch_template_name)
-    subnet          = var.subnet_id
+    subnet          = data.ibm_is_subnet.itself.id
     security_groups = var.security_groups
   }
 
