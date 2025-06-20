@@ -110,7 +110,7 @@ The below steps will provision the AWS VPC required for the IBM Spectrum Scale c
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
-| <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 5.0 |
+| <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 6.0 |
 
 #### Inputs
 
