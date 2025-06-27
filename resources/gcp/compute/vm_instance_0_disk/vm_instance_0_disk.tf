@@ -24,7 +24,7 @@ variable "vpc_reverse_dns_domain" {}
 variable "root_device_kms_key_ring_ref" {}
 variable "root_device_kms_key_ref" {}
 variable "network_tags" {}
-variable "gpu_instance" {}
+variable "is_gpu_instance" {}
 
 data "google_kms_key_ring" "itself" {
   count    = var.root_device_kms_key_ring_ref != null ? 1 : 0
@@ -49,6 +49,7 @@ EOF
 
 #tfsec:ignore:google-compute-enable-shielded-vm-im
 #tfsec:ignore:google-compute-enable-shielded-vm-vtpm
+#tfsec:ignore:AVD-GCP-0067
 resource "google_compute_instance" "itself" {
   name         = var.instance_name
   machine_type = var.machine_type
@@ -94,9 +95,9 @@ resource "google_compute_instance" "itself" {
   lifecycle {
     ignore_changes = all
   }
-  
+
   dynamic "scheduling" {
-    for_each = var.gpu_instance ? [1] : []
+    for_each = var.is_gpu_instance ? [1] : []
     content {
       on_host_maintenance = "TERMINATE"
     }

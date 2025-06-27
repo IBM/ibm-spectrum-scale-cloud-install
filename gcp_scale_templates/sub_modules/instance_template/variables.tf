@@ -159,7 +159,6 @@ variable "inventory_format" {
 variable "is_gpu_enabled" {
   type        = bool
   nullable    = true
-  default     = false
   description = "Flag to represent whether to create GPU scale cluster"
 }
 
