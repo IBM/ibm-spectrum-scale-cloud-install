@@ -14,23 +14,14 @@ variable "enable_userdata" {}
 variable "meta_private_key" {}
 variable "meta_public_key" {}
 
-data "template_file" "user_data" {
-  template = <<EOF
-#!/usr/bin/env bash
-echo "${var.meta_private_key}" > ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa
-echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-EOF
-}
-
-data "template_cloudinit_config" "user_data64" {
-  gzip          = true
-  base64_encode = true
-  part {
-    content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
-  }
+locals {
+  user_data = <<-EOT
+    #!/usr/bin/env bash
+    echo "${var.meta_private_key}" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
+    echo "StrictHostKeyChecking no" >> ~/.ssh/config
+  EOT
 }
 
 #tfsec:ignore:aws-ec2-no-public-ip
@@ -48,7 +39,7 @@ resource "aws_launch_template" "itself" {
     name = var.instance_iam_profile
   }
   key_name  = var.key_name
-  user_data = var.enable_userdata ? data.template_cloudinit_config.user_data64.rendered : null
+  user_data = var.enable_userdata ? base64_encode(local.user_data) : null
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
