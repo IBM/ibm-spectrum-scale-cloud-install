@@ -28,7 +28,6 @@ variable "root_device_kms_key_ref" {}
 variable "service_email" {}
 variable "scopes" {}
 variable "network_tags" {}
-variable "is_gpu_instance" {}
 
 data "google_kms_key_ring" "itself" {
   count    = var.root_device_kms_key_ring_ref != null ? 1 : 0
@@ -125,13 +124,6 @@ resource "google_compute_instance" "itself" {
 
   lifecycle {
     ignore_changes = all
-  }
-
-  dynamic "scheduling" {
-    for_each = var.is_gpu_instance ? [1] : []
-    content {
-      on_host_maintenance = "TERMINATE"
-    }
   }
 }
 

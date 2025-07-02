@@ -156,12 +156,6 @@ variable "inventory_format" {
   description = "Specify inventory format suited for ansible playbooks."
 }
 
-variable "is_gpu_enabled" {
-  type        = bool
-  nullable    = true
-  description = "Flag to represent whether to create GPU scale cluster"
-}
-
 variable "marked_vm_names_to_attach_disks" {
   type        = list(string)
   nullable    = true

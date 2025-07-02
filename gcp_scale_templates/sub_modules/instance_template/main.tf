@@ -91,7 +91,6 @@ module "compute_cluster_instances" {
   boot_disk_size               = var.compute_cluster_boot_disk_size
   boot_disk_type               = var.compute_cluster_boot_disk_type
   boot_image                   = var.compute_cluster_image_ref
-  is_gpu_instance              = var.is_gpu_enabled
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref # Root volume custom encryption
   root_device_kms_key_ref      = var.root_device_kms_key_ref      # Root volume custom encryption
   ssh_user_name                = var.instances_ssh_user_name
@@ -129,7 +128,6 @@ module "storage_cluster_instances" {
   boot_disk_size               = var.storage_cluster_boot_disk_size
   boot_disk_type               = var.storage_cluster_boot_disk_type
   boot_image                   = var.storage_cluster_image_ref
-  is_gpu_instance              = var.is_gpu_enabled
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref
   root_device_kms_key_ref      = var.root_device_kms_key_ref
   vpc_forward_dns_zone         = var.vpc_forward_dns_zone
@@ -163,7 +161,6 @@ module "storage_cluster_tie_breaker_instance" {
   boot_disk_size               = var.storage_cluster_boot_disk_size
   boot_disk_type               = var.storage_cluster_boot_disk_type
   boot_image                   = var.storage_cluster_image_ref
-  is_gpu_instance              = var.is_gpu_enabled
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref
   root_device_kms_key_ref      = var.root_device_kms_key_ref
   vpc_forward_dns_zone         = var.vpc_forward_dns_zone
@@ -188,7 +185,6 @@ module "gateway_instances" {
   boot_disk_size               = var.storage_cluster_boot_disk_size
   boot_disk_type               = var.storage_cluster_boot_disk_type
   boot_image                   = var.storage_cluster_image_ref
-  is_gpu_instance              = var.is_gpu_enabled
   root_device_kms_key_ring_ref = var.root_device_kms_key_ring_ref # Root volume custom encryption
   root_device_kms_key_ref      = var.root_device_kms_key_ref      # Root volume custom encryption
   ssh_user_name                = var.instances_ssh_user_name

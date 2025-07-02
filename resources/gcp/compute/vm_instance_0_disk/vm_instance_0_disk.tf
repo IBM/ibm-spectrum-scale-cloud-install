@@ -24,7 +24,6 @@ variable "vpc_reverse_dns_domain" {}
 variable "root_device_kms_key_ring_ref" {}
 variable "root_device_kms_key_ref" {}
 variable "network_tags" {}
-variable "is_gpu_instance" {}
 
 data "google_kms_key_ring" "itself" {
   count    = var.root_device_kms_key_ring_ref != null ? 1 : 0
@@ -36,6 +35,11 @@ data "google_kms_crypto_key" "itself" {
   count    = var.root_device_kms_key_ref != null ? 1 : 0
   name     = var.root_device_kms_key_ref
   key_ring = data.google_kms_key_ring.itself[0].id
+}
+
+data "google_compute_machine_types" "gpu" {
+  filter = "name = \"${var.machine_type}\""
+  zone = var.zone
 }
 
 data "template_file" "metadata_startup_script" {
@@ -95,13 +99,13 @@ resource "google_compute_instance" "itself" {
   lifecycle {
     ignore_changes = all
   }
+  scheduling {
+     on_host_maintenance = (
+      length(data.google_compute_machine_types.gpu.machine_types) > 0 &&
+      length(data.google_compute_machine_types.gpu.machine_types[0].accelerators) > 0
+     ) ? "TERMINATE" : "MIGRATE"
+   }
 
-  dynamic "scheduling" {
-    for_each = var.is_gpu_instance ? [1] : []
-    content {
-      on_host_maintenance = "TERMINATE"
-    }
-  }
 }
 
 # Add the VM instance ip as 'A' record to DNS
