@@ -37,6 +37,11 @@ data "google_kms_crypto_key" "itself" {
   key_ring = data.google_kms_key_ring.itself[0].id
 }
 
+data "google_compute_machine_types" "itself" {
+  filter = "name = \"${var.machine_type}\""
+  zone   = var.zone
+}
+
 data "template_file" "metadata_startup_script" {
   template = <<EOF
 #!/usr/bin/env bash
@@ -48,6 +53,7 @@ EOF
 
 #tfsec:ignore:google-compute-enable-shielded-vm-im
 #tfsec:ignore:google-compute-enable-shielded-vm-vtpm
+#tfsec:ignore:AVD-GCP-0067
 resource "google_compute_instance" "itself" {
   name         = var.instance_name
   machine_type = var.machine_type
@@ -92,6 +98,13 @@ resource "google_compute_instance" "itself" {
   }
   lifecycle {
     ignore_changes = all
+  }
+
+  scheduling {
+    on_host_maintenance = (
+      length(data.google_compute_machine_types.itself.machine_types) > 0 &&
+      length(data.google_compute_machine_types.itself.machine_types[0].accelerators) > 0
+    ) ? "TERMINATE" : "MIGRATE"
   }
 }
 
