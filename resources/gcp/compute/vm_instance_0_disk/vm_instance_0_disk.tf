@@ -37,9 +37,9 @@ data "google_kms_crypto_key" "itself" {
   key_ring = data.google_kms_key_ring.itself[0].id
 }
 
-data "google_compute_machine_types" "gpu" {
+data "google_compute_machine_types" "itself" {
   filter = "name = \"${var.machine_type}\""
-  zone = var.zone
+  zone   = var.zone
 }
 
 data "template_file" "metadata_startup_script" {
@@ -99,13 +99,13 @@ resource "google_compute_instance" "itself" {
   lifecycle {
     ignore_changes = all
   }
-  scheduling {
-     on_host_maintenance = (
-      length(data.google_compute_machine_types.gpu.machine_types) > 0 &&
-      length(data.google_compute_machine_types.gpu.machine_types[0].accelerators) > 0
-     ) ? "TERMINATE" : "MIGRATE"
-   }
 
+  scheduling {
+    on_host_maintenance = (
+      length(data.google_compute_machine_types.itself.machine_types) > 0 &&
+      length(data.google_compute_machine_types.itself.machine_types[0].accelerators) > 0
+    ) ? "TERMINATE" : "MIGRATE"
+  }
 }
 
 # Add the VM instance ip as 'A' record to DNS
