@@ -11,7 +11,7 @@ locals {
   # Internode protocol ports
   protocol_traffic_ports                   = [4379]
   protocol_traffic_to_ports                = [4379]
-  protocol_nodes_security_rule_description = ["Allow traffic within protocol instances"]
+  protocol_nodes_security_rule_description = "Allow traffic within protocol instances"
 
   create_placement_group = (length(var.vpc_availability_zones) == 1 && var.enable_placement_group == true) ? true : false # Placement group does not spread across multiple availability zones
   block_device_names = ["/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/sdf", "/dev/sdg",

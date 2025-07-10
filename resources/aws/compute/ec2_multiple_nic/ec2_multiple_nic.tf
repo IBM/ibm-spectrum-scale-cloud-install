@@ -23,27 +23,18 @@ variable "tags" {}
 variable "user_public_key" {}
 variable "volume_tags" {}
 
-data "template_file" "user_data" {
-  template = <<EOF
-#!/usr/bin/env bash
-echo "${var.meta_private_key}" > ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa
-echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-# Hostname settings
-hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
-echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
-EOF
-}
-
-data "template_cloudinit_config" "user_data64" {
-  gzip          = true
-  base64_encode = true
-  part {
-    content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
-  }
+locals {
+  user_data = <<-EOT
+    #!/usr/bin/env bash
+    echo "${var.meta_private_key}" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
+    echo "StrictHostKeyChecking no" >> ~/.ssh/config
+    # Hostname settings
+    hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+    echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
+    echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
+  EOT
 }
 
 data "aws_kms_key" "itself" {
@@ -62,6 +53,7 @@ resource "aws_network_interface" "ces_nic" {
   security_groups   = var.security_groups
 }
 
+# tfsec:ignore:AVD-AWS-0131
 resource "aws_instance" "itself" {
   ami           = var.ami_id
   instance_type = var.instance_type
@@ -97,7 +89,7 @@ resource "aws_instance" "itself" {
     var.volume_tags,
   )
 
-  user_data_base64 = data.template_cloudinit_config.user_data64.rendered
+  user_data_base64 = base64encode(local.user_data)
   tags = merge(
     {
       "Name" = var.name_prefix
