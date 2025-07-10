@@ -22,27 +22,18 @@ variable "ssh_public_key_path" {}
 variable "subnet_id" {}
 variable "vm_size" {}
 
-data "template_file" "user_data" {
-  template = <<EOF
-#!/usr/bin/env bash
-echo "${var.meta_private_key}" > ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa
-echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-# Hostname settings
-hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
-systemctl restart NetworkManager
-EOF
-}
-
-data "template_cloudinit_config" "user_data64" {
-  gzip          = true
-  base64_encode = true
-  part {
-    content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
-  }
+locals {
+  user_data = <<-EOT
+    #!/usr/bin/env bash
+    echo "${var.meta_private_key}" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
+    echo "StrictHostKeyChecking no" >> ~/.ssh/config
+    # Hostname settings
+    hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+    echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+    systemctl restart NetworkManager
+  EOT
 }
 
 resource "azurerm_network_interface" "itself" {
@@ -101,7 +92,7 @@ resource "azurerm_linux_virtual_machine" "itself" {
     disk_encryption_set_id = var.os_disk_encryption_set_id
   }
   source_image_id = var.source_image_id
-  custom_data     = data.template_cloudinit_config.user_data64.rendered
+  custom_data     = base64encode(local.user_data)
   lifecycle {
     ignore_changes = all
   }
