@@ -23,12 +23,16 @@ if [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'repo_gpgcheck=0' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=0' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license*
+    sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license* gpfs.scaleapi*
     if sudo dnf search gpfs.adv | grep -q "gpfs.adv"; then
         sudo dnf install -y gpfs.adv
     fi
     if sudo dnf search gpfs.crypto | grep -q "gpfs.crypto"; then
         sudo dnf install -y gpfs.crypto
+    fi
+    # gpfs.librdkafka rpm depends on libcrypto.so.3 which is available on RHEL9 and not on RHEL8
+    if sudo grep -q el9 /etc/os-release; then
+        sudo dnf install -y gpfs.librdkafka*
     fi
 fi
 
@@ -37,16 +41,20 @@ ces_failover() {
 }
 
 install_nfs() {
-    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils gpfs.nfs-ganesha-debuginfo
     sudo dnf install -y gpfs.pm-ganesha
 }
 
 install_smb() {
-    sudo dnf install -y gpfs.smb
+    sudo dnf install -y gpfs.smb gpfs.smb-debuginfo
 }
 
 install_s3() {
     sudo dnf install -y gpfs.mms3 noobaa-core
+}
+
+install_hdfs() {
+    sudo dnf install -y gpfs.hdfs-protocol
 }
 
 case "$INSTALL_PROTOCOLS" in
@@ -65,6 +73,10 @@ case "$INSTALL_PROTOCOLS" in
         ces_failover
         install_s3
         ;;
+    hdfs)
+	ces_failover
+	install_hdfs
+	;;
     nfs-s3)
         ces_failover
         install_nfs
@@ -80,11 +92,27 @@ case "$INSTALL_PROTOCOLS" in
         install_smb
         install_s3
         ;;
+    nfs-hdfs)
+       ces_failover
+       install_nfs
+       install_hdfs
+       ;;
+    smb-hdfs)
+	ces_failover
+	install_smb
+	install_hdfs
+	;;
+    s3-hdfs)
+	ces_failover
+	install_s3
+	install_hdfs
+	;;
     *)
         ces_failover
         install_nfs
         install_smb
         install_s3
+	install_hdfs
         ;;
 esac
 

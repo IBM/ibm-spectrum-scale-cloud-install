@@ -27,6 +27,24 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo '[IBMScaleAPIRepository]' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'name=IBM Storage Scale API Repository' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/scaleapi_rpms/' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo '[Kakfa]' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'name=IBM Storage Scale Kakfa Repository' >> /etc/yum.repos.d/scale.repo"
+    if sudo grep -q el8 /etc/os-release; then
+       sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/gpfs_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el9 /etc/os-release; then
+       sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/gpfs_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    fi
+    sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo '[ZimonRepository]' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'name=IBM Storage Scale Zimon Repository' >> /etc/yum.repos.d/scale.repo"
     if sudo grep -q el8 /etc/os-release; then
@@ -38,7 +56,7 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license*
+    sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license* gpfs.librdkafka* gpfs.scaleapi*
     if sudo dnf search gpfs.adv | grep -q "gpfs.adv"; then
         sudo dnf install -y gpfs.adv
     fi
@@ -63,7 +81,7 @@ install_nfs() {
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
+    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils gpfs.nfs-ganesha-debuginfo
     sudo dnf install -y gpfs.pm-ganesha
 }
 
@@ -79,7 +97,7 @@ install_smb() {
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs.smb
+    sudo dnf install -y gpfs.smb gpfs.smb-debuginfo
 }
 
 install_s3() {
@@ -95,6 +113,17 @@ install_s3() {
     sudo sh -c "echo 'gpgkey=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
     sudo dnf install -y gpfs.mms3 noobaa-core
+}
+
+install_hdfs() {
+    sudo sh -c "echo '[HDFSProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'name=IBM Storage Scale HDFS Protocol Repository' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/hdfs_rpms/rhel/hdfs_3.3.6.x' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo 'gpgkey=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
+    sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
+    sudo dnf install -y gpfs.hdfs-protocol
 }
 
 case "$INSTALL_PROTOCOLS" in
@@ -113,6 +142,10 @@ case "$INSTALL_PROTOCOLS" in
         ces_failover
         install_s3
         ;;
+    hdfs)
+	ces_failover
+	install_hdfs
+	;;
     nfs-s3)
         ces_failover
         install_nfs
@@ -128,11 +161,27 @@ case "$INSTALL_PROTOCOLS" in
         install_smb
         install_s3
         ;;
+    nfs-hdfs)
+	ces_failover
+	install_nfs
+	install_hdfs
+	;;
+    smb-hdfs)
+	ces_failover
+	install_smb
+	install_hdfs
+	;;
+    s3-hdfs)
+	ces_failover
+	install_s3
+	install_hdfs
+	;;
     *)
         ces_failover
         install_nfs
         install_smb
         install_s3
+	install_hdfs
         ;;
 esac
 
