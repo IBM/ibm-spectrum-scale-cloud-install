@@ -26,8 +26,8 @@ variable "volume_tags" {}
 variable "zone" {}
 variable "dns_domain" {}
 
-data "template_file" "user_data" {
-  template = <<EOF
+locals {
+  user_data_script = <<EOF
 #!/usr/bin/env bash
 echo "${var.meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
@@ -38,20 +38,8 @@ hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
 echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
 echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 EOF
-}
 
-data "template_cloudinit_config" "user_data64" {
-  gzip          = true
-  base64_encode = true
-  part {
-    content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
-  }
-}
-
-data "template_file" "nvme_alias" {
-  count    = tobool(var.is_nitro_instance) == true ? 1 : 0
-  template = <<EOF
+  nvme_alias_script = <<EOF
 #!/usr/bin/env bash
 if [ ! -d "/var/mmfs/etc" ]; then
    mkdir -p "/var/mmfs/etc"
@@ -70,17 +58,29 @@ chmod u+x "/var/mmfs/etc/nsddevices"
 EOF
 }
 
-data "template_cloudinit_config" "nvme_user_data64" {
+data "cloudinit_config" "user_data64" {
+  gzip          = true
+  base64_encode = true
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = local.user_data_script
+  }
+}
+
+data "cloudinit_config" "nvme_user_data64" {
   count         = tobool(var.is_nitro_instance) == true ? 1 : 0
   gzip          = true
   base64_encode = true
+
   part {
     content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
+    content      = local.user_data_script
   }
+
   part {
     content_type = "text/x-shellscript"
-    content      = data.template_file.nvme_alias[0].rendered
+    content      = local.nvme_alias_script
   }
 }
 
@@ -90,6 +90,7 @@ data "aws_kms_key" "itself" {
 }
 
 # Create the EC2 instance
+# tfsec:ignore:AVD-AWS-0131
 resource "aws_instance" "itself" {
   ami             = var.ami_id
   instance_type   = var.instance_type
@@ -111,7 +112,7 @@ resource "aws_instance" "itself" {
     delete_on_termination = true
   }
 
-  user_data_base64 = tobool(var.is_nitro_instance) == true ? data.template_cloudinit_config.nvme_user_data64[0].rendered : data.template_cloudinit_config.user_data64.rendered
+  user_data_base64 = tobool(var.is_nitro_instance) == true ? data.cloudinit_config.nvme_user_data64[0].rendered : data.cloudinit_config.user_data64.rendered
   tags             = merge({ "Name" = var.name_prefix }, var.tags)
 
   metadata_options {

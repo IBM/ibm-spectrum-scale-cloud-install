@@ -8,6 +8,11 @@ output "bastion_user" {
   description = "Bastion OS Login username."
 }
 
+output "ces_private_ips" {
+  value       = var.ces_ip_address
+  description = "CES/Protocol ENI (secondary private) ips."
+}
+
 output "compute_cluster_instance_details" {
   value       = [for instance in module.compute_cluster_instances : instance.instance_details]
   description = "Compute cluster instance details (map of id, private_ip, dns)"

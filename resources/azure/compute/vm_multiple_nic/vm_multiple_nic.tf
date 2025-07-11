@@ -24,27 +24,18 @@ variable "base_subnet_id" {}
 variable "ces_subnet_id" {}
 variable "vm_size" {}
 
-data "template_file" "user_data" {
-  template = <<EOF
-#!/usr/bin/env bash
-echo "${var.meta_private_key}" > ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa
-echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-# Hostname settings
-hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
-systemctl restart NetworkManager
-EOF
-}
-
-data "template_cloudinit_config" "user_data64" {
-  gzip          = true
-  base64_encode = true
-  part {
-    content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
-  }
+locals {
+  user_data = <<-EOT
+    #!/usr/bin/env bash
+    echo "${var.meta_private_key}" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
+    echo "StrictHostKeyChecking no" >> ~/.ssh/config
+    # Hostname settings
+    hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+    echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+    systemctl restart NetworkManager
+  EOT
 }
 
 # Primary NIC, which is used for cluster communication
@@ -170,7 +161,7 @@ resource "azurerm_linux_virtual_machine" "itself" {
     disk_encryption_set_id = var.os_disk_encryption_set_id
   }
   source_image_id = var.source_image_id
-  custom_data     = data.template_cloudinit_config.user_data64.rendered
+  custom_data     = base64encode(local.user_data)
 
   identity {
     type         = "UserAssigned"
@@ -184,9 +175,10 @@ resource "azurerm_linux_virtual_machine" "itself" {
 
 output "instance_details" {
   value = {
-    private_ip = azurerm_linux_virtual_machine.itself.private_ip_address
-    id         = azurerm_linux_virtual_machine.itself.id
-    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
-    zone       = var.availability_zone
+    private_ip     = azurerm_linux_virtual_machine.itself.private_ip_address
+    id             = azurerm_linux_virtual_machine.itself.id
+    dns            = format("%s.%s", var.name_prefix, var.dns_domain)
+    zone           = var.availability_zone
+    ces_private_ip = var.ces_ipaddress
   }
 }
