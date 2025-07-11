@@ -12,7 +12,7 @@
 # Create a new DNS service
 module "dns_service" {
   source                 = "../../../resources/ibmcloud/resource_instance"
-  resource_instance_name = [format("%s-scaledns", var.resource_prefix)]
+  resource_instance_name = format("%s-scaledns", var.resource_prefix)
   resource_group_id      = var.resource_group_id
   resource_tags          = var.vpc_dns_tags
   target_location        = "global"

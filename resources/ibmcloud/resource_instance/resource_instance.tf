@@ -18,7 +18,7 @@ variable "resource_group_id" {}
 variable "resource_tags" {}
 
 resource "ibm_resource_instance" "itself" {
-  name              = var.resource_instance_name[0]
+  name              = var.resource_instance_name
   resource_group_id = var.resource_group_id
   location          = var.target_location
   service           = var.service_name
