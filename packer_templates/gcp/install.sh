@@ -41,12 +41,12 @@ ces_failover() {
 }
 
 install_nfs() {
-    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils gpfs.nfs-ganesha-debuginfo
+    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
     sudo dnf install -y gpfs.pm-ganesha
 }
 
 install_smb() {
-    sudo dnf install -y gpfs.smb gpfs.smb-debuginfo
+    sudo dnf install -y gpfs.smb
 }
 
 install_s3() {

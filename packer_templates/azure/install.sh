@@ -81,7 +81,7 @@ install_nfs() {
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils gpfs.nfs-ganesha-debuginfo
+    sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
     sudo dnf install -y gpfs.pm-ganesha
 }
 
@@ -97,7 +97,7 @@ install_smb() {
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs.smb gpfs.smb-debuginfo
+    sudo dnf install -y gpfs.smb
 }
 
 install_s3() {
