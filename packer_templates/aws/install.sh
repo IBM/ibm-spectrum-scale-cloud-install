@@ -154,6 +154,19 @@ install_s3() {
     fi
 }
 
+install_hdfs() {
+    if [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
+        sudo sh -c "echo '[HDFSProtocolRepository]' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'name=IBM Storage Scale HDFS Protocol Repository' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/hdfs_rpms/rhel/hdfs_3.3.6.x/' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
+        sudo dnf install -y gpfs.hdfs-protocol
+    fi
+}
+
 case "$INSTALL_PROTOCOLS" in
     None)
         echo "skipping protocol rpm/debs installation"
@@ -170,6 +183,10 @@ case "$INSTALL_PROTOCOLS" in
         ces_failover
         install_s3
         ;;
+    hdfs)
+        ces_failover
+        install_hdfs
+        ;;
     nfs-s3)
         ces_failover
         install_nfs
@@ -185,11 +202,27 @@ case "$INSTALL_PROTOCOLS" in
         install_smb
         install_s3
         ;;
+    nfs-hdfs)
+	ces_failover
+	install_nfs
+	install_hdfs
+	;;
+    smb-hdfs)
+	ces_failover
+	install_smb
+	install_hdfs
+	;;
+    s3-hdfs)
+	ces_failover
+        install_s3
+	install_hdfs
+	;;
     *)
         ces_failover
         install_nfs
         install_smb
         install_s3
+	install_hdfs
         ;;
 esac
 
