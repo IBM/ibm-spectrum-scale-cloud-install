@@ -11,7 +11,6 @@ terraform {
 }
 
 variable "resource_instance_name" {}
-variable "service_count" {}
 variable "target_location" {}
 variable "service_name" {}
 variable "plan_type" {}
@@ -19,8 +18,7 @@ variable "resource_group_id" {}
 variable "resource_tags" {}
 
 resource "ibm_resource_instance" "itself" {
-  count             = var.service_count
-  name              = element(var.resource_instance_name, count.index)
+  name              = var.resource_instance_name
   resource_group_id = var.resource_group_id
   location          = var.target_location
   service           = var.service_name
@@ -29,5 +27,5 @@ resource "ibm_resource_instance" "itself" {
 }
 
 output "resource_guid" {
-  value = ibm_resource_instance.itself[*].guid
+  value = ibm_resource_instance.itself.guid
 }

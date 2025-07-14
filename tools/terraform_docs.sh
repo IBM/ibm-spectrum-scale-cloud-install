@@ -23,6 +23,7 @@ ibmDocModules=(
     "$root_dir/ibmcloud_scale_templates/ibmcloud_new_vpc_scale"
     "$root_dir/ibmcloud_scale_templates/sub_modules/vpc_template"
     "$root_dir/ibmcloud_scale_templates/sub_modules/bastion_template"
+    "$root_dir/ibmcloud_scale_templates/sub_modules/dns_template"
     "$root_dir/ibmcloud_scale_templates/sub_modules/instance_template"
 )
 

@@ -10,14 +10,14 @@ terraform {
   }
 }
 
+variable "turn_on" {}
 variable "dns_domain" {}
-variable "dns_zone_count" {}
 variable "dns_service_id" {}
 variable "description" {}
 variable "dns_label" {}
 
 resource "ibm_dns_zone" "itself" {
-  count       = var.dns_zone_count
+  count       = var.turn_on ? 1 : 0
   name        = var.dns_domain
   instance_id = var.dns_service_id
   description = var.description
