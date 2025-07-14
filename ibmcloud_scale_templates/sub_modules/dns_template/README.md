@@ -1,3 +1,36 @@
+# Configure IBM Cloud DNS
+
+Below steps will provision IBM Cloud DNS required for IBM Spectrum Scale cloud solution.
+
+1. Change working directory to `ibmcloud_scale_templates/sub_modules/dns_template`.
+
+    ```cli
+    cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/dns_template/
+    ```
+
+2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
+
+    Minimal Example :
+
+    ```json
+    {
+        "cluster_type": "Combined-compute-storage",
+        "create_dns_zone": true,
+        "ibmcloud_api_key": "xxx",
+        "resource_group_name": "test-rg",
+        "resource_prefix": "test-vpc",
+        "vpc_compute_cluster_dns_zone": "compscale.com",
+        "vpc_create_separate_subnets": true,
+        "vpc_dns_tags": [],
+        "vpc_ref": "r013-b423-a1342-c232",
+        "vpc_region": "us-south",
+        "vpc_storage_cluster_dns_zone": "strgscale.com"
+    }
+    ```
+
+3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+
+
 <!-- BEGIN_TF_DOCS -->
 #### Requirements
 
