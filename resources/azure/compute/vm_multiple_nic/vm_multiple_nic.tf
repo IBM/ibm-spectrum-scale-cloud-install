@@ -63,7 +63,7 @@ resource "azurerm_network_interface" "ces_nic" {
     primary                       = true
   }
   ip_configuration {
-    name                          = format("%s-ces", var.name_prefix)
+    name                          = format("%s-ces-%s", var.name_prefix, var.ces_ipaddress)
     subnet_id                     = var.ces_subnet_id
     private_ip_address_allocation = "Static"
     primary                       = false
@@ -94,7 +94,7 @@ resource "azurerm_private_dns_ptr_record" "itself" {
 
 # Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
 resource "azurerm_private_dns_a_record" "ces_a_itself" {
-  name                = format("%s-ces", var.name_prefix)
+  name                = format("%s-ces-%s", var.name_prefix, var.ces_ipaddress)
   zone_name           = var.forward_dns_zone
   resource_group_name = var.resource_group_name
   ttl                 = 300
