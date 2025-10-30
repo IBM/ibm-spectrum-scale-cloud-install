@@ -32,7 +32,7 @@ if [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     fi
     # gpfs.librdkafka rpm depends on libcrypto.so.3 which is available on RHEL9 and not on RHEL8
     if sudo grep -q el9 /etc/os-release; then
-        sudo dnf install -y gpfs.librdkafka*
+        sudo dnf install -y gpfs.librdkafka-*.el9.*
     fi
 fi
 
