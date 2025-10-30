@@ -42,13 +42,13 @@ data "google_compute_machine_types" "itself" {
   zone   = var.zone
 }
 
-data "template_file" "metadata_startup_script" {
-  template = <<EOF
-#!/usr/bin/env bash
-echo "${var.private_key_content}" > ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
-EOF
+locals {
+  user_data = <<-EOT
+    #!/usr/bin/env bash
+    echo "${var.private_key_content}" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    echo "StrictHostKeyChecking no" >> ~/.ssh/config
+  EOT
 }
 
 #tfsec:ignore:google-compute-enable-shielded-vm-im
@@ -90,7 +90,7 @@ resource "google_compute_instance" "itself" {
     vmdnssetting           = var.is_multizone ? "GlobalDefault" : "ZonalOnly"
   }
 
-  metadata_startup_script = data.template_file.metadata_startup_script.rendered
+  metadata_startup_script = local.user_data
 
   service_account {
     email  = var.service_email
