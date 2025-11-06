@@ -73,7 +73,11 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgkey=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/Public_Keys/Storage_Scale_public_key.pgp' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo -e '\n' >> /etc/yum.repos.d/scale.repo"
-    sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license* gpfs.librdkafka* gpfs.scaleapi*
+    if [[ "$arch" == arm* || "$arch" == aarch64 ]]; then
+        sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.compression gpfs.license* gpfs.librdkafka* gpfs.scaleapi*
+    else
+        sudo dnf install -y gpfs.base gpfs.docs gpfs.msg.en* gpfs.compression gpfs.ext gpfs.gpl gpfs.gskit gpfs.gui gpfs.java gpfs.gss.pmcollector gpfs.gss.pmsensors gpfs.afm.cos gpfs.compression gpfs.license* gpfs.librdkafka* gpfs.scaleapi*
+    fi
     if sudo dnf search gpfs.adv | grep -q "gpfs.adv"; then
         sudo dnf install -y gpfs.adv
     fi
@@ -167,6 +171,10 @@ install_hdfs() {
     fi
 }
 
+if [[ "$arch" == arm* || "$arch" == aarch64 ]]; then
+    INSTALL_PROTOCOLS="None"
+fi
+
 case "$INSTALL_PROTOCOLS" in
     None)
         echo "skipping protocol rpm/debs installation"
@@ -203,26 +211,26 @@ case "$INSTALL_PROTOCOLS" in
         install_s3
         ;;
     nfs-hdfs)
-	ces_failover
-	install_nfs
-	install_hdfs
-	;;
+        ces_failover
+	    install_nfs
+	    install_hdfs
+	    ;;
     smb-hdfs)
-	ces_failover
-	install_smb
-	install_hdfs
-	;;
+	    ces_failover
+	    install_smb
+	    install_hdfs
+	    ;;
     s3-hdfs)
-	ces_failover
+	    ces_failover
         install_s3
-	install_hdfs
-	;;
+	    install_hdfs
+	    ;;
     *)
         ces_failover
         install_nfs
         install_smb
         install_s3
-	install_hdfs
+	    install_hdfs
         ;;
 esac
 
