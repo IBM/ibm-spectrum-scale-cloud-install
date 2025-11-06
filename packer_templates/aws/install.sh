@@ -171,10 +171,6 @@ install_hdfs() {
     fi
 }
 
-if [[ "$arch" == arm* || "$arch" == aarch64 ]]; then
-    INSTALL_PROTOCOLS="None"
-fi
-
 case "$INSTALL_PROTOCOLS" in
     None)
         echo "skipping protocol rpm/debs installation"
