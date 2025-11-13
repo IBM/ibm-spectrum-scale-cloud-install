@@ -71,6 +71,8 @@ module "cluster_host_iam_policy" {
                 "ec2:CreateTags*",
                 "ec2:UnassignPrivateIpAddresses",
                 "ec2:ModifyInstanceAttribute",
+                "ec2:CreateRoute",
+                "ec2:ReplaceRoute",
                 "iam:GetRole",
                 "sns:Publish",
                 "sns:DeleteTopic",
