@@ -1,5 +1,5 @@
 /*
-  Creates GCP VM instance with a static route from
+  Creates GCP VM instance with a static route
 */
 
 variable "boot_disk_size" {}
