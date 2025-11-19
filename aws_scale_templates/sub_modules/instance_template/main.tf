@@ -73,6 +73,7 @@ module "cluster_host_iam_policy" {
                 "ec2:ModifyInstanceAttribute",
                 "ec2:CreateRoute",
                 "ec2:ReplaceRoute",
+                "ec2:DeleteRoute",
                 "iam:GetRole",
                 "sns:Publish",
                 "sns:DeleteTopic",
