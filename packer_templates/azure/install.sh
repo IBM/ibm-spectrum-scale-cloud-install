@@ -18,6 +18,8 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
     elif sudo grep -q el9 /etc/os-release; then
         sudo dnf install -y https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm
+    elif sudo grep -q el10 /etc/os-release; then
+        sudo dnf install -y https://packages.microsoft.com/config/rhel/10/packages-microsoft-prod.rpm
     fi
     sudo dnf install -y azure-cli
     sudo sh -c "echo '[IBMScaleRepository]' >> /etc/yum.repos.d/scale.repo"
@@ -37,9 +39,11 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
     sudo sh -c "echo '[Kakfa]' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'name=IBM Storage Scale Kakfa Repository' >> /etc/yum.repos.d/scale.repo"
     if sudo grep -q el8 /etc/os-release; then
-       sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/gpfs_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/gpfs_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
     elif sudo grep -q el9 /etc/os-release; then
-       sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/gpfs_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+        sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/gpfs_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el10 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/gpfs_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
     fi
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -51,6 +55,8 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/zimon_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
     elif sudo grep -q el9 /etc/os-release; then
         sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/zimon_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el10 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/zimon_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
     fi
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -76,6 +82,8 @@ install_nfs() {
         sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/ganesha_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
     elif sudo grep -q el9 /etc/os-release; then
         sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/ganesha_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el10 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/ganesha_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
     fi
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -92,6 +100,8 @@ install_smb() {
         sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/smb_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
     elif sudo grep -q el9 /etc/os-release; then
         sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/smb_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el10 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/smb_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
     fi
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -107,6 +117,8 @@ install_s3() {
         sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/s3_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
     elif sudo grep -q el9 /etc/os-release; then
         sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/s3_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el10 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=$STORAGE_ACCOUNT_URL/$SCALE_VERSION/s3_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
     fi
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -143,9 +155,9 @@ case "$INSTALL_PROTOCOLS" in
         install_s3
         ;;
     hdfs)
-	ces_failover
-	install_hdfs
-	;;
+	    ces_failover
+	    install_hdfs
+	    ;;
     nfs-s3)
         ces_failover
         install_nfs
@@ -162,26 +174,26 @@ case "$INSTALL_PROTOCOLS" in
         install_s3
         ;;
     nfs-hdfs)
-	ces_failover
-	install_nfs
-	install_hdfs
-	;;
+	    ces_failover
+	    install_nfs
+	    install_hdfs
+	    ;;
     smb-hdfs)
-	ces_failover
-	install_smb
-	install_hdfs
-	;;
+	    ces_failover
+	    install_smb
+	    install_hdfs
+	    ;;
     s3-hdfs)
-	ces_failover
-	install_s3
-	install_hdfs
-	;;
+	    ces_failover
+	    install_s3
+	    install_hdfs
+	    ;;
     *)
         ces_failover
         install_nfs
         install_smb
         install_s3
-	install_hdfs
+	    install_hdfs
         ;;
 esac
 
