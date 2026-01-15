@@ -46,34 +46,17 @@ The terraform templates provided in this repository offer following features;
 
     Terraform templates authenticates with Azure using a service principal.
 
-    - Create a service principal with [az ad sp create-for-rbac](https://docs.microsoft.com/en-us/cli/azure/ad/sp) and output the credentials that Packer needs:
+    - Create a service principal with [az ad sp create-for-rbac](https://docs.microsoft.com/en-us/cli/azure/ad/sp).
+
 
     ```azurecli
     az ad sp create-for-rbac --query "{ client_id: appId, client_secret: password, tenant_id: tenant }"
-    ```
-
-    An example of the output from the preceding commands is as follows:
-
-    ```azurecli
-    {
-        "client_id": "f5b6a5cf-fbdf-4a9f-b3b8-3c2cd00225a4",
-        "client_secret": "0e760437-bf34-4aad-9f8d-870be799c55d",
-        "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47"
-    }
     ```
 
     To authenticate to Azure, you also need to obtain your Azure subscription ID with [az account show](https://docs.microsoft.com/en-us/cli/azure/account):
 
     ```azurecli
     az account show --query "{ subscription_id: id }"
-    ```
-
-    An example of the output from the preceding commands is as follows:
-
-    ```azurecli
-    {
-        "subscription_id": "e652d8de-aea2-4177-a0f1-7117adc604ee"
-    }
     ```
 
     Keep the outputs from these two commands handy, they are needed to configure both deployment options in the next steps.
