@@ -23,6 +23,10 @@ data "google_compute_instance_group" "itself" {
   zone = var.vpc_zone
 }
 
+output "instance_group_manager_ref" {
+  value = resource.google_compute_instance_group_manager.itself.self_link
+}
+
 output "instances" {
   value       = tolist(data.google_compute_instance_group.itself.instances)
   description = "Instance names."
