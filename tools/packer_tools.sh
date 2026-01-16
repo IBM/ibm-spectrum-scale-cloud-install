@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 
 echo "Performing packer fmt, validation"
 root_dir=$(git rev-parse --show-toplevel)

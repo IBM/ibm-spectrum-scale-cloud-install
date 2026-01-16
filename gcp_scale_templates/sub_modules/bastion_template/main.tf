@@ -1,26 +1,45 @@
 /*
-  Create a new Bastion instance
+  Bastion/Jumphost instance
+   - creates firewall required for bastion instance
+   - launch bastion instance
 */
 
-module "bastion_firewall" {
-  source               = "../../../resources/gcp/network/firewall/allow_bastion/"
-  source_range         = var.bastion_source_range
-  firewall_name_prefix = var.resource_prefix
-  vpc_name             = var.vpc_name
+locals {
+  bastion_network_tag = format("%s-bastion-tag", var.resource_prefix)
 }
 
-module "bastion_instance" {
-  count            = length(var.vpc_auto_scaling_group_subnets)
-  source           = "../../../resources/gcp/compute/bastion_instance/"
-  zone             = var.bastion_zone
-  machine_type     = var.bastion_machine_type
-  instance_name    = "${var.resource_prefix}-${var.bastion_instance_name_prefix}"
-  boot_disk_size   = var.bastion_boot_disk_size
-  boot_disk_type   = var.bastion_boot_disk_type
-  boot_image       = var.bastion_boot_image
-  network_tier     = var.bastion_network_tier
-  vm_instance_tags = var.bastion_instance_tags
-  subnet_name      = var.vpc_auto_scaling_group_subnets[count.index]
-  ssh_user_name    = var.bastion_ssh_user_name
-  ssh_key_path     = var.bastion_ssh_key_path
+# Allow traffic from external cidr block to bastion instances
+module "allow_traffic_from_external_cidr_to_bastion" {
+  source               = "../../../resources/gcp/security/security_rule_target_tags"
+  turn_on              = true
+  firewall_name_prefix = format("%s-bastion-tag", var.resource_prefix)
+  firewall_description = "Allow SSH, ICMP traffic from external cidr to bastion instances"
+  vpc_ref              = var.vpc_ref
+  source_ranges        = var.remote_cidr_blocks
+  ports                = [var.bastion_public_ssh_port]
+  target_tags          = [local.bastion_network_tag]
+}
+
+# Creates bastion instance template
+module "bastion_autoscaling_launch_template" {
+  source                      = "../../../resources/gcp/asg/launch_template"
+  launch_template_name_prefix = format("%s-%s", var.resource_prefix, "bastion-launch-tmpl")
+  image_id                    = var.bastion_image_ref
+  boot_disk_size              = var.bastion_boot_disk_size
+  boot_disk_type              = var.bastion_boot_disk_type
+  instance_type               = var.bastion_instance_type
+  subnetwork_name             = var.vpc_auto_scaling_group_subnets[0]
+  network_tier                = var.bastion_network_tier
+  ssh_user_name               = var.bastion_ssh_user_name
+  ssh_key_path                = var.bastion_ssh_key_path
+  network_tags                = [local.bastion_network_tag]
+}
+
+# launch bastion instance
+module "bastion_autoscaling_group" {
+  source            = "../../../resources/gcp/asg/asg_group"
+  asg_name_prefix   = format("%s-%s", var.resource_prefix, "bastion-asg")
+  vpc_zone          = var.vpc_availability_zones[0]
+  asg_desired_size  = var.desired_instance_count
+  instance_template = module.bastion_autoscaling_launch_template.asg_launch_template_self_link
 }

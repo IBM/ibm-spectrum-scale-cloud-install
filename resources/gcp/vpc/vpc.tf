@@ -24,10 +24,14 @@ variable "turn_on" {}
 
 resource "google_compute_network" "itself" {
   count                   = var.turn_on ? 1 : 0
-  name                    = format("%s-vpc", var.vpc_name_prefix)
+  name                    = var.vpc_name_prefix
   description             = var.vpc_description
   routing_mode            = var.vpc_routing_mode
   auto_create_subnetworks = false
+}
+
+output "vpc_id" {
+  value = try(google_compute_network.itself[0].id, null)
 }
 
 output "vpc_self_link" {
