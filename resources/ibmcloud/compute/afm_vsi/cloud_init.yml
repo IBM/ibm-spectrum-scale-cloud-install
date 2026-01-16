@@ -1,0 +1,174 @@
+#cloud-config
+growpart:
+  mode: off
+  devices: ['/']
+resize_rootfs: false
+write_files:
+  - content: |
+      #!/usr/bin/env bash
+      if grep -q "Red Hat" /etc/os-release
+      then
+          USER=vpcuser
+          PACKAGE_MGR=dnf
+          if grep -q "platform:el9" /etc/os-release
+          then
+              subscription-manager repos --enable=rhel-9-for-x86_64-supplementary-eus-rpms
+              package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl make gcc-c++ elfutils-libelf-devel bind-utils iptables-nft nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock cryptsetup clevis clevis-luks clevis-dracut tpm2-tools"
+          elif grep -q "platform:el8" /etc/os-release
+          then
+              package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld numactl jq make gcc-c++ elfutils-libelf-devel bind-utils iptables nfs-utils elfutils elfutils-devel python3-dnf-plugin-versionlock cryptsetup clevis clevis-luks clevis-dracut tpm2-tools"
+          fi
+
+          RETRY_LIMIT=5
+          retry_count=0
+          all_pkg_installed=1
+
+          while [[ $all_pkg_installed -ne 0 && $retry_count -lt $RETRY_LIMIT ]]
+          do
+              # Install all required packages
+              echo "INFO: Attempting to install packages"
+              $PACKAGE_MGR install -y $package_list
+
+              # Check to ensure packages are installed
+              pkg_installed=0
+              for pkg in $package_list
+              do
+                  pkg_query=$($PACKAGE_MGR list installed $pkg)
+                  pkg_installed=$(($? + $pkg_installed))
+              done
+              if [[ $pkg_installed -ne 0 ]]
+              then
+                  # The minimum required packages have not been installed.
+                  echo "WARN: Required packages not installed. Sleeping for 60 seconds and retrying..."
+                  touch /var/log/scale-rerun-package-install
+                  echo "INFO: Cleaning and repopulating repository data"
+                  $PACKAGE_MGR clean all
+                  $PACKAGE_MGR makecache
+                  sleep 60
+              else
+                  all_pkg_installed=0
+              fi
+              retry_count=$(( $retry_count+1 ))
+          done
+
+          yum update --security -y
+          yum versionlock add $package_list
+          yum versionlock list
+          echo 'export PATH=$PATH:/usr/lpp/mmfs/bin' >> /root/.bashrc
+      elif grep -q "Ubuntu" /etc/os-release
+      then
+          USER=ubuntu
+      fi
+
+      sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" ~/.ssh/authorized_keys
+      echo "${vsi_meta_private_key}" | base64 --decode > /root/.ssh/id_rsa
+      chmod 600 ~/.ssh/id_rsa
+      echo "${vsi_meta_public_key}" | base64 --decode >> /root/.ssh/authorized_keys
+      echo "StrictHostKeyChecking no" >> ~/.ssh/config
+      echo "DOMAIN=\"${dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+      echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
+      sed -i -e "s#QUEUE_COUNT=3#QUEUE_COUNT=\`ethtool -l \$iface | echo \$(awk '\$1 ~ /Combined:/ {print \$2;exit}')\`#g" /var/lib/cloud/scripts/per-boot/iface-config
+      ethtool -L eth0 combined 16
+      chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
+      systemctl restart NetworkManager
+      systemctl stop firewalld
+      firewall-offline-cmd --zone=public --add-port=1191/tcp
+      firewall-offline-cmd --zone=public --add-port=4444/tcp
+      firewall-offline-cmd --zone=public --add-port=4444/udp
+      firewall-offline-cmd --zone=public --add-port=4739/udp
+      firewall-offline-cmd --zone=public --add-port=4739/tcp
+      firewall-offline-cmd --zone=public --add-port=9084/tcp
+      firewall-offline-cmd --zone=public --add-port=9085/tcp
+      firewall-offline-cmd --zone=public --add-service=http
+      firewall-offline-cmd --zone=public --add-service=https
+      firewall-offline-cmd --zone=public --add-port=2049/tcp
+      firewall-offline-cmd --zone=public --add-port=2049/udp
+      firewall-offline-cmd --zone=public --add-port=111/tcp
+      firewall-offline-cmd --zone=public --add-port=111/udp
+      firewall-offline-cmd --zone=public --add-port=30000-61000/tcp
+      firewall-offline-cmd --zone=public --add-port=30000-61000/udp
+      systemctl start firewalld
+      systemctl enable firewalld
+    path: /usr/local/bin/scale_user_data.sh
+    permissions: '0755'
+  - content: |
+      #!/bin/bash
+      # This script encrypts the root partition of a Redhat 8/9 stock IBM Cloud
+      # image using the TPM to encrypt the LUKS keys.  It assumes there is plenty
+      # of unpartition space on the drive, and leaves the current root partition
+      # for rescue boot (but this could be deleted on a subsequent boot).
+      #
+      # * Create a new partition on the drive using all free space
+      # * Encrypt the new partition using LUKS with a known passphrase
+      # * Use 'clevis' to create an additional LUKS passphrase that is bound to the TPM
+      # * Re-generate initramfs via dracut to ensure the root drive is auto-unlocked on boot
+      # * Copy the current root filesystem to the new drive
+      # * Update fstab and crypttab for auto-mounting
+      # * Update grub to boot using the newly encrypted root drive
+      #
+      echo "Encrypt my boot drive"
+      # Determine the boot device (minus partition name)
+      # Assumes 'sdaX' or 'nvmeXnYpZ'
+      device=$(mount | grep "on / type" | awk '{print $1}')
+      if [[ "$device" =~ "nvme" ]]; then
+          device=$${device%??}
+      else
+          device=$${device%?}
+      fi
+      echo $device
+      # Create a root partition filling up the rest of the drive
+      echo -e 'n\np\n\n\n\nw' | fdisk $${device}
+      partition=$(fdisk -l $device | grep $device | tail -1 | awk '{print $1}')
+      echo $partition
+      # Setup encryption on the drive with a well known passphrase, and format the filesystem
+      echo -n n0tsecret | cryptsetup luksFormat --type luks2 -q --force-password $partition
+      echo -n n0tsecret | cryptsetup open $partition root
+      mkfs.xfs /dev/mapper/root
+      # Add the TPM key to the LUKS encrypted drive.
+      # For additional security, you can bind it to specific TPM PCR banks, but this will cause the TPM unlock
+      # to fail when the bank changes (EG firmware is updated).  If you want to bind it to a PCR:
+      # ,"pcr_bank":"sha256","pcr_ids":"7"
+      echo -n n0tsecret | clevis luks bind -y -k - -d $partition tpm2 '{"hash":"sha256","key":"rsa"}'
+      # Regenerate dracut initramfs to allow unlock on boot
+      dracut -fv --regenerate-all
+      # Copy the OS into the encrypted partition
+      mkdir /mnt/encryptedroot
+      mount /dev/mapper/root /mnt/encryptedroot
+      rsync -a --exclude='/proc/*' --exclude='/sys/*' --exclude='/boot' --exclude='/mnt/encryptedroot' / /mnt/encryptedroot
+      # Grab the UUID for the encrypted partition and setup the crypttab
+      uuid=$(lsblk -lfi -o NAME,FSTYPE,UUID | grep crypto_LUKS | awk '{print $3}')
+      echo "root UUID=$${uuid} none luks" > /mnt/encryptedroot/etc/crypttab
+      # Replace root with '/dev/mapper/root / xfs defaults 0 1' in fstab
+      sed -i "/\t\/\t/c/dev/mapper/root\t/\txfs\tdefaults\t0\t1" /mnt/encryptedroot/etc/fstab
+      # Setup grub
+      # Grab default cmdline args
+      args=$(grep CMDLINE_LINUX /etc/default/grub | sed 's/.*GRUB_CMDLINE_LINUX=//' | sed 's/\"//g')
+      # Update grub and set the new entry to be the default.
+      grubby --add-kernel="/boot/vmlinuz-$(uname -r)" \
+          --title="Boot from encrypted root" \
+          --initrd="/boot/initramfs-$(uname -r).img" \
+          --args "$${args} root=/dev/mapper/root rd.luks.name=$${uuid}=root" \
+          --make-default
+      # Since we use EFI, copy the grubenv over (note the \cp is not a typo,
+      # it ensures that the 'cp' alias isn't used.)
+      efidir=$(ls /boot/efi/EFI/ | grep -v BOOT)
+      \cp -f /boot/grub2/grubenv /boot/efi/EFI/$${efidir}/
+      # We MUST have a separate /boot partiiton to host the kernel and initramfs unencrypted
+      # as these are needed to unlock the root drive.  The IBM CLoud RHEL 9.x images have
+      # a separate boot partiiton, but 8.x do not.
+      # If we dont have a separate /boot partition, we'll use the current root partition
+      # as /boot.  So copy the current /boot content into the root of the filessytem.
+      if ! lsblk -l | grep /boot$; then
+          rsync -a --exclude='/efi*' /boot/ /
+          # Current root device UUID - it will become boot device uuid
+          curr_root_uuid=$(lsblk -fl | grep /$ | awk '{print $4}')
+          # Add the new /boot partition to fstab for auto-mounting.
+          echo -e "UUID=$${curr_root_uuid}\t/boot\txfs\tdefaults\t0\t0" >> /mnt/encryptedroot/etc/fstab
+      fi
+      # Reboot the system
+      shutdown -r now
+    path: /usr/local/bin/boot_drive_encryption.sh
+    permissions: '0755'
+runcmd:
+  - /usr/local/bin/scale_user_data.sh
+  - /usr/local/bin/boot_drive_encryption.sh
