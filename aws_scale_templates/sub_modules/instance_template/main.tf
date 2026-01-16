@@ -71,6 +71,9 @@ module "cluster_host_iam_policy" {
                 "ec2:CreateTags*",
                 "ec2:UnassignPrivateIpAddresses",
                 "ec2:ModifyInstanceAttribute",
+                "ec2:CreateRoute",
+                "ec2:ReplaceRoute",
+                "ec2:DeleteRoute",
                 "iam:GetRole",
                 "sns:Publish",
                 "sns:DeleteTopic",
@@ -343,7 +346,7 @@ module "gateway_instances" {
 
 module "protocol_instances" {
   for_each               = local.protocol_vm_subnet_map
-  source                 = "../../../resources/aws/compute/ec2_multiple_nic"
+  source                 = "../../../resources/aws/compute/ec2_ip_fwd"
   ami_id                 = var.storage_cluster_image_ref
   dns_domain             = var.vpc_storage_cluster_dns_domain
   forward_dns_zone       = var.vpc_forward_dns_zone
@@ -359,8 +362,8 @@ module "protocol_instances" {
   root_device_kms_key_id = var.root_device_kms_key_ref
   root_volume_type       = var.storage_cluster_boot_disk_type
   security_groups        = [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
-  base_subnet_id         = each.value["base_subnet"]
-  ces_subnet_id          = each.value["ces_subnet"]
+  subnet_id              = each.value["subnet"]
+  ces_ipaddress          = each.value["ces_ip_address"]
   tags                   = var.protocol_tags
   user_public_key        = var.storage_cluster_key_pair
   volume_tags            = var.protocol_volume_tags

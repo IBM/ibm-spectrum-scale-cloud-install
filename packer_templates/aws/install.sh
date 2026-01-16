@@ -57,6 +57,8 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/gpfs_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
     elif sudo grep -q el9 /etc/os-release; then
         sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/gpfs_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el10 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/gpfs_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
     fi
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -68,6 +70,8 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
         sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
     elif sudo grep -q el9 /etc/os-release; then
         sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+    elif sudo grep -q el10 /etc/os-release; then
+        sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/zimon_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
     fi
     sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
     sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -102,6 +106,8 @@ install_nfs() {
             sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/ganesha_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
         elif sudo grep -q el9 /etc/os-release; then
             sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/ganesha_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+        elif sudo grep -q el10 /etc/os-release; then
+            sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/ganesha_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
         fi
         sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -128,6 +134,8 @@ install_smb() {
             sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/smb_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
         elif sudo grep -q el9 /etc/os-release; then
             sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/smb_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+        elif sudo grep -q el10 /etc/os-release; then
+            sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/smb_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
         fi
         sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"
@@ -145,6 +153,8 @@ install_s3() {
             sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/s3_rpms/rhel8/' >> /etc/yum.repos.d/scale.repo"
         elif sudo grep -q el9 /etc/os-release; then
             sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/s3_rpms/rhel9/' >> /etc/yum.repos.d/scale.repo"
+        elif sudo grep -q el10 /etc/os-release; then
+            sudo sh -c "echo 'baseurl=http://$PACKAGE_REPOSITORY.s3-website.$VPC_REGION.amazonaws.com/$SCALE_VERSION/s3_rpms/rhel10/' >> /etc/yum.repos.d/scale.repo"
         fi
         sudo sh -c "echo 'enabled=1' >> /etc/yum.repos.d/scale.repo"
         sudo sh -c "echo 'gpgcheck=1' >> /etc/yum.repos.d/scale.repo"

@@ -1,12 +1,12 @@
 /*
-     Creates AWS EC2 instance(s) with multiple NIC's.
+     Creates AWS EC2 instance(s) with a static route
 */
 
 variable "ami_id" {}
-variable "base_subnet_id" {}
-variable "ces_subnet_id" {}
+variable "subnet_id" {}
 variable "dns_domain" {}
 variable "forward_dns_zone" {}
+variable "ces_ipaddress" {}
 variable "iam_instance_profile" {}
 variable "instance_type" {}
 variable "meta_private_key" {}
@@ -34,6 +34,8 @@ locals {
     hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
     echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
     echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
+    echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+    sysctl -p
   EOT
 }
 
@@ -42,32 +44,13 @@ data "aws_kms_key" "itself" {
   key_id = var.root_device_kms_key_id
 }
 
-resource "aws_network_interface" "base_nic" {
-  subnet_id       = var.base_subnet_id
-  security_groups = var.security_groups
-}
-
-resource "aws_network_interface" "ces_nic" {
-  subnet_id         = var.ces_subnet_id
-  private_ips_count = 1 # Number of secondary private IPs to assign to the ENI
-  security_groups   = var.security_groups
-}
-
 # tfsec:ignore:AVD-AWS-0131
 resource "aws_instance" "itself" {
-  ami           = var.ami_id
-  instance_type = var.instance_type
-  key_name      = var.user_public_key
-
-  network_interface {
-    network_interface_id = aws_network_interface.base_nic.id
-    device_index         = 0
-  }
-
-  network_interface {
-    network_interface_id = aws_network_interface.ces_nic.id
-    device_index         = 1
-  }
+  ami             = var.ami_id
+  instance_type   = var.instance_type
+  key_name        = var.user_public_key
+  security_groups = var.security_groups
+  subnet_id       = var.subnet_id
 
   # Only include iam_instance_profile if var.iam_instance_profile is a non-empty string
   # otherwise, skip the parameter entirely
@@ -89,7 +72,8 @@ resource "aws_instance" "itself" {
     var.volume_tags,
   )
 
-  user_data_base64 = base64encode(local.user_data)
+  source_dest_check = false
+  user_data_base64  = base64encode(local.user_data)
   tags = merge(
     {
       "Name" = var.name_prefix
@@ -105,10 +89,6 @@ resource "aws_instance" "itself" {
   lifecycle {
     ignore_changes = all
   }
-}
-
-locals {
-  ces_ipaddress = tolist(setsubtract(aws_network_interface.ces_nic.private_ips, [aws_network_interface.ces_nic.private_ip]))[0]
 }
 
 # Create "A" (IPv4 Address) record to map IPv4 address as hostname along with domain
@@ -129,12 +109,23 @@ resource "aws_route53_record" "ptr_itself" {
   ttl     = 360
 }
 
+data "aws_route_table" "itself" {
+  subnet_id = var.subnet_id
+}
+
+# Add static route for the CES ip address
+resource "aws_route" "itself" {
+  route_table_id         = data.aws_route_table.itself.id
+  destination_cidr_block = format("%s/32", var.ces_ipaddress)
+  network_interface_id   = aws_instance.itself.primary_network_interface_id
+}
+
 # Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
 resource "aws_route53_record" "ces_a_itself" {
   zone_id = var.forward_dns_zone
   type    = "A"
   name    = format("%s-ces", var.name_prefix)
-  records = [local.ces_ipaddress]
+  records = [var.ces_ipaddress]
   ttl     = 360
 }
 
@@ -142,7 +133,7 @@ resource "aws_route53_record" "ces_a_itself" {
 resource "aws_route53_record" "ces_ptr_itself" {
   zone_id = var.reverse_dns_zone
   type    = "PTR"
-  name    = format("%s.%s.%s.%s", split(".", local.ces_ipaddress)[3], split(".", local.ces_ipaddress)[2], split(".", local.ces_ipaddress)[1], var.reverse_dns_domain)
+  name    = format("%s.%s.%s.%s", split(".", var.ces_ipaddress)[3], split(".", var.ces_ipaddress)[2], split(".", var.ces_ipaddress)[1], var.reverse_dns_domain)
   records = [format("%s-ces.%s", var.name_prefix, var.dns_domain)]
   ttl     = 360
 }
@@ -153,10 +144,10 @@ output "instance_details" {
     id             = aws_instance.itself.id
     dns            = format("%s.%s", var.name_prefix, var.dns_domain)
     zone           = aws_instance.itself.availability_zone
-    ces_private_ip = tolist(setsubtract(aws_network_interface.ces_nic.private_ips, [aws_network_interface.ces_nic.private_ip]))[0]
+    ces_private_ip = var.ces_ipaddress
   }
 }
 
 output "ces_private_ip" {
-  value = tolist(setsubtract(aws_network_interface.ces_nic.private_ips, [aws_network_interface.ces_nic.private_ip]))[0]
+  value = var.ces_ipaddress
 }

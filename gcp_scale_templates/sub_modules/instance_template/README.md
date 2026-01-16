@@ -168,7 +168,7 @@ The following steps will provision GCP resources (compute and storage instances 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
-| <a name="requirement_google"></a> [google](#requirement_google) | ~> 6.0 |
+| <a name="requirement_google"></a> [google](#requirement_google) | ~> 7.0 |
 
 #### Inputs
 

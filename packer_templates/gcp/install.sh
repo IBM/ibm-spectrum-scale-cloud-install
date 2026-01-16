@@ -42,11 +42,15 @@ ces_failover() {
 
 install_nfs() {
     sudo dnf install -y gpfs.nfs-ganesha gpfs.nfs-ganesha-gpfs gpfs.nfs-ganesha-utils
-    sudo dnf install -y gpfs.pm-ganesha
+    if ! sudo grep -q el10 /etc/os-release; then
+        sudo dnf install -y gpfs.pm-ganesha
+    fi
 }
 
 install_smb() {
-    sudo dnf install -y gpfs.smb
+    if ! sudo grep -q el10 /etc/os-release; then
+        sudo dnf install -y gpfs.smb
+    fi
 }
 
 install_s3() {
@@ -74,9 +78,9 @@ case "$INSTALL_PROTOCOLS" in
         install_s3
         ;;
     hdfs)
-	ces_failover
-	install_hdfs
-	;;
+	    ces_failover
+	    install_hdfs
+	    ;;
     nfs-s3)
         ces_failover
         install_nfs
@@ -98,21 +102,21 @@ case "$INSTALL_PROTOCOLS" in
        install_hdfs
        ;;
     smb-hdfs)
-	ces_failover
-	install_smb
-	install_hdfs
-	;;
+	    ces_failover
+	    install_smb
+	    install_hdfs
+	    ;;
     s3-hdfs)
-	ces_failover
-	install_s3
-	install_hdfs
-	;;
+	    ces_failover
+	    install_s3
+	    install_hdfs
+	    ;;
     *)
         ces_failover
         install_nfs
         install_smb
         install_s3
-	install_hdfs
+	    install_hdfs
         ;;
 esac
 
