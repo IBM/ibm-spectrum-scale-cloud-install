@@ -1,0 +1,49 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+    - id: check-yaml
+    - id: check-json
+    - id: mixed-line-ending
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+    - id: check-case-conflict
+    - id: check-merge-conflict
+    - id: check-executables-have-shebangs
+    - id: check-added-large-files
+    - id: fix-encoding-pragma
+- repo: https://github.com/hhatto/autopep8
+  rev: v2.3.2
+  hooks:
+    - id: autopep8
+- repo: https://github.com/tofuutils/pre-commit-opentofu
+  rev: v2.1.0
+  hooks:
+    - id: tofu_fmt
+    - id: tofu_validate
+    - id: tofu_tflint
+      args:
+          - '--args=--only=terraform_deprecated_interpolation'
+          - '--args=--only=terraform_deprecated_index'
+          - '--args=--only=terraform_unused_declarations'
+          - '--args=--only=terraform_comment_syntax'
+          - '--args=--only=terraform_module_pinned_source'
+          - '--args=--only=terraform_naming_convention'
+          - '--args=--only=terraform_workspace_remote'
+    - id: tofu_trivy
+- repo: local
+  hooks:
+    - id: custom-terraform-docs
+      name: custom-terraform-docs
+      entry: tools/terraform_docs.sh
+      language: script
+      always_run: true
+      pass_filenames: false
+- repo: local
+  hooks:
+    - id: custom-packer
+      name: custom-packer
+      entry: tools/packer_tools.sh
+      language: script
+      always_run: true
+      pass_filenames: false

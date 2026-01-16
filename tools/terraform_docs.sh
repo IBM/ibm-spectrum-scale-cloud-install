@@ -2,15 +2,70 @@
 
 root_dir=$(git rev-parse --show-toplevel)
 
-echo "Generating AWS terraform-docs"
-terraform-docs $root_dir/aws_scale_templates/aws_new_vpc_scale
-terraform-docs $root_dir/aws_scale_templates/prepare_tf_s3_backend
-terraform-docs $root_dir/aws_scale_templates/sub_modules/vpc_template
-terraform-docs $root_dir/aws_scale_templates/sub_modules/bastion_template
-terraform-docs $root_dir/aws_scale_templates/sub_modules/instance_template
-echo "Generating Azure terraform-docs"
-terraform-docs $root_dir/azure_scale_templates/azure_new_vnet_scale
-terraform-docs $root_dir/azure_scale_templates/sub_modules/vnet_template
-terraform-docs $root_dir/azure_scale_templates/sub_modules/bastion_template
-terraform-docs $root_dir/azure_scale_templates/sub_modules/instance_template
-terraform-docs $root_dir/azure_scale_templates/sub_modules/ansible_jump_host
+awsDocModules=(
+    "$root_dir/aws_scale_templates/aws_new_vpc_scale"
+    "$root_dir/aws_scale_templates/prepare_tf_s3_backend"
+    "$root_dir/aws_scale_templates/sub_modules/vpc_template"
+    "$root_dir/aws_scale_templates/sub_modules/bastion_template"
+    "$root_dir/aws_scale_templates/sub_modules/dns_template"
+    "$root_dir/aws_scale_templates/sub_modules/instance_template"
+)
+
+azureDocModules=(
+    "$root_dir/azure_scale_templates/azure_new_vnet_scale"
+    "$root_dir/azure_scale_templates/sub_modules/vpc_template"
+    "$root_dir/azure_scale_templates/sub_modules/bastion_template"
+    "$root_dir/azure_scale_templates/sub_modules/dns_template"
+    "$root_dir/azure_scale_templates/sub_modules/instance_template"
+)
+
+ibmDocModules=(
+    "$root_dir/ibmcloud_scale_templates/ibmcloud_new_vpc_scale"
+    "$root_dir/ibmcloud_scale_templates/sub_modules/vpc_template"
+    "$root_dir/ibmcloud_scale_templates/sub_modules/bastion_template"
+    "$root_dir/ibmcloud_scale_templates/sub_modules/dns_template"
+    "$root_dir/ibmcloud_scale_templates/sub_modules/instance_template"
+)
+
+gcpDocModules=(
+    "$root_dir/gcp_scale_templates/gcp_new_vpc_scale"
+    "$root_dir/gcp_scale_templates/sub_modules/vpc_template"
+    "$root_dir/gcp_scale_templates/sub_modules/bastion_template"
+    "$root_dir/gcp_scale_templates/sub_modules/instance_template"
+)
+
+planningDoc=(
+    "$root_dir/planning/aws"
+)
+
+#Updates terraform docs if not already updated
+updateTerraformDocs(){
+    checkAndUpdateModules=("$@")
+    for file in "${checkAndUpdateModules[@]}"
+    do
+        echo "Checking $file"
+        var="$(terraform-docs $file --output-check)"
+
+        if [[ $var =~ "up to date" ]]; then
+            echo "Up-to-date"
+        else
+            terraform-docs $file
+            git add $file
+        fi
+    done
+}
+
+echo "Generating AWS docs"
+updateTerraformDocs "${awsDocModules[@]}"
+
+echo "Generating Azure docs"
+updateTerraformDocs "${azureDocModules[@]}"
+
+echo "Generating IBM Cloud docs"
+updateTerraformDocs "${ibmDocModules[@]}"
+
+echo "Generating GCP Cloud docs"
+updateTerraformDocs "${gcpDocModules[@]}"
+
+echo "Generating AWS planning docs"
+updateTerraformDocs "${planningDoc[@]}"
