@@ -10,281 +10,222 @@ terraform {
   }
 }
 
-variable "total_vsis" {}
-variable "vsi_name_prefix" {}
-variable "vpc_id" {}
-variable "zones" {}
-variable "dns_service_id" {}
-variable "dns_zone_id" {}
+variable "ami_id" {}
+variable "disks" {}
+#variable "ebs_optimized" {}
+variable "forward_dns_zone" {}
+variable "forward_dns_zone_id" {}
+variable "instance_type" {}
+#variable "is_nitro_instance" {}
+variable "meta_private_key" {}
+variable "meta_public_key" {}
+variable "name_prefix" {}
+variable "placement_group" {}
+#variable "reverse_dns_domain" {}
+#variable "reverse_dns_zone" {}
+#variable "reverse_dns_zone_id" {}
+variable "root_device_kms_key_instance_id" {}
+variable "root_device_kms_key_instance_name" {}
+variable "root_device_encrypted" {}
+variable "root_volume_type" {}
+variable "security_groups" {}
+variable "subnet_id" {}
+variable "tags" {}
+variable "user_public_key" {}
+variable "volume_tags" {}
+variable "zone" {}
 variable "dns_domain" {}
-variable "vsi_subnet_id" {}
-variable "vsi_security_group" {}
-variable "vsi_profile" {}
-variable "vsi_image_id" {}
-variable "vsi_user_public_key" {}
-variable "vsi_meta_private_key" {}
-variable "vsi_meta_public_key" {}
-variable "resource_group_id" {}
-variable "resource_tags" {}
-variable "enable_sec_interface_storage" {}
+variable "dns_services_instance_id" {}
+variable "vpc_id" {}
 
-data "ibm_is_instance_profile" "itself" {
-  name = var.vsi_profile
-}
-
-data "template_file" "metadata_startup_script" {
-  template = <<EOF
+locals {
+  user_data_script = <<EOF
 #!/usr/bin/env bash
-
-exec > >(tee /var/log/ibm_spectrumscale_user-data.log)
-if grep -q "Red Hat" /etc/os-release
-then
-    USER=vpcuser
-    REQ_PKG_INSTALLED=0
-    if grep -q "platform:el8" /etc/os-release
-    then
-        PACKAGE_MGR=dnf
-        package_list="python38 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
-    else
-        PACKAGE_MGR=yum
-        package_list="python3 kernel-devel-$(uname -r) kernel-headers-$(uname -r) firewalld"
-    fi
-
-    RETRY_LIMIT=5
-    retry_count=0
-    all_pkg_installed=1
-
-    while [[ $all_pkg_installed -ne 0 && $retry_count -lt $RETRY_LIMIT ]]
-    do
-        # Install all required packages
-        echo "INFO: Attempting to install packages"
-        $PACKAGE_MGR install -y $package_list
-
-        # Check to ensure packages are installed
-        pkg_installed=0
-        for pkg in $package_list
-        do
-            pkg_query=$($PACKAGE_MGR list installed $pkg)
-            pkg_installed=$(($? + $pkg_installed))
-        done
-        if [[ $pkg_installed -ne 0 ]]
-        then
-            # The minimum required packages have not been installed.
-            echo "WARN: Required packages not installed. Sleeping for 60 seconds and retrying..."
-            touch /var/log/scale-rerun-package-install
-            echo "INFO: Cleaning and repopulating repository data"
-            $PACKAGE_MGR clean all
-            $PACKAGE_MGR makecache
-            sleep 60
-        else
-            all_pkg_installed=0
-        fi
-        retry_count=$(( $retry_count+1 ))
-    done
-
-elif grep -q "Ubuntu" /etc/os-release
-then
-    USER=ubuntu
-fi
-sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" ~/.ssh/authorized_keys
-echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
+echo "${var.meta_private_key}" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
-echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
+echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
 echo "StrictHostKeyChecking no" >> ~/.ssh/config
-if [[ "${data.ibm_is_instance_profile.itself.disks[0].quantity[0].type}" == "fixed" ]]
-then
-    echo "###########################################################################################" >> /etc/motd
-    echo "# You have logged in to Instance storage virtual server.                                  #" >> /etc/motd
-    echo "#   - Instance storage is temporary storage that's available only while your virtual      #" >> /etc/motd
-    echo "#     server is running.                                                                  #" >> /etc/motd
-    echo "#   - Data on the drive is unrecoverable after instance shutdown, disruptive maintenance, #" >> /etc/motd
-    echo "#     or hardware failure.                                                                #" >> /etc/motd
-    echo "#                                                                                         #" >> /etc/motd
-    echo "# Refer: https://cloud.ibm.com/docs/vpc?topic=vpc-instance-storage                        #" >> /etc/motd
-    echo "###########################################################################################" >> /etc/motd
-fi
-echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
-echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth0"
-chage -I -1 -m 0 -M 99999 -E -1 -W 14 vpcuser
-systemctl restart NetworkManager
-systemctl stop firewalld
-firewall-offline-cmd --zone=public --add-port=1191/tcp
-firewall-offline-cmd --zone=public --add-port=60000-61000/tcp
-firewall-offline-cmd --zone=public --add-port=47080/tcp
-firewall-offline-cmd --zone=public --add-port=47080/udp
-firewall-offline-cmd --zone=public --add-port=47443/tcp
-firewall-offline-cmd --zone=public --add-port=47443/udp
-firewall-offline-cmd --zone=public --add-port=4444/tcp
-firewall-offline-cmd --zone=public --add-port=4444/udp
-firewall-offline-cmd --zone=public --add-port=4739/udp
-firewall-offline-cmd --zone=public --add-port=4739/tcp
-firewall-offline-cmd --zone=public --add-port=9084/tcp
-firewall-offline-cmd --zone=public --add-port=9085/tcp
-firewall-offline-cmd --zone=public --add-service=http
-firewall-offline-cmd --zone=public --add-service=https
-systemctl start firewalld
-systemctl enable firewalld
+# Hostname settings
+hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
+echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 
-if [ "${var.enable_sec_interface_storage}" == true ]; then
-    sec_interface=$(nmcli -t con show --active | grep eth1 | cut -d ':' -f 1)
-    nmcli conn del "$sec_interface"
-    nmcli con add type ethernet con-name eth1 ifname eth1
-    echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
-    echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-eth1"
-    systemctl restart NetworkManager
+if [ ! -d "/var/mmfs/etc" ]; then
+   mkdir -p "/var/mmfs/etc"
 fi
+echo "#!/bin/ksh" > "/var/mmfs/etc/nsddevices"
+echo "# Generated by IBM Storage Scale deployment." >> "/var/mmfs/etc/nsddevices"
+echo "# Identify the tie-breaker disk on non-nitro instance"
+echo "echo \"/dev/xvdf generic\"" >> "/var/mmfs/etc/nsddevices"
+echo "# Identify the nvme disks on nitro instances"
+%{for i in range(1, 17)~}
+echo "echo \"/dev/nvme${i}n1 generic\"" >> "/var/mmfs/etc/nsddevices"
+%{endfor~}
+echo "# Bypass the NSD device discovery" >> "/var/mmfs/etc/nsddevices"
+echo "return 0" >> "/var/mmfs/etc/nsddevices"
+chmod u+x "/var/mmfs/etc/nsddevices"
 EOF
 }
 
-resource "ibm_is_instance" "itself" {
-  for_each = {
-    # This assigns a subnet-id to each of the instance
-    # iteration.
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      sequence_string = tostring(count_number)
-      subnet_id       = element(var.vsi_subnet_id, idx)
-      zone            = element(var.zones, idx)
-    }
-  }
+/*
+data "cloudinit_config" "user_data64" {
+  gzip          = true
+  base64_encode = true
 
-  name    = format("%s-%03s", var.vsi_name_prefix, each.value.sequence_string)
-  image   = var.vsi_image_id
-  profile = var.vsi_profile
-  tags    = var.resource_tags
+  part {
+    content_type = "text/x-shellscript"
+    content      = local.user_data_script
+  }
+}
+*/
+
+# Resolves the CRN of your KMS key for boot volume encryption
+data "ibm_kms_key" "itself" {
+  count       = var.root_device_kms_key_instance_id != null && var.root_device_kms_key_instance_name != null ? 1 : 0
+  instance_id = var.root_device_kms_key_instance_id   # GUID of your Key Protect/HPCS instance
+  key_name    = var.root_device_kms_key_instance_name      # Name (or alias) of the root/standard key
+}
+
+# Virtual Server for VPC (VSI)
+resource "ibm_is_instance" "itself" {
+  name    = var.name_prefix
+  image   = var.ami_id
+  profile = var.instance_type
+
+  # SSH key(s): IBM expects key IDs, not names
+  keys = [var.user_public_key]
+
+  vpc  = var.vpc_id
+  zone = var.zone
 
   primary_network_interface {
-    name            = format("%s-%03s-pri", var.vsi_name_prefix, each.value.sequence_string)
-    subnet          = each.value.subnet_id
-    security_groups = var.vsi_security_group
+    subnet          = var.subnet_id
+    security_groups = var.security_groups
   }
 
-  dynamic "network_interfaces" {
-    for_each = var.enable_sec_interface_storage ? [1] : []
-    content {
-      name            = format("%s-%03s-sec", var.vsi_name_prefix, each.value.sequence_string)
-      subnet          = each.value.subnet_id
-      security_groups = var.vsi_security_group
-    }
-  }
-
-  vpc            = var.vpc_id
-  zone           = each.value.zone
-  keys           = var.vsi_user_public_key
-  resource_group = var.resource_group_id
-  user_data      = data.template_file.metadata_startup_script.rendered
-
+  # Encrypt the root volume with the KMS key CRN
   boot_volume {
-    name = format("%s-boot-%03s", var.vsi_name_prefix, each.value.sequence_string)
+    encryption = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
+  }
+
+  metadata_service_enabled = true
+
+  #user_data = data.cloudinit_config.user_data64.rendered
+
+
+  user_data = <<-EOF
+    #!/usr/bin/env bash
+    set -euxo pipefail
+
+    # Ensure SSH dir exists and correct perms
+    mkdir -p /root/.ssh
+    chmod 700 /root/.ssh
+
+    # Keys & SSH settings (these are Terraform variables – keep them as-is)
+    echo "${var.meta_private_key}" > /root/.ssh/id_rsa
+    chmod 600 /root/.ssh/id_rsa
+    echo "${var.meta_public_key}" >> /root/.ssh/authorized_keys
+    chmod 600 /root/.ssh/authorized_keys
+
+    {
+      echo "  StrictHostKeyChecking no"
+      echo "  UserKnownHostsFile=/dev/null"
+    } >> /root/.ssh/config
+    chmod 600 /root/.ssh/config
+
+    # Hostname settings
+    hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+    mkdir -p /etc/cloud/cloud.cfg.d
+    echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
+    echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
+
+    # IBM Storage Scale device discovery helper
+    mkdir -p "/var/mmfs/etc"
+
+    cat > "/var/mmfs/etc/nsddevices" <<'KSH'
+    #!/bin/ksh
+    # Generated by IBM Storage Scale deployment.
+    KSH
+
+    BOOT_DISK=$(findmnt -n -o SOURCE / | sed 's/[0-9]*$//')
+    for disk in /dev/vd[b-z]; do
+        [[ ! -b "$disk" ]] && continue
+        [[ "$disk" == "$BOOT_DISK" ]] && continue
+
+        SIZE=$(blockdev --getsize64 "$disk")
+        if [[ $SIZE -gt 1073741824 ]]; then    # >1GB
+            echo "echo $disk generic" >> "/var/mmfs/etc/nsddevices"
+        fi
+    done
+
+    echo "# Bypass the NSD device discovery" >> "/var/mmfs/etc/nsddevices"
+    echo "return 0" >> "/var/mmfs/etc/nsddevices"
+    chmod u+x "/var/mmfs/etc/nsddevices"
+    EOF
+
+  #tags = concat([format("Name=%s", var.name_prefix)], try(var.tags, []))
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 
-resource "time_sleep" "wait_60_seconds" {
-  create_duration = "60s"
-  depends_on      = [ibm_is_instance.itself]
+
+# Create the specified volumes with the corresponding type and size
+resource "ibm_is_volume" "itself" {
+  for_each = var.disks
+  name   = format("%s-%s", var.name_prefix, each.key)
+  zone   = var.zone
+  capacity = tonumber(each.value["size"])
+  profile = each.value["type"]
+  iops              = each.value["iops"] == "" ? null : each.value["iops"]
+  encryption_key    = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
 }
 
-# A Record for primary network Interface
-
+# Create "A" record: hostname -> private IPv4
 resource "ibm_dns_resource_record" "a_itself" {
-  for_each = {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist([for name_details in ibm_is_instance.itself : name_details.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0]["primary_ipv4_address"]]), idx)
-    }
-  }
+  # IBM Cloud DNS Services instance GUID (from ibm_resource_instance "dns-svcs")
+  instance_id = var.dns_services_instance_id
 
-  instance_id = var.dns_service_id
-  zone_id     = var.dns_zone_id
-  type        = "A"
-  name        = each.value.name
-  rdata       = each.value.network_ip
-  ttl         = 300
-  depends_on  = [ibm_is_instance.itself]
+  # Forward DNS zone ID (from ibm_dns_zone)
+  zone_id = var.forward_dns_zone_id
+
+  type = "A"
+  name = format("%s.%s", var.name_prefix, var.dns_domain)
+  rdata = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
+  ttl   = 3600
 }
 
-# PTR Record for primary network Interface
-
+# Create "PTR" record: IPv4 -> hostname (in the same forward zone)
 resource "ibm_dns_resource_record" "ptr_itself" {
-  for_each = {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist([for name_details in ibm_is_instance.itself : name_details.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0]["primary_ipv4_address"]]), idx)
-    }
+  instance_id = var.dns_services_instance_id
+  #zone_id     = var.reverse_dns_zone_id
+  zone_id = var.forward_dns_zone_id
+
+  type = "PTR"
+  name = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
+
+  # rdata is the FQDN you want this IP to resolve to
+  rdata = format("%s.%s", var.name_prefix, var.dns_domain)
+  ttl = 3600
+
+  depends_on = [ibm_dns_resource_record.a_itself]
+}
+
+# Attach the volumes to the provisioned IBM Cloud instance
+resource "ibm_is_instance_volume_attachment" "itself" {
+  for_each = ibm_is_volume.itself
+
+  instance = ibm_is_instance.itself.id
+  volume   = ibm_is_volume.itself[each.key].id
+  name     = format("%s-%s-att", var.name_prefix, each.key)
+}
+
+output "instance_details" {
+  value = {
+    private_ip = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
+    id         = ibm_is_instance.itself.id
+    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
+    zone       = ibm_is_instance.itself.zone
   }
-
-  instance_id = var.dns_service_id
-  zone_id     = var.dns_zone_id
-  type        = "PTR"
-  name        = each.value.network_ip
-  rdata       = format("%s.%s", each.value.name, var.dns_domain)
-  ttl         = 300
-  depends_on  = [ibm_dns_resource_record.a_itself]
-}
-
-# A Record for Secondary network Interface
-
-resource "ibm_dns_resource_record" "sec_interface_a_record" {
-  for_each = var.enable_sec_interface_storage == false ? {} : {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
-      network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
-    }
-  }
-
-  instance_id = var.dns_service_id
-  zone_id     = var.dns_zone_id
-  type        = "A"
-  name        = each.value.name
-  rdata       = each.value.network_ip
-  ttl         = 300
-  depends_on  = [ibm_is_instance.itself]
-}
-
-# PTR Record for Secondary network Interface
-
-resource "ibm_dns_resource_record" "sec_interface_ptr_record" {
-  for_each = var.enable_sec_interface_storage == false ? {} : {
-    for idx, count_number in range(1, var.total_vsis + 1) : idx => {
-      name       = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].name])), idx)
-      network_ip = element(tolist(flatten([for instance_details in ibm_is_instance.itself : instance_details[*].network_interfaces[*].primary_ip[*].address])), idx)
-    }
-  }
-
-  instance_id = var.dns_service_id
-  zone_id     = var.dns_zone_id
-  type        = "PTR"
-  name        = each.value.network_ip
-  rdata       = format("%s.%s", each.value.name, var.dns_domain)
-  ttl         = 300
-  depends_on  = [ibm_dns_resource_record.sec_interface_a_record]
-}
-
-output "instance_ids" {
-  value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.id]), [])
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "instance_private_ips" {
-  value      = try(toset([for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"]]), [])
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "instance_ips_with_vol_mapping" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.name =>
-  data.ibm_is_instance_profile.itself.disks[0].quantity[0].value == 1 ? ["/dev/vdb"] : ["/dev/vdb", "/dev/vdc"] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "instance_private_dns_ip_map" {
-  value = try({ for instance_details in ibm_is_instance.itself : instance_details.primary_network_interface[0]["primary_ipv4_address"] => instance_details.private_dns }, {})
-}
-
-output "instance_name_id_map" {
-  value      = try({ for instance_details in ibm_is_instance.itself : "${instance_details.name}.${var.dns_domain}" => instance_details.id }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
-}
-
-output "instance_name_ip_map" {
-  value      = try({ for instance_details in ibm_is_instance.itself : instance_details.name => instance_details.primary_network_interface[0]["primary_ipv4_address"] }, {})
-  depends_on = [ibm_dns_resource_record.a_itself, ibm_dns_resource_record.ptr_itself]
 }

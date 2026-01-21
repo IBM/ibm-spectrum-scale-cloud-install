@@ -33,3 +33,7 @@ output "vpc_id" {
 output "vpc_crn" {
   value = ibm_is_vpc.itself.crn
 }
+
+output "vpc_name" {
+  value = ibm_is_vpc.itself.name
+}

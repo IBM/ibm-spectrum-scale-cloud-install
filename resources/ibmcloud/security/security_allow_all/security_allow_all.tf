@@ -22,5 +22,5 @@ resource "ibm_is_security_group_rule" "itself" {
 }
 
 output "security_rule_id" {
-  value = [for rule in ibm_is_security_group_rule.itself : rule.id]
+  value = values(ibm_is_security_group_rule.itself)[*].id
 }

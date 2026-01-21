@@ -12,8 +12,8 @@ data "ibm_resource_group" "itself" {
 module "bastion_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
   turn_on           = true
-  sec_group_name    = [format("%s-bastion-sg", var.resource_prefix)]
-  vpc               = var.vpc_ref
+  sec_group_name    = format("%s-bastion-sg", var.resource_prefix)
+  vpc_id            = var.vpc_ref
   resource_group_id = data.ibm_resource_group.itself.id
 }
 

@@ -17,7 +17,7 @@ variable "bastion_key_pair" {
 }
 
 variable "bastion_public_ssh_port" {
-  type        = number
+  type        = any
   nullable    = false
   description = "Set the SSH port to use from desktop to the bastion."
 }
