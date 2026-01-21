@@ -13,9 +13,19 @@ output "vpc_public_subnets" {
   description = "List of IDs of public subnets."
 }
 
+output "vpc_public_subnets_name" {
+  value       = module.public_subnet.subnet_name
+  description = "List of Name of public subnets."
+}
+
 output "vpc_ref" {
   value       = module.vpc.vpc_id
   description = "The ID of the VPC."
+}
+
+output "vpc_name" {
+  value       = module.vpc.vpc_name
+  description = "The Name of the VPC."
 }
 
 output "vpc_storage_cluster_private_subnets" {

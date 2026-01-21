@@ -1,372 +1,464 @@
-variable "vpc_region" {
-  type        = string
-  description = "The region where IBM Cloud operations will take place. Examples are us-east, us-south, etc."
+variable "airgap" {
+  type        = bool
+  nullable    = true
+  description = "If true, instance iam profile, git utils which need internet access will be skipped."
 }
 
-variable "vpc_availability_zones" {
+variable "bastion_instance_public_ip" {
+  type        = string
+  nullable    = true
+  description = "Bastion instance public ip address."
+}
+
+variable "bastion_instance_ref" {
+  type        = string
+  nullable    = true
+  description = "Bastion instance ref."
+}
+
+variable "bastion_security_group_ref" {
+  type        = string
+  nullable    = true
+  description = "Bastion security group reference (id/self-link)."
+}
+
+variable "bastion_ssh_private_key" {
+  type        = string
+  nullable    = true
+  description = "Bastion SSH private key path, which will be used to login to bastion host."
+}
+
+variable "bastion_user" {
+  type        = string
+  nullable    = true
+  description = "Bastion login username."
+}
+
+variable "ces_ip_address" {
   type        = list(string)
-  description = "A list of availability zones names or ids in the region."
+  nullable    = true
+  description = "CES IP addresses (length must be equal to number of protocol nodes)."
 }
 
-variable "resource_prefix" {
-  type        = string
-  default     = "spectrum-scale"
-  description = "Prefix is added to all resources that are created."
-}
-
-variable "resource_group_id" {
-  type        = string
-  description = "IBM Cloud resource group id."
-}
-
-variable "vpc_id" {
-  type        = string
-  description = "VPC id were to deploy the bastion."
-}
-
-variable "vpc_compute_cluster_private_subnets" {
+variable "client_ip_ranges" {
   type        = list(string)
-  description = "List of IDs of compute cluster private subnets."
+  nullable    = true
+  description = "List of gateway/client ip/cidr ranges."
 }
 
-variable "vpc_storage_cluster_private_subnets" {
-  type        = list(string)
-  description = "List of IDs of storage cluster private subnets."
-}
-
-variable "total_compute_cluster_instances" {
-  type        = number
-  default     = 3
-  description = "Number of instances to be launched for compute cluster."
-}
-
-variable "compute_cluster_key_pair" {
+variable "client_security_group_ref" {
   type        = string
-  description = "The key pair to use to launch the compute cluster host."
+  nullable    = true
+  description = "Client security group reference (id/self-link)."
 }
 
-variable "compute_vsi_osimage_name" {
+variable "cluster_type" {
   type        = string
-  default     = "ibm-redhat-8-3-minimal-amd64-3"
-  description = "Image name to use for provisioning the compute cluster instances."
+  nullable    = false
+  description = "Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage."
 }
 
-variable "compute_vsi_profile" {
+variable "compute_cluster_boot_disk_type" {
   type        = string
-  default     = "cx2-2x4"
-  description = "Profile to be used for compute cluster virtual server instance."
+  nullable    = true
+  description = "EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1."
 }
 
-variable "using_rest_api_remote_mount" {
+variable "compute_cluster_filesystem_mountpoint" {
   type        = string
-  default     = true
-  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
-}
-
-variable "compute_cluster_gui_username" {
-  type        = string
-  sensitive   = true
-  description = "GUI user to perform system management and monitoring tasks on compute cluster."
+  nullable    = true
+  description = "Compute cluster (accessingCluster) Filesystem mount point."
 }
 
 variable "compute_cluster_gui_password" {
   type        = string
+  nullable    = true
   sensitive   = true
-  description = "Password for compute cluster GUI"
+  description = "Password for Compute cluster GUI."
 }
 
-variable "total_storage_cluster_instances" {
-  type        = number
-  default     = 4
-  description = "Number of instances to be launched for storage cluster."
-}
-
-variable "storage_vsi_osimage_name" {
+variable "compute_cluster_gui_username" {
   type        = string
-  default     = "ibm-redhat-8-3-minimal-amd64-3"
-  description = "Image name to use for provisioning the storage cluster instances."
-}
-
-variable "storage_vsi_profile" {
-  type        = string
-  default     = "bx2d-8x32"
-  description = "Profile to be used for storage cluster virtual server instance."
-}
-
-variable "storage_cluster_key_pair" {
-  type        = string
-  description = "The key pair to use to launch the storage cluster host."
-}
-
-variable "storage_cluster_gui_username" {
-  type        = string
+  nullable    = true
   sensitive   = true
-  description = "GUI user to perform system management and monitoring tasks on storage cluster."
+  description = "GUI user to perform system management and monitoring tasks on compute cluster."
 }
 
-variable "storage_cluster_gui_password" {
+variable "compute_cluster_image_ref" {
   type        = string
-  sensitive   = true
-  description = "Password for storage cluster GUI"
+  nullable    = true
+  description = "ID of AMI to use for provisioning the compute cluster instances."
 }
 
-variable "using_packer_image" {
+variable "compute_cluster_instance_type" {
+  type        = string
+  nullable    = true
+  description = "Instance type to use for provisioning the compute cluster instances."
+}
+
+variable "compute_cluster_key_pair" {
+  type        = string
+  nullable    = true
+  description = "The key pair to use to launch the compute cluster host."
+}
+
+variable "compute_cluster_tags" {
+  type        = map(string)
+  nullable    = true
+  description = "Additional tags for the compute cluster."
+}
+
+variable "compute_cluster_volume_tags" {
+  type        = map(string)
+  nullable    = true
+  description = "Additional tags for the compute cluster volume(s)."
+}
+
+variable "create_remote_mount_cluster" {
   type        = bool
-  default     = false
-  description = "If true, gpfs rpm copy step will be skipped during the configuration."
+  nullable    = true
+  description = "Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup."
 }
 
-variable "using_jumphost_connection" {
+variable "create_scale_cluster" {
   type        = bool
-  default     = false
-  description = "If true, will skip the jump/bastion host configuration."
+  nullable    = true
+  description = "Flag to represent whether to create scale cluster or not."
 }
 
-variable "vpc_compute_cluster_dns_service_id" {
-  type        = string
-  description = "IBM Cloud compute cluster DNS service resource id."
+variable "enable_placement_group" {
+  type        = bool
+  nullable    = true
+  description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
 }
 
-variable "vpc_storage_cluster_dns_service_id" {
-  type        = string
-  description = "IBM Cloud storage cluster DNS service resource id."
+variable "filesystem_parameters" {
+  type = list(object({
+    name                         = string
+    filesystem_config_file       = string
+    filesystem_encrypted         = bool
+    filesystem_kms_key_ref       = string
+    device_delete_on_termination = bool
+    disk_config = list(object({
+      filesystem_pool                    = string
+      block_devices_per_storage_instance = number
+      block_device_volume_type           = string
+      block_device_volume_size           = string
+      block_device_iops                  = string
+      block_device_throughput            = string
+    }))
+  }))
+  nullable    = true
+  description = "Filesystem parameters in relationship with disk parameters."
 }
 
-variable "vpc_compute_cluster_dns_zone_id" {
+variable "gateway_instance_type" {
   type        = string
-  description = "IBM Cloud compute cluster DNS zone id."
+  nullable    = true
+  description = "Instance type to use for provisioning the gateway instances."
 }
 
-variable "vpc_storage_cluster_dns_zone_id" {
-  type        = string
-  description = "IBM Cloud storage cluster DNS zone id."
+variable "gateway_tags" {
+  type        = map(string)
+  nullable    = true
+  description = "Additional tags for the gateway instances."
 }
 
-variable "vpc_compute_cluster_dns_domain" {
-  type        = string
-  default     = "compscale.com"
-  description = "IBM Cloud DNS domain name to be used for compute cluster."
+variable "gateway_volume_tags" {
+  type        = map(string)
+  nullable    = true
+  description = "Additional tags for the gateway volume(s)."
 }
 
-variable "vpc_storage_cluster_dns_domain" {
+variable "instances_ssh_user_name" {
   type        = string
-  default     = "strgscale.com"
-  description = "IBM Cloud DNS domain name to be used for storage cluster."
+  nullable    = true
+  description = "Compute/Storage EC2 instances login username."
 }
 
-variable "vpc_custom_resolver_id" {
+variable "inventory_format" {
   type        = string
-  description = "IBM Cloud DNS custom resolver id."
+  nullable    = true
+  description = "Specify inventory format suited for ansible playbooks. Examples: ini, json"
+}
+
+variable "marked_vm_names_to_attach_disks" {
+  type        = list(string)
+  nullable    = true
+  description = "Specify the instance names for which disks needs to be attached"
+}
+
+variable "operator_email" {
+  type        = string
+  nullable    = true
+  description = "SNS notifications will be sent to provided email id."
+}
+
+variable "protocol_instance_type" {
+  type        = string
+  nullable    = true
+  description = "Instance type to use for provisioning the protocol instances."
+}
+
+variable "protocol_tags" {
+  type        = map(string)
+  nullable    = true
+  description = "Additional tags for the protocol instances."
+}
+
+variable "protocol_volume_tags" {
+  type        = map(string)
+  nullable    = true
+  description = "Additional tags for the protocol volume(s)."
+}
+
+variable "resource_prefix" {
+  type        = string
+  nullable    = false
+  description = "Prefix is added to all resources that are created."
+}
+
+variable "root_device_encrypted" {
+  type        = bool
+  nullable    = true
+  description = "Whether to enable volume encryption for root device."
+}
+
+variable "root_device_kms_key_ref" {
+  type        = string
+  nullable    = true
+  description = "GUID of the Key Protect/HPCS instance to be used when encrypting the root volume."
+}
+
+variable "root_device_kms_key_ref_name" {
+  type        = string
+  nullable    = true
+  description = "Name of the root/standard key to be used when encrypting the root volume."
 }
 
 variable "scale_ansible_repo_clone_path" {
   type        = string
-  default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
+  nullable    = true
   description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
 }
 
 variable "spectrumscale_rpms_path" {
   type        = string
-  default     = "/opt/IBM/gpfs_cloud_rpms"
+  nullable    = true
   description = "Path that contains IBM Spectrum Scale product cloud rpms."
 }
 
-variable "storage_cluster_filesystem_mountpoint" {
+variable "storage_cluster_boot_disk_type" {
   type        = string
-  default     = "/gpfs/fs1"
-  description = "Storage cluster (owningCluster) Filesystem mount point."
+  nullable    = true
+  description = "EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1."
 }
 
-variable "compute_cluster_filesystem_mountpoint" {
+variable "storage_cluster_gui_password" {
   type        = string
-  default     = "/gpfs/fs1"
-  description = "Compute cluster (accessingCluster) Filesystem mount point."
+  nullable    = true
+  sensitive   = true
+  description = "Password for Storage cluster GUI"
 }
 
-variable "filesystem_block_size" {
+variable "storage_cluster_gui_username" {
   type        = string
-  default     = "4M"
-  description = "Filesystem block size."
+  nullable    = true
+  sensitive   = true
+  description = "GUI user to perform system management and monitoring tasks on storage cluster."
 }
 
-variable "create_separate_namespaces" {
-  type        = bool
-  default     = true
-  description = "Flag to select if separate namespace needs to be created for compute instances."
-}
-
-variable "bastion_instance_public_ip" {
+variable "storage_cluster_image_ref" {
   type        = string
-  default     = null
-  description = "Bastion instance public ip address."
+  nullable    = true
+  description = "ID of AMI to use for provisioning the storage cluster instances."
 }
 
-variable "bastion_security_group_id" {
+variable "storage_cluster_instance_type" {
   type        = string
-  default     = null
-  description = "Bastion security group id."
+  nullable    = true
+  description = "Instance type to use for provisioning the storage cluster instances."
 }
 
-variable "bastion_instance_id" {
+variable "storage_cluster_key_pair" {
   type        = string
-  default     = null
-  description = "Bastion instance id."
+  nullable    = true
+  description = "The key pair to use to launch the storage cluster host."
 }
 
-variable "bastion_ssh_private_key" {
+variable "storage_cluster_public_key_path" {
   type        = string
-  default     = null
-  description = "Bastion SSH private key path, which will be used to login to bastion host."
+  nullable    = true
+  description = "The ssh public key to be created used to launch the storage cluster."
 }
 
-variable "deploy_controller_sec_group_id" {
+variable "compute_cluster_public_key_path" {
   type        = string
-  default     = null
-  description = "Deployment controller security group id. Default: null"
+  nullable    = true
+  description = "The ssh public key to be created used to launch the compute cluster."
 }
 
-variable "vpc_create_activity_tracker" {
-  type        = bool
-  default     = true
-  description = "Flag to select if IBM Cloud activity tracker to be created or not. Note: You can only provision 1 instance of this service per IBM Cloud region."
+variable "storage_cluster_tags" {
+  type        = map(string)
+  nullable    = true
+  description = "Additional tags for the storage cluster."
 }
 
-variable "activity_tracker_plan_type" {
+variable "storage_cluster_tiebreaker_instance_type" {
   type        = string
-  default     = "lite"
-  description = "IBM Cloud activity tracker plan type (Valid: lite, 7-day, 14-day, 30-day, hipaa-30-day)."
+  nullable    = true
+  description = "Instance type to use for the tie breaker instance (will be provisioned only in Multi-AZ configuration)."
 }
 
-variable "create_scale_cluster" {
-  type        = bool
-  default     = false
-  description = "Flag to represent whether to create scale cluster or not."
+variable "storage_cluster_volume_tags" {
+  type        = map(string)
+  nullable    = true
+  description = "Additional tags for the storage cluster volume(s)."
 }
 
-variable "scale_cluster_resource_tags" {
-  type        = list(string)
-  default     = null
-  description = "A list of tags for resources created for scale cluster."
-}
-
-variable "compute_vsi_osimage_id" {
-  type        = string
-  default     = ""
-  description = "Image id to use for provisioning the compute cluster instances."
-}
-
-variable "storage_vsi_osimage_id" {
-  type        = string
-  default     = ""
-  description = "Image id to use for provisioning the storage cluster instances."
-}
-
-variable "storage_bare_metal_server_profile" {
-  type        = string
-  default     = "cx2d-metal-96x192"
-  description = "Specify the virtual server instance profile type name to be used to create the Baremetal Storage nodes. For more information, see [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-bare-metal-servers-profile&interface=ui)."
-}
-
-variable "storage_bare_metal_osimage_name" {
-  type        = string
-  default     = "ibm-redhat-8-3-minimal-amd64-3"
-  description = "Image name to use for provisioning the storage Baremetal cluster."
-}
-
-variable "storage_bare_metal_osimage_id" {
-  type        = string
-  default     = ""
-  description = "Image Id to use for provisioning the storage Baremetal cluster instances."
-}
-
-variable "storage_type" {
-  type        = string
-  default     = "scratch"
-  description = "Select the required scale filesystem deployment method. Note: Choosing the scale scratch or evaluation type will deploy scale filesystem on VSI and scale persistent type will deploy scale filesystem on Baremetal server."
-}
-
-variable "inventory_format" {
-  type        = string
-  default     = "ini"
-  description = "Specify inventory format suited for ansible playbooks."
-}
-
-variable "bastion_user" {
-  type        = string
-  default     = "ubuntu"
-  description = "Provide the username for Bastion login."
-}
-
-#GKLM Variables
-
-variable "scale_encryption_enabled" {
-  type        = bool
-  default     = false
-  description = "To enable the encryption for the filesystem. Select true or false"
-}
-
-variable "gklm_vsi_osimage_id" {
-  type        = string
-  default     = null
-  description = "Image id to use for provisioning the GKLM instances."
-}
-
-variable "total_gklm_instances" {
+variable "total_compute_cluster_instances" {
   type        = number
-  default     = 2
-  description = "Number of instances to be launched for GKLM."
+  nullable    = true
+  description = "Number of EC2 instances to be launched for compute cluster."
 }
 
-variable "gklm_instance_key_pair" {
-  type        = string
-  default     = null
-  description = "The key pair to use to launch the GKLM host."
+variable "total_gateway_instances" {
+  type        = number
+  nullable    = true
+  description = "Number of EC2 instances to be launched for gateway nodes."
 }
 
-variable "gklm_vsi_osimage_name" {
-  type        = string
-  default     = null
-  description = "Image name to use for provisioning the GKLM instances."
+variable "total_protocol_instances" {
+  type        = number
+  nullable    = true
+  description = "Number of EC2 instances to be launched for protocol nodes."
 }
 
-variable "gklm_vsi_profile" {
-  type        = string
-  default     = "bx2-2x8"
-  description = "Profile to be used for GKLM virtual server instance."
+variable "total_storage_cluster_instances" {
+  type        = number
+  nullable    = true
+  description = "Number of EC2 instances to be launched for storage cluster."
 }
 
-variable "gklm_instance_dns_domain" {
-  type        = string
-  default     = "gklmscale.com"
-  description = "IBM Cloud DNS domain name to be used for GKLM instances."
+variable "using_cloud_connection" {
+  type        = bool
+  nullable    = true
+  description = "This flag is intended to enable ansible related communication between a cloud virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `client_security_group_ref` (make sure it is in the same vpc), as the cloud VM security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
 }
 
-variable "gklm_instance_dns_service_id" {
-  type        = string
-  default     = null
-  description = "IBM Cloud GKLM Instance DNS service resource id."
+variable "using_direct_connection" {
+  type        = bool
+  nullable    = true
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud virtual private cloud (VPC) via a VPN or direct connection. This mode requires variable `client_ip_ranges`, as the on-premise client ip will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
 }
 
-variable "gklm_instance_dns_zone_id" {
-  type        = string
-  default     = null
-  description = "IBM GKLM Instance DNS zone id."
+variable "using_jumphost_connection" {
+  type        = bool
+  nullable    = true
+  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_ref`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
 }
 
-variable "scale_encryption_admin_default_password" {
-  type        = string
-  default     = "SKLM@dmin123"
-  description = "The default administrator password used for resetting the admin password based on the user input. The password has to be updated which was configured during the GKLM installation."
+variable "using_packer_image" {
+  type        = bool
+  nullable    = true
+  description = "If true, gpfs rpm copy step will be skipped during the configuration."
 }
 
-variable "scale_encryption_admin_username" {
+variable "using_rest_api_remote_mount" {
   type        = string
-  default     = "SKLMAdmin"
-  description = "The default Admin username for Security Key Lifecycle Manager(GKLM)."
+  nullable    = true
+  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
 }
 
-variable "scale_encryption_admin_password" {
+variable "vpc_availability_zones" {
+  type        = list(string)
+  nullable    = false
+  description = "A list of availability zones names or ids in the region."
+}
+
+variable "vpc_compute_cluster_dns_domain" {
   type        = string
-  default     = null
-  description = "Password that is used for performing administrative operations for the GKLM.The password must contain at least 8 characters and at most 20 characters. For a strong password, at least three alphabetic characters are required, with at least one uppercase and one lowercase letter.  Two numbers, and at least one special character from this(~@_+:). Make sure that the password doesn't include the username. Visit this [page](https://www.ibm.com/docs/en/gklm/3.0.1?topic=roles-password-policy) to know more about password policy of GKLM. "
+  nullable    = true
+  description = "DNS domain name to be used for compute cluster."
+}
+
+variable "vpc_compute_cluster_private_subnets" {
+  type        = list(string)
+  nullable    = true
+  description = "List of IDs of compute cluster private subnets."
+}
+
+variable "vpc_forward_dns_zone" {
+  type        = string
+  nullable    = true
+  description = "DNS zone name to be used for scale cluster (Ex: example-zone)."
+}
+
+variable "vpc_ref" {
+  type        = string
+  nullable    = false
+  description = "VPC id were to deploy the bastion."
+}
+
+/*
+variable "vpc_id" {
+  type        = string
+  nullable    = false
+  description = "VPC id were to deploy the bastion."
+}
+*/
+
+variable "vpc_region" {
+  type        = string
+  nullable    = false
+  description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
+}
+
+variable "vpc_reverse_dns_domain" {
+  type        = string
+  nullable    = true
+  description = "DNS reverse domain (Ex: 10.in-addr.arpa)."
+}
+
+variable "vpc_reverse_dns_zone" {
+  type        = string
+  nullable    = true
+  description = "DNS reverse zone lookup to be used for scale cluster (Ex: example-zone-reverse)."
+}
+
+variable "vpc_storage_cluster_dns_domain" {
+  type        = string
+  nullable    = true
+  description = "DNS domain name to be used for storage cluster."
+}
+
+variable "vpc_storage_cluster_private_subnets" {
+  type        = list(string)
+  nullable    = true
+  description = "List of IDs of storage cluster private subnets."
+}
+
+variable "service_instance_ref" {
+  type        = string
+  nullable    = false
+  description = "IBM Cloud DNS Service Instance Id"
+}
+
+/*
+variable "vpc_storage_dns_zone_id" {
+  type        = string
+  description = "IBM Cloud storage cluster DNS zone id."
+}
+*/
+
+variable "resource_group_name" {
+  type        = string
+  description = "IBM Cloud resource group name."
+}
+
+variable "ibmcloud_api_key" {
+  type        = string
+  nullable    = false
+  sensitive   = true
+  description = "The IBM Cloud platform API key."
 }

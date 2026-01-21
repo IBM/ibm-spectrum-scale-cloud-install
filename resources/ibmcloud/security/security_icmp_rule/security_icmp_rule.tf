@@ -14,11 +14,14 @@ variable "security_group_id" {}
 variable "sg_direction" {}
 variable "remote_ip_addr" {}
 
+locals {
+  remotes   = element(flatten([var.remote_ip_addr]), 0)
+}
+
 resource "ibm_is_security_group_rule" "itself" {
-  for_each  = toset(var.remote_ip_addr)
   group     = var.security_group_id
   direction = var.sg_direction
-  remote    = each.key
+  remote    = local.remotes
   icmp {
     type = 8
     code = 20
@@ -26,5 +29,5 @@ resource "ibm_is_security_group_rule" "itself" {
 }
 
 output "security_rule_id" {
-  value = [for rule in ibm_is_security_group_rule.itself : rule.id]
+  value = ibm_is_security_group_rule.itself[*].id
 }

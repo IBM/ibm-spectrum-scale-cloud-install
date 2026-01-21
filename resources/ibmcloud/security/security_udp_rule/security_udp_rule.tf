@@ -30,11 +30,12 @@ resource "ibm_is_security_group_rule" "itself" {
   direction = local.direction
   remote    = local.remote
 
-  tcp {
+  udp {
     port_min = each.value
     port_max = each.value
   }
 }
+
 
 output "security_rule_id" {
   value = [for rule in ibm_is_security_group_rule.itself : rule.id]

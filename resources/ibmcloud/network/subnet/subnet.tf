@@ -32,6 +32,10 @@ output "subnet_id" {
   value = ibm_is_subnet.itself[*].id
 }
 
+output "subnet_name" {
+  value = ibm_is_subnet.itself[*].name
+}
+
 output "subnet_crn" {
   value = ibm_is_subnet.itself[*].crn
 }
