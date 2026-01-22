@@ -8,6 +8,6 @@ terraform {
 }
 
 provider "ibm" {
-  region = var.vpc_region
+  region           = var.vpc_region
   ibmcloud_api_key = var.ibmcloud_api_key
 }

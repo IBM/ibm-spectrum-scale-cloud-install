@@ -4,20 +4,20 @@
 */
 
 locals {
-  compute_or_combined  = ((var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") && var.total_compute_cluster_instances > 0) ? true : false
-  storage_or_combined  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
-  storage_and_protocol = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_protocol_instances > 0) ? true : false
-  storage_and_gateway  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
+  compute_or_combined = ((var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") && var.total_compute_cluster_instances > 0) ? true : false
+  storage_or_combined = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
+  #storage_and_protocol = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_protocol_instances > 0) ? true : false
+  # storage_and_gateway  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
 
   # Internode scale firewall ports
-  tcp_port_scale_cluster         = ["22", "1191", "60000", "61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
-  udp_port_scale_cluster         = ["47443", "4739"]
-  tcp_port_bastion_scale_cluster = ["22", "443"]
-  block_device_names             = ["/dev/vdd", "/dev/vdc"]
-  instance_storage_device_names  = ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde", "/dev/vdf", "/dev/vdg"]
-  gpfs_base_rpm_path             = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
+  tcp_port_scale_cluster = ["22", "1191", "60000", "61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
+  udp_port_scale_cluster = ["47443", "4739"]
+  #tcp_port_bastion_scale_cluster = ["22", "443"]
+  block_device_names            = ["/dev/vdd", "/dev/vde", "/dev/vdf", "/dev/vdg", "/dev/vdh", "/dev/vdi"]
+  instance_storage_device_names = ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde", "/dev/vdf", "/dev/vdg"]
+  #gpfs_base_rpm_path             = var.spectrumscale_rpms_path != null ? fileset(var.spectrumscale_rpms_path, "gpfs.base-*") : null
   #scale_version                 = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
-  scale_version                  = "6.0.0.1"
+  scale_version      = "6.0.0.1"
   filesystem_details = local.storage_or_combined ? { for fs_config in var.filesystem_parameters : fs_config.name => fs_config.filesystem_config_file } : {}
 }
 

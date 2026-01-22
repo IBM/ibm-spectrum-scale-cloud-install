@@ -33,7 +33,7 @@ variable "bastion_user" {
   nullable    = true
   description = "Bastion login username."
 }
-
+/*
 variable "ces_ip_address" {
   type        = list(string)
   nullable    = true
@@ -51,7 +51,7 @@ variable "client_security_group_ref" {
   nullable    = true
   description = "Client security group reference (id/self-link)."
 }
-
+*/
 variable "cluster_type" {
   type        = string
   nullable    = false
@@ -95,13 +95,13 @@ variable "compute_cluster_instance_type" {
   nullable    = true
   description = "Instance type to use for provisioning the compute cluster instances."
 }
-
+/*
 variable "compute_cluster_key_pair" {
   type        = string
   nullable    = true
   description = "The key pair to use to launch the compute cluster host."
 }
-
+*/
 variable "compute_cluster_tags" {
   type        = map(string)
   nullable    = true
@@ -125,13 +125,13 @@ variable "create_scale_cluster" {
   nullable    = true
   description = "Flag to represent whether to create scale cluster or not."
 }
-
+/*
 variable "enable_placement_group" {
   type        = bool
   nullable    = true
   description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
 }
-
+*/
 variable "filesystem_parameters" {
   type = list(object({
     name                         = string
@@ -151,7 +151,7 @@ variable "filesystem_parameters" {
   nullable    = true
   description = "Filesystem parameters in relationship with disk parameters."
 }
-
+/*
 variable "gateway_instance_type" {
   type        = string
   nullable    = true
@@ -169,7 +169,7 @@ variable "gateway_volume_tags" {
   nullable    = true
   description = "Additional tags for the gateway volume(s)."
 }
-
+*/
 variable "instances_ssh_user_name" {
   type        = string
   nullable    = true
@@ -187,7 +187,7 @@ variable "marked_vm_names_to_attach_disks" {
   nullable    = true
   description = "Specify the instance names for which disks needs to be attached"
 }
-
+/*
 variable "operator_email" {
   type        = string
   nullable    = true
@@ -211,7 +211,7 @@ variable "protocol_volume_tags" {
   nullable    = true
   description = "Additional tags for the protocol volume(s)."
 }
-
+*/
 variable "resource_prefix" {
   type        = string
   nullable    = false
@@ -279,13 +279,13 @@ variable "storage_cluster_instance_type" {
   nullable    = true
   description = "Instance type to use for provisioning the storage cluster instances."
 }
-
+/*
 variable "storage_cluster_key_pair" {
   type        = string
   nullable    = true
   description = "The key pair to use to launch the storage cluster host."
 }
-
+*/
 variable "storage_cluster_public_key_path" {
   type        = string
   nullable    = true
@@ -321,13 +321,13 @@ variable "total_compute_cluster_instances" {
   nullable    = true
   description = "Number of EC2 instances to be launched for compute cluster."
 }
-
+/*
 variable "total_gateway_instances" {
   type        = number
   nullable    = true
   description = "Number of EC2 instances to be launched for gateway nodes."
 }
-
+*/
 variable "total_protocol_instances" {
   type        = number
   nullable    = true
@@ -339,7 +339,7 @@ variable "total_storage_cluster_instances" {
   nullable    = true
   description = "Number of EC2 instances to be launched for storage cluster."
 }
-
+/*
 variable "using_cloud_connection" {
   type        = bool
   nullable    = true
@@ -351,7 +351,7 @@ variable "using_direct_connection" {
   nullable    = true
   description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud virtual private cloud (VPC) via a VPN or direct connection. This mode requires variable `client_ip_ranges`, as the on-premise client ip will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
 }
-
+*/
 variable "using_jumphost_connection" {
   type        = bool
   nullable    = true
@@ -387,13 +387,13 @@ variable "vpc_compute_cluster_private_subnets" {
   nullable    = true
   description = "List of IDs of compute cluster private subnets."
 }
-
+/*
 variable "vpc_forward_dns_zone" {
   type        = string
   nullable    = true
   description = "DNS zone name to be used for scale cluster (Ex: example-zone)."
 }
-
+*/
 variable "vpc_ref" {
   type        = string
   nullable    = false
@@ -413,7 +413,7 @@ variable "vpc_region" {
   nullable    = false
   description = "The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc."
 }
-
+/*
 variable "vpc_reverse_dns_domain" {
   type        = string
   nullable    = true
@@ -425,7 +425,7 @@ variable "vpc_reverse_dns_zone" {
   nullable    = true
   description = "DNS reverse zone lookup to be used for scale cluster (Ex: example-zone-reverse)."
 }
-
+*/
 variable "vpc_storage_cluster_dns_domain" {
   type        = string
   nullable    = true
