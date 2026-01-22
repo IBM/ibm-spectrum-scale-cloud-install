@@ -24,7 +24,7 @@ output "protocol_cluster_security_group_id" {
 }
 
 output "local_block_device_count" {
-  value       = local.local_block_device_count
+  value = local.local_block_device_count
 }
 
 output "profile_name_debug" {

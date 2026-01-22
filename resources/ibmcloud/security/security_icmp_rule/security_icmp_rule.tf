@@ -15,7 +15,7 @@ variable "sg_direction" {}
 variable "remote_ip_addr" {}
 
 locals {
-  remotes   = element(flatten([var.remote_ip_addr]), 0)
+  remotes = element(flatten([var.remote_ip_addr]), 0)
 }
 
 resource "ibm_is_security_group_rule" "itself" {
@@ -24,7 +24,7 @@ resource "ibm_is_security_group_rule" "itself" {
   remote    = local.remotes
   icmp {
     type = 8
-    code = 20
+    code = 0
   }
 }
 
