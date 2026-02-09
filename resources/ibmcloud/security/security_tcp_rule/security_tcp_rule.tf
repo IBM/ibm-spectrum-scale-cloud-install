@@ -14,6 +14,7 @@ variable "security_group_id" {}
 variable "sg_direction" {}
 variable "remote_ip_addr" {}
 variable "port" {}
+variable "enable_rule" {}
 
 locals {
   # Normalize inputs so the resource always receives strings/lists.
@@ -24,7 +25,7 @@ locals {
 }
 
 resource "ibm_is_security_group_rule" "itself" {
-  for_each = { for p in local.ports : tostring(p) => p }
+  for_each = var.enable_rule ? { for p in local.ports : tostring(p) => p } : {}
 
   group     = local.sg_id
   direction = local.direction

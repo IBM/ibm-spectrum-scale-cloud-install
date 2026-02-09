@@ -35,12 +35,12 @@ output "profile_disks_debug" {
   value = jsonencode(try(data.ibm_is_instance_profile.storage_profile[0].disks, []))
 }
 
-/*
+
 output "ces_private_ips" {
   value       = [for ip in module.protocol_instances : ip.ces_private_ip]
   description = "CES/Protocol ENI (secondary private) ips."
 }
-
+/*
 output "cluster_sns_arn" {
   value = module.email_notification.topic_arn
 }
@@ -67,7 +67,7 @@ output "placement_group_id" {
   value       = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
   description = "Placement group id."
 }
-
+*/
 output "protocol_instance_details" {
   value       = [for instance in module.protocol_instances : instance.instance_details]
   description = "Protocol instance details (map of id, private_ip, dns)"
@@ -83,9 +83,9 @@ output "storage_cluster_dec_instance_details" {
   description = "Storage cluster desc instance details (map of id, private_ip, dns)"
 }
 
-output "storage_cluster_instance_cidrs" {
-  value = [for subnet in data.aws_subnet.vpc_storage_cluster_private_subnet_cidrs : subnet.cidr_block]
-}
+# output "storage_cluster_instance_cidrs" {
+#   value = [for subnet in data.aws_subnet.vpc_storage_cluster_private_subnet_cidrs : subnet.cidr_block]
+# }
 
 output "storage_cluster_instance_details" {
   value       = [for instance in module.storage_cluster_instances : instance.instance_details]
@@ -116,4 +116,4 @@ output "flatten_tie_disk" {
 output "storage_instance_ips_with_disk_mapping" {
   value = local.storage_instance_ips_with_disk_mapping
 }
-*/
+

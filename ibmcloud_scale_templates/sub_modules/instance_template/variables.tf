@@ -33,13 +33,14 @@ variable "bastion_user" {
   nullable    = true
   description = "Bastion login username."
 }
-/*
+
 variable "ces_ip_address" {
   type        = list(string)
   nullable    = true
   description = "CES IP addresses (length must be equal to number of protocol nodes)."
 }
 
+/*
 variable "client_ip_ranges" {
   type        = list(string)
   nullable    = true
@@ -193,6 +194,7 @@ variable "operator_email" {
   nullable    = true
   description = "SNS notifications will be sent to provided email id."
 }
+*/
 
 variable "protocol_instance_type" {
   type        = string
@@ -211,7 +213,7 @@ variable "protocol_volume_tags" {
   nullable    = true
   description = "Additional tags for the protocol volume(s)."
 }
-*/
+
 variable "resource_prefix" {
   type        = string
   nullable    = false

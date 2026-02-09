@@ -13,9 +13,10 @@ terraform {
 variable "security_group_ids" {}
 variable "sg_direction" {}
 variable "remote_ip_addr" {}
+variable "enable_rule" {}
 
 resource "ibm_is_security_group_rule" "itself" {
-  for_each  = toset(var.remote_ip_addr)
+  for_each  = var.enable_rule ? toset(var.remote_ip_addr) : toset([])
   group     = var.security_group_ids
   direction = var.sg_direction
   remote    = each.key
