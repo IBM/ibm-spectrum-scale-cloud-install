@@ -286,6 +286,32 @@ module "protocol_instances" {
   zone                              = each.value["zone"]
 }
 
+module "gateway_instances" {
+  for_each                          = local.gateway_vm_subnet_map
+  source                            = "../../../resources/ibmcloud/compute/vsi_0_vol"
+  ami_id                            = var.storage_cluster_image_ref
+  dns_domain                        = var.vpc_storage_cluster_dns_domain
+  dns_services_instance_id          = var.service_instance_ref
+  forward_dns_zone                  = var.vpc_storage_cluster_dns_domain
+  forward_dns_zone_id               = local.forward_zone.zone_id
+  instance_type                     = var.gateway_instance_type
+  meta_private_key                  = local.storage_private_key_content
+  meta_public_key                   = var.storage_cluster_public_key_path
+  name_prefix                       = each.key
+  placement_group                   = null
+  root_device_encrypted             = var.root_device_encrypted
+  root_device_kms_key_instance_id   = var.root_device_kms_key_ref
+  root_device_kms_key_instance_name = var.root_device_kms_key_ref_name
+  root_volume_type                  = var.storage_cluster_boot_disk_type
+  security_groups                   = [module.cluster_security_group.sec_group_id]
+  subnet_id                         = each.value["subnet"]
+  tags                              = var.gateway_tags
+  user_public_key                   = ibm_is_ssh_key.storage_ssh_key[0].id
+  volume_tags                       = var.gateway_volume_tags
+  vpc_id                            = data.ibm_is_vpc.itself.id
+  zone                              = var.vpc_availability_zones
+}
+
 module "prepare_ansible_configuration" {
   source       = "../../../resources/common/dir_utils"
   ansible_path = var.scale_ansible_repo_clone_path

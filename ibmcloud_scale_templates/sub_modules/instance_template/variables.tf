@@ -152,7 +152,7 @@ variable "filesystem_parameters" {
   nullable    = true
   description = "Filesystem parameters in relationship with disk parameters."
 }
-/*
+
 variable "gateway_instance_type" {
   type        = string
   nullable    = true
@@ -170,7 +170,7 @@ variable "gateway_volume_tags" {
   nullable    = true
   description = "Additional tags for the gateway volume(s)."
 }
-*/
+
 variable "instances_ssh_user_name" {
   type        = string
   nullable    = true
@@ -323,13 +323,13 @@ variable "total_compute_cluster_instances" {
   nullable    = true
   description = "Number of EC2 instances to be launched for compute cluster."
 }
-/*
+
 variable "total_gateway_instances" {
   type        = number
   nullable    = true
   description = "Number of EC2 instances to be launched for gateway nodes."
 }
-*/
+
 variable "total_protocol_instances" {
   type        = number
   nullable    = true
