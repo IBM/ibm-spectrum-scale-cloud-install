@@ -19,6 +19,7 @@ module "bastion_security_group" {
 
 module "bastion_sg_tcp_rule" {
   source            = "../../../resources/ibmcloud/security/security_tcp_rule"
+  enable_rule       = true
   security_group_id = module.bastion_security_group.sec_group_id
   sg_direction      = "inbound"
   port              = var.bastion_public_ssh_port
@@ -34,6 +35,7 @@ module "bastion_sg_icmp_rule" {
 
 module "bastion_sg_outbound_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
+  enable_rule = true
   security_group_ids = module.bastion_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = var.remote_cidr_blocks

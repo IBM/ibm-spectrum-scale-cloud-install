@@ -6,8 +6,8 @@
 locals {
   compute_or_combined = ((var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") && var.total_compute_cluster_instances > 0) ? true : false
   storage_or_combined = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_storage_cluster_instances > 0) ? true : false
-  #storage_and_protocol = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_protocol_instances > 0) ? true : false
-  # storage_and_gateway  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
+  storage_and_protocol = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_protocol_instances > 0) ? true : false
+  storage_and_gateway  = ((var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") && var.total_gateway_instances > 0) ? true : false
 
   # Internode scale firewall ports
   tcp_port_scale_cluster = ["22", "1191", "60000", "61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
@@ -19,7 +19,14 @@ locals {
   #scale_version                 = local.gpfs_base_rpm_path != null ? regex("gpfs.base-(.*).x86_64.rpm", tolist(local.gpfs_base_rpm_path)[0])[0] : null
   scale_version      = "6.0.0.1"
   filesystem_details = local.storage_or_combined ? { for fs_config in var.filesystem_parameters : fs_config.name => fs_config.filesystem_config_file } : {}
+
+  # Internode protocol ports
+  protocol_traffic_ports                   = [4379]
+  protocol_traffic_to_ports                = [4379]
+  protocol_traffic_protocol                = ["TCP"]
+  protocol_nodes_security_rule_description = ["Allow CTDB traffic within protocol instances"]
 }
+
 
 /*
     Generate a list of compute vm name(s).
@@ -55,6 +62,28 @@ resource "null_resource" "generate_storage_tie_vm_name" {
 }
 
 /*
+    Generate a list of protocol vm name(s).
+    Ex: vm_list = ["vm-protocol-1", "vm-protocol-2",]
+*/
+resource "null_resource" "generate_protocol_vm_name" {
+  count = local.storage_and_protocol ? var.total_protocol_instances : 0
+  triggers = {
+    vm_name = format("%s-protocol-%s", var.resource_prefix, count.index + 1)
+  }
+}
+
+/*
+    Generate a list of gateway vm name(s).
+    Ex: vm_list = ["vm-gateway-1", "vm-gateway-2",]
+*/
+resource "null_resource" "generate_gateway_vm_name" {
+  count = local.storage_and_gateway ? var.total_gateway_instances : 0
+  triggers = {
+    vm_name = format("%s-gateway-%s", var.resource_prefix, count.index + 1)
+  }
+}
+
+/*
     Generate a map using compute vm name key and values of subnet.
     Ex:
         compute_vm_zone_map = {
@@ -71,6 +100,32 @@ locals {
     for idx, vm_name in resource.null_resource.generate_compute_vm_name[*].triggers.vm_name :
     vm_name => {
       subnet = element(var.vpc_compute_cluster_private_subnets, idx)
+    }
+  }
+}
+
+/*
+    Generate a map using protocol vm name key and values of subnet.
+    Ex:
+        protocol_vm_subnet_map = {
+            "vm-protocol-1" = {
+                "base_subnet" = "test-private-subnet-1"
+                "ces_subnet" = "ces-private-subnet-1"
+            }
+            "vm-protocol-2" = {
+                "base_subnet" = "test-private-subnet-2"
+                "ces_subnet" = "ces-private-subnet-2"
+            }
+        }
+*/
+locals {
+  protocol_vm_subnet_map = {
+    for idx, vm_name in resource.null_resource.generate_protocol_vm_name[*].triggers.vm_name :
+    vm_name => {
+      # Consider only first 2 elements
+      subnet         = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
+      ces_ip_address = element(var.ces_ip_address, idx)
+      zone   = length(var.vpc_availability_zones) > 1 ? element(slice(var.vpc_availability_zones, 0, 2), idx) : element(var.vpc_availability_zones, idx)
     }
   }
 }
@@ -305,6 +360,28 @@ locals {
           device_name = element(local.block_device_names, jdx)
         }
       })
+    }
+  }
+}
+
+/*
+    Generate a map using gateway vm name key and values of subnet.
+    Ex:
+        gateway_vm_subnet_map = {
+            "vm-gateway-1" = {
+                "subnet" = "test-private-subnet-1"
+            }
+            "vm-gateway-2" = {
+                "subnet" = "test-public-subnet-2"
+            }
+        }
+*/
+locals {
+  gateway_vm_subnet_map = {
+    for idx, vm_name in resource.null_resource.generate_gateway_vm_name[*].triggers.vm_name :
+    vm_name => {
+      # Consider only first 2 elements
+      subnet = length(var.vpc_storage_cluster_private_subnets) > 1 ? element(slice(var.vpc_storage_cluster_private_subnets, 0, 2), idx) : element(var.vpc_storage_cluster_private_subnets, idx)
     }
   }
 }

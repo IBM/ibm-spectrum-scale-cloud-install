@@ -94,6 +94,7 @@ module "protocol_security_group" {
 # Create security rules to enable scale/gpfs traffic within compute/storage instances.
 module "scale_cluster_ingress_tcp_security_rule" {
   source            = "../../../resources/ibmcloud/security/security_tcp_rule"
+  enable_rule       = length(local.tcp_port_scale_cluster) > 0 ? true : false
   security_group_id = module.cluster_security_group.sec_group_id
   sg_direction      = "inbound"
   port              = local.tcp_port_scale_cluster
@@ -127,7 +128,25 @@ module "scale_cluster_ingress_security_rule_using_jumphost" {
 # Create security rule to enable scale cluster egress communication
 module "scale_cluster_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
+  enable_rule = true
   security_group_ids = module.cluster_security_group.sec_group_id
+  sg_direction       = "outbound"
+  remote_ip_addr     = ["0.0.0.0/0"]
+}
+
+module "protocol_cluster_security_rule" {
+  source            = "../../../resources/ibmcloud/security/security_tcp_rule"
+  enable_rule       = var.total_protocol_instances > 0 ? true : false
+  security_group_id = module.protocol_security_group.sec_group_id
+  sg_direction      = "inbound"
+  port              = local.protocol_traffic_ports
+  remote_ip_addr    = module.protocol_security_group.sec_group_id
+}
+
+module "protocol_cluster_egress_security_rule" {
+  source             = "../../../resources/ibmcloud/security/security_allow_all"
+  enable_rule       = var.total_protocol_instances > 0 ? true : false
+  security_group_ids = module.protocol_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = ["0.0.0.0/0"]
 }
@@ -239,6 +258,58 @@ module "storage_cluster_tie_breaker_instance" {
   volume_tags                       = var.storage_cluster_volume_tags
   vpc_id                            = data.ibm_is_vpc.itself.id
   zone                              = each.value["zone"]
+}
+
+module "protocol_instances" {
+  for_each                          = local.protocol_vm_subnet_map
+  source                            = "../../../resources/ibmcloud/compute/vsi_ip_fwd"
+  ami_id                            = var.storage_cluster_image_ref
+  dns_domain                        = var.vpc_storage_cluster_dns_domain
+  dns_services_instance_id          = var.service_instance_ref
+  forward_dns_zone                  = var.vpc_storage_cluster_dns_domain
+  forward_dns_zone_id               = local.forward_zone.zone_id
+  instance_type                     = var.protocol_instance_type
+  meta_private_key                  = local.storage_private_key_content
+  meta_public_key                   = var.storage_cluster_public_key_path
+  name_prefix                       = each.key
+  placement_group                   = null
+  root_device_encrypted             = var.root_device_encrypted
+  root_device_kms_key_instance_id   = var.root_device_kms_key_ref
+  root_device_kms_key_instance_name = var.root_device_kms_key_ref_name
+  security_groups                   = [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
+  subnet_id                         = each.value["subnet"]
+  ces_ipaddress                     = each.value["ces_ip_address"]
+  tags                              = var.protocol_tags
+  user_public_key                   = ibm_is_ssh_key.storage_ssh_key[0].id
+  volume_tags                       = var.protocol_volume_tags
+  vpc_id                            = data.ibm_is_vpc.itself.id
+  zone                              = each.value["zone"]
+}
+
+module "gateway_instances" {
+  for_each                          = local.gateway_vm_subnet_map
+  source                            = "../../../resources/ibmcloud/compute/vsi_0_vol"
+  ami_id                            = var.storage_cluster_image_ref
+  dns_domain                        = var.vpc_storage_cluster_dns_domain
+  dns_services_instance_id          = var.service_instance_ref
+  forward_dns_zone                  = var.vpc_storage_cluster_dns_domain
+  forward_dns_zone_id               = local.forward_zone.zone_id
+  instance_type                     = var.gateway_instance_type
+  meta_private_key                  = local.storage_private_key_content
+  meta_public_key                   = var.storage_cluster_public_key_path
+  name_prefix                       = each.key
+  placement_group                   = null
+  root_device_encrypted             = var.root_device_encrypted
+  root_device_kms_key_instance_id   = var.root_device_kms_key_ref
+  root_device_kms_key_instance_name = var.root_device_kms_key_ref_name
+  root_volume_type                  = var.storage_cluster_boot_disk_type
+  security_groups                   = [module.cluster_security_group.sec_group_id]
+  subnet_id                         = each.value["subnet"]
+  tags                              = var.gateway_tags
+  user_public_key                   = ibm_is_ssh_key.storage_ssh_key[0].id
+  volume_tags                       = var.gateway_volume_tags
+  vpc_id                            = data.ibm_is_vpc.itself.id
+  zone                              = var.vpc_availability_zones
 }
 
 module "prepare_ansible_configuration" {

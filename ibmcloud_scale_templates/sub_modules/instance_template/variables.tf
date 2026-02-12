@@ -33,13 +33,14 @@ variable "bastion_user" {
   nullable    = true
   description = "Bastion login username."
 }
-/*
+
 variable "ces_ip_address" {
   type        = list(string)
   nullable    = true
   description = "CES IP addresses (length must be equal to number of protocol nodes)."
 }
 
+/*
 variable "client_ip_ranges" {
   type        = list(string)
   nullable    = true
@@ -151,7 +152,7 @@ variable "filesystem_parameters" {
   nullable    = true
   description = "Filesystem parameters in relationship with disk parameters."
 }
-/*
+
 variable "gateway_instance_type" {
   type        = string
   nullable    = true
@@ -169,7 +170,7 @@ variable "gateway_volume_tags" {
   nullable    = true
   description = "Additional tags for the gateway volume(s)."
 }
-*/
+
 variable "instances_ssh_user_name" {
   type        = string
   nullable    = true
@@ -193,6 +194,7 @@ variable "operator_email" {
   nullable    = true
   description = "SNS notifications will be sent to provided email id."
 }
+*/
 
 variable "protocol_instance_type" {
   type        = string
@@ -211,7 +213,7 @@ variable "protocol_volume_tags" {
   nullable    = true
   description = "Additional tags for the protocol volume(s)."
 }
-*/
+
 variable "resource_prefix" {
   type        = string
   nullable    = false
@@ -321,13 +323,13 @@ variable "total_compute_cluster_instances" {
   nullable    = true
   description = "Number of EC2 instances to be launched for compute cluster."
 }
-/*
+
 variable "total_gateway_instances" {
   type        = number
   nullable    = true
   description = "Number of EC2 instances to be launched for gateway nodes."
 }
-*/
+
 variable "total_protocol_instances" {
   type        = number
   nullable    = true
