@@ -230,7 +230,7 @@ locals {
           encrypted   = fs_config.filesystem_encrypted
           kms_key     = fs_config.filesystem_kms_key_ref
           termination = fs_config.device_delete_on_termination
-          size        = "5"
+          size        = "10"
           type        = "general-purpose"
           throughput  = null
           iops        = null
