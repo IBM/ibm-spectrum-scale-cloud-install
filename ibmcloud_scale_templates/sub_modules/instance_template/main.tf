@@ -359,10 +359,8 @@ resource "local_sensitive_file" "write_storage_cluster_inventory" {
     compute_cluster_details                  = []
     storage_cluster_details                  = [for instance in module.storage_cluster_instances : instance.instance_details]
     storage_cluster_with_data_volume_mapping = local.storage_instance_ips_with_disk_mapping
-    #storage_cluster_desc_details             = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details]
-    storage_cluster_desc_details = [for instance in module.storage_cluster_instances : instance.instance_details]
-    #storage_cluster_desc_data_volume_mapping = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
-    storage_cluster_desc_data_volume_mapping = length(module.storage_cluster_instances) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
+    storage_cluster_desc_details             = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details]
+    storage_cluster_desc_data_volume_mapping = length(module.storage_cluster_tie_breaker_instance) > 0 ? local.storage_instance_desc_ip_with_disk_mapping : {}
   })
 }
 

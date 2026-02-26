@@ -73,7 +73,7 @@ elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
 fi
 
 ces_failover() {
-    sudo cp /usr/lpp/mmfs/samples/cloud/ces_middleware/mmcesExtendedIpMgmt.aws /var/mmfs/etc/mmcesExtendedIpMgmt
+    sudo cp /usr/lpp/mmfs/samples/cloud/ces_middleware/mmcesExtendedIpMgmt.ibmcloud /var/mmfs/etc/mmcesExtendedIpMgmt
 }
 
 install_nfs() {

@@ -48,7 +48,7 @@ output "cluster_sns_arn" {
 output "compute_cluster_instance_cidrs" {
   value = [for subnet in data.aws_subnet.vpc_compute_cluster_private_subnet_cidrs : subnet.cidr_block]
 }
-
+*/
 output "compute_cluster_instance_details" {
   value       = [for instance in module.compute_cluster_instances : instance.instance_details]
   description = "Compute cluster instance details (map of id, private_ip, dns)"
@@ -59,6 +59,7 @@ output "gateway_instance_details" {
   description = "Gateway instance details (map of id, private_ip, dns)"
 }
 
+/*
 output "instance_iam_profile" {
   value = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
 }
