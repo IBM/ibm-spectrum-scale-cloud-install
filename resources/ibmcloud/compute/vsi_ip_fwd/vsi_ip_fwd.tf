@@ -209,7 +209,7 @@ systemctl enable ibmcloud-auto-login.service
 systemctl enable ibmcloud-auto-login.timer
 systemctl start ibmcloud-auto-login.timer
 
-# Unmask and enable rpcbind service and socket for protocol node
+# Unmask the rpcbind service and socket for protocol node
 echo "Unmasking and enabling rpcbind service and socket..." | logger -t rpcbind-setup
 systemctl unmask rpcbind.service rpcbind.socket
 if [ $? -eq 0 ]; then
