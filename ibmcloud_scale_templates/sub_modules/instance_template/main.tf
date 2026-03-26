@@ -73,6 +73,14 @@ locals {
   compute_private_key_content = can(file(local.compute_priv_path)) ? file(local.compute_priv_path) : null
 }
 
+# Create trusted profile for cluster instances (equivalent to AWS IAM instance profile)
+module "cluster_trusted_profile" {
+  source               = "../../../resources/ibmcloud/security/trusted_profile"
+  turn_on              = true
+  profile_name_prefix  = var.resource_prefix
+  profile_description  = "Trusted profile for IBM Storage Scale cluster instances - equivalent to AWS IAM instance profile"
+}
+
 # Create cluster security group
 module "cluster_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
@@ -284,6 +292,8 @@ module "protocol_instances" {
   volume_tags                       = var.protocol_volume_tags
   vpc_id                            = data.ibm_is_vpc.itself.id
   zone                              = each.value["zone"]
+  trusted_profile_id                = module.cluster_trusted_profile.trusted_profile_id
+  trusted_profile_name              = module.cluster_trusted_profile.trusted_profile_name
 }
 
 module "gateway_instances" {

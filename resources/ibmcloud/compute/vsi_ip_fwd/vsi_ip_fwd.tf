@@ -31,47 +31,18 @@ variable "volume_tags" {}
 variable "zone" {}
 variable "dns_services_instance_id" {}
 variable "vpc_id" {}
-
-locals {
-  user_data = <<-EOT
-    #!/usr/bin/env bash
-    echo "${var.meta_private_key}" > ~/.ssh/id_rsa
-    chmod 600 ~/.ssh/id_rsa
-    echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
-    echo "StrictHostKeyChecking no" >> ~/.ssh/config
-    # Hostname settings
-    hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-    echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
-    echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
-    echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
-    sysctl -p
-  EOT
+variable "trusted_profile_id" {
+  description = "Trusted profile ID for instance authentication (equivalent to AWS IAM instance profile)"
+  type        = string
+  default     = ""
 }
 
-# IBM Cloud CLI Auto-Login Setup (AWS IAM Role Equivalent)
-
-# Create a Service ID for CES automation (equivalent to AWS IAM Role)
-resource "ibm_iam_service_id" "ces_automation" {
-  name        = "${var.name_prefix}-ces-automation"
-  description = "Service ID for IBM Storage Scale CES IP management - AWS IAM role equivalent"
+variable "trusted_profile_name" {
+  description = "Trusted profile name for IBM Cloud CLI authentication"
+  type        = string
+  default     = ""
 }
 
-# Create an API key for the Service ID
-resource "ibm_iam_service_api_key" "ces_api_key" {
-  name           = "${var.name_prefix}-ces-api-key"
-  iam_service_id = ibm_iam_service_id.ces_automation.iam_id
-  description    = "API key for automatic IBM Cloud CLI authentication"
-}
-
-# Grant VPC Editor permissions to the Service ID
-resource "ibm_iam_service_policy" "ces_vpc_editor" {
-  iam_service_id = ibm_iam_service_id.ces_automation.id
-  roles          = ["Editor"]
-
-  resources {
-    service = "is"  # VPC Infrastructure Services
-  }
-}
 
 # Resolves the CRN of your KMS key for boot volume encryption
 data "ibm_kms_key" "itself" {
@@ -92,10 +63,13 @@ resource "ibm_is_instance" "itself" {
   vpc  = var.vpc_id
   zone = var.zone
 
+  # Attach trusted profile if provided (equivalent to AWS iam_instance_profile)
+  default_trusted_profile_target = var.trusted_profile_id != "" ? var.trusted_profile_id : null
+
   primary_network_interface {
-  subnet          = var.subnet_id
-  security_groups = var.security_groups
-}
+    subnet          = var.subnet_id
+    security_groups = var.security_groups
+  }
 
   # Encrypt the root volume with the KMS key CRN
   boot_volume {
@@ -128,88 +102,67 @@ mkdir -p /etc/cloud/cloud.cfg.d
 echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
 echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 
-# IBM Cloud CLI Auto-Login Setup (AWS IAM Role Equivalent)
-mkdir -p /root/.ibmcloud
-echo "${ibm_iam_service_api_key.ces_api_key.apikey}" > /root/.ibmcloud/apikey
-chmod 600 /root/.ibmcloud/apikey
+# Enable IP forwarding
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf && sysctl -p
 
-# Create systemd service for IBM Cloud CLI auto-login
-cat > /etc/systemd/system/ibmcloud-auto-login.service <<'SYSTEMD'
+# Setup IBM Cloud CLI if trusted profile is provided
+if [ -n "${var.trusted_profile_name}" ]; then
+  REGION="$(echo "${var.zone}" | sed 's/-[0-9]\+$//')"
+  
+  # Install IBM Cloud CLI and configure
+  curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+  /usr/local/bin/ibmcloud config --check-version=false
+  /usr/local/bin/ibmcloud api https://cloud.ibm.com
+  /usr/local/bin/ibmcloud login --vpc-cri --profile "${var.trusted_profile_id}" -r "$REGION"
+  /usr/local/bin/ibmcloud plugin install vpc-infrastructure -f
+  
+  # Create session keeper service
+  cat > /etc/systemd/system/ibmcloud-session-keeper.service <<'SVC'
 [Unit]
-Description=IBM Cloud CLI Auto Login (AWS IAM Role Equivalent)
+Description=IBM Cloud CLI Session Keeper
 After=network-online.target
-Wants=network-online.target
-Before=gpfs.service mmfs.service
 
 [Service]
-Type=oneshot
+Type=simple
+Restart=always
+RestartSec=300
 Environment="IBMCLOUD_HOME=/root/.ibmcloud"
-ExecStartPre=/bin/sleep 10
-ExecStart=/bin/bash -c 'export IBMCLOUD_HOME=/root/.ibmcloud && if [ -f /usr/local/bin/ibmcloud ]; then /usr/local/bin/ibmcloud config --check-version=false && /usr/local/bin/ibmcloud api https://cloud.ibm.com && /usr/local/bin/ibmcloud login --apikey $(cat /root/.ibmcloud/apikey) -r us-south && /usr/local/bin/ibmcloud plugin install vpc-infrastructure -f; fi'
-RemainAfterExit=yes
-StandardOutput=journal
-StandardError=journal
-Restart=on-failure
-RestartSec=30
+ExecStart=/usr/local/bin/ibmcloud-session-keeper.sh
 
 [Install]
 WantedBy=multi-user.target
-SYSTEMD
+SVC
 
-# Create systemd timer to refresh login every 30 minutes (keep session alive)
-cat > /etc/systemd/system/ibmcloud-auto-login.timer <<'TIMER'
-[Unit]
-Description=IBM Cloud CLI Auto Login Timer
-Requires=ibmcloud-auto-login.service
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=30min
-Unit=ibmcloud-auto-login.service
-
-[Install]
-WantedBy=timers.target
-TIMER
-
-# Wait for IBM Cloud CLI to be available (critical for immediate script execution)
-echo "Waiting for IBM Cloud CLI..."
-timeout=300
-elapsed=0
-while [ ! -f /usr/local/bin/ibmcloud ] && [ $elapsed -lt $timeout ]; do
-  sleep 5
-  elapsed=$((elapsed + 5))
-done
-
-if [ ! -f /usr/local/bin/ibmcloud ]; then
-  echo "ERROR: IBM Cloud CLI not found after $timeout seconds" | logger -t ibmcloud-setup
-  exit 1
-fi
-
-# Perform initial login immediately (critical for scripts that run within 1-2 min)
-echo "Performing initial IBM Cloud CLI login..." | logger -t ibmcloud-setup
+  cat > /usr/local/bin/ibmcloud-session-keeper.sh <<'SCRIPT'
+#!/bin/bash
 export IBMCLOUD_HOME=/root/.ibmcloud
-mkdir -p $IBMCLOUD_HOME
-/usr/local/bin/ibmcloud config --check-version=false
-/usr/local/bin/ibmcloud api https://cloud.ibm.com
-/usr/local/bin/ibmcloud login --apikey "${ibm_iam_service_api_key.ces_api_key.apikey}" -r us-south
-if [ $? -eq 0 ]; then
-  echo "IBM Cloud CLI login successful" | logger -t ibmcloud-setup
-  /usr/local/bin/ibmcloud plugin install vpc-infrastructure -f
-  # Make the login persistent by setting environment variable globally
-  echo 'export IBMCLOUD_HOME=/root/.ibmcloud' >> /root/.bashrc
-  echo 'export IBMCLOUD_HOME=/root/.ibmcloud' >> /root/.bash_profile
-  echo 'export IBMCLOUD_HOME=/root/.ibmcloud' >> /etc/environment
-else
-  echo "ERROR: IBM Cloud CLI login failed" | logger -t ibmcloud-setup
+export PATH=/usr/local/bin:$PATH
+while true; do
+  if ! /usr/local/bin/ibmcloud target &>/dev/null; then
+    /usr/local/bin/ibmcloud config --check-version=false
+    /usr/local/bin/ibmcloud api https://cloud.ibm.com
+    /usr/local/bin/ibmcloud login --vpc-cri --profile "${var.trusted_profile_id}" -r "$REGION"
+    /usr/local/bin/ibmcloud plugin list | grep -q vpc-infrastructure || \
+      /usr/local/bin/ibmcloud plugin install vpc-infrastructure -f &>/dev/null
+  fi
+  sleep 300
+done
+SCRIPT
+
+  chmod +x /usr/local/bin/ibmcloud-session-keeper.sh
+  
+  # Set environment variables
+  grep -q "IBMCLOUD_HOME" /root/.bashrc || \
+    echo -e "\nexport IBMCLOUD_HOME=/root/.ibmcloud\nexport PATH=/usr/local/bin:\$PATH" >> /root/.bashrc
+  grep -q "IBMCLOUD_HOME" /etc/environment || \
+    echo "IBMCLOUD_HOME=/root/.ibmcloud" >> /etc/environment
+  
+  # Start service
+  systemctl daemon-reload
+  systemctl enable --now ibmcloud-session-keeper.service
 fi
 
-# Enable systemd service and timer for session persistence
-systemctl daemon-reload
-systemctl enable ibmcloud-auto-login.service
-systemctl enable ibmcloud-auto-login.timer
-systemctl start ibmcloud-auto-login.timer
-
-# Unmask the rpcbind service and socket for protocol node
+# Unmask and enable rpcbind service and socket for protocol node
 echo "Unmasking and enabling rpcbind service and socket..." | logger -t rpcbind-setup
 systemctl unmask rpcbind.service rpcbind.socket
 if [ $? -eq 0 ]; then
