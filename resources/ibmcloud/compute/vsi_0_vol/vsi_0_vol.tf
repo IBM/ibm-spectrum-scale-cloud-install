@@ -15,8 +15,6 @@ variable "dns_domain" {}
 variable "forward_dns_zone" {}
 variable "forward_dns_zone_id" {}
 variable "instance_type" {}
-variable "meta_private_key" {}
-variable "meta_public_key" {}
 variable "name_prefix" {}
 variable "placement_group" {}
 #variable "reverse_dns_domain" {}
@@ -34,21 +32,6 @@ variable "volume_tags" {}
 variable "vpc_id" {}
 variable "zone" {}
 variable "dns_services_instance_id" {}
-
-
-locals {
-  user_data = <<-EOT
-    #!/usr/bin/env bash
-    echo "${var.meta_private_key}" > ~/.ssh/id_rsa
-    chmod 600 ~/.ssh/id_rsa
-    echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
-    echo "StrictHostKeyChecking no" >> ~/.ssh/config
-    # Hostname settings
-    hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-    echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
-    echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
-  EOT
-}
 
 # Resolves the CRN of your KMS key for boot volume encryption
 data "ibm_kms_key" "itself" {
@@ -88,22 +71,6 @@ resource "ibm_is_instance" "itself" {
     #!/usr/bin/env bash
     set -euxo pipefail
 
-    # Ensure SSH dir exists and correct perms
-    mkdir -p /root/.ssh
-    chmod 700 /root/.ssh
-
-    # Keys & SSH settings (these are Terraform variables – keep them as-is)
-    echo "${var.meta_private_key}" > /root/.ssh/id_rsa
-    chmod 600 /root/.ssh/id_rsa
-    echo "${var.meta_public_key}" >> /root/.ssh/authorized_keys
-    chmod 600 /root/.ssh/authorized_keys
-
-    {
-      echo "  StrictHostKeyChecking no"
-      echo "  UserKnownHostsFile=/dev/null"
-    } >> /root/.ssh/config
-    chmod 600 /root/.ssh/config
-
     # Hostname settings
     hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
     mkdir -p /etc/cloud/cloud.cfg.d
@@ -121,6 +88,8 @@ resource "ibm_is_instance" "itself" {
 
 # Create "A" record: hostname -> private IPv4
 resource "ibm_dns_resource_record" "a_itself" {
+  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
+
   # IBM Cloud DNS Services instance GUID (from ibm_resource_instance "dns-svcs")
   instance_id = var.dns_services_instance_id
 
@@ -135,6 +104,8 @@ resource "ibm_dns_resource_record" "a_itself" {
 
 # Create "PTR" record: IPv4 -> hostname (in the same forward zone)
 resource "ibm_dns_resource_record" "ptr_itself" {
+  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
+
   instance_id = var.dns_services_instance_id
   #zone_id     = var.reverse_dns_zone_id
   zone_id = var.forward_dns_zone_id

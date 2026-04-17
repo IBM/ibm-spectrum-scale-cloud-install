@@ -126,13 +126,13 @@ variable "create_scale_cluster" {
   nullable    = true
   description = "Flag to represent whether to create scale cluster or not."
 }
-/*
+
 variable "enable_placement_group" {
   type        = bool
   nullable    = true
-  description = "If true, a placement group will be created and all instances will be created with strategy - cluster."
+  description = "If true, an IBM Cloud placement group will be created for single-AZ deployments and attached to storage instances using host_spread strategy."
 }
-*/
+
 variable "filesystem_parameters" {
   type = list(object({
     name                         = string
@@ -150,7 +150,7 @@ variable "filesystem_parameters" {
     }))
   }))
   nullable    = true
-  description = "Filesystem parameters in relationship with disk parameters."
+  description = "Filesystem parameters in relationship with disk parameters. For IBM Cloud, disk_config.block_device_volume_type is passed directly to ibm_is_volume.profile and supports IBM Cloud volume profile values such as sdp."
 }
 
 variable "gateway_instance_type" {

@@ -20,17 +20,9 @@ variable "subnet" {}
 variable "key_name" {}
 variable "security_groups" {}
 
-data "ibm_is_vpc" "itself" {
-  name = var.vpc
-}
-
-data "ibm_is_subnet" "itself" {
-  name = var.subnet
-}
-
 resource "ibm_is_instance_template" "itself" {
   name           = var.launch_template_name
-  vpc            = data.ibm_is_vpc.itself.id
+  vpc            = var.vpc
   zone           = var.zone
   resource_group = var.resource_group_id
   image          = var.image_id
@@ -38,7 +30,7 @@ resource "ibm_is_instance_template" "itself" {
 
   primary_network_interface {
     name            = format("%s-nic", var.launch_template_name)
-    subnet          = data.ibm_is_subnet.itself.id
+    subnet          = var.subnet
     security_groups = var.security_groups
   }
 

@@ -19,7 +19,7 @@ variable "public_gateway" {}
 variable "resource_group_id" {}
 
 resource "ibm_is_subnet" "itself" {
-  count           = var.turn_on ? length(var.zones) : 0
+  count           = var.turn_on && length(var.subnets_cidr) > 0 ? length(var.zones) : 0
   name            = "${var.subnet_name}-${count.index + 1}"
   vpc             = var.vpc_id
   resource_group  = var.resource_group_id

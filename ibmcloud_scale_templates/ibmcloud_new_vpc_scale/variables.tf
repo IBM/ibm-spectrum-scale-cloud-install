@@ -1,3 +1,9 @@
+variable "ibmcloud_api_key" {
+  type        = string
+  sensitive   = true
+  description = "IBM Cloud API key for authentication."
+}
+
 variable "vpc_region" {
   type        = string
   description = "The region where IBM Cloud operations will take place. Examples are us-east, us-south, etc."
@@ -89,12 +95,6 @@ variable "compute_vsi_profile" {
   description = "Profile to be used for compute cluster virtual server instance."
 }
 
-variable "using_rest_api_remote_mount" {
-  type        = string
-  default     = true
-  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
-}
-
 variable "compute_cluster_gui_username" {
   type        = string
   sensitive   = true
@@ -142,12 +142,6 @@ variable "storage_cluster_gui_password" {
   description = "Password for storage cluster GUI"
 }
 
-variable "using_packer_image" {
-  type        = bool
-  default     = false
-  description = "If true, gpfs rpm copy step will be skipped during the configuration."
-}
-
 variable "vpc_compute_cluster_dns_domain" {
   type        = string
   default     = "compscale.com"
@@ -160,16 +154,10 @@ variable "vpc_storage_cluster_dns_domain" {
   description = "IBM Cloud DNS domain name to be used for storage cluster."
 }
 
-variable "scale_ansible_repo_clone_path" {
+variable "dns_service_instance_id" {
   type        = string
-  default     = "/opt/IBM/ibm-spectrumscale-cloud-deploy"
-  description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
-}
-
-variable "spectrumscale_rpms_path" {
-  type        = string
-  default     = "/opt/IBM/gpfs_cloud_rpms"
-  description = "Path that contains IBM Spectrum Scale product cloud rpms."
+  default     = ""
+  description = "IBM Cloud DNS Services instance GUID. Leave empty to disable DNS record creation."
 }
 
 variable "storage_cluster_filesystem_mountpoint" {
@@ -194,6 +182,12 @@ variable "create_separate_namespaces" {
   type        = bool
   default     = true
   description = "Flag to select if separate namespace needs to be created for compute instances."
+}
+
+variable "enable_placement_group" {
+  type        = bool
+  default     = true
+  description = "Enable IBM Cloud placement group with host_spread strategy for single-AZ deployments."
 }
 
 variable "bastion_ssh_private_key" {

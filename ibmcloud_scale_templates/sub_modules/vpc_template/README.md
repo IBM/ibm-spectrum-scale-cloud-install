@@ -1,92 +1,612 @@
-# Configure IBM Cloud VPC
+# IBM Cloud VPC Template
 
-Below steps will provision IBM Cloud VPC required for IBM Spectrum Scale cloud solution.
+This Terraform sub-module provisions a complete Virtual Private Cloud (VPC) infrastructure on IBM Cloud for IBM Spectrum Scale deployments.
 
-1. Change working directory to `ibmcloud_scale_templates/sub_modules/vpc_template`.
+## Overview
 
-    ```cli
-    cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/vpc_template/
-    ```
+The VPC template creates:
+- **VPC**: Virtual Private Cloud with custom address space
+- **Subnets**: Public and private subnets across availability zones
+- **Public Gateway**: NAT gateway for outbound internet access
+- **DNS Zones**: Private DNS zones for cluster communication
+- **Custom Resolver**: DNS resolver for VPC
+- **Security Infrastructure**: Foundation for security groups
 
-2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
+## Purpose
 
-    | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zones` keyword. Ex: `"vpc_availability_zones"=["us-south-1", "us-south-2", "us-south-3"]` |
-    | --- |
+This module provides the network foundation for Spectrum Scale:
+- Isolated network environment for cluster deployment
+- Multi-zone architecture for high availability
+- Separate subnets for storage and compute clusters
+- Private DNS for internal hostname resolution
+- Secure internet access through public gateway
 
-    Minimal Example (Multi-Az):
+## Prerequisites
 
-    ```json
-    {
-        "cluster_type": "Storage-only",
-        "ibmcloud_api_key": "xxx",
-        "create_resource_group": true,
-        "resource_group_name": "test-rg",
-        "resource_prefix": "test-vpc",
-        "vpc_region": "us-south",
-        "vpc_availability_zones": ["us-south-1", "us-south-2", "us-south-3"],
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.0.0/24", "10.0.67.0/24", "10.0.134.0/24"],
-        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.1.0/24", "10.0.68.0/24", "10.0.135.0/24"],
-        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.2.0/24", "10.0.69.0/24", "10.0.136.0/24"],
-        "vpc_protocol_private_subnets_cidr_blocks": ["10.0.3.0/24", "10.0.70.0/24", "10.0.137.0/24"]
-    }
-    ```
+- IBM Cloud account with VPC permissions
+- IBM Cloud API key
+- Resource group created
+- Understanding of VPC networking concepts
 
-    Minimal Example (Single-Az):
+## Quick Start
 
-    ```json
-    {
-        "cluster_type": "Storage-only",
-        "ibmcloud_api_key": "xxx",
-        "create_resource_group": true,
-        "resource_group_name": "test-rg",
-        "resource_prefix": "test-vpc",
-        "vpc_region": "us-south",
-        "vpc_availability_zones": ["us-south-1"],
-        "vpc_cidr_block": "10.0.0.0/16",
-        "vpc_public_subnets_cidr_blocks": ["10.0.1.0/24"],
-        "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.2.0/24"],
-        "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.0.3.0/24"],
-        "vpc_protocol_private_subnets_cidr_blocks": ["10.0.4.0/24"]
-    }
-    ```
+### 1. Change Directory
 
-3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+```bash
+cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/vpc_template/
+```
+
+### 2. Create Configuration File
+
+Create `terraform.tfvars.json`:
+
+```jsonc
+{
+    "vpc_region": "us-south",
+    "vpc_availability_zones": ["us-south-1"],
+    "resource_prefix": "scale-vpc",
+    "resource_group_id": "xxxx-xxxx-xxxx-xxxx",
+    "vpc_cidr_block": ["10.241.0.0/18"],
+    "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.241.1.0/24"],
+    "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.241.0.0/24"],
+    "vpc_create_separate_subnets": true,
+    "vpc_storage_cluster_dns_domain": "storage.scale.local",
+    "vpc_compute_cluster_dns_domain": "compute.scale.local"
+}
+```
+
+### 3. Set IBM Cloud Credentials
+
+```bash
+export IC_API_KEY="your-ibm-cloud-api-key"
+```
+
+### 4. Deploy VPC
+
+```bash
+terraform init
+terraform plan
+terraform apply -auto-approve
+```
+
+## Configuration Examples
+
+### Example 1: Single-Zone VPC
+
+```jsonc
+{
+    "vpc_region": "us-south",
+    "vpc_availability_zones": ["us-south-1"],
+    "resource_prefix": "scale-dev",
+    "resource_group_id": "resource-group-id",
+    "vpc_cidr_block": ["10.241.0.0/18"],
+    "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.241.1.0/24"],
+    "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.241.0.0/24"],
+    "vpc_create_separate_subnets": true,
+    "vpc_storage_cluster_dns_domain": "storage.scale.local",
+    "vpc_compute_cluster_dns_domain": "compute.scale.local"
+}
+```
+
+### Example 2: Multi-Zone High Availability VPC
+
+```jsonc
+{
+    "vpc_region": "us-south",
+    "vpc_availability_zones": [
+        "us-south-1",
+        "us-south-2",
+        "us-south-3"
+    ],
+    "resource_prefix": "scale-prod",
+    "resource_group_id": "resource-group-id",
+    "vpc_cidr_block": [
+        "10.241.0.0/18",
+        "10.241.64.0/18",
+        "10.241.128.0/18"
+    ],
+    "vpc_storage_cluster_private_subnets_cidr_blocks": [
+        "10.241.1.0/24",
+        "10.241.64.1/24",
+        "10.241.128.1/24"
+    ],
+    "vpc_compute_cluster_private_subnets_cidr_blocks": [
+        "10.241.0.0/24",
+        "10.241.64.0/24",
+        "10.241.128.0/24"
+    ],
+    "vpc_create_separate_subnets": true,
+    "vpc_storage_cluster_dns_domain": "storage.scale.local",
+    "vpc_compute_cluster_dns_domain": "compute.scale.local"
+}
+```
+
+### Example 3: Storage-Only Cluster (Shared Subnet)
+
+```jsonc
+{
+    "vpc_region": "us-east",
+    "vpc_availability_zones": ["us-east-1"],
+    "resource_prefix": "storage-only",
+    "resource_group_id": "resource-group-id",
+    "vpc_cidr_block": ["10.0.0.0/16"],
+    "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.1.0/24"],
+    "vpc_compute_cluster_private_subnets_cidr_blocks": [],
+    "vpc_create_separate_subnets": false,
+    "vpc_storage_cluster_dns_domain": "storage.scale.local",
+    "vpc_compute_cluster_dns_domain": ""
+}
+```
+
+## Network Architecture
+
+### Single-Zone Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              VPC (10.241.0.0/18)                        │
+│                                                          │
+│  ┌────────────────────────────────────────────────┐    │
+│  │  Zone: us-south-1                              │    │
+│  │                                                 │    │
+│  │  ┌──────────────────────────────────────┐     │    │
+│  │  │  Storage Subnet (10.241.1.0/24)      │     │    │
+│  │  │  - Storage nodes                     │     │    │
+│  │  │  - Bastion host                      │     │    │
+│  │  └──────────────────────────────────────┘     │    │
+│  │                                                 │    │
+│  │  ┌──────────────────────────────────────┐     │    │
+│  │  │  Compute Subnet (10.241.0.0/24)      │     │    │
+│  │  │  - Compute nodes                     │     │    │
+│  │  └──────────────────────────────────────┘     │    │
+│  │                                                 │    │
+│  │  Public Gateway ──────────────> Internet      │    │
+│  └────────────────────────────────────────────────┘    │
+│                                                          │
+│  DNS Zones:                                             │
+│  - storage.scale.local                                  │
+│  - compute.scale.local                                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Multi-Zone Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    VPC (10.241.0.0/16)                            │
+│                                                                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │  us-south-1     │  │  us-south-2     │  │  us-south-3     │ │
+│  │  10.241.0.0/18  │  │  10.241.64.0/18 │  │  10.241.128.0/18│ │
+│  │                 │  │                 │  │                 │ │
+│  │  Storage Subnet │  │  Storage Subnet │  │  Storage Subnet │ │
+│  │  10.241.1.0/24  │  │  10.241.64.1/24 │  │  10.241.128.1/24│ │
+│  │                 │  │                 │  │                 │ │
+│  │  Compute Subnet │  │  Compute Subnet │  │  Compute Subnet │ │
+│  │  10.241.0.0/24  │  │  10.241.64.0/24 │  │  10.241.128.0/24│ │
+│  │                 │  │                 │  │                 │ │
+│  │  Public Gateway │  │  Public Gateway │  │  Public Gateway │ │
+│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘ │
+│           └──────────────┬──────────────────────────┘           │
+│                          │                                       │
+│                     Internet                                     │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+## Subnet Planning
+
+### CIDR Block Guidelines
+
+**Single Zone**:
+- VPC: `/18` (16,384 IPs)
+- Storage Subnet: `/24` (256 IPs)
+- Compute Subnet: `/24` (256 IPs)
+
+**Multi-Zone (3 zones)**:
+- VPC: `/16` (65,536 IPs)
+- Per Zone: `/18` (16,384 IPs)
+- Storage Subnet per zone: `/24` (256 IPs)
+- Compute Subnet per zone: `/24` (256 IPs)
+
+### IP Address Allocation
+
+IBM Cloud reserves 5 IPs per subnet:
+- Network address (x.x.x.0)
+- Gateway (x.x.x.1)
+- DNS (x.x.x.2)
+- Reserved (x.x.x.3)
+- Broadcast (x.x.x.255)
+
+**Available IPs per /24 subnet**: 251 IPs
+
+## DNS Configuration
+
+### Private DNS Zones
+
+**Storage Cluster Zone**: `storage.scale.local`
+- Resolves storage node hostnames
+- Used for storage cluster communication
+- Accessible only within VPC
+
+**Compute Cluster Zone**: `compute.scale.local`
+- Resolves compute node hostnames
+- Used for compute cluster communication
+- Accessible only within VPC
+
+### Custom Resolver
+
+VPC includes a custom DNS resolver (typically `161.26.0.7`) that:
+- Resolves private DNS zones
+- Forwards external queries to public DNS
+- Provides DNS caching
+
+## Usage
+
+### Verify VPC Resources
+
+```bash
+# List VPCs
+ibmcloud is vpcs
+
+# Get VPC details
+ibmcloud is vpc <vpc-id>
+
+# List subnets
+ibmcloud is subnets
+
+# Get subnet details
+ibmcloud is subnet <subnet-id>
+
+# Check public gateways
+ibmcloud is public-gateways
+
+# View DNS zones
+ibmcloud dns zones
+```
+
+### Test Connectivity
+
+```bash
+# From an instance in the VPC
+
+# Test internet connectivity (via public gateway)
+ping 8.8.8.8
+curl https://www.ibm.com
+
+# Test DNS resolution
+nslookup storage-node-1.storage.scale.local
+dig compute-node-1.compute.scale.local
+
+# Test inter-subnet connectivity
+ping <instance-in-other-subnet>
+```
+
+### Modify VPC
+
+```bash
+# Add address prefix
+ibmcloud is vpc-address-prefix-create <vpc-id> \
+  --zone us-south-3 \
+  --cidr 10.241.192.0/18 \
+  --name scale-zone3
+
+# Create additional subnet
+ibmcloud is subnet-create scale-subnet-4 <vpc-id> \
+  --zone us-south-3 \
+  --ipv4-cidr-block 10.241.192.0/24
+```
+
+## Best Practices
+
+### Network Design
+
+1. **Plan CIDR Blocks**: Avoid overlapping with existing networks
+2. **Multi-Zone**: Use 3 zones for production high availability
+3. **Subnet Sizing**: Size subnets based on expected instance count
+4. **Reserve Space**: Leave room for future expansion
+5. **Consistent Naming**: Use clear, descriptive names
+
+### Security
+
+1. **Private Subnets**: Keep cluster instances in private subnets
+2. **Public Gateway**: Use for outbound internet access only
+3. **Network ACLs**: Implement additional network-level security
+4. **Flow Logs**: Enable for network traffic monitoring
+5. **DNS Security**: Use private DNS zones only
+
+### High Availability
+
+1. **Multi-Zone**: Distribute resources across 3 zones
+2. **Subnet Redundancy**: Create subnets in each zone
+3. **Gateway Redundancy**: Public gateway per zone
+4. **Load Distribution**: Balance instances across zones
+
+## Troubleshooting
+
+### VPC Creation Fails
+
+**Problem**: Terraform fails to create VPC
+
+**Solutions**:
+```bash
+# 1. Check resource quotas
+ibmcloud resource quotas
+
+# 2. Verify region availability
+ibmcloud is regions
+ibmcloud is zones us-south
+
+# 3. Check CIDR conflicts
+ibmcloud is vpcs
+# Ensure CIDR doesn't overlap with existing VPCs
+
+# 4. Verify permissions
+ibmcloud iam user-policies <user-email>
+```
+
+### Subnet Creation Fails
+
+**Problem**: Cannot create subnets
+
+**Solutions**:
+```bash
+# 1. Verify VPC exists
+ibmcloud is vpc <vpc-id>
+
+# 2. Check zone availability
+ibmcloud is zones us-south
+
+# 3. Verify CIDR is within VPC address prefix
+ibmcloud is vpc-address-prefixes <vpc-id>
+
+# 4. Check subnet quota
+ibmcloud is subnets
+# Max 15 subnets per VPC per zone
+```
+
+### DNS Resolution Fails
+
+**Problem**: Cannot resolve private DNS names
+
+**Solutions**:
+```bash
+# 1. Check DNS zones exist
+ibmcloud dns zones
+
+# 2. Verify VPC is linked to DNS zone
+ibmcloud dns permitted-networks <zone-id>
+
+# 3. Check custom resolver
+ibmcloud is vpc <vpc-id>
+# Look for dns.resolver section
+
+# 4. Verify /etc/resolv.conf on instance
+cat /etc/resolv.conf
+# Should contain 161.26.0.7
+```
+
+### No Internet Access
+
+**Problem**: Instances cannot reach internet
+
+**Solutions**:
+```bash
+# 1. Check public gateway exists
+ibmcloud is public-gateways
+
+# 2. Verify subnet is attached to gateway
+ibmcloud is subnet <subnet-id>
+# Look for public_gateway section
+
+# 3. Attach gateway to subnet
+ibmcloud is subnet-update <subnet-id> \
+  --public-gateway-id <gateway-id>
+
+# 4. Check security group rules
+ibmcloud is security-group-rules <sg-id>
+# Ensure outbound rules allow traffic
+```
+
+### CIDR Overlap Issues
+
+**Problem**: CIDR conflicts with existing networks
+
+**Solutions**:
+```bash
+# 1. List all VPCs and their CIDRs
+ibmcloud is vpcs --output json | jq '.[] | {name, id, cidr}'
+
+# 2. Choose non-overlapping CIDR
+# Common private ranges:
+# - 10.0.0.0/8
+# - 172.16.0.0/12
+# - 192.168.0.0/16
+
+# 3. Update terraform configuration
+# Use unique CIDR blocks
+```
+
+## Cost Considerations
+
+### VPC Pricing
+
+| Component | Cost |
+|-----------|------|
+| VPC | Free |
+| Subnets | Free |
+| Public Gateway | ~$0.045/hour (~$33/month) |
+| DNS Zone | $0.50/zone/month |
+| Data Transfer (outbound) | $0.09/GB |
+
+### Cost Optimization
+
+1. **Single Public Gateway**: Use one gateway per zone (not per subnet)
+2. **Minimize Data Transfer**: Keep traffic within VPC when possible
+3. **Consolidate DNS Zones**: Use fewer zones if possible
+4. **Right-size Subnets**: Don't over-provision IP space
+5. **Monitor Usage**: Track data transfer costs
+
+### Example Costs
+
+**Single-Zone VPC**:
+- 1 Public Gateway: $33/month
+- 2 DNS Zones: $1/month
+- Data Transfer (100GB): $9/month
+- **Total: ~$43/month**
+
+**Multi-Zone VPC (3 zones)**:
+- 3 Public Gateways: $99/month
+- 2 DNS Zones: $1/month
+- Data Transfer (300GB): $27/month
+- **Total: ~$127/month**
+
+## Integration with Main Template
+
+This module is used by the main template:
+
+```hcl
+module "vpc" {
+  source                                          = "../sub_modules/vpc_template"
+  vpc_region                                      = var.vpc_region
+  vpc_availability_zones                          = var.vpc_availability_zones
+  resource_prefix                                 = var.resource_prefix
+  resource_group_id                               = data.ibm_resource_group.itself.id
+  vpc_cidr_block                                  = var.vpc_cidr_block
+  vpc_storage_cluster_private_subnets_cidr_blocks = var.vpc_storage_cluster_private_subnets_cidr_blocks
+  vpc_create_separate_subnets                     = var.vpc_create_separate_subnets
+  vpc_compute_cluster_private_subnets_cidr_blocks = var.vpc_compute_cluster_private_subnets_cidr_blocks
+  vpc_compute_cluster_dns_domain                  = var.vpc_compute_cluster_dns_domain
+  vpc_storage_cluster_dns_domain                  = var.vpc_storage_cluster_dns_domain
+}
+```
+
+## Outputs
+
+After deployment, the following outputs are available:
+
+```bash
+# View all outputs
+terraform output
+
+# Specific outputs
+terraform output vpc_id
+terraform output vpc_storage_cluster_private_subnets
+terraform output vpc_compute_cluster_private_subnets
+terraform output vpc_storage_cluster_dns_zone_id
+terraform output vpc_compute_cluster_dns_zone_id
+terraform output vpc_custom_resolver_id
+```
+
+## Advanced Configuration
+
+### Network ACLs
+
+```bash
+# Create network ACL
+ibmcloud is network-acl-create scale-acl <vpc-id>
+
+# Add inbound rule
+ibmcloud is network-acl-rule-add <acl-id> \
+  --direction inbound \
+  --action allow \
+  --protocol tcp \
+  --source 10.241.0.0/16 \
+  --destination 10.241.0.0/16
+
+# Apply to subnet
+ibmcloud is subnet-update <subnet-id> \
+  --network-acl-id <acl-id>
+```
+
+### VPC Flow Logs
+
+```bash
+# Create flow log collector
+ibmcloud is flow-log-create scale-flow-logs \
+  --target <vpc-id> \
+  --bucket <cos-bucket-name> \
+  --active true
+
+# View flow logs
+ibmcloud is flow-logs
+```
+
+### VPC Peering
+
+```bash
+# Create VPC peering connection (when available)
+# Connect multiple VPCs for inter-VPC communication
+```
+
+### Custom Routes
+
+```bash
+# Create custom route
+ibmcloud is vpc-routing-table-route-create <vpc-id> <routing-table-id> \
+  --zone us-south-1 \
+  --destination 192.168.0.0/16 \
+  --next-hop 10.241.1.10
+```
+
+## Cleanup
+
+```bash
+# Destroy VPC and all resources
+terraform destroy -auto-approve
+
+# Note: This will delete:
+# - VPC
+# - All subnets
+# - Public gateways
+# - DNS zones
+# - Custom resolver
+```
+
+⚠️ **Warning**: Ensure all instances and other resources are deleted before destroying the VPC.
+
+## Additional Resources
+
+- [IBM Cloud VPC Documentation](https://cloud.ibm.com/docs/vpc)
+- [VPC Networking](https://cloud.ibm.com/docs/vpc?topic=vpc-about-networking-for-vpc)
+- [VPC Address Prefixes](https://cloud.ibm.com/docs/vpc?topic=vpc-vpc-addressing-plan-design)
+- [VPC Security](https://cloud.ibm.com/docs/vpc?topic=vpc-security-in-your-vpc)
+- [VPC Best Practices](https://cloud.ibm.com/docs/vpc?topic=vpc-best-practices-for-vpc)
+
+---
 
 <!-- BEGIN_TF_DOCS -->
-#### Requirements
+## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
 | <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 1.0 |
 
-#### Inputs
+## Inputs
 
-| Name | Description | Type |
-|------|-------------|------|
-| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
-| <a name="input_create_resource_group"></a> [create_resource_group](#input_create_resource_group) | Create resource group. | `bool` |
-| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
-| <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | The name of a resource group in which the resources will be created. | `string` |
-| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. Example: ibm-storage-scale | `string` |
-| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
-| <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | The CIDR block for the VPC. Example: 10.0.0.0/16 | `string` |
-| <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of compute private subnets. | `list(string)` |
-| <a name="input_vpc_protocol_private_subnets_cidr_blocks"></a> [vpc_protocol_private_subnets_cidr_blocks](#input_vpc_protocol_private_subnets_cidr_blocks) | List of cidr_blocks of protocol private subnets. | `list(string)` |
-| <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of cidr_blocks of public subnets. | `list(string)` |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where IBM Cloud operations will take place. Examples are us-east, us-south, etc. | `string` |
-| <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of cidr_blocks of storage cluster private subnets. | `list(string)` |
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` | n/a | yes |
+| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zones in the region. | `list(string)` | n/a | yes |
+| <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | List of CIDR blocks for VPC address prefixes. | `list(string)` | n/a | yes |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region for VPC deployment. | `string` | n/a | yes |
+| <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | CIDR blocks for storage cluster private subnets. | `list(string)` | n/a | yes |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix for all resource names. | `string` | `"scale"` | no |
+| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | DNS domain for compute cluster. | `string` | `"compute.scale.local"` | no |
+| <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | CIDR blocks for compute cluster private subnets. | `list(string)` | `[]` | no |
+| <a name="input_vpc_create_separate_subnets"></a> [vpc_create_separate_subnets](#input_vpc_create_separate_subnets) | Create separate subnets for compute cluster. | `bool` | `false` | no |
+| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | DNS domain for storage cluster. | `string` | `"storage.scale.local"` | no |
 
-#### Outputs
+## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
-| <a name="output_vpc_name"></a> [vpc_name](#output_vpc_name) | The Name of the VPC. |
-| <a name="output_vpc_protocol_private_subnets"></a> [vpc_protocol_private_subnets](#output_vpc_protocol_private_subnets) | List of IDs of protocol cluster private subnets. |
-| <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
-| <a name="output_vpc_public_subnets_name"></a> [vpc_public_subnets_name](#output_vpc_public_subnets_name) | List of Name of public subnets. |
-| <a name="output_vpc_ref"></a> [vpc_ref](#output_vpc_ref) | The ID of the VPC. |
-| <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |
+| <a name="output_vpc_compute_cluster_dns_service_id"></a> [vpc_compute_cluster_dns_service_id](#output_vpc_compute_cluster_dns_service_id) | DNS service ID for compute cluster. |
+| <a name="output_vpc_compute_cluster_dns_zone_id"></a> [vpc_compute_cluster_dns_zone_id](#output_vpc_compute_cluster_dns_zone_id) | DNS zone ID for compute cluster. |
+| <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of compute cluster private subnet IDs. |
+| <a name="output_vpc_custom_resolver_id"></a> [vpc_custom_resolver_id](#output_vpc_custom_resolver_id) | VPC custom DNS resolver ID. |
+| <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | VPC ID. |
+| <a name="output_vpc_storage_cluster_dns_service_id"></a> [vpc_storage_cluster_dns_service_id](#output_vpc_storage_cluster_dns_service_id) | DNS service ID for storage cluster. |
+| <a name="output_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#output_vpc_storage_cluster_dns_zone_id) | DNS zone ID for storage cluster. |
+| <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of storage cluster private subnet IDs. |
 <!-- END_TF_DOCS -->

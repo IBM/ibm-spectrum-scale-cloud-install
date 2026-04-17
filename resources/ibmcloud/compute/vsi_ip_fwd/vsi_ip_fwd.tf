@@ -17,8 +17,6 @@ variable "forward_dns_zone" {}
 variable "forward_dns_zone_id" {}
 variable "ces_ipaddress" {}
 variable "instance_type" {}
-variable "meta_private_key" {}
-variable "meta_public_key" {}
 variable "name_prefix" {}
 variable "placement_group" {}
 variable "root_device_kms_key_instance_id" {}
@@ -31,22 +29,6 @@ variable "volume_tags" {}
 variable "zone" {}
 variable "dns_services_instance_id" {}
 variable "vpc_id" {}
-
-locals {
-  user_data = <<-EOT
-    #!/usr/bin/env bash
-    echo "${var.meta_private_key}" > ~/.ssh/id_rsa
-    chmod 600 ~/.ssh/id_rsa
-    echo "${var.meta_public_key}" >> ~/.ssh/authorized_keys
-    echo "StrictHostKeyChecking no" >> ~/.ssh/config
-    # Hostname settings
-    hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-    echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
-    echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
-    echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
-    sysctl -p
-  EOT
-}
 
 # IBM Cloud CLI Auto-Login Setup (AWS IAM Role Equivalent)
 
@@ -105,22 +87,6 @@ resource "ibm_is_instance" "itself" {
   user_data = <<-EOF
 #!/usr/bin/env bash
 set -euxo pipefail
-
-# Ensure SSH dir exists and correct perms
-mkdir -p /root/.ssh
-chmod 700 /root/.ssh
-
-# Keys & SSH settings
-echo "${var.meta_private_key}" > /root/.ssh/id_rsa
-chmod 600 /root/.ssh/id_rsa
-echo "${var.meta_public_key}" >> /root/.ssh/authorized_keys
-chmod 600 /root/.ssh/authorized_keys
-
-{
-  echo "  StrictHostKeyChecking no"
-  echo "  UserKnownHostsFile=/dev/null"
-} >> /root/.ssh/config
-chmod 600 /root/.ssh/config
 
 # Hostname settings
 hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
@@ -245,6 +211,8 @@ EOF
 
 # Create "A" record: hostname -> private IPv4
 resource "ibm_dns_resource_record" "a_itself" {
+  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
+
   # IBM Cloud DNS Services instance GUID (from ibm_resource_instance "dns-svcs")
   instance_id = var.dns_services_instance_id
 
@@ -259,6 +227,8 @@ resource "ibm_dns_resource_record" "a_itself" {
 
 # Create "PTR" record: IPv4 -> hostname (in the same forward zone)
 resource "ibm_dns_resource_record" "ptr_itself" {
+  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
+
   instance_id = var.dns_services_instance_id
   zone_id = var.forward_dns_zone_id
 
@@ -287,6 +257,8 @@ resource "ibm_is_vpc_routing_table_route" itself {
 
 # Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
 resource "ibm_dns_resource_record" "ces_a_itself" {
+  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
+
   # IBM Cloud DNS Services instance GUID (from ibm_resource_instance "dns-svcs")
   instance_id = var.dns_services_instance_id
 
@@ -301,6 +273,8 @@ resource "ibm_dns_resource_record" "ces_a_itself" {
 
 # Create "PTR" record: IPv4 -> hostname (in the same forward zone)
 resource "ibm_dns_resource_record" "ces_ptr_itself" {
+  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
+
   instance_id = var.dns_services_instance_id
   zone_id = var.forward_dns_zone_id
 

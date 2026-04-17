@@ -22,8 +22,6 @@ variable "vsi_security_group" {}
 variable "vsi_profile" {}
 variable "vsi_image_id" {}
 variable "vsi_user_public_key" {}
-variable "vsi_meta_private_key" {}
-variable "vsi_meta_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
 
@@ -50,10 +48,6 @@ then
     USER=ubuntu
 fi
 sed -i -e "s/^/no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command=\"echo \'Please login as the user \\\\\"$USER\\\\\" rather than the user \\\\\"root\\\\\".\';echo;sleep 10; exit 142\" /" ~/.ssh/authorized_keys
-echo "${var.vsi_meta_private_key}" > ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa
-echo "${var.vsi_meta_public_key}" >> ~/.ssh/authorized_keys
-echo "StrictHostKeyChecking no" >> ~/.ssh/config
 echo "DOMAIN=\"${var.dns_domain}\"" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
 echo "MTU=9000" >> "/etc/sysconfig/network-scripts/ifcfg-ens1"
 sed -i -e "s#QUEUE_COUNT=3#QUEUE_COUNT=\`ethtool -l \$iface | echo \$(awk '\$1 ~ /Combined:/ {print \$2;exit}')\`#g" /var/lib/cloud/scripts/per-boot/iface-config

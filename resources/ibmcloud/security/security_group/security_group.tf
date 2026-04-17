@@ -15,14 +15,10 @@ variable "sec_group_name" {}
 variable "vpc_id" {}
 variable "resource_group_id" {}
 
-data "ibm_is_vpc" "itself" {
-  name = var.vpc_id
-}
-
 resource "ibm_is_security_group" "itself" {
   count          = tobool(var.turn_on) == true ? 1 : 0
   name           = var.sec_group_name
-  vpc            = data.ibm_is_vpc.itself.id
+  vpc            = var.vpc_id
   resource_group = var.resource_group_id
 }
 

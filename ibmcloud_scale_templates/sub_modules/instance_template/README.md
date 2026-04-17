@@ -1,128 +1,643 @@
-# Existing VPC Template
+# IBM Cloud Instance Template
 
-Below steps will provision IBM Cloud resources (compute and storage instances in existing VPC) and and configures IBM Spectrum Scale cloud solution.
+This Terraform sub-module provisions compute and storage instances for IBM Spectrum Scale clusters in an existing IBM Cloud VPC infrastructure.
 
-1. Change working directory to `ibmcloud_scale_templates/sub_modules/instance_template`.
+## Overview
 
-    ```cli
-    cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/instance_template/
-    ```
+The instance template creates:
+- **Storage Cluster Instances**: Virtual servers with attached block storage volumes
+- **Compute Cluster Instances**: Virtual servers for workload processing
+- **Security Groups**: Network security rules for cluster communication
+- **DNS Records**: Hostname entries in private DNS zones
+- **Block Storage Volumes**: Data volumes attached to storage instances
 
-2. Create terraform variable definitions file (`terraform.tfvars.json`) and provide infrastructure inputs.
+## Purpose
 
-    Minimal Example:
+This module handles the core infrastructure for Spectrum Scale:
+- Provisions instances across availability zones for high availability
+- Configures networking and security for cluster communication
+- Attaches block storage volumes for Spectrum Scale filesystems
+- Registers instances in DNS for hostname resolution
+- Sets up security groups for inter-cluster communication
 
-    ```jsonc
-    {
-        "vpc_region": "us-south",
-        "vpc_availability_zones": ["us-south-1"],
-        "vpc_id": null,                                 // Use an existing vpc id
-        "vpc_custom_resolver_id": null,                 // Use existing DNS custom resolver id
-        "resource_group_id": null,                      // Use an existing resource group
-        "bastion_security_group_id": null,              // Use an existing bastion security group id
-        "bastion_instance_public_ip": null,             // Use an existing bastion public ip
-        "bastion_instance_id": null,                    // Use an existing bastion instance id
-        "bastion_ssh_private_key": "/root/.ssh/id_rsa",
-        "compute_cluster_gui_username": "admin",
-        "compute_cluster_gui_password": "Passw0rd",
-        "compute_cluster_key_pair": null,               // Use an existing key pair
-        "vpc_compute_cluster_private_subnets": [],      // Use an existing private subnet id
-        "vpc_storage_cluster_private_subnets": [],      // Use an existing private subnet id
-        "storage_cluster_key_pair": null,               // Use an existing key pair
-        "storage_cluster_gui_username": "admin",
-        "storage_cluster_gui_password": "Passw0rd",
-        "vpc_compute_cluster_dns_service_id": null,     // Use an existing DNS service id
-        "vpc_storage_cluster_dns_service_id": null,     // Use an existing DNS service id
-        "vpc_compute_cluster_dns_zone_id": null,        // Use an existing DNS zone id
-        "vpc_storage_cluster_dns_zone_id": null         // Use an existing DNS zone id
+## Prerequisites
+
+- Existing IBM Cloud VPC
+- VPC subnets configured
+- DNS zones created (via dns_template)
+- Bastion host deployed (via bastion_template)
+- SSH keys created in IBM Cloud
+- IBM Cloud API key with appropriate permissions
+
+## Quick Start
+
+### 1. Change Directory
+
+```bash
+cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/instance_template/
+```
+
+### 2. Create Configuration File
+
+Create `terraform.tfvars.json`:
+
+```jsonc
+{
+    "vpc_region": "us-south",
+    "vpc_availability_zones": ["us-south-1"],
+    "vpc_id": "r013-xxxx-xxxx-xxxx",
+    "resource_group_id": "xxxx-xxxx-xxxx-xxxx",
+    "resource_prefix": "scale",
+
+    // Bastion Configuration
+    "bastion_instance_id": "xxxx-xxxx-xxxx-xxxx",
+    "bastion_instance_public_ip": "203.0.113.10",
+    "bastion_security_group_id": "r013-xxxx-xxxx-xxxx",
+    "bastion_ssh_private_key": "/root/.ssh/id_rsa",
+
+    // Storage Cluster
+    "total_storage_cluster_instances": 4,
+    "storage_cluster_key_pair": "storage-key",
+    "storage_vsi_profile": "bx2d-8x32",
+    "storage_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
+    "storage_cluster_gui_username": "admin",
+    "storage_cluster_gui_password": "StoragePass123!",
+    "vpc_storage_cluster_private_subnets": ["subnet-id-1"],
+
+    // Compute Cluster
+    "total_compute_cluster_instances": 2,
+    "compute_cluster_key_pair": "compute-key",
+    "compute_vsi_profile": "cx2-4x8",
+    "compute_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
+    "compute_cluster_gui_username": "admin",
+    "compute_cluster_gui_password": "ComputePass123!",
+    "vpc_compute_cluster_private_subnets": ["subnet-id-2"],
+
+    // DNS Configuration
+    "vpc_storage_cluster_dns_service_id": "dns-service-id",
+    "vpc_storage_cluster_dns_zone_id": "zone-id-1",
+    "vpc_compute_cluster_dns_service_id": "dns-service-id",
+    "vpc_compute_cluster_dns_zone_id": "zone-id-2",
+    "vpc_storage_cluster_dns_domain": "storage.scale.local",
+    "vpc_compute_cluster_dns_domain": "compute.scale.local",
+    "vpc_custom_resolver_id": "resolver-id"
+}
+```
+
+### 3. Set IBM Cloud Credentials
+
+```bash
+export IC_API_KEY="your-ibm-cloud-api-key"
+```
+
+### 4. Deploy Instances
+
+```bash
+terraform init
+terraform plan
+terraform apply -auto-approve
+```
+
+## Configuration Examples
+
+### Example 1: Storage-Only Cluster (4 nodes)
+
+```jsonc
+{
+    "vpc_region": "us-south",
+    "vpc_availability_zones": ["us-south-1"],
+    "vpc_id": "r013-vpc-id",
+    "resource_group_id": "resource-group-id",
+    "resource_prefix": "storage",
+
+    "bastion_instance_id": "bastion-id",
+    "bastion_instance_public_ip": "203.0.113.10",
+    "bastion_security_group_id": "bastion-sg-id",
+    "bastion_ssh_private_key": "/root/.ssh/id_rsa",
+
+    "total_storage_cluster_instances": 4,
+    "storage_cluster_key_pair": "storage-key",
+    "storage_vsi_profile": "bx2d-8x32",
+    "storage_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
+    "storage_cluster_gui_username": "admin",
+    "storage_cluster_gui_password": "SecurePass123!",
+    "vpc_storage_cluster_private_subnets": ["subnet-id"],
+
+    "total_compute_cluster_instances": 0,
+    "compute_cluster_key_pair": "compute-key",
+    "compute_cluster_gui_username": "admin",
+    "compute_cluster_gui_password": "SecurePass123!",
+    "vpc_compute_cluster_private_subnets": [],
+
+    "vpc_storage_cluster_dns_service_id": "dns-service-id",
+    "vpc_storage_cluster_dns_zone_id": "zone-id",
+    "vpc_storage_cluster_dns_domain": "storage.scale.local",
+    "vpc_custom_resolver_id": "resolver-id"
+}
+```
+
+### Example 2: Compute + Storage Cluster (Multi-Zone)
+
+```jsonc
+{
+    "vpc_region": "us-south",
+    "vpc_availability_zones": ["us-south-1", "us-south-2", "us-south-3"],
+    "vpc_id": "r013-vpc-id",
+    "resource_group_id": "resource-group-id",
+    "resource_prefix": "scale-ha",
+
+    "bastion_instance_id": "bastion-id",
+    "bastion_instance_public_ip": "203.0.113.10",
+    "bastion_security_group_id": "bastion-sg-id",
+    "bastion_ssh_private_key": "/root/.ssh/id_rsa",
+
+    "total_storage_cluster_instances": 6,
+    "storage_cluster_key_pair": "storage-key",
+    "storage_vsi_profile": "bx2d-16x64",
+    "storage_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
+    "storage_cluster_gui_username": "admin",
+    "storage_cluster_gui_password": "StoragePass123!",
+    "vpc_storage_cluster_private_subnets": [
+        "subnet-zone1-id",
+        "subnet-zone2-id",
+        "subnet-zone3-id"
+    ],
+
+    "total_compute_cluster_instances": 3,
+    "compute_cluster_key_pair": "compute-key",
+    "compute_vsi_profile": "cx2-8x16",
+    "compute_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
+    "compute_cluster_gui_username": "admin",
+    "compute_cluster_gui_password": "ComputePass123!",
+    "vpc_compute_cluster_private_subnets": [
+        "compute-subnet-zone1-id",
+        "compute-subnet-zone2-id",
+        "compute-subnet-zone3-id"
+    ],
+
+    "vpc_storage_cluster_dns_service_id": "dns-service-id",
+    "vpc_storage_cluster_dns_zone_id": "storage-zone-id",
+    "vpc_compute_cluster_dns_service_id": "dns-service-id",
+    "vpc_compute_cluster_dns_zone_id": "compute-zone-id",
+    "vpc_storage_cluster_dns_domain": "storage.scale.local",
+    "vpc_compute_cluster_dns_domain": "compute.scale.local",
+    "vpc_custom_resolver_id": "resolver-id",
+
+    "filesystem_block_size": "4M",
+    "storage_cluster_filesystem_mountpoint": "/gpfs/fs1",
+    "compute_cluster_filesystem_mountpoint": "/gpfs/fs1",
+    "create_separate_namespaces": true
+}
+```
+
+## Instance Profiles
+
+### Storage Cluster Profiles
+
+| Profile | vCPU | RAM | Local Storage | Use Case |
+|---------|------|-----|---------------|----------|
+| bx2d-8x32 | 8 | 32GB | 1x300GB NVMe | Small clusters |
+| bx2d-16x64 | 16 | 64GB | 1x600GB NVMe | Medium clusters |
+| bx2d-32x128 | 32 | 128GB | 2x600GB NVMe | Large clusters |
+| bx2d-48x192 | 48 | 192GB | 2x960GB NVMe | Enterprise clusters |
+
+### Compute Cluster Profiles
+
+| Profile | vCPU | RAM | Use Case |
+|---------|------|-----|----------|
+| cx2-2x4 | 2 | 4GB | Light workloads |
+| cx2-4x8 | 4 | 8GB | Standard workloads |
+| cx2-8x16 | 8 | 16GB | Compute-intensive |
+| cx2-16x32 | 16 | 32GB | High-performance |
+
+## Storage Configuration
+
+### Block Storage Volumes
+
+Storage instances can have additional block storage volumes attached:
+
+```jsonc
+{
+    "filesystem_parameters": [
+        {
+            "name": "fs1",
+            "filesystem_config_file": "fs1-config.json",
+            "filesystem_encrypted": true,
+            "filesystem_kms_key_ref": "kms-key-id",
+            "device_delete_on_termination": true,
+            "disk_config": [
+                {
+                    "filesystem_pool": "system",
+                    "block_devices_per_storage_instance": 2,
+                    "block_device_volume_type": "general-purpose",
+                    "block_device_volume_size": "100",
+                    "block_device_iops": "3000",
+                    "block_device_throughput": "125"
+                }
+            ]
+        }
+    ]
+}
+```
+
+### Volume Types
+
+| Type | IOPS | Throughput | Use Case |
+|------|------|------------|----------|
+| general-purpose | 3-48K | 125-1000 MB/s | Standard workloads |
+| 5iops-tier | 5 IOPS/GB | Variable | Consistent performance |
+| 10iops-tier | 10 IOPS/GB | Variable | High performance |
+| custom | Custom | Custom | Specific requirements |
+
+## Security Groups
+
+### Storage Cluster Security Group
+
+Allows:
+- SSH (22) from bastion
+- GPFS daemon (1191) from cluster nodes
+- GPFS admin (47080) from cluster nodes
+- GUI (443, 47443) from bastion
+- All traffic between storage nodes
+
+### Compute Cluster Security Group
+
+Allows:
+- SSH (22) from bastion
+- GPFS client (1191) from storage cluster
+- All traffic between compute nodes
+
+## Usage
+
+### Access Instances
+
+```bash
+# SSH to storage node via bastion
+ssh -J root@<bastion-ip> root@storage-node-1.storage.scale.local
+
+# SSH to compute node via bastion
+ssh -J root@<bastion-ip> root@compute-node-1.compute.scale.local
+
+# Direct access using private IP
+ssh -J root@<bastion-ip> root@10.241.1.4
+```
+
+### Verify Instances
+
+```bash
+# List all instances
+ibmcloud is instances
+
+# Get instance details
+ibmcloud is instance <instance-id>
+
+# Check instance status
+ibmcloud is instance <instance-id> --output json | jq '.status'
+
+# List attached volumes
+ibmcloud is instance-volume-attachments <instance-id>
+```
+
+### Check Block Storage
+
+```bash
+# SSH to storage node
+ssh -J root@<bastion-ip> root@storage-node-1.storage.scale.local
+
+# List block devices
+lsblk
+
+# Check disk information
+fdisk -l
+
+# Verify volume attachments
+ls -l /dev/disk/by-id/
+```
+
+## DNS Integration
+
+Instances are automatically registered in DNS:
+
+**Storage Cluster**:
+```
+storage-node-1.storage.scale.local -> 10.241.1.4
+storage-node-2.storage.scale.local -> 10.241.1.5
+storage-node-3.storage.scale.local -> 10.241.1.6
+storage-node-4.storage.scale.local -> 10.241.1.7
+```
+
+**Compute Cluster**:
+```
+compute-node-1.compute.scale.local -> 10.241.0.4
+compute-node-2.compute.scale.local -> 10.241.0.5
+compute-node-3.compute.scale.local -> 10.241.0.6
+```
+
+## Troubleshooting
+
+### Instance Creation Fails
+
+**Problem**: Terraform fails to create instances
+
+**Solutions**:
+```bash
+# 1. Check resource quotas
+ibmcloud is instance-profiles
+ibmcloud resource quotas
+
+# 2. Verify subnet has available IPs
+ibmcloud is subnet <subnet-id>
+
+# 3. Check SSH key exists
+ibmcloud is keys
+
+# 4. Verify image is available
+ibmcloud is images | grep redhat
+
+# 5. Check security group rules
+ibmcloud is security-group-rules <sg-id>
+```
+
+### Cannot SSH to Instances
+
+**Problem**: SSH connection fails
+
+**Solutions**:
+```bash
+# 1. Verify bastion is accessible
+ssh -i ~/.ssh/bastion-key root@<bastion-ip>
+
+# 2. Check security group allows SSH from bastion
+ibmcloud is security-group-rules <cluster-sg-id>
+
+# 3. Verify DNS resolution
+nslookup storage-node-1.storage.scale.local
+
+# 4. Test with private IP
+ssh -J root@<bastion-ip> root@10.241.1.4
+
+# 5. Check instance is running
+ibmcloud is instance <instance-id>
+```
+
+### Block Storage Not Attached
+
+**Problem**: Volumes not visible on instance
+
+**Solutions**:
+```bash
+# 1. Check volume attachments
+ibmcloud is instance-volume-attachments <instance-id>
+
+# 2. Verify volumes exist
+ibmcloud is volumes
+
+# 3. On instance, rescan SCSI bus
+echo "- - -" > /sys/class/scsi_host/host0/scan
+
+# 4. Check dmesg for errors
+dmesg | grep -i scsi
+
+# 5. List block devices
+lsblk
+ls -l /dev/vd*
+```
+
+### DNS Resolution Fails
+
+**Problem**: Cannot resolve hostnames
+
+**Solutions**:
+```bash
+# 1. Check /etc/resolv.conf
+cat /etc/resolv.conf
+
+# 2. Verify DNS service
+ibmcloud dns zones
+
+# 3. Check DNS records
+ibmcloud dns resource-records <zone-id>
+
+# 4. Test DNS resolution
+nslookup storage-node-1.storage.scale.local
+dig storage-node-1.storage.scale.local
+
+# 5. Verify VPC custom resolver
+ibmcloud is vpc <vpc-id>
+```
+
+### Performance Issues
+
+**Problem**: Slow instance or storage performance
+
+**Solutions**:
+```bash
+# 1. Check instance metrics
+ibmcloud is instance-monitoring <instance-id>
+
+# 2. Monitor CPU/memory on instance
+top
+free -m
+iostat -x 1
+
+# 3. Check disk I/O
+iotop
+fio --name=test --rw=randread --bs=4k --size=1G
+
+# 4. Verify network performance
+iperf3 -s  # On one node
+iperf3 -c <node-ip>  # On another node
+
+# 5. Check for throttling
+dmesg | grep -i throttle
+```
+
+## Cost Optimization
+
+### Instance Sizing
+
+**Start Small, Scale Up**:
+1. Begin with minimum required instances
+2. Monitor resource utilization
+3. Scale up based on actual needs
+4. Use appropriate instance profiles
+
+### Storage Optimization
+
+1. **Use Instance Storage**: bx2d profiles include local NVMe
+2. **Right-size Volumes**: Don't over-provision block storage
+3. **Choose Appropriate IOPS**: Match IOPS to workload requirements
+4. **Delete Unused Volumes**: Clean up detached volumes
+
+### Cost Monitoring
+
+```bash
+# Check current usage
+ibmcloud billing account-usage
+
+# View instance costs
+ibmcloud billing resource-instances-usage
+
+# Estimate costs before deployment
+# Use IBM Cloud Cost Estimator: https://cloud.ibm.com/estimator
+```
+
+## Integration with Main Template
+
+This module is used by the main template:
+
+```hcl
+module "scale_instances" {
+  source                                = "../sub_modules/instance_template"
+  vpc_region                            = var.vpc_region
+  vpc_availability_zones                = var.vpc_availability_zones
+  resource_prefix                       = var.resource_prefix
+  resource_group_id                     = data.ibm_resource_group.itself.id
+  vpc_id                                = module.vpc.vpc_id
+  vpc_storage_cluster_private_subnets   = module.vpc.vpc_storage_cluster_private_subnets
+  vpc_compute_cluster_private_subnets   = module.vpc.vpc_compute_cluster_private_subnets
+  total_compute_cluster_instances       = var.total_compute_cluster_instances
+  total_storage_cluster_instances       = var.total_storage_cluster_instances
+  # ... additional configuration
+}
+```
+
+## Outputs
+
+After deployment, the following outputs are available:
+
+```bash
+# View all outputs
+terraform output
+
+# Specific outputs
+terraform output storage_cluster_instance_ids
+terraform output storage_cluster_instance_private_ips
+terraform output compute_cluster_instance_ids
+terraform output compute_cluster_instance_private_ips
+terraform output storage_cluster_with_data_volume_mapping
+```
+
+## Advanced Configuration
+
+### Custom User Data
+
+```bash
+# Add custom initialization script
+user_data = <<-EOF
+#!/bin/bash
+yum update -y
+yum install -y kernel-devel kernel-headers
+# Additional setup commands
+EOF
+```
+
+### Instance Tags
+
+```jsonc
+{
+    "storage_cluster_tags": {
+        "environment": "production",
+        "cluster": "storage",
+        "managed_by": "terraform"
+    },
+    "compute_cluster_tags": {
+        "environment": "production",
+        "cluster": "compute",
+        "managed_by": "terraform"
     }
-    ```
+}
+```
 
-3. Export your IBM Cloud credentials by exporting the `IC_API_KEY` as environment variables.
+### Encryption
 
-    Example:
+```jsonc
+{
+    "root_device_encrypted": true,
+    "root_device_kms_key_ref": "kms-key-id",
+    "filesystem_encrypted": true,
+    "filesystem_kms_key_ref": "kms-key-id"
+}
+```
 
-    ```cli
-    export IC_API_KEY=your-ibm-cloud-api-key-here
-    ```
+## Cleanup
 
-4. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
+```bash
+# Destroy all instances and volumes
+terraform destroy -auto-approve
+
+# Note: This will delete all instances and attached volumes
+# Ensure you have backups of any important data
+```
+
+## Additional Resources
+
+- [IBM Cloud VPC Instances](https://cloud.ibm.com/docs/vpc?topic=vpc-about-advanced-virtual-servers)
+- [Instance Profiles](https://cloud.ibm.com/docs/vpc?topic=vpc-profiles)
+- [Block Storage](https://cloud.ibm.com/docs/vpc?topic=vpc-block-storage-about)
+- [Security Groups](https://cloud.ibm.com/docs/vpc?topic=vpc-using-security-groups)
+- [IBM Spectrum Scale on Cloud](https://www.ibm.com/docs/en/spectrum-scale-cloud)
+
+---
 
 <!-- BEGIN_TF_DOCS -->
-#### Requirements
+## Requirements
 
 | Name | Version |
 |------|---------|
 | <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 1.84.3 |
 
-#### Inputs
+## Inputs
 
-| Name | Description | Type |
-|------|-------------|------|
-| <a name="input_airgap"></a> [airgap](#input_airgap) | If true, instance iam profile, git utils which need internet access will be skipped. | `bool` |
-| <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
-| <a name="input_bastion_instance_ref"></a> [bastion_instance_ref](#input_bastion_instance_ref) | Bastion instance ref. | `string` |
-| <a name="input_bastion_security_group_ref"></a> [bastion_security_group_ref](#input_bastion_security_group_ref) | Bastion security group reference (id/self-link). | `string` |
-| <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
-| <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
-| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
-| <a name="input_compute_cluster_boot_disk_type"></a> [compute_cluster_boot_disk_type](#input_compute_cluster_boot_disk_type) | EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1. | `string` |
-| <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
-| <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for Compute cluster GUI. | `string` |
-| <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
-| <a name="input_compute_cluster_image_ref"></a> [compute_cluster_image_ref](#input_compute_cluster_image_ref) | ID of AMI to use for provisioning the compute cluster instances. | `string` |
-| <a name="input_compute_cluster_instance_type"></a> [compute_cluster_instance_type](#input_compute_cluster_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
-| <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | The ssh public key to be created used to launch the compute cluster. | `string` |
-| <a name="input_compute_cluster_tags"></a> [compute_cluster_tags](#input_compute_cluster_tags) | Additional tags for the compute cluster. | `map(string)` |
-| <a name="input_compute_cluster_volume_tags"></a> [compute_cluster_volume_tags](#input_compute_cluster_volume_tags) | Additional tags for the compute cluster volume(s). | `map(string)` |
-| <a name="input_create_remote_mount_cluster"></a> [create_remote_mount_cluster](#input_create_remote_mount_cluster) | Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup. | `bool` |
-| <a name="input_create_scale_cluster"></a> [create_scale_cluster](#input_create_scale_cluster) | Flag to represent whether to create scale cluster or not. | `bool` |
-| <a name="input_filesystem_parameters"></a> [filesystem_parameters](#input_filesystem_parameters) | Filesystem parameters in relationship with disk parameters. | <pre>list(object({<br/>    name                         = string<br/>    filesystem_config_file       = string<br/>    filesystem_encrypted         = bool<br/>    filesystem_kms_key_ref       = string<br/>    device_delete_on_termination = bool<br/>    disk_config = list(object({<br/>      filesystem_pool                    = string<br/>      block_devices_per_storage_instance = number<br/>      block_device_volume_type           = string<br/>      block_device_volume_size           = string<br/>      block_device_iops                  = string<br/>      block_device_throughput            = string<br/>    }))<br/>  }))</pre> |
-| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
-| <a name="input_instances_ssh_user_name"></a> [instances_ssh_user_name](#input_instances_ssh_user_name) | Compute/Storage EC2 instances login username. | `string` |
-| <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. Examples: ini, json | `string` |
-| <a name="input_marked_vm_names_to_attach_disks"></a> [marked_vm_names_to_attach_disks](#input_marked_vm_names_to_attach_disks) | Specify the instance names for which disks needs to be attached | `list(string)` |
-| <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | IBM Cloud resource group name. | `string` |
-| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
-| <a name="input_root_device_encrypted"></a> [root_device_encrypted](#input_root_device_encrypted) | Whether to enable volume encryption for root device. | `bool` |
-| <a name="input_root_device_kms_key_ref"></a> [root_device_kms_key_ref](#input_root_device_kms_key_ref) | GUID of the Key Protect/HPCS instance to be used when encrypting the root volume. | `string` |
-| <a name="input_root_device_kms_key_ref_name"></a> [root_device_kms_key_ref_name](#input_root_device_kms_key_ref_name) | Name of the root/standard key to be used when encrypting the root volume. | `string` |
-| <a name="input_scale_ansible_repo_clone_path"></a> [scale_ansible_repo_clone_path](#input_scale_ansible_repo_clone_path) | Path to clone github.com/IBM/ibm-spectrum-scale-install-infra. | `string` |
-| <a name="input_service_instance_ref"></a> [service_instance_ref](#input_service_instance_ref) | IBM Cloud DNS Service Instance Id | `string` |
-| <a name="input_spectrumscale_rpms_path"></a> [spectrumscale_rpms_path](#input_spectrumscale_rpms_path) | Path that contains IBM Spectrum Scale product cloud rpms. | `string` |
-| <a name="input_storage_cluster_boot_disk_type"></a> [storage_cluster_boot_disk_type](#input_storage_cluster_boot_disk_type) | EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1. | `string` |
-| <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
-| <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
-| <a name="input_storage_cluster_image_ref"></a> [storage_cluster_image_ref](#input_storage_cluster_image_ref) | ID of AMI to use for provisioning the storage cluster instances. | `string` |
-| <a name="input_storage_cluster_instance_type"></a> [storage_cluster_instance_type](#input_storage_cluster_instance_type) | Instance type to use for provisioning the storage cluster instances. | `string` |
-| <a name="input_storage_cluster_public_key_path"></a> [storage_cluster_public_key_path](#input_storage_cluster_public_key_path) | The ssh public key to be created used to launch the storage cluster. | `string` |
-| <a name="input_storage_cluster_tags"></a> [storage_cluster_tags](#input_storage_cluster_tags) | Additional tags for the storage cluster. | `map(string)` |
-| <a name="input_storage_cluster_tiebreaker_instance_type"></a> [storage_cluster_tiebreaker_instance_type](#input_storage_cluster_tiebreaker_instance_type) | Instance type to use for the tie breaker instance (will be provisioned only in Multi-AZ configuration). | `string` |
-| <a name="input_storage_cluster_volume_tags"></a> [storage_cluster_volume_tags](#input_storage_cluster_volume_tags) | Additional tags for the storage cluster volume(s). | `map(string)` |
-| <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of EC2 instances to be launched for compute cluster. | `number` |
-| <a name="input_total_protocol_instances"></a> [total_protocol_instances](#input_total_protocol_instances) | Number of EC2 instances to be launched for protocol nodes. | `number` |
-| <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of EC2 instances to be launched for storage cluster. | `number` |
-| <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_ref`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
-| <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | If true, gpfs rpm copy step will be skipped during the configuration. | `bool` |
-| <a name="input_using_rest_api_remote_mount"></a> [using_rest_api_remote_mount](#input_using_rest_api_remote_mount) | If false, skips GUI initialization on compute cluster for remote mount configuration. | `string` |
-| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
-| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | DNS domain name to be used for compute cluster. | `string` |
-| <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
-| <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc. | `string` |
-| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | DNS domain name to be used for storage cluster. | `string` |
-| <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_bastion_instance_id"></a> [bastion_instance_id](#input_bastion_instance_id) | Bastion instance ID. | `string` | n/a | yes |
+| <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public IP address. | `string` | n/a | yes |
+| <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group ID. | `string` | n/a | yes |
+| <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path for login. | `string` | n/a | yes |
+| <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for compute cluster GUI. | `string` | n/a | yes |
+| <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user for compute cluster management. | `string` | n/a | yes |
+| <a name="input_compute_cluster_key_pair"></a> [compute_cluster_key_pair](#input_compute_cluster_key_pair) | SSH key pair for compute cluster instances. | `string` | n/a | yes |
+| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` | n/a | yes |
+| <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for storage cluster GUI. | `string` | n/a | yes |
+| <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user for storage cluster management. | `string` | n/a | yes |
+| <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | SSH key pair for storage cluster instances. | `string` | n/a | yes |
+| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zones in the region. | `list(string)` | n/a | yes |
+| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | DNS domain for compute cluster. | `string` | n/a | yes |
+| <a name="input_vpc_compute_cluster_dns_service_id"></a> [vpc_compute_cluster_dns_service_id](#input_vpc_compute_cluster_dns_service_id) | DNS service ID for compute cluster. | `string` | n/a | yes |
+| <a name="input_vpc_compute_cluster_dns_zone_id"></a> [vpc_compute_cluster_dns_zone_id](#input_vpc_compute_cluster_dns_zone_id) | DNS zone ID for compute cluster. | `string` | n/a | yes |
+| <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of compute cluster private subnet IDs. | `list(string)` | n/a | yes |
+| <a name="input_vpc_custom_resolver_id"></a> [vpc_custom_resolver_id](#input_vpc_custom_resolver_id) | VPC custom resolver ID. | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC ID where instances will be deployed. | `string` | n/a | yes |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region for deployment. | `string` | n/a | yes |
+| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | DNS domain for storage cluster. | `string` | n/a | yes |
+| <a name="input_vpc_storage_cluster_dns_service_id"></a> [vpc_storage_cluster_dns_service_id](#input_vpc_storage_cluster_dns_service_id) | DNS service ID for storage cluster. | `string` | n/a | yes |
+| <a name="input_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#input_vpc_storage_cluster_dns_zone_id) | DNS zone ID for storage cluster. | `string` | n/a | yes |
+| <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of storage cluster private subnet IDs. | `list(string)` | n/a | yes |
+| <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster filesystem mount point. | `string` | `"/gpfs/fs1"` | no |
+| <a name="input_compute_vsi_osimage_name"></a> [compute_vsi_osimage_name](#input_compute_vsi_osimage_name) | OS image for compute instances. | `string` | `"ibm-redhat-8-6-minimal-amd64-4"` | no |
+| <a name="input_compute_vsi_profile"></a> [compute_vsi_profile](#input_compute_vsi_profile) | Instance profile for compute nodes. | `string` | `"cx2-4x8"` | no |
+| <a name="input_create_separate_namespaces"></a> [create_separate_namespaces](#input_create_separate_namespaces) | Create separate namespace for compute instances. | `bool` | `true` | no |
+| <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Filesystem block size. | `string` | `"4M"` | no |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix for all resource names. | `string` | `"scale"` | no |
+| <a name="input_storage_cluster_filesystem_mountpoint"></a> [storage_cluster_filesystem_mountpoint](#input_storage_cluster_filesystem_mountpoint) | Storage cluster filesystem mount point. | `string` | `"/gpfs/fs1"` | no |
+| <a name="input_storage_vsi_osimage_name"></a> [storage_vsi_osimage_name](#input_storage_vsi_osimage_name) | OS image for storage instances. | `string` | `"ibm-redhat-8-6-minimal-amd64-4"` | no |
+| <a name="input_storage_vsi_profile"></a> [storage_vsi_profile](#input_storage_vsi_profile) | Instance profile for storage nodes. | `string` | `"bx2d-8x32"` | no |
+| <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of compute cluster instances. | `number` | `3` | no |
+| <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of storage cluster instances. | `number` | `4` | no |
+| <a name="input_using_packer_image"></a> [using_packer_image](#input_using_packer_image) | Skip GPFS RPM copy if using packer image. | `bool` | `false` | no |
+| <a name="input_using_rest_api_remote_mount"></a> [using_rest_api_remote_mount](#input_using_rest_api_remote_mount) | Enable GUI initialization for remote mount. | `string` | `"true"` | no |
+| <a name="input_vpc_create_activity_tracker"></a> [vpc_create_activity_tracker](#input_vpc_create_activity_tracker) | Create IBM Cloud Activity Tracker instance. | `bool` | `false` | no |
 
-#### Outputs
+## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
-| <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
-| <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
-| <a name="output_local_block_device_count"></a> [local_block_device_count](#output_local_block_device_count) | n/a |
-| <a name="output_profile_disks_debug"></a> [profile_disks_debug](#output_profile_disks_debug) | n/a |
-| <a name="output_profile_name_debug"></a> [profile_name_debug](#output_profile_name_debug) | n/a |
-| <a name="output_protocol_cluster_security_group_id"></a> [protocol_cluster_security_group_id](#output_protocol_cluster_security_group_id) | Protocol cluster security group id. |
-| <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group id. |
+| <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance IDs. |
+| <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Compute cluster instance private IPs. |
+| <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group ID. |
+| <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance IDs. |
+| <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Storage cluster instance private IPs. |
+| <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group ID. |
+| <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Storage instance to volume mapping. |
 <!-- END_TF_DOCS -->

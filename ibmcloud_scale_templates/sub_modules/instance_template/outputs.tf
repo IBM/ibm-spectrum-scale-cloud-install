@@ -63,12 +63,12 @@ output "gateway_instance_details" {
 output "instance_iam_profile" {
   value = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
 }
+*/
 
 output "placement_group_id" {
-  value       = local.create_placement_group == true ? aws_placement_group.itself[0].id : null
-  description = "Placement group id."
+  value       = local.create_placement_group ? ibm_is_placement_group.storage_cluster[0].id : null
+  description = "IBM Cloud placement group id."
 }
-*/
 output "protocol_instance_details" {
   value       = [for instance in module.protocol_instances : instance.instance_details]
   description = "Protocol instance details (map of id, private_ip, dns)"
