@@ -209,6 +209,15 @@ systemctl enable ibmcloud-auto-login.service
 systemctl enable ibmcloud-auto-login.timer
 systemctl start ibmcloud-auto-login.timer
 
+# Unmask the rpcbind service and socket for protocol node
+echo "Unmasking the rpcbind service and socket..." | logger -t rpcbind-setup
+systemctl unmask rpcbind.service rpcbind.socket
+if [ $? -eq 0 ]; then
+  echo "rpcbind service and socket unmasked successfully" | logger -t rpcbind-setup
+else
+  echo "WARNING: rpcbind service or socket unmasking failed" | logger -t rpcbind-setup
+fi
+
 # IBM Storage Scale device discovery helper
 mkdir -p "/var/mmfs/etc"
 
