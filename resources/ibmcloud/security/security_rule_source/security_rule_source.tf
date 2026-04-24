@@ -1,14 +1,16 @@
+terraform {
+  required_providers {
+    ibm = {
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
+    }
+  }
+}
+
 /*
     Creates TCP specific security group rule.
 */
 
-terraform {
-  required_providers {
-    ibm = {
-      source = "IBM-Cloud/ibm"
-    }
-  }
-}
 
 variable "total_rules" {}
 variable "security_group_id" {}

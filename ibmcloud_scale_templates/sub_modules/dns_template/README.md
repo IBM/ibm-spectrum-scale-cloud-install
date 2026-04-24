@@ -424,31 +424,40 @@ terraform destroy -auto-approve
 ---
 
 <!-- BEGIN_TF_DOCS -->
-## Requirements
+#### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 1.0 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 2 |
 
-## Inputs
+#### Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC ID to be associated with the DNS zone. | `string` | n/a | yes |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where IBM Cloud operations will take place. | `string` | n/a | yes |
-| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | IBM Cloud DNS zone name for storage cluster. | `string` | n/a | yes |
-| <a name="input_create_dns_zone"></a> [create_dns_zone](#input_create_dns_zone) | Flag to represent if a new private DNS zone needs to be created or reused. | `bool` | `true` | no |
-| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` | `"scale"` | no |
-| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | IBM Cloud DNS zone name for compute cluster. | `string` | `""` | no |
-| <a name="input_vpc_create_separate_subnets"></a> [vpc_create_separate_subnets](#input_vpc_create_separate_subnets) | Flag to create separate subnets for compute cluster. | `bool` | `false` | no |
-| <a name="input_vpc_dns_service_id"></a> [vpc_dns_service_id](#input_vpc_dns_service_id) | Existing IBM Cloud DNS Service Instance ID (if reusing). | `string` | `null` | no |
+| Name | Description | Type |
+| ---- | ----------- | ---- |
+| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
+| <a name="input_create_dns_zone"></a> [create_dns_zone](#input_create_dns_zone) | Flag to represent if a new private DNS zone needs to be created or reused. | `bool` |
+| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key needed for authentication. | `string` |
+| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | ID of the resource group where DNS service instance will be created (only used if dns_service_instance_id is not provided). | `string` |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. Example: ibm-storage-scale | `string` |
+| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | IBM Cloud DNS zone name for compute cluster. | `string` |
+| <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC name to be associated with the DNS zone. | `string` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The IBM Cloud region where resources will be created. Examples: us-south, us-east, eu-gb, eu-de. | `string` |
+| <a name="input_vpc_reverse_dns_domain"></a> [vpc_reverse_dns_domain](#input_vpc_reverse_dns_domain) | IBM Cloud reverse DNS zone name. | `string` |
+| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | IBM Cloud DNS zone name for storage cluster. | `string` |
+| <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id. If not provided, a new DNS service instance will be created. | `string` |
+| <a name="input_vpc_protocol_cluster_dns_domain"></a> [vpc_protocol_cluster_dns_domain](#input_vpc_protocol_cluster_dns_domain) | IBM Cloud DNS zone name for protocol cluster. If not provided, protocol nodes will use storage cluster DNS zone. | `string` |
 
-## Outputs
+#### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
+| <a name="output_dns_service_instance_id"></a> [dns_service_instance_id](#output_dns_service_instance_id) | IBM Cloud DNS Service Instance ID (either provided or newly created). |
+| <a name="output_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#output_vpc_compute_cluster_dns_zone) | IBM Cloud DNS compute cluster zone name. |
 | <a name="output_vpc_compute_dns_zone_id"></a> [vpc_compute_dns_zone_id](#output_vpc_compute_dns_zone_id) | IBM Cloud DNS compute cluster zone ID. |
-| <a name="output_vpc_dns_service_id"></a> [vpc_dns_service_id](#output_vpc_dns_service_id) | IBM Cloud DNS Service Instance ID. |
+| <a name="output_vpc_protocol_cluster_dns_zone"></a> [vpc_protocol_cluster_dns_zone](#output_vpc_protocol_cluster_dns_zone) | IBM Cloud DNS protocol cluster zone name. |
+| <a name="output_vpc_protocol_dns_zone_id"></a> [vpc_protocol_dns_zone_id](#output_vpc_protocol_dns_zone_id) | IBM Cloud DNS protocol cluster zone ID. |
+| <a name="output_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#output_vpc_reverse_dns_zone) | IBM Cloud DNS reverse zone name. |
+| <a name="output_vpc_storage_cluster_dns_zone"></a> [vpc_storage_cluster_dns_zone](#output_vpc_storage_cluster_dns_zone) | IBM Cloud DNS storage cluster zone name. |
 | <a name="output_vpc_storage_dns_zone_id"></a> [vpc_storage_dns_zone_id](#output_vpc_storage_dns_zone_id) | IBM Cloud DNS storage cluster zone ID. |
 <!-- END_TF_DOCS -->

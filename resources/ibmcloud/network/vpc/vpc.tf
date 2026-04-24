@@ -1,14 +1,16 @@
+terraform {
+  required_providers {
+    ibm = {
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
+    }
+  }
+}
+
 /*
    Creates new IBM Virtual Private Cloud.
 */
 
-terraform {
-  required_providers {
-    ibm = {
-      source = "IBM-Cloud/ibm"
-    }
-  }
-}
 
 variable "vpc_name" {}
 variable "vpc_address_prefix_management" {}

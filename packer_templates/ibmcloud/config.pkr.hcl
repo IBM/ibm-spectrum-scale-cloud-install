@@ -3,7 +3,7 @@ packer {
     ibmcloud = {
       version = ">= v3.3.4"
 
-      source  = "github.com/IBM/ibmcloud"
+      source = "github.com/IBM/ibmcloud"
     }
   }
 }

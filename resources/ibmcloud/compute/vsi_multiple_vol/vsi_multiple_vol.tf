@@ -1,14 +1,16 @@
+terraform {
+  required_providers {
+    ibm = {
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
+    }
+  }
+}
+
 /*
     Creates specified number of IBM Cloud Virtual Server Instance(s).
 */
 
-terraform {
-  required_providers {
-    ibm = {
-      source = "IBM-Cloud/ibm"
-    }
-  }
-}
 
 variable "ami_id" {}
 variable "disks" {}
@@ -52,7 +54,7 @@ data "cloudinit_config" "user_data64" {
 data "ibm_kms_key" "itself" {
   count       = var.root_device_kms_key_instance_id != null && var.root_device_kms_key_instance_name != null ? 1 : 0
   instance_id = var.root_device_kms_key_instance_id   # GUID of your Key Protect/HPCS instance
-  key_name    = var.root_device_kms_key_instance_name      # Name (or alias) of the root/standard key
+  key_name    = var.root_device_kms_key_instance_name # Name (or alias) of the root/standard key
 }
 
 # Virtual Server for VPC (VSI)
@@ -129,13 +131,13 @@ resource "ibm_is_instance" "itself" {
 
 # Create the specified volumes with the corresponding type and size
 resource "ibm_is_volume" "itself" {
-  for_each = var.disks
-  name   = format("%s-%s", var.name_prefix, each.key)
-  zone   = var.zone
-  capacity = tonumber(each.value["size"])
-  profile = each.value["type"]
-  iops              = each.value["iops"] == "" ? null : each.value["iops"]
-  encryption_key    = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
+  for_each       = var.disks
+  name           = format("%s-%s", var.name_prefix, each.key)
+  zone           = var.zone
+  capacity       = tonumber(each.value["size"])
+  profile        = each.value["type"]
+  iops           = each.value["iops"] == "" ? null : each.value["iops"]
+  encryption_key = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
 }
 
 # Create "A" record: hostname -> private IPv4
@@ -148,8 +150,8 @@ resource "ibm_dns_resource_record" "a_itself" {
   # Forward DNS zone ID (from ibm_dns_zone)
   zone_id = var.forward_dns_zone_id
 
-  type = "A"
-  name = format("%s.%s", var.name_prefix, var.dns_domain)
+  type  = "A"
+  name  = format("%s.%s", var.name_prefix, var.dns_domain)
   rdata = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
   ttl   = 3600
 }

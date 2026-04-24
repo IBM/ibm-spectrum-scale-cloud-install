@@ -30,14 +30,14 @@ The below steps will provision the AWS Bastion instance required for the IBM Spe
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
 | <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 6.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_bastion_image_ref"></a> [bastion_image_ref](#input_bastion_image_ref) | Bastion AMI Image id. | `string` |
 | <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for the bastion instance. | `string` |
 | <a name="input_bastion_key_pair"></a> [bastion_key_pair](#input_bastion_key_pair) | The key pair to use to launch the bastion host. | `string` |
@@ -52,7 +52,7 @@ The below steps will provision the AWS Bastion instance required for the IBM Spe
 #### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_bastion_instance_autoscaling_group_ref"></a> [bastion_instance_autoscaling_group_ref](#output_bastion_instance_autoscaling_group_ref) | Bastion instances autoscaling group (id/self-link). |
 | <a name="output_bastion_security_group_ref"></a> [bastion_security_group_ref](#output_bastion_security_group_ref) | Bastion security group reference (id/self-link). |
 <!-- END_TF_DOCS -->

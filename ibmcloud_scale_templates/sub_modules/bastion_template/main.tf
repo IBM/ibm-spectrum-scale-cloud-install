@@ -1,67 +1,74 @@
 /*
-    This nested module creates;
-    1. Bastion security group/rule(s)
-    2. Bastion instance group
-    3. Reserve floating ip
+    Bastion Template Module for IBM Storage Scale Cloud Deployment
+
+    This module creates a bastion host (jump server) infrastructure with:
+
+    1. Bastion security group with configurable rules
+    2. Security rules for SSH, ICMP, and outbound traffic
+    3. Bastion instance template for auto-scaling
+    4. Auto-scaling group for bastion instances
 */
 
-data "ibm_resource_group" "itself" {
-  name = var.resource_group_name
-}
-
 module "bastion_security_group" {
+  count             = local.create_count
   source            = "../../../resources/ibmcloud/security/security_group"
   turn_on           = true
-  sec_group_name    = format("%s-bastion-sg", var.resource_prefix)
+  sec_group_name    = local.bastion_sg_name
   vpc_id            = var.vpc_ref
-  resource_group_id = data.ibm_resource_group.itself.id
+  resource_group_id = var.resource_group_id
 }
 
 module "bastion_sg_tcp_rule" {
+  count             = local.create_count
   source            = "../../../resources/ibmcloud/security/security_tcp_rule"
   enable_rule       = true
-  security_group_id = module.bastion_security_group.sec_group_id
+  security_group_id = module.bastion_security_group[0].sec_group_id
   sg_direction      = "inbound"
   port              = var.bastion_public_ssh_port
   remote_ip_addr    = var.remote_cidr_blocks
 }
 
 module "bastion_sg_icmp_rule" {
+  count             = local.create_count
   source            = "../../../resources/ibmcloud/security/security_icmp_rule"
-  security_group_id = module.bastion_security_group.sec_group_id
+  security_group_id = module.bastion_security_group[0].sec_group_id
   sg_direction      = "inbound"
   remote_ip_addr    = var.remote_cidr_blocks
 }
 
 module "bastion_sg_outbound_rule" {
+  count              = local.create_count
   source             = "../../../resources/ibmcloud/security/security_allow_all"
   enable_rule        = true
-  security_group_ids = module.bastion_security_group.sec_group_id
+  security_group_ids = module.bastion_security_group[0].sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = var.remote_cidr_blocks
 }
 
 data "ibm_is_ssh_key" "itself" {
-  name = var.bastion_key_pair
+  count = local.create_count
+  name  = var.bastion_key_pair
 }
 
 module "bastion_autoscaling_launch_template" {
+  count                = local.create_count
   source               = "../../../resources/ibmcloud/asg/instance_template"
-  launch_template_name = format("%s-%s", var.resource_prefix, "bastion-launch-tmpl")
-  resource_group_id    = data.ibm_resource_group.itself.id
+  launch_template_name = local.bastion_launch_tmpl_name
+  resource_group_id    = var.resource_group_id
   instance_type        = var.bastion_instance_type
   image_id             = var.bastion_image_ref
   vpc                  = var.vpc_ref
-  zone                 = var.vpc_availability_zones[0]         # Pick first zone to store the instance template
-  subnet               = var.vpc_auto_scaling_group_subnets[0] # Pick first zone to store the instance template
-  security_groups      = [module.bastion_security_group.sec_group_id]
-  key_name             = [data.ibm_is_ssh_key.itself.id]
+  zone                 = local.selected_zone
+  subnet               = local.selected_subnet
+  security_groups      = [module.bastion_security_group[0].sec_group_id]
+  key_name             = [data.ibm_is_ssh_key.itself[0].id]
 }
 
 module "bastion_autoscaling_group" {
+  count                  = local.create_count
   source                 = "../../../resources/ibmcloud/asg/instance_group"
-  asg_name               = format("%s-%s", var.resource_prefix, "bastion-asg")
-  launch_template_id     = module.bastion_autoscaling_launch_template.instance_template_id
+  asg_name               = local.bastion_asg_name
+  launch_template_id     = module.bastion_autoscaling_launch_template[0].instance_template_id
   desired_instance_count = var.desired_instance_count
   subnets                = var.vpc_auto_scaling_group_subnets
 }

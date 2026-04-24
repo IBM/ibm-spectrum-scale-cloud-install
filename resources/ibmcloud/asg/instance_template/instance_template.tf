@@ -1,14 +1,16 @@
+terraform {
+  required_providers {
+    ibm = {
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
+    }
+  }
+}
+
 /*
     Creates a Instance group template.
 */
 
-terraform {
-  required_providers {
-    ibm = {
-      source = "IBM-Cloud/ibm"
-    }
-  }
-}
 
 variable "resource_group_id" {}
 variable "launch_template_name" {}

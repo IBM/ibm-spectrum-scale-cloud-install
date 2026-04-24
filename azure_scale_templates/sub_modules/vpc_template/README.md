@@ -41,14 +41,14 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 4.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_client_id"></a> [client_id](#input_client_id) | The Active Directory service principal associated with your account. | `string` |
 | <a name="input_client_secret"></a> [client_secret](#input_client_secret) | The password or secret for your service principal. | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
@@ -69,7 +69,7 @@ Below steps will provision Azure VPC required for IBM Storage Scale cloud soluti
 #### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vpc_compute_nat_gateways"></a> [vpc_compute_nat_gateways](#output_vpc_compute_nat_gateways) | List of IDs of compute cluster nat gateway. |
 | <a name="output_vpc_network_security_group_ref"></a> [vpc_network_security_group_ref](#output_vpc_network_security_group_ref) | VNet network security group id/reference. |

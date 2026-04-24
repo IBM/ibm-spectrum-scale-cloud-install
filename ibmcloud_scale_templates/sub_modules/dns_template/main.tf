@@ -1,72 +1,83 @@
 /*
-    IBM Storage scale cloud deployment requires the below DNS resources.
+    DNS Template Module for IBM Storage Scale Cloud Deployment
 
-    1. DNS service
-    2. Storage DNS zone
-    3. Storage DNS permitted network
-    4. Compute DNS zone
-    5. Compute DNS permitted network
-    6. Reverse DNS zone
-    7. Reverse DNS zone permitted network
+    This module manages private DNS zones and permitted networks for IBM Storage Scale clusters.
+    It supports three cluster types: Storage-only, Compute-only, and Combined-compute-storage.
+
+    Prerequisites:
+    - Existing VPC (vpc_ref)
+    - Optional: Existing IBM Cloud DNS Service instance (dns_service_instance_id)
+      If not provided, a new DNS service instance will be created.
+
+    Resources created (conditionally based on cluster_type and create_dns_zone):
+    0. DNS Service instance (if dns_service_instance_id is not provided)
+    1. Storage DNS zone (for Storage-only and Combined-compute-storage)
+    2. Storage DNS permitted network (associates VPC with storage zone)
+    3. Compute DNS zone (for Compute-only and Combined-compute-storage)
+    4. Compute DNS permitted network (associates VPC with compute zone)
+    5. Protocol DNS zone (optional, if vpc_protocol_cluster_dns_domain is provided)
+    6. Protocol DNS permitted network (associates VPC with protocol zone)
+    7. Reverse DNS zone (for Compute-only and Combined-compute-storage)
+    8. Reverse DNS permitted network (associates VPC with reverse zone)
+
+    Note: If DNS zones already exist, the module will reuse them instead of creating new ones.
 */
 
-data "ibm_dns_zones" "all_zones" {
-  instance_id = var.service_instance_ref
+# Create DNS service instance if not provided
+resource "ibm_resource_instance" "dns_service" {
+  count             = var.dns_service_instance_id == null ? 1 : 0
+  name              = "${var.resource_prefix}-dns-service"
+  service           = "dns-svcs"
+  plan              = "standard-dns"
+  location          = "global"
+  resource_group_id = var.resource_group_id
+
+  tags = [
+    "created for",
+    var.resource_prefix
+  ]
 }
 
-# Check if DNS Zones already exists
+# Use provided instance ID or the newly created one
 locals {
-  storage_dns_zone_id = [
-    for zone in data.ibm_dns_zones.all_zones.dns_zones : zone.zone_id
-    if zone.name == var.vpc_storage_cluster_dns_zone
-  ]
+  dns_instance_id = var.dns_service_instance_id != null ? var.dns_service_instance_id : one(ibm_resource_instance.dns_service[*].guid)
+}
 
-  compute_dns_zone_id = [
-    for zone in data.ibm_dns_zones.all_zones.dns_zones : zone.zone_id
-    if zone.name == var.vpc_compute_cluster_dns_zone
-  ]
-
-  reverse_dns_zone_id = [
-    for zone in data.ibm_dns_zones.all_zones.dns_zones : zone.zone_id
-    if zone.name == var.vpc_reverse_dns_zone
-  ]
-
-  storage_dns_zone_exists = length(local.storage_dns_zone_id) > 0
-
-  compute_dns_zone_exists = length(local.compute_dns_zone_id) > 0
-
-  reverse_dns_zone_exists = length(local.reverse_dns_zone_id) > 0
+data "ibm_dns_zones" "all_zones" {
+  instance_id = local.dns_instance_id
 }
 
 # Creates a new storage private DNS zone in IBMCloud
 module "storage_dns_zone" {
   source         = "../../../resources/ibmcloud/network/dns_zone"
-  turn_on        = var.create_dns_zone && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? true : false
-  dns_domain     = var.vpc_storage_cluster_dns_zone
-  dns_service_id = var.service_instance_ref
+  turn_on        = var.create_dns_zone && local.is_storage_cluster
+  dns_domain     = var.vpc_storage_cluster_dns_domain
+  dns_service_id = local.dns_instance_id
   description    = "Private DNS Zone for Spectrum Scale storage VPC DNS communication."
   dns_label      = var.resource_prefix
 }
 
+# Conditionally fetch VPC data only when DNS resources will be created
 data "ibm_is_vpc" "vpc" {
-  name = var.vpc_ref
+  count = local.needs_vpc_data ? 1 : 0
+  name  = var.vpc_ref
 }
 
 # Creates a storage DNS permitted network
 module "storage_dns_permitted_network" {
   source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  permitted_count = (var.create_dns_zone || local.storage_dns_zone_exists) && (var.cluster_type == "Storage-only" || var.cluster_type == "Combined-compute-storage") ? 1 : 0
-  instance_id     = var.service_instance_ref
-  zone_id         = local.storage_dns_zone_exists ? one(local.storage_dns_zone_id) : module.storage_dns_zone.dns_zone_id
-  vpc_crn         = data.ibm_is_vpc.vpc.crn
+  permitted_count = (var.create_dns_zone || local.storage_dns_zone_exists) && local.is_storage_cluster ? 1 : 0
+  instance_id     = local.dns_instance_id
+  zone_id         = local.storage_dns_zone_exists ? local.storage_dns_zone_id : module.storage_dns_zone.dns_zone_id
+  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
 }
 
 # Creates a new compute private DNS zone in IBMCloud
 module "compute_dns_zone" {
   source         = "../../../resources/ibmcloud/network/dns_zone"
-  turn_on        = var.create_dns_zone && (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? true : false
-  dns_domain     = var.vpc_compute_cluster_dns_zone
-  dns_service_id = var.service_instance_ref
+  turn_on        = var.create_dns_zone && local.is_compute_cluster
+  dns_domain     = var.vpc_compute_cluster_dns_domain
+  dns_service_id = local.dns_instance_id
   description    = "Private DNS Zone for Spectrum Scale compute VPC DNS communication."
   dns_label      = var.resource_prefix
 }
@@ -74,26 +85,45 @@ module "compute_dns_zone" {
 # Creates a compute DNS permitted network
 module "compute_dns_permitted_network" {
   source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  permitted_count = (var.create_dns_zone || local.compute_dns_zone_exists) && (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? 1 : 0
-  instance_id     = var.service_instance_ref
-  zone_id         = local.compute_dns_zone_exists ? one(local.compute_dns_zone_id) : module.compute_dns_zone.dns_zone_id
-  vpc_crn         = data.ibm_is_vpc.vpc.crn
+  permitted_count = (var.create_dns_zone || local.compute_dns_zone_exists) && local.is_compute_cluster ? 1 : 0
+  instance_id     = local.dns_instance_id
+  zone_id         = local.compute_dns_zone_exists ? local.compute_dns_zone_id : module.compute_dns_zone.dns_zone_id
+  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
+}
+
+# Creates a new protocol private DNS zone in IBMCloud
+module "protocol_dns_zone" {
+  source         = "../../../resources/ibmcloud/network/dns_zone"
+  turn_on        = var.create_dns_zone && local.is_protocol_cluster
+  dns_domain     = var.vpc_protocol_cluster_dns_domain
+  dns_service_id = local.dns_instance_id
+  description    = "Private DNS Zone for Spectrum Scale protocol VPC DNS communication."
+  dns_label      = var.resource_prefix
+}
+
+# Creates a protocol DNS permitted network
+module "protocol_dns_permitted_network" {
+  source          = "../../../resources/ibmcloud/network/dns_permitted_network"
+  permitted_count = (var.create_dns_zone || local.protocol_dns_zone_exists) && local.is_protocol_cluster ? 1 : 0
+  instance_id     = local.dns_instance_id
+  zone_id         = local.protocol_dns_zone_exists ? local.protocol_dns_zone_id : module.protocol_dns_zone.dns_zone_id
+  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
 }
 
 # Creates a new reverse private DNS zone in IBMCloud
 module "reverse_dns_zone" {
   source         = "../../../resources/ibmcloud/network/dns_zone"
-  turn_on        = var.create_dns_zone ? true : false
-  dns_domain     = var.vpc_reverse_dns_zone
-  dns_service_id = var.service_instance_ref
-  description    = "Private DNS Zone for Spectrum Scale compute VPC DNS communication."
+  turn_on        = var.create_dns_zone && local.is_compute_cluster
+  dns_domain     = var.vpc_reverse_dns_domain
+  dns_service_id = local.dns_instance_id
+  description    = "Private DNS Zone for Spectrum Scale reverse DNS lookups."
   dns_label      = var.resource_prefix
 }
 
 module "reverse_dns_permitted_network" {
   source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  permitted_count = (var.create_dns_zone || local.reverse_dns_zone_exists) && (var.cluster_type == "Compute-only" || var.cluster_type == "Combined-compute-storage") ? 1 : 0
-  instance_id     = var.service_instance_ref
-  zone_id         = local.reverse_dns_zone_exists ? one(local.reverse_dns_zone_id) : module.reverse_dns_zone.dns_zone_id
-  vpc_crn         = data.ibm_is_vpc.vpc.crn
+  permitted_count = (var.create_dns_zone || local.reverse_dns_zone_exists) && local.is_compute_cluster ? 1 : 0
+  instance_id     = local.dns_instance_id
+  zone_id         = local.reverse_dns_zone_exists ? local.reverse_dns_zone_id : module.reverse_dns_zone.dns_zone_id
+  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
 }

@@ -575,38 +575,49 @@ terraform destroy -auto-approve
 ---
 
 <!-- BEGIN_TF_DOCS -->
-## Requirements
+#### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 1.0 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 2 |
 
-## Inputs
+#### Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` | n/a | yes |
-| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zones in the region. | `list(string)` | n/a | yes |
-| <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | List of CIDR blocks for VPC address prefixes. | `list(string)` | n/a | yes |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region for VPC deployment. | `string` | n/a | yes |
-| <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | CIDR blocks for storage cluster private subnets. | `list(string)` | n/a | yes |
-| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix for all resource names. | `string` | `"scale"` | no |
-| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | DNS domain for compute cluster. | `string` | `"compute.scale.local"` | no |
-| <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | CIDR blocks for compute cluster private subnets. | `list(string)` | `[]` | no |
-| <a name="input_vpc_create_separate_subnets"></a> [vpc_create_separate_subnets](#input_vpc_create_separate_subnets) | Create separate subnets for compute cluster. | `bool` | `false` | no |
-| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | DNS domain for storage cluster. | `string` | `"storage.scale.local"` | no |
+| Name | Description | Type |
+| ---- | ----------- | ---- |
+| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Options: 'Storage-only', 'Compute-only', 'Combined-compute-storage'. | `string` |
+| <a name="input_create_resource_group"></a> [create_resource_group](#input_create_resource_group) | Flag to create a new resource group. Set to false to use an existing resource group. | `bool` |
+| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | IBM Cloud API key for authentication and resource provisioning. | `string` |
+| <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | Name of the IBM Cloud resource group where VPC resources will be created. | `string` |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix added to all resource names for identification and organization (e.g., 'ibm-storage-scale'). | `string` |
+| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zone names or IDs within the selected region for multi-zone deployment. | `list(string)` |
+| <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | CIDR block for the VPC that will be automatically subdivided into address prefixes for each availability zone (e.g., '10.241.0.0/18'). | `string` |
+| <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of CIDR blocks for compute cluster private subnets, one per availability zone. | `list(string)` |
+| <a name="input_vpc_protocol_private_subnets_cidr_blocks"></a> [vpc_protocol_private_subnets_cidr_blocks](#input_vpc_protocol_private_subnets_cidr_blocks) | List of CIDR blocks for protocol node private subnets, one per availability zone. | `list(string)` |
+| <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of CIDR blocks for public subnets, one per availability zone. Set to null if no public subnets are needed. | `list(string)` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where VPC and all resources will be deployed (e.g., 'us-east', 'us-south', 'eu-de'). | `string` |
+| <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of CIDR blocks for storage cluster private subnets, one per availability zone. | `list(string)` |
 
-## Outputs
+#### Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_vpc_compute_cluster_dns_service_id"></a> [vpc_compute_cluster_dns_service_id](#output_vpc_compute_cluster_dns_service_id) | DNS service ID for compute cluster. |
-| <a name="output_vpc_compute_cluster_dns_zone_id"></a> [vpc_compute_cluster_dns_zone_id](#output_vpc_compute_cluster_dns_zone_id) | DNS zone ID for compute cluster. |
-| <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of compute cluster private subnet IDs. |
-| <a name="output_vpc_custom_resolver_id"></a> [vpc_custom_resolver_id](#output_vpc_custom_resolver_id) | VPC custom DNS resolver ID. |
-| <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | VPC ID. |
-| <a name="output_vpc_storage_cluster_dns_service_id"></a> [vpc_storage_cluster_dns_service_id](#output_vpc_storage_cluster_dns_service_id) | DNS service ID for storage cluster. |
-| <a name="output_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#output_vpc_storage_cluster_dns_zone_id) | DNS zone ID for storage cluster. |
-| <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of storage cluster private subnet IDs. |
+| ---- | ----------- |
+| <a name="output_resource_group_id"></a> [resource_group_id](#output_resource_group_id) | The ID of the resource group used for VPC resources. |
+| <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets, if compute subnets are enabled for the selected cluster type. |
+| <a name="output_vpc_compute_cluster_private_subnets_crn"></a> [vpc_compute_cluster_private_subnets_crn](#output_vpc_compute_cluster_private_subnets_crn) | List of CRNs of compute cluster private subnets, if compute subnets are enabled for the selected cluster type. |
+| <a name="output_vpc_compute_cluster_private_subnets_name"></a> [vpc_compute_cluster_private_subnets_name](#output_vpc_compute_cluster_private_subnets_name) | List of names of compute cluster private subnets, if compute subnets are enabled for the selected cluster type. |
+| <a name="output_vpc_crn"></a> [vpc_crn](#output_vpc_crn) | The CRN of the VPC. |
+| <a name="output_vpc_name"></a> [vpc_name](#output_vpc_name) | The name of the VPC. |
+| <a name="output_vpc_protocol_private_subnets"></a> [vpc_protocol_private_subnets](#output_vpc_protocol_private_subnets) | List of IDs of protocol cluster private subnets, if protocol subnets are enabled for the selected cluster type. |
+| <a name="output_vpc_protocol_private_subnets_crn"></a> [vpc_protocol_private_subnets_crn](#output_vpc_protocol_private_subnets_crn) | List of CRNs of protocol cluster private subnets, if protocol subnets are enabled for the selected cluster type. |
+| <a name="output_vpc_protocol_private_subnets_name"></a> [vpc_protocol_private_subnets_name](#output_vpc_protocol_private_subnets_name) | List of names of protocol cluster private subnets, if protocol subnets are enabled for the selected cluster type. |
+| <a name="output_vpc_public_gateway_ids"></a> [vpc_public_gateway_ids](#output_vpc_public_gateway_ids) | List of IDs of public gateways created for the enabled subnets across the configured availability zones. |
+| <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets, if public subnets are enabled. |
+| <a name="output_vpc_public_subnets_crn"></a> [vpc_public_subnets_crn](#output_vpc_public_subnets_crn) | List of CRNs of public subnets, if public subnets are enabled. |
+| <a name="output_vpc_public_subnets_name"></a> [vpc_public_subnets_name](#output_vpc_public_subnets_name) | List of names of public subnets, if public subnets are enabled. |
+| <a name="output_vpc_ref"></a> [vpc_ref](#output_vpc_ref) | The ID of the VPC. |
+| <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets, if storage subnets are enabled for the selected cluster type. |
+| <a name="output_vpc_storage_cluster_private_subnets_crn"></a> [vpc_storage_cluster_private_subnets_crn](#output_vpc_storage_cluster_private_subnets_crn) | List of CRNs of storage cluster private subnets, if storage subnets are enabled for the selected cluster type. |
+| <a name="output_vpc_storage_cluster_private_subnets_name"></a> [vpc_storage_cluster_private_subnets_name](#output_vpc_storage_cluster_private_subnets_name) | List of names of storage cluster private subnets, if storage subnets are enabled for the selected cluster type. |
 <!-- END_TF_DOCS -->

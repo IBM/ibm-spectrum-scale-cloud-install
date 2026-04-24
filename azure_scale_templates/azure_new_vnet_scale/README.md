@@ -42,14 +42,14 @@ The following steps will provision Azure resources (new vnet, bastion, ansible j
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 4.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_client_id"></a> [client_id](#input_client_id) | The Active Directory service principal associated with your account. | `string` |
 | <a name="input_client_secret"></a> [client_secret](#input_client_secret) | The password or secret for your service principal. | `string` |
 | <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for Compute cluster GUI. | `string` |
@@ -107,7 +107,7 @@ The following steps will provision Azure resources (new vnet, bastion, ansible j
 #### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_ansible_jump_host_id"></a> [ansible_jump_host_id](#output_ansible_jump_host_id) | Ansible jump host instance id. |
 | <a name="output_ansible_jump_host_private_ip"></a> [ansible_jump_host_private_ip](#output_ansible_jump_host_private_ip) | Ansible jump host instance private ip addresses. |
 | <a name="output_ansible_jump_host_public_ip"></a> [ansible_jump_host_public_ip](#output_ansible_jump_host_public_ip) | Ansible jump host instance public ip addresses. |

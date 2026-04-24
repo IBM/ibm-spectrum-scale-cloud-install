@@ -5,7 +5,8 @@
 terraform {
   required_providers {
     ibm = {
-      source = "IBM-Cloud/ibm"
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
     }
   }
 }
@@ -25,8 +26,8 @@ variable "vsi_user_public_key" {}
 variable "resource_group_id" {}
 variable "resource_tags" {}
 
-data "template_file" "metadata_startup_script" {
-  template = <<EOF
+locals {
+  metadata_startup_script = <<EOF
 #!/bin/bash
 echo "0 $(hostname) 0" > /home/klmdb411/sqllib/db2nodes.cfg
 systemctl start db2c_klmdb411.service
@@ -62,7 +63,7 @@ resource "ibm_is_instance" "itself" {
   zone           = each.value.zone
   resource_group = var.resource_group_id
   keys           = var.vsi_user_public_key
-  user_data      = data.template_file.metadata_startup_script.rendered
+  user_data      = local.metadata_startup_script
 
   boot_volume {
     name = format("%s-boot-%03s", var.vsi_name_prefix, each.value.sequence_string)

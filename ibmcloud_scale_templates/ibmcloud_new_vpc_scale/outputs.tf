@@ -13,6 +13,36 @@ output "vpc_compute_cluster_private_subnets" {
   description = "List of IDs of compute cluster private subnets."
 }
 
+output "transit_gateway_id" {
+  value       = module.vpc_peering.transit_gateway_id
+  description = "ID of the Transit Gateway used for VPC connectivity."
+}
+
+output "transit_gateway_crn" {
+  value       = module.vpc_peering.transit_gateway_crn
+  description = "CRN of the Transit Gateway used for VPC connectivity."
+}
+
+output "transit_gateway_name" {
+  value       = module.vpc_peering.transit_gateway_name
+  description = "Name of the Transit Gateway."
+}
+
+output "new_vpc_connection_id" {
+  value       = module.vpc_peering.new_vpc_connection_id
+  description = "ID of the Transit Gateway connection for the newly created VPC."
+}
+
+output "peer_vpc_connection_id" {
+  value       = module.vpc_peering.peer_vpc_connection_id
+  description = "ID of the Transit Gateway connection for the peer VPC."
+}
+
+output "transit_gateway_status" {
+  value       = module.vpc_peering.transit_gateway_status
+  description = "Status of the Transit Gateway."
+}
+
 output "bastion_security_group_id" {
   value       = module.bastion.bastion_security_group_ref
   description = "Bastion security group id."
@@ -23,6 +53,7 @@ output "bastion_instance_ref" {
   description = "Bastion instance autoscaling group reference."
 }
 
+/*
 output "compute_cluster_instance_ids" {
   value       = try(module.scale_instances.compute_cluster_instance_ids, [])
   description = "Compute cluster instance ids."
@@ -67,3 +98,4 @@ output "placement_group_id" {
   value       = try(module.scale_instances.placement_group_id, null)
   description = "IBM Cloud placement group id for single-AZ deployments."
 }
+*/

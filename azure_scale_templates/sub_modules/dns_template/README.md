@@ -38,14 +38,14 @@ The below steps will provision the Azure private DNS zones required for the IBM 
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 4.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_client_id"></a> [client_id](#input_client_id) | The Active Directory service principal associated with your account. | `string` |
 | <a name="input_client_secret"></a> [client_secret](#input_client_secret) | The password or secret for your service principal. | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
@@ -61,7 +61,7 @@ The below steps will provision the Azure private DNS zones required for the IBM 
 #### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#output_vpc_compute_cluster_dns_zone) | Private DNS zone name/id. |
 | <a name="output_vpc_compute_dns_zone_id"></a> [vpc_compute_dns_zone_id](#output_vpc_compute_dns_zone_id) | Private DNS zone id. |
 | <a name="output_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#output_vpc_reverse_dns_zone) | Private DNS zone name/id. |

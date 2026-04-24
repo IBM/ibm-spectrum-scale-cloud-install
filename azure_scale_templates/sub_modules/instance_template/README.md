@@ -152,14 +152,14 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 4.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_airgap"></a> [airgap](#input_airgap) | If true, instance iam profile, git utils which need internet access will be skipped. | `bool` |
 | <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
 | <a name="input_bastion_instance_ref"></a> [bastion_instance_ref](#input_bastion_instance_ref) | Bastion instance reference. | `string` |
@@ -225,7 +225,7 @@ The instances deployed as part of the cluster now supported Proximity Placement 
 #### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
 | <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
 | <a name="output_ces_private_ips"></a> [ces_private_ips](#output_ces_private_ips) | CES/Protocol ENI (secondary private) ips. |

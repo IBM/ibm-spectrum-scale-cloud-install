@@ -5,7 +5,8 @@
 terraform {
   required_providers {
     ibm = {
-      source = "IBM-Cloud/ibm"
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
     }
   }
 }
@@ -37,7 +38,7 @@ variable "dns_services_instance_id" {}
 data "ibm_kms_key" "itself" {
   count       = var.root_device_kms_key_instance_id != null && var.root_device_kms_key_instance_name != null ? 1 : 0
   instance_id = var.root_device_kms_key_instance_id   # GUID of your Key Protect/HPCS instance
-  key_name    = var.root_device_kms_key_instance_name      # Name (or alias) of the root/standard key
+  key_name    = var.root_device_kms_key_instance_name # Name (or alias) of the root/standard key
 }
 
 # Virtual Server for VPC (VSI)
@@ -96,8 +97,8 @@ resource "ibm_dns_resource_record" "a_itself" {
   # Forward DNS zone ID (from ibm_dns_zone)
   zone_id = var.forward_dns_zone_id
 
-  type = "A"
-  name = format("%s.%s", var.name_prefix, var.dns_domain)
+  type  = "A"
+  name  = format("%s.%s", var.name_prefix, var.dns_domain)
   rdata = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
   ttl   = 3600
 }
@@ -116,7 +117,7 @@ resource "ibm_dns_resource_record" "ptr_itself" {
 
   # rdata is the FQDN you want this IP to resolve to
   rdata = format("%s.%s", var.name_prefix, var.dns_domain)
-  ttl = 3600
+  ttl   = 3600
 
   depends_on = [ibm_dns_resource_record.a_itself]
 }

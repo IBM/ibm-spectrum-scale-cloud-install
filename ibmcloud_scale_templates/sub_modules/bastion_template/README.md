@@ -326,34 +326,36 @@ terraform destroy -auto-approve
 ---
 
 <!-- BEGIN_TF_DOCS -->
-## Requirements
+#### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 1.0 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 2 |
 
-## Inputs
+#### Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_bastion_key_pair"></a> [bastion_key_pair](#input_bastion_key_pair) | The key pair to use to launch the bastion host. | `string` | n/a | yes |
-| <a name="input_bastion_osimage_name"></a> [bastion_osimage_name](#input_bastion_osimage_name) | Bastion OS image name. | `string` | n/a | yes |
-| <a name="input_bastion_subnet_id"></a> [bastion_subnet_id](#input_bastion_subnet_id) | Subnet ID where bastion will be deployed. | `string` | n/a | yes |
-| <a name="input_bastion_vsi_profile"></a> [bastion_vsi_profile](#input_bastion_vsi_profile) | Profile to be used for Bastion virtual server instance. | `string` | n/a | yes |
-| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` | n/a | yes |
-| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` | n/a | yes |
-| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` | n/a | yes |
-| <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC ID where bastion will be deployed. | `string` | n/a | yes |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where IBM Cloud operations will take place. | `string` | n/a | yes |
-| <a name="input_remote_cidr_blocks"></a> [remote_cidr_blocks](#input_remote_cidr_blocks) | List of CIDRs that can access the bastion. Default: 0.0.0.0/0 | `list(string)` | `["0.0.0.0/0"]` | no |
+| Name | Description | Type |
+| ---- | ----------- | ---- |
+| <a name="input_bastion_image_ref"></a> [bastion_image_ref](#input_bastion_image_ref) | IBM Cloud image ID for the bastion instance. | `string` |
+| <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for the bastion instance. | `string` |
+| <a name="input_bastion_key_pair"></a> [bastion_key_pair](#input_bastion_key_pair) | The key pair to use to launch the bastion host. | `string` |
+| <a name="input_bastion_public_ssh_port"></a> [bastion_public_ssh_port](#input_bastion_public_ssh_port) | Set the SSH port to use from desktop to the bastion. | `number` |
+| <a name="input_desired_instance_count"></a> [desired_instance_count](#input_desired_instance_count) | Bastion instance desired count. | `number` |
+| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
+| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | The ID of the resource group for bastion resources. | `string` |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix added to all resource names for identification and organization (e.g., 'ibm-storage-scale'). | `string` |
+| <a name="input_vpc_auto_scaling_group_subnets"></a> [vpc_auto_scaling_group_subnets](#input_vpc_auto_scaling_group_subnets) | List of subnets where the Auto Scaling Group will deploy the instances. | `list(string)` |
+| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
+| <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where bastion and all resources will be deployed (e.g., 'us-east', 'us-south', 'eu-de'). | `string` |
+| <a name="input_enable_bastion"></a> [enable_bastion](#input_enable_bastion) | Enable or disable bastion host creation. When false, no resources will be created. | `bool` |
+| <a name="input_remote_cidr_blocks"></a> [remote_cidr_blocks](#input_remote_cidr_blocks) | List of CIDRs that can access to the bastion. Default : 0.0.0.0/0 | `list(string)` |
 
-## Outputs
+#### Outputs
 
 | Name | Description |
-|------|-------------|
-| <a name="output_bastion_instance_id"></a> [bastion_instance_id](#output_bastion_instance_id) | Bastion instance ID. |
-| <a name="output_bastion_instance_private_ip"></a> [bastion_instance_private_ip](#output_bastion_instance_private_ip) | Bastion instance private IP address. |
-| <a name="output_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#output_bastion_instance_public_ip) | Bastion instance public IP address. |
-| <a name="output_bastion_security_group_id"></a> [bastion_security_group_id](#output_bastion_security_group_id) | Bastion security group ID. |
+| ---- | ----------- |
+| <a name="output_bastion_instance_autoscaling_group_ref"></a> [bastion_instance_autoscaling_group_ref](#output_bastion_instance_autoscaling_group_ref) | Bastion instances autoscaling group ID. |
+| <a name="output_bastion_security_group_ref"></a> [bastion_security_group_ref](#output_bastion_security_group_ref) | Bastion security group ID. |
 <!-- END_TF_DOCS -->

@@ -52,14 +52,14 @@ Below steps will provision Bastion host required for IBM Storage Scale cloud sol
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 4.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_azure_bastion_service"></a> [azure_bastion_service](#input_azure_bastion_service) | Enable Azure Bastion service | `bool` |
 | <a name="input_bastion_boot_disk_type"></a> [bastion_boot_disk_type](#input_bastion_boot_disk_type) | Type of storage account which should back this the internal OS disk (Ex: Standard_LRS, StandardSSD_LRS and Premium_LRS). | `string` |
 | <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
@@ -87,7 +87,7 @@ Below steps will provision Bastion host required for IBM Storage Scale cloud sol
 #### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_bastion_instance_autoscaling_group_ref"></a> [bastion_instance_autoscaling_group_ref](#output_bastion_instance_autoscaling_group_ref) | Bastion instance id. |
 | <a name="output_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#output_bastion_instance_public_ip) | Bastion instance public ip address. |
 | <a name="output_bastion_security_group_ref"></a> [bastion_security_group_ref](#output_bastion_security_group_ref) | Bastion network security group name. |

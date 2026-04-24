@@ -49,14 +49,14 @@ The following steps will create IAM policies required for IBM Storage Scale clou
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
 | <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 6.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_user_name"></a> [user_name](#input_user_name) | An existing IAM username to which policy needs to be applied. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc. | `string` |
 <!-- END_TF_DOCS -->

@@ -35,14 +35,14 @@ The below steps will provision the AWS route53 zones required for the IBM Spectr
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
 | <a name="requirement_aws"></a> [aws](#requirement_aws) | ~> 6.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_create_dns_zone"></a> [create_dns_zone](#input_create_dns_zone) | Flag to represent if a new private DNS zone needs to be created or reused. | `bool` |
 | <a name="input_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#input_vpc_compute_cluster_dns_zone) | Route53 DNS zone name/id (incase of new creation use name, incase of association use id). | `string` |
@@ -58,7 +58,7 @@ The below steps will provision the AWS route53 zones required for the IBM Spectr
 #### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#output_vpc_compute_cluster_dns_zone) | Route53 DNS zone name/id. |
 | <a name="output_vpc_compute_dns_zone_id"></a> [vpc_compute_dns_zone_id](#output_vpc_compute_dns_zone_id) | Route53 zone id. |
 | <a name="output_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#output_vpc_reverse_dns_zone) | Route53 DNS zone name/id. |

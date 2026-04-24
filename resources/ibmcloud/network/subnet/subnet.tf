@@ -1,14 +1,15 @@
-/*
-   Creates IBM Cloud new Subnet(s).
-*/
-
 terraform {
   required_providers {
     ibm = {
-      source = "IBM-Cloud/ibm"
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
     }
   }
 }
+
+/*
+   Creates IBM Cloud new Subnet(s).
+*/
 
 variable "turn_on" {}
 variable "vpc_id" {}

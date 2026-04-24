@@ -99,7 +99,7 @@ output "storage_cluster_with_data_volume_mapping" {
 }
 
 output "storage_vm_zone_map" {
-  value       = local.storage_vm_zone_map
+  value = local.storage_vm_zone_map
 }
 
 output "inflate_disks_per_fs_pool" {
@@ -117,4 +117,3 @@ output "flatten_tie_disk" {
 output "storage_instance_ips_with_disk_mapping" {
   value = local.storage_instance_ips_with_disk_mapping
 }
-

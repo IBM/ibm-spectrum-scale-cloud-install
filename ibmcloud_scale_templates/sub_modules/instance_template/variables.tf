@@ -115,18 +115,6 @@ variable "compute_cluster_volume_tags" {
   description = "Additional tags for the compute cluster volume(s)."
 }
 
-variable "create_remote_mount_cluster" {
-  type        = bool
-  nullable    = true
-  description = "Flag to select if separate compute and storage cluster needs to be created and proceed for remote mount filesystem setup."
-}
-
-variable "create_scale_cluster" {
-  type        = bool
-  nullable    = true
-  description = "Flag to represent whether to create scale cluster or not."
-}
-
 variable "enable_placement_group" {
   type        = bool
   nullable    = true
@@ -236,18 +224,6 @@ variable "root_device_kms_key_ref_name" {
   type        = string
   nullable    = true
   description = "Name of the root/standard key to be used when encrypting the root volume."
-}
-
-variable "scale_ansible_repo_clone_path" {
-  type        = string
-  nullable    = true
-  description = "Path to clone github.com/IBM/ibm-spectrum-scale-install-infra."
-}
-
-variable "spectrumscale_rpms_path" {
-  type        = string
-  nullable    = true
-  description = "Path that contains IBM Spectrum Scale product cloud rpms."
 }
 
 variable "storage_cluster_boot_disk_type" {
@@ -360,18 +336,6 @@ variable "using_jumphost_connection" {
   description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_ref`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
 }
 
-variable "using_packer_image" {
-  type        = bool
-  nullable    = true
-  description = "If true, gpfs rpm copy step will be skipped during the configuration."
-}
-
-variable "using_rest_api_remote_mount" {
-  type        = string
-  nullable    = true
-  description = "If false, skips GUI initialization on compute cluster for remote mount configuration."
-}
-
 variable "vpc_availability_zones" {
   type        = list(string)
   nullable    = false
@@ -440,7 +404,7 @@ variable "vpc_storage_cluster_private_subnets" {
   description = "List of IDs of storage cluster private subnets."
 }
 
-variable "service_instance_ref" {
+variable "dns_service_instance_id" {
   type        = string
   nullable    = false
   description = "IBM Cloud DNS Service Instance Id"

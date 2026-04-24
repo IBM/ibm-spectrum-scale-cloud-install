@@ -1,14 +1,16 @@
+terraform {
+  required_providers {
+    ibm = {
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
+    }
+  }
+}
+
 /*
     Creates TCP specific security group rule.
 */
 
-terraform {
-  required_providers {
-    ibm = {
-      source = "IBM-Cloud/ibm"
-    }
-  }
-}
 
 variable "security_group_id" {}
 variable "sg_direction" {}
@@ -17,10 +19,10 @@ variable "port" {}
 
 locals {
   # Normalize inputs so the resource always receives strings/lists.
-  ports     = flatten([var.port])                        # 22 -> [22], [22,8080,9081] -> [22,8080,9081]
+  ports     = flatten([var.port]) # 22 -> [22], [22,8080,9081] -> [22,8080,9081]
   sg_id     = element(flatten([var.security_group_id]), 0)
   direction = element(flatten([var.sg_direction]), 0)
-  remote    = element(flatten([var.remote_ip_addr]), 0)  # single remote (SG ID or CIDR)
+  remote    = element(flatten([var.remote_ip_addr]), 0) # single remote (SG ID or CIDR)
 }
 
 resource "ibm_is_security_group_rule" "itself" {

@@ -1,14 +1,16 @@
+terraform {
+  required_providers {
+    ibm = {
+      source  = "IBM-Cloud/ibm"
+      version = "~> 2"
+    }
+  }
+}
+
 /*
      Creates IBMCloud Virtual Server instance(s) with a static route
 */
 
-terraform {
-  required_providers {
-    ibm = {
-      source = "IBM-Cloud/ibm"
-    }
-  }
-}
 
 variable "ami_id" {}
 variable "subnet_id" {}
@@ -51,7 +53,7 @@ resource "ibm_iam_service_policy" "ces_vpc_editor" {
   roles          = ["Editor"]
 
   resources {
-    service = "is"  # VPC Infrastructure Services
+    service = "is" # VPC Infrastructure Services
   }
 }
 
@@ -59,7 +61,7 @@ resource "ibm_iam_service_policy" "ces_vpc_editor" {
 data "ibm_kms_key" "itself" {
   count       = var.root_device_kms_key_instance_id != null && var.root_device_kms_key_instance_name != null ? 1 : 0
   instance_id = var.root_device_kms_key_instance_id   # GUID of your Key Protect/HPCS instance
-  key_name    = var.root_device_kms_key_instance_name      # Name (or alias) of the root/standard key
+  key_name    = var.root_device_kms_key_instance_name # Name (or alias) of the root/standard key
 }
 
 # Virtual Server for VPC (VSI)
@@ -75,9 +77,9 @@ resource "ibm_is_instance" "itself" {
   zone = var.zone
 
   primary_network_interface {
-  subnet          = var.subnet_id
-  security_groups = var.security_groups
-}
+    subnet          = var.subnet_id
+    security_groups = var.security_groups
+  }
 
   # Encrypt the root volume with the KMS key CRN
   boot_volume {
@@ -219,8 +221,8 @@ resource "ibm_dns_resource_record" "a_itself" {
   # Forward DNS zone ID (from ibm_dns_zone)
   zone_id = var.forward_dns_zone_id
 
-  type = "A"
-  name = format("%s.%s", var.name_prefix, var.dns_domain)
+  type  = "A"
+  name  = format("%s.%s", var.name_prefix, var.dns_domain)
   rdata = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
   ttl   = 3600
 }
@@ -230,14 +232,14 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
 
   instance_id = var.dns_services_instance_id
-  zone_id = var.forward_dns_zone_id
+  zone_id     = var.forward_dns_zone_id
 
   type = "PTR"
   name = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
 
   # rdata is the FQDN you want this IP to resolve to
   rdata = format("%s.%s", var.name_prefix, var.dns_domain)
-  ttl = 3600
+  ttl   = 3600
 
   depends_on = [ibm_dns_resource_record.a_itself]
 }
@@ -246,13 +248,13 @@ data "ibm_is_subnet" "itself" {
   identifier = var.subnet_id
 }
 
-resource "ibm_is_vpc_routing_table_route" itself {
+resource "ibm_is_vpc_routing_table_route" "itself" {
   vpc           = var.vpc_id
   routing_table = data.ibm_is_subnet.itself.routing_table[0].id
   destination   = format("%s/32", var.ces_ipaddress)
   action        = "deliver"
   next_hop      = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
-  zone=var.zone
+  zone          = var.zone
 }
 
 # Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
@@ -265,8 +267,8 @@ resource "ibm_dns_resource_record" "ces_a_itself" {
   # Forward DNS zone ID (from ibm_dns_zone)
   zone_id = var.forward_dns_zone_id
 
-  type = "A"
-  name = format("%s-ces.%s", var.name_prefix, var.dns_domain)
+  type  = "A"
+  name  = format("%s-ces.%s", var.name_prefix, var.dns_domain)
   rdata = var.ces_ipaddress
   ttl   = 3600
 }
@@ -276,14 +278,14 @@ resource "ibm_dns_resource_record" "ces_ptr_itself" {
   count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
 
   instance_id = var.dns_services_instance_id
-  zone_id = var.forward_dns_zone_id
+  zone_id     = var.forward_dns_zone_id
 
   type = "PTR"
   name = var.ces_ipaddress
 
   # rdata is the FQDN you want this IP to resolve to
   rdata = format("%s-ces.%s", var.name_prefix, var.dns_domain)
-  ttl = 3600
+  ttl   = 3600
 
   depends_on = [ibm_dns_resource_record.ces_a_itself]
 }
@@ -291,10 +293,10 @@ resource "ibm_dns_resource_record" "ces_ptr_itself" {
 
 output "instance_details" {
   value = {
-    private_ip = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
-    id         = ibm_is_instance.itself.id
-    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
-    zone       = ibm_is_instance.itself.zone
+    private_ip     = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
+    id             = ibm_is_instance.itself.id
+    dns            = format("%s.%s", var.name_prefix, var.dns_domain)
+    zone           = ibm_is_instance.itself.zone
     ces_private_ip = var.ces_ipaddress
   }
 }

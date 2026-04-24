@@ -108,14 +108,14 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 #### Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
 | <a name="requirement_google"></a> [google](#requirement_google) | ~> 7.0 |
 
 #### Inputs
 
 | Name | Description | Type |
-|------|-------------|------|
+| ---- | ----------- | ---- |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_credential_json_path"></a> [credential_json_path](#input_credential_json_path) | The path of a GCP service account key file in JSON format. | `string` |
 | <a name="input_project_id"></a> [project_id](#input_project_id) | GCP project ID to manage resources. | `string` |
@@ -132,7 +132,7 @@ The below steps will provision the GCP VPC required for the IBM Spectrum Scale c
 #### Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
 | <a name="output_vpc_compute_nat_gateways"></a> [vpc_compute_nat_gateways](#output_vpc_compute_nat_gateways) | List of IDs of compute cluster nat gateway. |
 | <a name="output_vpc_protocol_nat_gateways"></a> [vpc_protocol_nat_gateways](#output_vpc_protocol_nat_gateways) | List of IDs of protocol cluster nat gateway. |
