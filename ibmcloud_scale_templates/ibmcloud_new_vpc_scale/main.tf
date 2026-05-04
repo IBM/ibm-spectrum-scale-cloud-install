@@ -94,7 +94,7 @@ module "scale_instances" {
   storage_cluster_instance_type            = var.storage_vsi_profile
   storage_cluster_public_key_path          = var.storage_cluster_public_key_path
   boot_disk_type                           = var.boot_disk_type
-  storage_cluster_tiebreaker_instance_type = null
+  storage_cluster_tiebreaker_instance_type = var.storage_cluster_tiebreaker_instance_type
   total_storage_volumes                    = var.total_storage_volumes
   storage_volume_size                      = var.storage_volume_size
   storage_volume_profile                   = var.storage_volume_profile
@@ -107,11 +107,12 @@ module "scale_instances" {
   gateway_instance_type                    = var.gateway_vsi_profile
   total_protocol_instances                 = var.total_protocol_instances
   protocol_instance_type                   = var.protocol_vsi_profile
-  ces_ip_addresses                         = []
+  ces_ip_addresses                         = var.ces_ip_addresses
   bastion_security_group_id                = var.enable_bastion ? module.bastion.bastion_security_group_id : null
   using_jumphost_connection                = var.enable_bastion
-  root_device_kms_key_id                   = null
-  root_device_kms_key_name                 = null
+  root_device_kms_key_id                   = var.root_device_kms_key_id
+  root_device_kms_key_name                 = var.root_device_kms_key_name
   airgap                                   = false
   enable_placement_group                   = var.enable_placement_group
+  placement_group_strategy                 = var.placement_group_strategy
 }

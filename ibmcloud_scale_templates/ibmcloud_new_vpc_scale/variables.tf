@@ -201,6 +201,12 @@ variable "storage_vsi_profile" {
   description = "IBM Cloud VSI profile (instance type) for storage cluster nodes."
 }
 
+variable "storage_cluster_tiebreaker_instance_type" {
+  type        = string
+  default     = null
+  description = "IBM Cloud VSI profile (instance type) for tie-breaker instance in Multi-AZ deployments. Set to null for single-zone deployments or to use the same profile as storage nodes."
+}
+
 # ========================================
 # Compute Cluster Configuration
 # ========================================
@@ -250,6 +256,12 @@ variable "protocol_vsi_profile" {
   description = "IBM Cloud VSI profile (instance type) for protocol cluster nodes."
 }
 
+variable "ces_ip_addresses" {
+  type        = list(string)
+  default     = []
+  description = "List of CES (Cluster Export Services) IP addresses for protocol nodes. Length must equal total_protocol_instances."
+}
+
 # ========================================
 # Gateway Cluster Configuration
 # ========================================
@@ -273,7 +285,18 @@ variable "gateway_vsi_profile" {
 variable "enable_placement_group" {
   type        = bool
   default     = true
-  description = "Enable IBM Cloud placement group with host_spread strategy to distribute instances across different physical hosts in single-AZ deployments."
+  description = "Enable IBM Cloud placement group to distribute instances in single-AZ deployments."
+}
+
+variable "placement_group_strategy" {
+  type        = string
+  default     = "host_spread"
+  description = "Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources). Note: Strategy is required and forces new resource if changed."
+
+  validation {
+    condition     = contains(["host_spread", "power_spread"], var.placement_group_strategy)
+    error_message = "placement_group_strategy must be either 'host_spread' or 'power_spread'."
+  }
 }
 
 variable "cluster_type" {
@@ -319,6 +342,22 @@ variable "transit_gateway_global_routing" {
   type        = bool
   default     = false
   description = "Enable global routing for Transit Gateway to allow connections across different regions. Set to true if peer VPC is in a different region."
+}
+
+# ========================================
+# Encryption Configuration
+# ========================================
+
+variable "root_device_kms_key_id" {
+  type        = string
+  default     = null
+  description = "GUID of the IBM Key Protect or Hyper Protect Crypto Services (HPCS) instance for encrypting root volumes. If not provided, root volumes will not be encrypted."
+}
+
+variable "root_device_kms_key_name" {
+  type        = string
+  default     = null
+  description = "Name of the root key or standard key in Key Protect/HPCS to use for root volume encryption. Required only if root_device_kms_key_id is provided."
 }
 
 # ========================================

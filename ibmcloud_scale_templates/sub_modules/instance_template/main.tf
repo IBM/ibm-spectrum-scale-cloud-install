@@ -1,9 +1,12 @@
 /*
-    This nested module creates;
-    1. Spin storage cluster instances
-    2. Spin compute cluster instances
-    3. Copy, Install gpfs cloud rpms to both cluster instances
-    4. Configure clusters, filesystem creation and remote mount
+    This nested module creates:
+    1. Storage cluster instances (with and without attached volumes)
+    2. Compute cluster instances
+    3. Protocol/CES nodes for NFS/SMB services
+    4. Gateway nodes for multi-cluster connectivity
+    5. Security groups and network configurations
+    6. DNS records for cluster nodes
+    7. SSH key pairs for instance access
 */
 
 # Fetch all DNS zones to derive storage DNS domain from zone ID
@@ -93,27 +96,29 @@ module "protocol_cluster_egress_security_rule" {
 }
 
 # Create ssh key to access the scale storage instance
-resource "ibm_is_ssh_key" "storage_ssh_key" {
-  count          = local.storage_or_combined ? 1 : 0
-  name           = "${var.resource_prefix}-storage-cluster-ssh-key"
-  public_key     = file(var.storage_cluster_public_key_path)
-  resource_group = var.resource_group_id
-  tags           = var.tags
+module "storage_ssh_key" {
+  source            = "../../../resources/ibmcloud/security/ssh_key"
+  create_ssh_key    = local.storage_or_combined
+  ssh_key_name      = "${var.resource_prefix}-storage-cluster-ssh-key"
+  public_key_path   = var.storage_cluster_public_key_path
+  resource_group_id = var.resource_group_id
+  tags              = var.tags
 }
 
 # Create ssh key to access the scale compute instance
-resource "ibm_is_ssh_key" "compute_ssh_key" {
-  count          = local.compute_or_combined ? 1 : 0
-  name           = "${var.resource_prefix}-compute-cluster-ssh-key"
-  public_key     = file(var.compute_cluster_public_key_path)
-  resource_group = var.resource_group_id
-  tags           = var.tags
+module "compute_ssh_key" {
+  source            = "../../../resources/ibmcloud/security/ssh_key"
+  create_ssh_key    = local.compute_or_combined
+  ssh_key_name      = "${var.resource_prefix}-compute-cluster-ssh-key"
+  public_key_path   = var.compute_cluster_public_key_path
+  resource_group_id = var.resource_group_id
+  tags              = var.tags
 }
 
 resource "ibm_is_placement_group" "storage_cluster" {
   count    = local.create_placement_group ? 1 : 0
   name     = "${var.resource_prefix}-storage-placement-group"
-  strategy = "host_spread"
+  strategy = var.placement_group_strategy
 }
 
 module "compute_cluster_instances" {
@@ -131,7 +136,7 @@ module "compute_cluster_instances" {
   security_groups                   = [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
-  user_public_key                   = ibm_is_ssh_key.compute_ssh_key[0].id
+  ssh_key_id                        = module.compute_ssh_key.ssh_key_id
   vpc_id                            = var.vpc_id
   zone                              = var.vpc_availability_zones
 }
@@ -153,7 +158,7 @@ module "storage_cluster_instances" {
   security_groups                   = [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
-  user_public_key                   = ibm_is_ssh_key.storage_ssh_key[0].id
+  ssh_key_id                        = module.storage_ssh_key.ssh_key_id
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
   attach_volumes                    = false
@@ -176,7 +181,7 @@ module "storage_cluster_tie_breaker_instance" {
   security_groups                   = [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
-  user_public_key                   = ibm_is_ssh_key.storage_ssh_key[0].id
+  ssh_key_id                        = module.storage_ssh_key.ssh_key_id
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
   attach_volumes                    = true
@@ -198,7 +203,7 @@ module "protocol_instances" {
   subnet_id                         = each.value["subnet"]
   ces_ipaddress                     = each.value["ces_ip_addresses"]
   tags                              = var.tags
-  user_public_key                   = ibm_is_ssh_key.storage_ssh_key[0].id
+  ssh_key_id                        = module.storage_ssh_key.ssh_key_id
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
 }
@@ -218,7 +223,7 @@ module "gateway_instances" {
   security_groups                   = [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
-  user_public_key                   = ibm_is_ssh_key.storage_ssh_key[0].id
+  ssh_key_id                        = module.storage_ssh_key.ssh_key_id
   vpc_id                            = var.vpc_id
   zone                              = var.vpc_availability_zones
 }

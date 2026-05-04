@@ -24,7 +24,7 @@ variable "root_volume_type" {}
 variable "security_groups" {}
 variable "subnet_id" {}
 variable "tags" {}
-variable "user_public_key" {}
+variable "ssh_key_id" {}
 variable "zone" {}
 variable "dns_services_instance_id" {}
 variable "vpc_id" {}
@@ -55,9 +55,7 @@ resource "ibm_is_instance" "itself" {
   name    = var.name_prefix
   image   = var.ami_id
   profile = var.instance_type
-
-  # SSH key(s): IBM expects key IDs, not names
-  keys = [var.user_public_key]
+  keys    = [var.ssh_key_id]
 
   vpc  = var.vpc_id
   zone = var.zone

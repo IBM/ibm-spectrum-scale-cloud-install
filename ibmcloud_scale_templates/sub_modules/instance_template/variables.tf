@@ -280,5 +280,11 @@ variable "root_device_kms_key_name" {
 variable "enable_placement_group" {
   type        = bool
   nullable    = true
-  description = "If true, an IBM Cloud placement group will be created for single-AZ deployments and attached to storage instances using host_spread strategy."
+  description = "If true, an IBM Cloud placement group will be created for single-AZ deployments and attached to storage instances."
+}
+
+variable "placement_group_strategy" {
+  type        = string
+  nullable    = true
+  description = "Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources)."
 }
