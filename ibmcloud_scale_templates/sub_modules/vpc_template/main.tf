@@ -38,6 +38,7 @@ module "vpc" {
   vpc_rt_name                   = local.vpc_rt_name
   vpc_nw_acl_name               = local.vpc_nw_acl_name
   resource_group_id             = data.ibm_resource_group.itself.id
+  tags                          = var.tags
 }
 
 module "vpc_address_prefix" {
@@ -57,6 +58,7 @@ module "vpc_internet_gw" {
   resource_group_id = data.ibm_resource_group.itself.id
   vpc_id            = module.vpc.vpc_id
   zones             = var.vpc_availability_zones
+  tags              = var.tags
 }
 
 # One public subnet per provided AZ.
@@ -69,6 +71,7 @@ module "public_subnet" {
   zones             = var.vpc_availability_zones
   subnet_name       = local.public_subnet_name
   public_gateway    = module.vpc_internet_gw.public_gw_id
+  tags              = var.tags
   depends_on        = [module.vpc_address_prefix]
 }
 
@@ -81,6 +84,7 @@ module "storage_private_subnet" {
   subnet_name       = local.storage_subnet_name
   subnets_cidr      = var.vpc_storage_cluster_private_subnets_cidr_blocks
   public_gateway    = module.vpc_internet_gw.public_gw_id
+  tags              = var.tags
   depends_on        = [module.vpc_address_prefix]
 }
 
@@ -93,6 +97,7 @@ module "compute_private_subnet" {
   subnet_name       = local.compute_subnet_name
   subnets_cidr      = var.vpc_compute_cluster_private_subnets_cidr_blocks
   public_gateway    = module.vpc_internet_gw.public_gw_id
+  tags              = var.tags
   depends_on        = [module.vpc_address_prefix]
 }
 
@@ -105,5 +110,6 @@ module "protocol_private_subnet" {
   subnet_name       = local.protocol_subnet_name
   subnets_cidr      = var.vpc_protocol_private_subnets_cidr_blocks
   public_gateway    = module.vpc_internet_gw.public_gw_id
+  tags              = var.tags
   depends_on        = [module.vpc_address_prefix]
 }

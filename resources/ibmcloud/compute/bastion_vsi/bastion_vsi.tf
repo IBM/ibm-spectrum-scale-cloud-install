@@ -67,7 +67,7 @@ output "vsi_id" {
 }
 
 output "vsi_private_ip" {
-  value = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
+  value = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
 }
 
 output "vsi_nw_id" {

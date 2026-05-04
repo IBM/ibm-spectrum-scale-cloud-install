@@ -12,16 +12,10 @@ terraform {
 }
 
 variable "ami_id" {}
-variable "dns_domain" {}
-variable "forward_dns_zone" {}
 variable "forward_dns_zone_id" {}
 variable "instance_type" {}
 variable "name_prefix" {}
-variable "placement_group" {}
-#variable "reverse_dns_domain" {}
-#variable "reverse_dns_zone" {}
-#variable "reverse_dns_zone_id" {}
-variable "root_device_encrypted" {}
+variable "reverse_dns_zone_id" {}
 variable "root_device_kms_key_instance_id" {}
 variable "root_device_kms_key_instance_name" {}
 variable "root_volume_type" {}
@@ -29,10 +23,22 @@ variable "security_groups" {}
 variable "subnet_id" {}
 variable "tags" {}
 variable "user_public_key" {}
-variable "volume_tags" {}
 variable "vpc_id" {}
 variable "zone" {}
 variable "dns_services_instance_id" {}
+
+# Fetch all DNS zones to get domain name from zone ID
+data "ibm_dns_zones" "all_zones" {
+  instance_id = var.dns_services_instance_id
+}
+
+locals {
+  # Find the zone name by matching zone_id
+  forward_zone_name = try(
+    [for zone in data.ibm_dns_zones.all_zones.dns_zones : zone.name if zone.zone_id == var.forward_dns_zone_id][0],
+    ""
+  )
+}
 
 # Resolves the CRN of your KMS key for boot volume encryption
 data "ibm_kms_key" "itself" {
@@ -61,72 +67,55 @@ resource "ibm_is_instance" "itself" {
   # Encrypt the root volume with the KMS key CRN
   boot_volume {
     encryption = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
+    profile    = var.root_volume_type
+    tags       = var.tags
   }
 
-  metadata_service_enabled = true
+  metadata_service {
+    enabled            = true
+    protocol           = "http"
+    response_hop_limit = 1
+  }
 
-  #user_data = data.cloudinit_config.user_data64.rendered
+  user_data = <<EOF
+#!/usr/bin/env bash
+hostnamectl set-hostname --static "${var.name_prefix}.${local.forward_zone_name}"
+echo "${var.name_prefix}.${local.forward_zone_name}" > /etc/hostname
+EOF
 
-
-  user_data = <<-EOF
-    #!/usr/bin/env bash
-    set -euxo pipefail
-
-    # Hostname settings
-    hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-    mkdir -p /etc/cloud/cloud.cfg.d
-    echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
-    echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
-
-    EOF
-
-  #tags = concat([format("Name=%s", var.name_prefix)], try(var.tags, []))
+  tags = var.tags
 
   lifecycle {
     ignore_changes = all
   }
 }
 
-# Create "A" record: hostname -> private IPv4
+# Create "A" records
 resource "ibm_dns_resource_record" "a_itself" {
-  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
-
-  # IBM Cloud DNS Services instance GUID (from ibm_resource_instance "dns-svcs")
   instance_id = var.dns_services_instance_id
-
-  # Forward DNS zone ID (from ibm_dns_zone)
-  zone_id = var.forward_dns_zone_id
-
-  type  = "A"
-  name  = format("%s.%s", var.name_prefix, var.dns_domain)
-  rdata = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
-  ttl   = 3600
+  zone_id     = var.forward_dns_zone_id
+  type        = "A"
+  name        = format("%s.%s", var.name_prefix, local.forward_zone_name)
+  rdata       = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
+  ttl         = 3600
 }
 
-# Create "PTR" record: IPv4 -> hostname (in the same forward zone)
+# Create "PTR" records
 resource "ibm_dns_resource_record" "ptr_itself" {
-  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
-
   instance_id = var.dns_services_instance_id
-  #zone_id     = var.reverse_dns_zone_id
-  zone_id = var.forward_dns_zone_id
-
-  type = "PTR"
-
-  name = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
-
-  # rdata is the FQDN you want this IP to resolve to
-  rdata = format("%s.%s", var.name_prefix, var.dns_domain)
-  ttl   = 3600
-
-  depends_on = [ibm_dns_resource_record.a_itself]
+  zone_id     = var.reverse_dns_zone_id
+  type        = "PTR"
+  name        = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
+  rdata       = format("%s.%s", var.name_prefix, local.forward_zone_name)
+  ttl         = 3600
+  depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
 output "instance_details" {
   value = {
-    private_ip = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
+    private_ip = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
     id         = ibm_is_instance.itself.id
-    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
+    dns        = format("%s.%s", var.name_prefix, local.forward_zone_name)
     zone       = ibm_is_instance.itself.zone
   }
 }

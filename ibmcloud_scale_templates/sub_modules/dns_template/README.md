@@ -446,18 +446,17 @@ terraform destroy -auto-approve
 | <a name="input_vpc_reverse_dns_domain"></a> [vpc_reverse_dns_domain](#input_vpc_reverse_dns_domain) | IBM Cloud reverse DNS zone name. | `string` |
 | <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | IBM Cloud DNS zone name for storage cluster. | `string` |
 | <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id. If not provided, a new DNS service instance will be created. | `string` |
+| <a name="input_tags"></a> [tags](#input_tags) | List of tags to be attached to DNS resources. | `list(string)` |
 | <a name="input_vpc_protocol_cluster_dns_domain"></a> [vpc_protocol_cluster_dns_domain](#input_vpc_protocol_cluster_dns_domain) | IBM Cloud DNS zone name for protocol cluster. If not provided, protocol nodes will use storage cluster DNS zone. | `string` |
 
 #### Outputs
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_dns_service_instance_crn"></a> [dns_service_instance_crn](#output_dns_service_instance_crn) | IBM Cloud DNS Service Instance CRN (only available if newly created). |
 | <a name="output_dns_service_instance_id"></a> [dns_service_instance_id](#output_dns_service_instance_id) | IBM Cloud DNS Service Instance ID (either provided or newly created). |
-| <a name="output_vpc_compute_cluster_dns_zone"></a> [vpc_compute_cluster_dns_zone](#output_vpc_compute_cluster_dns_zone) | IBM Cloud DNS compute cluster zone name. |
 | <a name="output_vpc_compute_dns_zone_id"></a> [vpc_compute_dns_zone_id](#output_vpc_compute_dns_zone_id) | IBM Cloud DNS compute cluster zone ID. |
-| <a name="output_vpc_protocol_cluster_dns_zone"></a> [vpc_protocol_cluster_dns_zone](#output_vpc_protocol_cluster_dns_zone) | IBM Cloud DNS protocol cluster zone name. |
 | <a name="output_vpc_protocol_dns_zone_id"></a> [vpc_protocol_dns_zone_id](#output_vpc_protocol_dns_zone_id) | IBM Cloud DNS protocol cluster zone ID. |
-| <a name="output_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#output_vpc_reverse_dns_zone) | IBM Cloud DNS reverse zone name. |
-| <a name="output_vpc_storage_cluster_dns_zone"></a> [vpc_storage_cluster_dns_zone](#output_vpc_storage_cluster_dns_zone) | IBM Cloud DNS storage cluster zone name. |
+| <a name="output_vpc_reverse_dns_zone_id"></a> [vpc_reverse_dns_zone_id](#output_vpc_reverse_dns_zone_id) | IBM Cloud DNS reverse zone ID. |
 | <a name="output_vpc_storage_dns_zone_id"></a> [vpc_storage_dns_zone_id](#output_vpc_storage_dns_zone_id) | IBM Cloud DNS storage cluster zone ID. |
 <!-- END_TF_DOCS -->

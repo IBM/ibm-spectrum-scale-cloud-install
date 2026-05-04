@@ -339,7 +339,7 @@ terraform destroy -auto-approve
 | ---- | ----------- | ---- |
 | <a name="input_bastion_image_ref"></a> [bastion_image_ref](#input_bastion_image_ref) | IBM Cloud image ID for the bastion instance. | `string` |
 | <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for the bastion instance. | `string` |
-| <a name="input_bastion_key_pair"></a> [bastion_key_pair](#input_bastion_key_pair) | The key pair to use to launch the bastion host. | `string` |
+| <a name="input_bastion_public_key_path"></a> [bastion_public_key_path](#input_bastion_public_key_path) | Path to the SSH public key file for bastion host access. | `string` |
 | <a name="input_bastion_public_ssh_port"></a> [bastion_public_ssh_port](#input_bastion_public_ssh_port) | Set the SSH port to use from desktop to the bastion. | `number` |
 | <a name="input_desired_instance_count"></a> [desired_instance_count](#input_desired_instance_count) | Bastion instance desired count. | `number` |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
@@ -351,11 +351,14 @@ terraform destroy -auto-approve
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where bastion and all resources will be deployed (e.g., 'us-east', 'us-south', 'eu-de'). | `string` |
 | <a name="input_enable_bastion"></a> [enable_bastion](#input_enable_bastion) | Enable or disable bastion host creation. When false, no resources will be created. | `bool` |
 | <a name="input_remote_cidr_blocks"></a> [remote_cidr_blocks](#input_remote_cidr_blocks) | List of CIDRs that can access to the bastion. Default : 0.0.0.0/0 | `list(string)` |
+| <a name="input_tags"></a> [tags](#input_tags) | List of tags to be attached to bastion resources. | `list(string)` |
 
 #### Outputs
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_bastion_instance_autoscaling_group_ref"></a> [bastion_instance_autoscaling_group_ref](#output_bastion_instance_autoscaling_group_ref) | Bastion instances autoscaling group ID. |
-| <a name="output_bastion_security_group_ref"></a> [bastion_security_group_ref](#output_bastion_security_group_ref) | Bastion security group ID. |
+| <a name="output_bastion_instance_autoscaling_group_crn"></a> [bastion_instance_autoscaling_group_crn](#output_bastion_instance_autoscaling_group_crn) | Bastion instances autoscaling group CRN. |
+| <a name="output_bastion_instance_autoscaling_group_id"></a> [bastion_instance_autoscaling_group_id](#output_bastion_instance_autoscaling_group_id) | Bastion instances autoscaling group ID. |
+| <a name="output_bastion_public_ip_addresses"></a> [bastion_public_ip_addresses](#output_bastion_public_ip_addresses) | List of public IP addresses for bastion instances. |
+| <a name="output_bastion_security_group_id"></a> [bastion_security_group_id](#output_bastion_security_group_id) | Bastion security group ID. |
 <!-- END_TF_DOCS -->

@@ -31,11 +31,7 @@ resource "ibm_resource_instance" "dns_service" {
   plan              = "standard-dns"
   location          = "global"
   resource_group_id = var.resource_group_id
-
-  tags = [
-    "created for",
-    var.resource_prefix
-  ]
+  tags              = var.tags
 }
 
 # Use provided instance ID or the newly created one
@@ -59,8 +55,8 @@ module "storage_dns_zone" {
 
 # Conditionally fetch VPC data only when DNS resources will be created
 data "ibm_is_vpc" "vpc" {
-  count = local.needs_vpc_data ? 1 : 0
-  name  = var.vpc_ref
+  count      = local.needs_vpc_data ? 1 : 0
+  identifier = var.vpc_ref
 }
 
 # Creates a storage DNS permitted network

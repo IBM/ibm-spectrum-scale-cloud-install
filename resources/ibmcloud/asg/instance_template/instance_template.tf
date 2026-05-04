@@ -1,3 +1,7 @@
+/*
+    Creates a Instance group template.
+*/
+
 terraform {
   required_providers {
     ibm = {
@@ -6,11 +10,6 @@ terraform {
     }
   }
 }
-
-/*
-    Creates a Instance group template.
-*/
-
 
 variable "resource_group_id" {}
 variable "launch_template_name" {}

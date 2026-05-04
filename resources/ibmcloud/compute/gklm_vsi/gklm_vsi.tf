@@ -74,7 +74,7 @@ resource "ibm_dns_resource_record" "a_itself" {
   for_each = {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist([for name_details in ibm_is_instance.itself : name_details.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0]["primary_ipv4_address"]]), idx)
+      network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0].primary_ip[0].address]), idx)
     }
   }
 
@@ -91,7 +91,7 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   for_each = {
     for idx, count_number in range(1, var.total_vsis + 1) : idx => {
       name       = element(tolist([for name_details in ibm_is_instance.itself : name_details.name]), idx)
-      network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0]["primary_ipv4_address"]]), idx)
+      network_ip = element(tolist([for ip_details in ibm_is_instance.itself : ip_details.primary_network_interface[0].primary_ip[0].address]), idx)
     }
   }
 

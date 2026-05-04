@@ -1,6 +1,6 @@
 /*
     This nested module creates;
-    1. New AWS VPC
+    1. New IBM Cloud VPC
     2. Bastion Instance
     3. (Compute, Storage) Instances along with Instance store attachments to storage instances
 */
@@ -10,7 +10,7 @@ module "vpc" {
   vpc_region                                      = var.vpc_region
   vpc_availability_zones                          = var.vpc_availability_zones
   resource_prefix                                 = var.resource_prefix
-  resource_group_name                             = var.resource_group != null ? var.resource_group : "${var.resource_prefix}-rg"
+  resource_group_name                             = var.resource_group != null ? var.resource_group : var.resource_prefix
   create_resource_group                           = var.resource_group == null ? true : false
   cluster_type                                    = var.cluster_type
   vpc_cidr_block                                  = var.vpc_cidr_block
@@ -19,6 +19,7 @@ module "vpc" {
   vpc_protocol_private_subnets_cidr_blocks        = var.vpc_protocol_private_subnets_cidr_blocks
   vpc_public_subnets_cidr_blocks                  = var.vpc_public_subnets_cidr_blocks
   ibmcloud_api_key                                = var.ibmcloud_api_key
+  tags                                            = var.tags
 }
 
 module "dns" {
@@ -33,8 +34,9 @@ module "dns" {
   vpc_storage_cluster_dns_domain  = var.vpc_storage_cluster_dns_domain
   vpc_compute_cluster_dns_domain  = var.vpc_compute_cluster_dns_domain
   vpc_protocol_cluster_dns_domain = var.vpc_protocol_cluster_dns_domain
-  vpc_reverse_dns_domain          = var.vpc_reverse_dns_zone
+  vpc_reverse_dns_domain          = var.vpc_reverse_dns_domain
   ibmcloud_api_key                = var.ibmcloud_api_key
+  tags                            = var.tags
 }
 
 module "bastion" {
@@ -45,14 +47,15 @@ module "bastion" {
   vpc_ref                        = module.vpc.vpc_ref
   resource_prefix                = var.resource_prefix
   resource_group_id              = module.vpc.resource_group_id
-  bastion_image_ref              = var.bastion_osimage_name
+  bastion_image_ref              = var.bastion_osimage_id
   remote_cidr_blocks             = var.remote_cidr_blocks
   bastion_instance_type          = var.bastion_vsi_profile
-  bastion_key_pair               = var.bastion_key_pair
+  bastion_public_key_path        = var.bastion_public_key_path
   vpc_auto_scaling_group_subnets = module.vpc.vpc_storage_cluster_private_subnets
   bastion_public_ssh_port        = 22
   desired_instance_count         = 1
   ibmcloud_api_key               = var.ibmcloud_api_key
+  tags                           = var.tags
 }
 
 module "vpc_peering" {
@@ -67,65 +70,48 @@ module "vpc_peering" {
   transit_gateway_name           = var.transit_gateway_name
   transit_gateway_global_routing = var.transit_gateway_global_routing
   ibmcloud_api_key               = var.ibmcloud_api_key
+  tags                           = var.tags
 }
-/*
+
 module "scale_instances" {
   source                                   = "../sub_modules/instance_template"
   vpc_region                               = var.vpc_region
   vpc_availability_zones                   = var.vpc_availability_zones
   resource_prefix                          = var.resource_prefix
-  resource_group_name                      = var.resource_group
-  vpc_ref                                  = module.vpc.vpc_ref
-  vpc_storage_cluster_private_subnets      = module.vpc.vpc_storage_cluster_private_subnets
-  vpc_compute_cluster_private_subnets      = length(var.vpc_compute_cluster_private_subnets_cidr_blocks) > 0 ? module.vpc.vpc_compute_cluster_private_subnets : module.vpc.vpc_storage_cluster_private_subnets
-  vpc_compute_cluster_dns_domain           = var.vpc_compute_cluster_dns_domain
-  vpc_storage_cluster_dns_domain           = var.vpc_storage_cluster_dns_domain
-  dns_service_instance_id                  = var.dns_service_instance_id
-  total_compute_cluster_instances          = var.total_compute_cluster_instances
-  compute_cluster_image_ref                = var.compute_vsi_osimage_name
-  compute_cluster_instance_type            = var.compute_vsi_profile
-  compute_cluster_gui_username             = var.compute_cluster_gui_username
-  compute_cluster_gui_password             = var.compute_cluster_gui_password
-  compute_cluster_boot_disk_type           = null
-  compute_cluster_tags                     = null
-  compute_cluster_volume_tags              = null
-  compute_cluster_public_key_path          = var.compute_cluster_key_pair
-  total_storage_cluster_instances          = var.total_storage_cluster_instances
-  storage_cluster_image_ref                = var.storage_vsi_osimage_name
-  storage_cluster_instance_type            = var.storage_vsi_profile
-  storage_cluster_gui_username             = var.storage_cluster_gui_username
-  storage_cluster_gui_password             = var.storage_cluster_gui_password
-  storage_cluster_boot_disk_type           = null
-  storage_cluster_tags                     = null
-  storage_cluster_volume_tags              = null
-  storage_cluster_public_key_path          = var.storage_cluster_key_pair
-  storage_cluster_tiebreaker_instance_type = null
-  filesystem_parameters                    = []
-  compute_cluster_filesystem_mountpoint    = var.compute_cluster_filesystem_mountpoint
-  cluster_type                             = "Combined-compute-storage"
-  bastion_instance_ref                     = module.bastion.bastion_instance_autoscaling_group_ref
-  bastion_instance_public_ip               = null
-  bastion_security_group_ref               = module.bastion.bastion_security_group_ref
-  bastion_ssh_private_key                  = var.bastion_ssh_private_key
-  bastion_user                             = "root"
-  using_jumphost_connection                = true
-  instances_ssh_user_name                  = null
-  airgap                                   = false
-  root_device_encrypted                    = false
-  root_device_kms_key_ref                  = null
-  root_device_kms_key_ref_name             = null
-  inventory_format                         = "ini"
-  enable_placement_group                   = var.enable_placement_group
-  marked_vm_names_to_attach_disks          = []
-  total_gateway_instances                  = 0
-  gateway_instance_type                    = null
-  gateway_tags                             = null
-  gateway_volume_tags                      = null
-  total_protocol_instances                 = 0
-  protocol_instance_type                   = null
-  protocol_tags                            = null
-  protocol_volume_tags                     = null
-  ces_ip_address                           = []
+  resource_group_id                        = module.vpc.resource_group_id
+  cluster_type                             = var.cluster_type
   ibmcloud_api_key                         = var.ibmcloud_api_key
+  vpc_id                                   = module.vpc.vpc_ref
+  vpc_storage_cluster_private_subnets      = module.vpc.vpc_storage_cluster_private_subnets
+  vpc_compute_cluster_private_subnets      = coalescelist(module.vpc.vpc_compute_cluster_private_subnets, module.vpc.vpc_storage_cluster_private_subnets)
+  vpc_protocol_cluster_private_subnets     = module.vpc.vpc_protocol_private_subnets
+  dns_service_instance_id                  = module.dns.dns_service_instance_id
+  vpc_storage_cluster_dns_zone_id          = module.dns.vpc_storage_dns_zone_id
+  vpc_compute_cluster_dns_zone_id          = module.dns.vpc_compute_dns_zone_id
+  vpc_reverse_dns_zone_id                  = module.dns.vpc_reverse_dns_zone_id
+  total_storage_cluster_instances          = var.total_storage_cluster_instances
+  storage_cluster_image_id                 = var.storage_vsi_osimage_id
+  storage_cluster_instance_type            = var.storage_vsi_profile
+  storage_cluster_public_key_path          = var.storage_cluster_public_key_path
+  boot_disk_type                           = var.boot_disk_type
+  storage_cluster_tiebreaker_instance_type = null
+  total_storage_volumes                    = var.total_storage_volumes
+  storage_volume_size                      = var.storage_volume_size
+  storage_volume_profile                   = var.storage_volume_profile
+  storage_volume_iops                      = var.storage_volume_iops
+  total_compute_cluster_instances          = var.total_compute_cluster_instances
+  compute_cluster_image_id                 = var.compute_vsi_osimage_id
+  compute_cluster_instance_type            = var.compute_vsi_profile
+  compute_cluster_public_key_path          = var.compute_cluster_public_key_path
+  total_gateway_instances                  = var.total_gateway_instances
+  gateway_instance_type                    = var.gateway_vsi_profile
+  total_protocol_instances                 = var.total_protocol_instances
+  protocol_instance_type                   = var.protocol_vsi_profile
+  ces_ip_addresses                         = []
+  bastion_security_group_id                = var.enable_bastion ? module.bastion.bastion_security_group_id : null
+  using_jumphost_connection                = var.enable_bastion
+  root_device_kms_key_id                   = null
+  root_device_kms_key_name                 = null
+  airgap                                   = false
+  enable_placement_group                   = var.enable_placement_group
 }
-*/

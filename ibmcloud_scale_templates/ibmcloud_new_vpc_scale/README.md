@@ -140,26 +140,7 @@ git clone https://github.com/IBM/ibm-spectrum-scale-cloud-install.git
 cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/ibmcloud_new_vpc_scale/
 ```
 
-### 2. Create SSH Keys in IBM Cloud
-
-```bash
-# Login to IBM Cloud
-ibmcloud login
-
-# Create SSH key for bastion
-ibmcloud is key-create bastion-key @~/.ssh/id_rsa.pub
-
-# Create SSH key for compute cluster
-ibmcloud is key-create compute-key @~/.ssh/id_rsa.pub
-
-# Create SSH key for storage cluster
-ibmcloud is key-create storage-key @~/.ssh/id_rsa.pub
-
-# List keys to verify
-ibmcloud is keys
-```
-
-### 3. Create API Key
+### 2. Create API Key
 
 ```bash
 # Create API key
@@ -169,7 +150,7 @@ ibmcloud iam api-key-create spectrum-scale-key -d "API key for Spectrum Scale de
 export IC_API_KEY="your-api-key-here"
 ```
 
-### 4. Create Configuration File
+### 3. Create Configuration File
 
 Create `terraform.tfvars.json`:
 
@@ -178,9 +159,9 @@ Create `terraform.tfvars.json`:
     "vpc_region": "us-south",
     "vpc_availability_zones": ["us-south-1"],
     "resource_group": "default",
-    "bastion_key_pair": "bastion-key",
-    "compute_cluster_key_pair": "compute-key",
-    "storage_cluster_key_pair": "storage-key",
+    "bastion_public_key_path": "/path/to/bastion_id_rsa.pub",
+    "compute_cluster_public_key_path": "compute-key",
+    "storage_cluster_public_key_path": "storage-key",
     "bastion_ssh_private_key": "/home/user/.ssh/id_rsa",
     "storage_cluster_gui_username": "admin",
     "storage_cluster_gui_password": "YourSecurePassword123!",
@@ -238,10 +219,10 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "vpc_region": "us-south",
     "vpc_availability_zones": ["us-south-1"],
     "resource_group": "default",
-    "bastion_key_pair": "bastion-key",
+    "bastion_public_key_path": "/root/.ssh/bastion_id_rsa.pub",
     "bastion_ssh_private_key": "/root/.ssh/id_rsa",
-    "compute_cluster_key_pair": "/root/.ssh/compute_id_rsa.pub",
-    "storage_cluster_key_pair": "/root/.ssh/storage_id_rsa.pub",
+    "compute_cluster_public_key_path": "/root/.ssh/compute_id_rsa.pub",
+    "storage_cluster_public_key_path": "/root/.ssh/storage_id_rsa.pub",
     "storage_cluster_gui_username": "admin",
     "storage_cluster_gui_password": "SecurePass123!",
     "compute_cluster_gui_username": "admin",
@@ -259,11 +240,11 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "vpc_availability_zones": ["us-south-1"],
     "resource_group": "default",
 
-    // SSH Keys (bastion_key_pair must exist in IBM Cloud, others are file paths)
-    "bastion_key_pair": "bastion-key",
+    // SSH Keys (all are file paths to local SSH keys)
+    "bastion_public_key_path": "/root/.ssh/bastion_id_rsa.pub",
     "bastion_ssh_private_key": "/root/.ssh/id_rsa",
-    "compute_cluster_key_pair": "/root/.ssh/compute_id_rsa.pub",
-    "storage_cluster_key_pair": "/root/.ssh/storage_id_rsa.pub",
+    "compute_cluster_public_key_path": "/root/.ssh/compute_id_rsa.pub",
+    "storage_cluster_public_key_path": "/root/.ssh/storage_id_rsa.pub",
 
     // GUI Credentials (required for Spectrum Scale management)
     "storage_cluster_gui_username": "admin",
@@ -288,9 +269,6 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "vpc_storage_cluster_dns_domain": "strgscale.com",
     "vpc_compute_cluster_dns_domain": "compscale.com",
     "dns_service_instance_id": "",
-    "storage_cluster_filesystem_mountpoint": "/gpfs/fs1",
-    "compute_cluster_filesystem_mountpoint": "/gpfs/fs1",
-    "filesystem_block_size": "4M",
     "remote_cidr_blocks": ["0.0.0.0/0"],
     "create_separate_namespaces": true,
     "enable_placement_group": true
@@ -309,10 +287,10 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "resource_prefix": "scale-prod",
 
     // SSH Keys
-    "bastion_key_pair": "bastion-key",
+    "bastion_public_key_path": "/home/user/.ssh/bastion_id_rsa.pub",
     "bastion_ssh_private_key": "/home/user/.ssh/id_rsa",
-    "compute_cluster_key_pair": "/home/user/.ssh/compute_id_rsa.pub",
-    "storage_cluster_key_pair": "/home/user/.ssh/storage_id_rsa.pub",
+    "compute_cluster_public_key_path": "/home/user/.ssh/compute_id_rsa.pub",
+    "storage_cluster_public_key_path": "/home/user/.ssh/storage_id_rsa.pub",
 
     // GUI Credentials
     "storage_cluster_gui_username": "admin",
@@ -346,11 +324,6 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "compute_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
     "bastion_osimage_name": "ibm-ubuntu-22-04-minimal-amd64-2",
 
-    // Filesystem Configuration
-    "filesystem_block_size": "4M",
-    "storage_cluster_filesystem_mountpoint": "/gpfs/fs1",
-    "compute_cluster_filesystem_mountpoint": "/gpfs/fs1",
-
     // Security (restrict bastion access to your IP)
     "remote_cidr_blocks": ["203.0.113.0/24"],
 
@@ -372,10 +345,10 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "resource_prefix": "scale-ha",
 
     // SSH Keys
-    "bastion_key_pair": "bastion-key",
+    "bastion_public_key_path": "/home/user/.ssh/bastion_id_rsa.pub",
     "bastion_ssh_private_key": "/home/user/.ssh/id_rsa",
-    "compute_cluster_key_pair": "/home/user/.ssh/compute_id_rsa.pub",
-    "storage_cluster_key_pair": "/home/user/.ssh/storage_id_rsa.pub",
+    "compute_cluster_public_key_path": "/home/user/.ssh/compute_id_rsa.pub",
+    "storage_cluster_public_key_path": "/home/user/.ssh/storage_id_rsa.pub",
 
     // GUI Credentials
     "storage_cluster_gui_username": "admin",
@@ -417,11 +390,6 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "compute_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
     "bastion_osimage_name": "ibm-ubuntu-22-04-minimal-amd64-2",
 
-    // Filesystem Configuration
-    "filesystem_block_size": "4M",
-    "storage_cluster_filesystem_mountpoint": "/gpfs/fs1",
-    "compute_cluster_filesystem_mountpoint": "/gpfs/fs1",
-
     // Security
     "remote_cidr_blocks": ["203.0.113.0/24"],
 
@@ -442,10 +410,10 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "resource_group": "default",
 
     // SSH Keys
-    "bastion_key_pair": "bastion-key",
+    "bastion_public_key_path": "/root/.ssh/bastion_id_rsa.pub",
     "bastion_ssh_private_key": "/root/.ssh/id_rsa",
-    "compute_cluster_key_pair": "/root/.ssh/compute_id_rsa.pub",
-    "storage_cluster_key_pair": "/root/.ssh/storage_id_rsa.pub",
+    "compute_cluster_public_key_path": "/root/.ssh/compute_id_rsa.pub",
+    "storage_cluster_public_key_path": "/root/.ssh/storage_id_rsa.pub",
 
     // GUI Credentials
     "storage_cluster_gui_username": "admin",
@@ -471,9 +439,6 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
     "vpc_compute_cluster_dns_domain": "compscale.com",
     "vpc_storage_cluster_dns_domain": "strgscale.com",
     "dns_service_instance_id": "",
-    "storage_cluster_filesystem_mountpoint": "/gpfs/fs1",
-    "compute_cluster_filesystem_mountpoint": "/gpfs/fs1",
-    "filesystem_block_size": "4M",
     "create_separate_namespaces": true,
     "enable_placement_group": true
 }
@@ -486,10 +451,10 @@ ssh -i ~/.ssh/id_rsa root@<bastion-public-ip>
 - `vpc_region` - IBM Cloud region (e.g., us-south, us-east)
 - `vpc_availability_zones` - List of availability zones
 - `resource_group` - IBM Cloud resource group name
-- `bastion_key_pair` - SSH key name (must exist in IBM Cloud)
+- `bastion_public_key_path` - Path to bastion public key file
 - `bastion_ssh_private_key` - Path to bastion private key file
-- `compute_cluster_key_pair` - Path to compute cluster public key file
-- `storage_cluster_key_pair` - Path to storage cluster public key file
+- `compute_cluster_public_key_path` - Path to compute cluster public key file
+- `storage_cluster_public_key_path` - Path to storage cluster public key file
 - `storage_cluster_gui_username` - Spectrum Scale GUI username
 - `storage_cluster_gui_password` - Spectrum Scale GUI password
 - `compute_cluster_gui_username` - Spectrum Scale GUI username
@@ -594,48 +559,6 @@ ibmcloud is security-groups
 # Check DNS zones
 ibmcloud dns zones
 ```
-
-### Install IBM Spectrum Scale
-
-> **Important**: This template does NOT install Spectrum Scale. You must install it manually.
-
-#### Prerequisites for Installation
-
-1. **Download Spectrum Scale RPMs** from IBM Fix Central
-2. **Transfer RPMs to bastion host**
-3. **Distribute RPMs to all cluster nodes**
-
-#### Installation Steps
-
-```bash
-# 1. On each node, install prerequisites
-yum install -y kernel-devel kernel-headers gcc-c++ make
-
-# 2. Copy Spectrum Scale RPMs to each node
-for node in storage-node-{1..4}; do
-    scp /path/to/rpms/* root@${node}:/tmp/
-done
-
-# 3. Install Spectrum Scale packages on each node
-cd /tmp
-rpm -ivh Spectrum_Scale*.rpm
-
-# 4. Create cluster (on one node)
-mmcrcluster -N node1:manager-quorum,node2:manager-quorum,node3:manager,node4
-
-# 5. Accept license
-mmchlicense server --accept -N all
-
-# 6. Start GPFS
-mmstartup -a
-
-# 7. Verify cluster
-mmgetstate -a
-```
-
-For detailed installation instructions, refer to:
-- [IBM Spectrum Scale Installation Guide](https://www.ibm.com/docs/en/spectrum-scale)
-- [IBM Spectrum Scale on Cloud Documentation](https://www.ibm.com/docs/en/spectrum-scale-cloud)
 
 ## Verification
 
@@ -1180,40 +1103,40 @@ When DNS is enabled, the following records are automatically created:
 
 | Name | Description | Type |
 | ---- | ----------- | ---- |
-| <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for IBM Spectrum Scale GUI access on compute cluster. | `string` |
-| <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | Username for IBM Spectrum Scale GUI access on compute cluster. | `string` |
-| <a name="input_compute_cluster_key_pair"></a> [compute_cluster_key_pair](#input_compute_cluster_key_pair) | Name of the SSH key pair for compute cluster instance access. | `string` |
+| <a name="input_bastion_osimage_id"></a> [bastion_osimage_id](#input_bastion_osimage_id) | IBM Cloud OS image ID for bastion virtual server instance. Use 'ibmcloud is images' to find available image IDs in your region. | `string` |
+| <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | The ssh public key to be created used to launch the compute cluster. | `string` |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | IBM Cloud API key for authentication. | `string` |
-| <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for IBM Spectrum Scale GUI access on storage cluster. | `string` |
-| <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | Username for IBM Spectrum Scale GUI access on storage cluster. | `string` |
-| <a name="input_storage_cluster_key_pair"></a> [storage_cluster_key_pair](#input_storage_cluster_key_pair) | Name of the SSH key pair for storage cluster instance access. | `string` |
+| <a name="input_storage_cluster_public_key_path"></a> [storage_cluster_public_key_path](#input_storage_cluster_public_key_path) | The ssh public key to be created used to launch the storage cluster. | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zone names or IDs within the selected region for multi-zone deployment. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where VPC and all resources will be deployed (e.g., us-east, us-south, eu-de). | `string` |
-| <a name="input_bastion_key_pair"></a> [bastion_key_pair](#input_bastion_key_pair) | Name of the SSH key pair for bastion host access. Required only if enable_bastion is true. | `string` |
-| <a name="input_bastion_osimage_name"></a> [bastion_osimage_name](#input_bastion_osimage_name) | IBM Cloud OS image name for bastion virtual server instance. | `string` |
-| <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Local file path to SSH private key for bastion host authentication. Required only if enable_bastion is true. | `string` |
+| <a name="input_bastion_public_key_path"></a> [bastion_public_key_path](#input_bastion_public_key_path) | Path to the SSH public key file for bastion host access. Required only if enable_bastion is true. | `string` |
 | <a name="input_bastion_vsi_profile"></a> [bastion_vsi_profile](#input_bastion_vsi_profile) | IBM Cloud VSI profile (instance type) for bastion host. | `string` |
+| <a name="input_boot_disk_type"></a> [boot_disk_type](#input_boot_disk_type) | Boot disk profile/type for all cluster instances (e.g., general-purpose, 5iops-tier, 10iops-tier). | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Options: 'Storage-only', 'Compute-only', 'Combined-compute-storage'. | `string` |
-| <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Mount point path for the IBM Spectrum Scale filesystem on compute cluster (accessing cluster). | `string` |
-| <a name="input_compute_vsi_osimage_name"></a> [compute_vsi_osimage_name](#input_compute_vsi_osimage_name) | IBM Cloud OS image name for compute cluster virtual server instances. | `string` |
+| <a name="input_compute_vsi_osimage_id"></a> [compute_vsi_osimage_id](#input_compute_vsi_osimage_id) | IBM Cloud OS image ID for compute cluster virtual server instances. Format: r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. Use 'ibmcloud is images' to find available image IDs in your region. | `string` |
 | <a name="input_compute_vsi_profile"></a> [compute_vsi_profile](#input_compute_vsi_profile) | IBM Cloud VSI profile (instance type) for compute cluster nodes. | `string` |
 | <a name="input_create_dns_zone"></a> [create_dns_zone](#input_create_dns_zone) | Flag to create new private DNS zones. Set to false to reuse existing DNS zones. | `bool` |
-| <a name="input_create_separate_namespaces"></a> [create_separate_namespaces](#input_create_separate_namespaces) | Create separate IBM Spectrum Scale namespaces for compute cluster instances. If false, compute nodes share storage cluster namespace. | `bool` |
 | <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | GUID of the IBM Cloud DNS Services instance for DNS record management. If not provided, a new DNS service instance will be created. | `string` |
 | <a name="input_enable_bastion"></a> [enable_bastion](#input_enable_bastion) | Flag to enable or disable bastion host deployment. Set to false to skip bastion creation. | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | Enable IBM Cloud placement group with host_spread strategy to distribute instances across different physical hosts in single-AZ deployments. | `bool` |
 | <a name="input_enable_transit_gateway"></a> [enable_transit_gateway](#input_enable_transit_gateway) | Flag to enable Transit Gateway connection between the newly created VPC and an existing user-provided VPC. Transit Gateway enables connectivity across VPCs in the same or different regions. | `bool` |
-| <a name="input_filesystem_block_size"></a> [filesystem_block_size](#input_filesystem_block_size) | Block size for the IBM Spectrum Scale filesystem (e.g., 256K, 1M, 4M, 8M, 16M). | `string` |
+| <a name="input_gateway_vsi_profile"></a> [gateway_vsi_profile](#input_gateway_vsi_profile) | IBM Cloud VSI profile (instance type) for gateway cluster nodes. | `string` |
 | <a name="input_peer_vpc_crn"></a> [peer_vpc_crn](#input_peer_vpc_crn) | CRN of the existing VPC to connect via Transit Gateway. Required only if enable_transit_gateway is true and creating a new Transit Gateway. | `string` |
-| <a name="input_peer_vpc_id"></a> [peer_vpc_id](#input_peer_vpc_id) | ID of the existing VPC to connect via Transit Gateway. Required only if enable_transit_gateway is true. | `string` |
+| <a name="input_protocol_vsi_profile"></a> [protocol_vsi_profile](#input_protocol_vsi_profile) | IBM Cloud VSI profile (instance type) for protocol cluster nodes. | `string` |
 | <a name="input_remote_cidr_blocks"></a> [remote_cidr_blocks](#input_remote_cidr_blocks) | List of CIDR blocks allowed to access the bastion host via SSH. | `list(string)` |
 | <a name="input_resource_group"></a> [resource_group](#input_resource_group) | Name of an existing IBM Cloud resource group. If not provided, a new resource group will be created using the resource_prefix. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix added to all resource names for identification and organization. | `string` |
-| <a name="input_storage_cluster_filesystem_mountpoint"></a> [storage_cluster_filesystem_mountpoint](#input_storage_cluster_filesystem_mountpoint) | Mount point path for the IBM Spectrum Scale filesystem on storage cluster (owning cluster). | `string` |
-| <a name="input_storage_vsi_osimage_name"></a> [storage_vsi_osimage_name](#input_storage_vsi_osimage_name) | IBM Cloud OS image name for storage cluster virtual server instances. | `string` |
+| <a name="input_storage_volume_iops"></a> [storage_volume_iops](#input_storage_volume_iops) | IOPS for unattached storage volumes. Only applicable for custom IOPS profiles. | `number` |
+| <a name="input_storage_volume_profile"></a> [storage_volume_profile](#input_storage_volume_profile) | IBM Cloud volume profile for unattached storage volumes (e.g., general-purpose, 5iops-tier, 10iops-tier, custom). | `string` |
+| <a name="input_storage_volume_size"></a> [storage_volume_size](#input_storage_volume_size) | Size of each unattached storage volume in GB. | `number` |
+| <a name="input_storage_vsi_osimage_id"></a> [storage_vsi_osimage_id](#input_storage_vsi_osimage_id) | IBM Cloud OS image ID for storage cluster virtual server instances. Format: r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. Use 'ibmcloud is images' to find available image IDs in your region. | `string` |
 | <a name="input_storage_vsi_profile"></a> [storage_vsi_profile](#input_storage_vsi_profile) | IBM Cloud VSI profile (instance type) for storage cluster nodes. | `string` |
+| <a name="input_tags"></a> [tags](#input_tags) | List of tags to be attached to all resources created by this module. | `list(string)` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Total number of virtual server instances to deploy for the compute cluster. | `number` |
+| <a name="input_total_gateway_instances"></a> [total_gateway_instances](#input_total_gateway_instances) | Total number of virtual server instances to deploy for gateway nodes. Set to 0 to skip gateway node deployment. | `number` |
+| <a name="input_total_protocol_instances"></a> [total_protocol_instances](#input_total_protocol_instances) | Total number of virtual server instances to deploy for protocol nodes (CES/NFS). Set to 0 to skip protocol node deployment. | `number` |
 | <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Total number of virtual server instances to deploy for the storage cluster. | `number` |
+| <a name="input_total_storage_volumes"></a> [total_storage_volumes](#input_total_storage_volumes) | Total number of unattached storage volumes to provision. These volumes will be created but not attached to any instances. | `number` |
 | <a name="input_transit_gateway_global_routing"></a> [transit_gateway_global_routing](#input_transit_gateway_global_routing) | Enable global routing for Transit Gateway to allow connections across different regions. Set to true if peer VPC is in a different region. | `bool` |
 | <a name="input_transit_gateway_id"></a> [transit_gateway_id](#input_transit_gateway_id) | ID of an existing Transit Gateway to attach the new VPC to. If not provided and enable_transit_gateway is true, a new Transit Gateway will be created. | `string` |
 | <a name="input_transit_gateway_name"></a> [transit_gateway_name](#input_transit_gateway_name) | Name for the new Transit Gateway. Used only if enable_transit_gateway is true and transit_gateway_id is not provided. Defaults to '<resource_prefix>-tgw'. | `string` |
@@ -1223,7 +1146,7 @@ When DNS is enabled, the following records are automatically created:
 | <a name="input_vpc_protocol_cluster_dns_domain"></a> [vpc_protocol_cluster_dns_domain](#input_vpc_protocol_cluster_dns_domain) | DNS domain name for protocol cluster nodes. | `string` |
 | <a name="input_vpc_protocol_private_subnets_cidr_blocks"></a> [vpc_protocol_private_subnets_cidr_blocks](#input_vpc_protocol_private_subnets_cidr_blocks) | List of CIDR blocks for protocol node private subnets, one per availability zone. Required only if deploying protocol nodes. | `list(string)` |
 | <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of CIDR blocks for public subnets, one per availability zone. Set to empty array [] if no public subnets are needed. | `list(string)` |
-| <a name="input_vpc_reverse_dns_zone"></a> [vpc_reverse_dns_zone](#input_vpc_reverse_dns_zone) | Reverse DNS zone name for reverse DNS lookups (PTR records). | `string` |
+| <a name="input_vpc_reverse_dns_domain"></a> [vpc_reverse_dns_domain](#input_vpc_reverse_dns_domain) | Reverse DNS domain name for reverse DNS lookups (PTR records). | `string` |
 | <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | DNS domain name for storage cluster nodes. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of CIDR blocks for storage cluster private subnets, one per availability zone. | `list(string)` |
 
@@ -1231,15 +1154,37 @@ When DNS is enabled, the following records are automatically created:
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_bastion_instance_ref"></a> [bastion_instance_ref](#output_bastion_instance_ref) | Bastion instance autoscaling group reference. |
-| <a name="output_bastion_security_group_id"></a> [bastion_security_group_id](#output_bastion_security_group_id) | Bastion security group id. |
+| <a name="output_bastion_instance_crn"></a> [bastion_instance_crn](#output_bastion_instance_crn) | Bastion instance autoscaling group CRN. |
+| <a name="output_bastion_instance_id"></a> [bastion_instance_id](#output_bastion_instance_id) | Bastion instance autoscaling group ID. |
+| <a name="output_bastion_public_ip_addresses"></a> [bastion_public_ip_addresses](#output_bastion_public_ip_addresses) | List of public IP addresses for bastion instances. Use these IPs to SSH into the bastion. |
+| <a name="output_bastion_security_group_id"></a> [bastion_security_group_id](#output_bastion_security_group_id) | Bastion security group ID. |
+| <a name="output_dns_service_instance_crn"></a> [dns_service_instance_crn](#output_dns_service_instance_crn) | IBM Cloud DNS Service Instance CRN (only available if newly created). |
+| <a name="output_dns_service_instance_id"></a> [dns_service_instance_id](#output_dns_service_instance_id) | IBM Cloud DNS Service Instance ID. |
 | <a name="output_new_vpc_connection_id"></a> [new_vpc_connection_id](#output_new_vpc_connection_id) | ID of the Transit Gateway connection for the newly created VPC. |
 | <a name="output_peer_vpc_connection_id"></a> [peer_vpc_connection_id](#output_peer_vpc_connection_id) | ID of the Transit Gateway connection for the peer VPC. |
+| <a name="output_resource_group_id"></a> [resource_group_id](#output_resource_group_id) | The ID of the resource group used for VPC resources. |
 | <a name="output_transit_gateway_crn"></a> [transit_gateway_crn](#output_transit_gateway_crn) | CRN of the Transit Gateway used for VPC connectivity. |
 | <a name="output_transit_gateway_id"></a> [transit_gateway_id](#output_transit_gateway_id) | ID of the Transit Gateway used for VPC connectivity. |
 | <a name="output_transit_gateway_name"></a> [transit_gateway_name](#output_transit_gateway_name) | Name of the Transit Gateway. |
 | <a name="output_transit_gateway_status"></a> [transit_gateway_status](#output_transit_gateway_status) | Status of the Transit Gateway. |
 | <a name="output_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#output_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. |
+| <a name="output_vpc_compute_cluster_private_subnets_crn"></a> [vpc_compute_cluster_private_subnets_crn](#output_vpc_compute_cluster_private_subnets_crn) | List of CRNs of compute cluster private subnets. |
+| <a name="output_vpc_compute_cluster_private_subnets_name"></a> [vpc_compute_cluster_private_subnets_name](#output_vpc_compute_cluster_private_subnets_name) | List of names of compute cluster private subnets. |
+| <a name="output_vpc_compute_dns_zone_id"></a> [vpc_compute_dns_zone_id](#output_vpc_compute_dns_zone_id) | IBM Cloud DNS compute cluster zone ID. |
+| <a name="output_vpc_crn"></a> [vpc_crn](#output_vpc_crn) | The CRN of the VPC. |
 | <a name="output_vpc_id"></a> [vpc_id](#output_vpc_id) | The ID of the VPC. |
+| <a name="output_vpc_name"></a> [vpc_name](#output_vpc_name) | The name of the VPC. |
+| <a name="output_vpc_protocol_dns_zone_id"></a> [vpc_protocol_dns_zone_id](#output_vpc_protocol_dns_zone_id) | IBM Cloud DNS protocol cluster zone ID. |
+| <a name="output_vpc_protocol_private_subnets"></a> [vpc_protocol_private_subnets](#output_vpc_protocol_private_subnets) | List of IDs of protocol cluster private subnets. |
+| <a name="output_vpc_protocol_private_subnets_crn"></a> [vpc_protocol_private_subnets_crn](#output_vpc_protocol_private_subnets_crn) | List of CRNs of protocol cluster private subnets. |
+| <a name="output_vpc_protocol_private_subnets_name"></a> [vpc_protocol_private_subnets_name](#output_vpc_protocol_private_subnets_name) | List of names of protocol cluster private subnets. |
+| <a name="output_vpc_public_gateway_ids"></a> [vpc_public_gateway_ids](#output_vpc_public_gateway_ids) | List of IDs of public gateways. |
+| <a name="output_vpc_public_subnets"></a> [vpc_public_subnets](#output_vpc_public_subnets) | List of IDs of public subnets. |
+| <a name="output_vpc_public_subnets_crn"></a> [vpc_public_subnets_crn](#output_vpc_public_subnets_crn) | List of CRNs of public subnets. |
+| <a name="output_vpc_public_subnets_name"></a> [vpc_public_subnets_name](#output_vpc_public_subnets_name) | List of names of public subnets. |
+| <a name="output_vpc_reverse_dns_zone_id"></a> [vpc_reverse_dns_zone_id](#output_vpc_reverse_dns_zone_id) | IBM Cloud DNS reverse zone ID. |
 | <a name="output_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#output_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. |
+| <a name="output_vpc_storage_cluster_private_subnets_crn"></a> [vpc_storage_cluster_private_subnets_crn](#output_vpc_storage_cluster_private_subnets_crn) | List of CRNs of storage cluster private subnets. |
+| <a name="output_vpc_storage_cluster_private_subnets_name"></a> [vpc_storage_cluster_private_subnets_name](#output_vpc_storage_cluster_private_subnets_name) | List of names of storage cluster private subnets. |
+| <a name="output_vpc_storage_dns_zone_id"></a> [vpc_storage_dns_zone_id](#output_vpc_storage_dns_zone_id) | IBM Cloud DNS storage cluster zone ID. |
 <!-- END_TF_DOCS -->

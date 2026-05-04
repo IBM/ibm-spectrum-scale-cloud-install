@@ -16,24 +16,26 @@ module "bastion_security_group" {
   sec_group_name    = local.bastion_sg_name
   vpc_id            = var.vpc_ref
   resource_group_id = var.resource_group_id
+  tags              = var.tags
 }
 
-module "bastion_sg_tcp_rule" {
+module "bastion_sg_inbound_rule" {
   count             = local.create_count
-  source            = "../../../resources/ibmcloud/security/security_tcp_rule"
+  source            = "../../../resources/ibmcloud/security/security_rule"
   enable_rule       = true
   security_group_id = module.bastion_security_group[0].sec_group_id
   sg_direction      = "inbound"
-  port              = var.bastion_public_ssh_port
   remote_ip_addr    = var.remote_cidr_blocks
-}
-
-module "bastion_sg_icmp_rule" {
-  count             = local.create_count
-  source            = "../../../resources/ibmcloud/security/security_icmp_rule"
-  security_group_id = module.bastion_security_group[0].sec_group_id
-  sg_direction      = "inbound"
-  remote_ip_addr    = var.remote_cidr_blocks
+  rules = [
+    {
+      protocol = "tcp"
+      port_min = var.bastion_public_ssh_port
+      port_max = var.bastion_public_ssh_port
+    },
+    {
+      protocol = "icmp"
+    }
+  ]
 }
 
 module "bastion_sg_outbound_rule" {
@@ -45,9 +47,12 @@ module "bastion_sg_outbound_rule" {
   remote_ip_addr     = var.remote_cidr_blocks
 }
 
-data "ibm_is_ssh_key" "itself" {
-  count = local.create_count
-  name  = var.bastion_key_pair
+# Create ssh key to access the bastion instance
+resource "ibm_is_ssh_key" "bastion_ssh_key" {
+  count          = local.create_count
+  name           = "${var.resource_prefix}-bastion-ssh-key"
+  public_key     = file(var.bastion_public_key_path)
+  resource_group = var.resource_group_id
 }
 
 module "bastion_autoscaling_launch_template" {
@@ -61,7 +66,7 @@ module "bastion_autoscaling_launch_template" {
   zone                 = local.selected_zone
   subnet               = local.selected_subnet
   security_groups      = [module.bastion_security_group[0].sec_group_id]
-  key_name             = [data.ibm_is_ssh_key.itself[0].id]
+  key_name             = [ibm_is_ssh_key.bastion_ssh_key[0].id]
 }
 
 module "bastion_autoscaling_group" {

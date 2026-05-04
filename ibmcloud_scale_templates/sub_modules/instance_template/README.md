@@ -183,9 +183,6 @@ terraform apply -auto-approve
     "vpc_compute_cluster_dns_domain": "compute.scale.local",
     "vpc_custom_resolver_id": "resolver-id",
 
-    "filesystem_block_size": "4M",
-    "storage_cluster_filesystem_mountpoint": "/gpfs/fs1",
-    "compute_cluster_filesystem_mountpoint": "/gpfs/fs1",
     "create_separate_namespaces": true
 }
 ```
@@ -215,39 +212,6 @@ terraform apply -auto-approve
 ### Block Storage Volumes
 
 Storage instances can have additional block storage volumes attached:
-
-```jsonc
-{
-    "filesystem_parameters": [
-        {
-            "name": "fs1",
-            "filesystem_config_file": "fs1-config.json",
-            "filesystem_encrypted": true,
-            "filesystem_kms_key_ref": "kms-key-id",
-            "device_delete_on_termination": true,
-            "disk_config": [
-                {
-                    "filesystem_pool": "system",
-                    "block_devices_per_storage_instance": 2,
-                    "block_device_volume_type": "general-purpose",
-                    "block_device_volume_size": "100",
-                    "block_device_iops": "3000",
-                    "block_device_throughput": "125"
-                }
-            ]
-        }
-    ]
-}
-```
-
-### Volume Types
-
-| Type | IOPS | Throughput | Use Case |
-|------|------|------------|----------|
-| general-purpose | 3-48K | 125-1000 MB/s | Standard workloads |
-| 5iops-tier | 5 IOPS/GB | Variable | Consistent performance |
-| 10iops-tier | 10 IOPS/GB | Variable | High performance |
-| custom | Custom | Custom | Specific requirements |
 
 ## Security Groups
 
@@ -592,79 +556,56 @@ terraform destroy -auto-approve
 | Name | Description | Type |
 | ---- | ----------- | ---- |
 | <a name="input_airgap"></a> [airgap](#input_airgap) | If true, instance iam profile, git utils which need internet access will be skipped. | `bool` |
-| <a name="input_bastion_instance_public_ip"></a> [bastion_instance_public_ip](#input_bastion_instance_public_ip) | Bastion instance public ip address. | `string` |
-| <a name="input_bastion_instance_ref"></a> [bastion_instance_ref](#input_bastion_instance_ref) | Bastion instance ref. | `string` |
-| <a name="input_bastion_security_group_ref"></a> [bastion_security_group_ref](#input_bastion_security_group_ref) | Bastion security group reference (id/self-link). | `string` |
-| <a name="input_bastion_ssh_private_key"></a> [bastion_ssh_private_key](#input_bastion_ssh_private_key) | Bastion SSH private key path, which will be used to login to bastion host. | `string` |
-| <a name="input_bastion_user"></a> [bastion_user](#input_bastion_user) | Bastion login username. | `string` |
-| <a name="input_ces_ip_address"></a> [ces_ip_address](#input_ces_ip_address) | CES IP addresses (length must be equal to number of protocol nodes). | `list(string)` |
+| <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group ID. | `string` |
+| <a name="input_boot_disk_type"></a> [boot_disk_type](#input_boot_disk_type) | Boot disk type for all cluster instances. | `string` |
+| <a name="input_ces_ip_addresses"></a> [ces_ip_addresses](#input_ces_ip_addresses) | CES IP addresses (length must be equal to number of protocol nodes). | `list(string)` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
-| <a name="input_compute_cluster_boot_disk_type"></a> [compute_cluster_boot_disk_type](#input_compute_cluster_boot_disk_type) | EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1. | `string` |
-| <a name="input_compute_cluster_filesystem_mountpoint"></a> [compute_cluster_filesystem_mountpoint](#input_compute_cluster_filesystem_mountpoint) | Compute cluster (accessingCluster) Filesystem mount point. | `string` |
-| <a name="input_compute_cluster_gui_password"></a> [compute_cluster_gui_password](#input_compute_cluster_gui_password) | Password for Compute cluster GUI. | `string` |
-| <a name="input_compute_cluster_gui_username"></a> [compute_cluster_gui_username](#input_compute_cluster_gui_username) | GUI user to perform system management and monitoring tasks on compute cluster. | `string` |
-| <a name="input_compute_cluster_image_ref"></a> [compute_cluster_image_ref](#input_compute_cluster_image_ref) | ID of AMI to use for provisioning the compute cluster instances. | `string` |
+| <a name="input_compute_cluster_image_id"></a> [compute_cluster_image_id](#input_compute_cluster_image_id) | Image ID to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_instance_type"></a> [compute_cluster_instance_type](#input_compute_cluster_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | The ssh public key to be created used to launch the compute cluster. | `string` |
-| <a name="input_compute_cluster_tags"></a> [compute_cluster_tags](#input_compute_cluster_tags) | Additional tags for the compute cluster. | `map(string)` |
-| <a name="input_compute_cluster_volume_tags"></a> [compute_cluster_volume_tags](#input_compute_cluster_volume_tags) | Additional tags for the compute cluster volume(s). | `map(string)` |
-| <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id | `string` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, an IBM Cloud placement group will be created for single-AZ deployments and attached to storage instances using host_spread strategy. | `bool` |
-| <a name="input_filesystem_parameters"></a> [filesystem_parameters](#input_filesystem_parameters) | Filesystem parameters in relationship with disk parameters. For IBM Cloud, disk_config.block_device_volume_type is passed directly to ibm_is_volume.profile and supports IBM Cloud volume profile values such as sdp. | <pre>list(object({<br/>    name                         = string<br/>    filesystem_config_file       = string<br/>    filesystem_encrypted         = bool<br/>    filesystem_kms_key_ref       = string<br/>    device_delete_on_termination = bool<br/>    disk_config = list(object({<br/>      filesystem_pool                    = string<br/>      block_devices_per_storage_instance = number<br/>      block_device_volume_type           = string<br/>      block_device_volume_size           = string<br/>      block_device_iops                  = string<br/>      block_device_throughput            = string<br/>    }))<br/>  }))</pre> |
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
-| <a name="input_gateway_tags"></a> [gateway_tags](#input_gateway_tags) | Additional tags for the gateway instances. | `map(string)` |
-| <a name="input_gateway_volume_tags"></a> [gateway_volume_tags](#input_gateway_volume_tags) | Additional tags for the gateway volume(s). | `map(string)` |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
-| <a name="input_instances_ssh_user_name"></a> [instances_ssh_user_name](#input_instances_ssh_user_name) | Compute/Storage EC2 instances login username. | `string` |
-| <a name="input_inventory_format"></a> [inventory_format](#input_inventory_format) | Specify inventory format suited for ansible playbooks. Examples: ini, json | `string` |
-| <a name="input_marked_vm_names_to_attach_disks"></a> [marked_vm_names_to_attach_disks](#input_marked_vm_names_to_attach_disks) | Specify the instance names for which disks needs to be attached | `list(string)` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
-| <a name="input_protocol_tags"></a> [protocol_tags](#input_protocol_tags) | Additional tags for the protocol instances. | `map(string)` |
-| <a name="input_protocol_volume_tags"></a> [protocol_volume_tags](#input_protocol_volume_tags) | Additional tags for the protocol volume(s). | `map(string)` |
-| <a name="input_resource_group_name"></a> [resource_group_name](#input_resource_group_name) | IBM Cloud resource group name. | `string` |
+| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
-| <a name="input_root_device_encrypted"></a> [root_device_encrypted](#input_root_device_encrypted) | Whether to enable volume encryption for root device. | `bool` |
-| <a name="input_root_device_kms_key_ref"></a> [root_device_kms_key_ref](#input_root_device_kms_key_ref) | GUID of the Key Protect/HPCS instance to be used when encrypting the root volume. | `string` |
-| <a name="input_root_device_kms_key_ref_name"></a> [root_device_kms_key_ref_name](#input_root_device_kms_key_ref_name) | Name of the root/standard key to be used when encrypting the root volume. | `string` |
-| <a name="input_storage_cluster_boot_disk_type"></a> [storage_cluster_boot_disk_type](#input_storage_cluster_boot_disk_type) | EBS volume types: standard, gp2, gp3, io1, io2 and sc1 or st1. | `string` |
-| <a name="input_storage_cluster_gui_password"></a> [storage_cluster_gui_password](#input_storage_cluster_gui_password) | Password for Storage cluster GUI | `string` |
-| <a name="input_storage_cluster_gui_username"></a> [storage_cluster_gui_username](#input_storage_cluster_gui_username) | GUI user to perform system management and monitoring tasks on storage cluster. | `string` |
-| <a name="input_storage_cluster_image_ref"></a> [storage_cluster_image_ref](#input_storage_cluster_image_ref) | ID of AMI to use for provisioning the storage cluster instances. | `string` |
+| <a name="input_root_device_kms_key_id"></a> [root_device_kms_key_id](#input_root_device_kms_key_id) | GUID of the Key Protect/HPCS instance to be used when encrypting the root volume. | `string` |
+| <a name="input_root_device_kms_key_name"></a> [root_device_kms_key_name](#input_root_device_kms_key_name) | Name of the root/standard key to be used when encrypting the root volume. | `string` |
+| <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | Image ID to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_cluster_instance_type"></a> [storage_cluster_instance_type](#input_storage_cluster_instance_type) | Instance type to use for provisioning the storage cluster instances. | `string` |
 | <a name="input_storage_cluster_public_key_path"></a> [storage_cluster_public_key_path](#input_storage_cluster_public_key_path) | The ssh public key to be created used to launch the storage cluster. | `string` |
-| <a name="input_storage_cluster_tags"></a> [storage_cluster_tags](#input_storage_cluster_tags) | Additional tags for the storage cluster. | `map(string)` |
 | <a name="input_storage_cluster_tiebreaker_instance_type"></a> [storage_cluster_tiebreaker_instance_type](#input_storage_cluster_tiebreaker_instance_type) | Instance type to use for the tie breaker instance (will be provisioned only in Multi-AZ configuration). | `string` |
-| <a name="input_storage_cluster_volume_tags"></a> [storage_cluster_volume_tags](#input_storage_cluster_volume_tags) | Additional tags for the storage cluster volume(s). | `map(string)` |
-| <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of EC2 instances to be launched for compute cluster. | `number` |
-| <a name="input_total_gateway_instances"></a> [total_gateway_instances](#input_total_gateway_instances) | Number of EC2 instances to be launched for gateway nodes. | `number` |
-| <a name="input_total_protocol_instances"></a> [total_protocol_instances](#input_total_protocol_instances) | Number of EC2 instances to be launched for protocol nodes. | `number` |
-| <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of EC2 instances to be launched for storage cluster. | `number` |
+| <a name="input_storage_volume_iops"></a> [storage_volume_iops](#input_storage_volume_iops) | IOPS for unattached storage volumes. | `number` |
+| <a name="input_storage_volume_profile"></a> [storage_volume_profile](#input_storage_volume_profile) | IBM Cloud volume profile for unattached storage volumes. | `string` |
+| <a name="input_storage_volume_size"></a> [storage_volume_size](#input_storage_volume_size) | Size of each unattached storage volume in GB. | `number` |
+| <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of virtual server instances to be launched for compute cluster. | `number` |
+| <a name="input_total_gateway_instances"></a> [total_gateway_instances](#input_total_gateway_instances) | Number of virtual server instances to be launched for gateway nodes. | `number` |
+| <a name="input_total_protocol_instances"></a> [total_protocol_instances](#input_total_protocol_instances) | Number of virtual server instances to be launched for protocol nodes. | `number` |
+| <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of virtual server instances to be launched for storage cluster. | `number` |
+| <a name="input_total_storage_volumes"></a> [total_storage_volumes](#input_total_storage_volumes) | Number of unattached storage volumes to provision. | `number` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_ref`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups. | `bool` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
-| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | DNS domain name to be used for compute cluster. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
-| <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The region where AWS operations will take place. Examples are us-east-1, us-west-2, etc. | `string` |
-| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | DNS domain name to be used for storage cluster. | `string` |
+| <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC id were to deploy the bastion. | `string` |
+| <a name="input_vpc_protocol_cluster_private_subnets"></a> [vpc_protocol_cluster_private_subnets](#input_vpc_protocol_cluster_private_subnets) | List of IDs of protocol cluster private subnets. | `list(string)` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where resources will be provisioned. Example: us-south. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
+| <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id | `string` |
+| <a name="input_tags"></a> [tags](#input_tags) | List of tags to attach to resources in format key:value | `list(string)` |
+| <a name="input_vpc_compute_cluster_dns_zone_id"></a> [vpc_compute_cluster_dns_zone_id](#input_vpc_compute_cluster_dns_zone_id) | DNS zone ID for compute cluster. | `string` |
+| <a name="input_vpc_reverse_dns_zone_id"></a> [vpc_reverse_dns_zone_id](#input_vpc_reverse_dns_zone_id) | DNS zone ID for reverse DNS lookups. | `string` |
+| <a name="input_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#input_vpc_storage_cluster_dns_zone_id) | DNS zone ID for storage cluster. | `string` |
 
 #### Outputs
 
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_airgap"></a> [airgap](#output_airgap) | Air gap environment |
-| <a name="output_bastion_user"></a> [bastion_user](#output_bastion_user) | Bastion OS Login username. |
 | <a name="output_ces_private_ips"></a> [ces_private_ips](#output_ces_private_ips) | CES/Protocol ENI (secondary private) ips. |
 | <a name="output_compute_cluster_instance_details"></a> [compute_cluster_instance_details](#output_compute_cluster_instance_details) | Compute cluster instance details (map of id, private_ip, dns) |
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
-| <a name="output_flatten_disks_per_vm"></a> [flatten_disks_per_vm](#output_flatten_disks_per_vm) | n/a |
-| <a name="output_flatten_tie_disk"></a> [flatten_tie_disk](#output_flatten_tie_disk) | n/a |
 | <a name="output_gateway_instance_details"></a> [gateway_instance_details](#output_gateway_instance_details) | Gateway instance details (map of id, private_ip, dns) |
-| <a name="output_inflate_disks_per_fs_pool"></a> [inflate_disks_per_fs_pool](#output_inflate_disks_per_fs_pool) | n/a |
-| <a name="output_local_block_device_count"></a> [local_block_device_count](#output_local_block_device_count) | n/a |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | IBM Cloud placement group id. |
-| <a name="output_profile_disks_debug"></a> [profile_disks_debug](#output_profile_disks_debug) | n/a |
-| <a name="output_profile_name_debug"></a> [profile_name_debug](#output_profile_name_debug) | n/a |
 | <a name="output_protocol_cluster_security_group_id"></a> [protocol_cluster_security_group_id](#output_protocol_cluster_security_group_id) | Protocol cluster security group id. |
 | <a name="output_protocol_instance_details"></a> [protocol_instance_details](#output_protocol_instance_details) | Protocol instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_dec_instance_details"></a> [storage_cluster_dec_instance_details](#output_storage_cluster_dec_instance_details) | Storage cluster desc instance details (map of id, private_ip, dns) |

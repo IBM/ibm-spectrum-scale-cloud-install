@@ -1,3 +1,7 @@
+/*
+     Creates IBMCloud Virtual Server instance(s) with a static route
+*/
+
 terraform {
   required_providers {
     ibm = {
@@ -7,32 +11,35 @@ terraform {
   }
 }
 
-/*
-     Creates IBMCloud Virtual Server instance(s) with a static route
-*/
-
-
 variable "ami_id" {}
 variable "subnet_id" {}
-variable "dns_domain" {}
-variable "forward_dns_zone" {}
 variable "forward_dns_zone_id" {}
+variable "reverse_dns_zone_id" {}
 variable "ces_ipaddress" {}
 variable "instance_type" {}
 variable "name_prefix" {}
-variable "placement_group" {}
 variable "root_device_kms_key_instance_id" {}
 variable "root_device_kms_key_instance_name" {}
-variable "root_device_encrypted" {}
+variable "root_volume_type" {}
 variable "security_groups" {}
 variable "tags" {}
 variable "user_public_key" {}
-variable "volume_tags" {}
 variable "zone" {}
 variable "dns_services_instance_id" {}
 variable "vpc_id" {}
 
-# IBM Cloud CLI Auto-Login Setup (AWS IAM Role Equivalent)
+# Fetch all DNS zones to get domain name from zone ID
+data "ibm_dns_zones" "all_zones" {
+  instance_id = var.dns_services_instance_id
+}
+
+locals {
+  # Find the zone name by matching zone_id
+  forward_zone_name = try(
+    [for zone in data.ibm_dns_zones.all_zones.dns_zones : zone.name if zone.zone_id == var.forward_dns_zone_id][0],
+    ""
+  )
+}
 
 # Create a Service ID for CES automation (equivalent to AWS IAM Role)
 resource "ibm_iam_service_id" "ces_automation" {
@@ -84,127 +91,23 @@ resource "ibm_is_instance" "itself" {
   # Encrypt the root volume with the KMS key CRN
   boot_volume {
     encryption = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
+    profile    = var.root_volume_type
+    tags       = var.tags
   }
 
-  user_data = <<-EOF
+  user_data = <<EOF
 #!/usr/bin/env bash
-set -euxo pipefail
-
 # Hostname settings
-hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-mkdir -p /etc/cloud/cloud.cfg.d
-echo 'preserve_hostname: True' > /etc/cloud/cloud.cfg.d/10_hostname.cfg
-echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
-
-# IBM Cloud CLI Auto-Login Setup (AWS IAM Role Equivalent)
-mkdir -p /root/.ibmcloud
-echo "${ibm_iam_service_api_key.ces_api_key.apikey}" > /root/.ibmcloud/apikey
-chmod 600 /root/.ibmcloud/apikey
-
-# Create systemd service for IBM Cloud CLI auto-login
-cat > /etc/systemd/system/ibmcloud-auto-login.service <<'SYSTEMD'
-[Unit]
-Description=IBM Cloud CLI Auto Login (AWS IAM Role Equivalent)
-After=network-online.target
-Wants=network-online.target
-Before=gpfs.service mmfs.service
-
-[Service]
-Type=oneshot
-Environment="IBMCLOUD_HOME=/root/.ibmcloud"
-ExecStartPre=/bin/sleep 10
-ExecStart=/bin/bash -c 'export IBMCLOUD_HOME=/root/.ibmcloud && if [ -f /usr/local/bin/ibmcloud ]; then /usr/local/bin/ibmcloud config --check-version=false && /usr/local/bin/ibmcloud api https://cloud.ibm.com && /usr/local/bin/ibmcloud login --apikey $(cat /root/.ibmcloud/apikey) -r us-south && /usr/local/bin/ibmcloud plugin install vpc-infrastructure -f; fi'
-RemainAfterExit=yes
-StandardOutput=journal
-StandardError=journal
-Restart=on-failure
-RestartSec=30
-
-[Install]
-WantedBy=multi-user.target
-SYSTEMD
-
-# Create systemd timer to refresh login every 30 minutes (keep session alive)
-cat > /etc/systemd/system/ibmcloud-auto-login.timer <<'TIMER'
-[Unit]
-Description=IBM Cloud CLI Auto Login Timer
-Requires=ibmcloud-auto-login.service
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=30min
-Unit=ibmcloud-auto-login.service
-
-[Install]
-WantedBy=timers.target
-TIMER
-
-# Wait for IBM Cloud CLI to be available (critical for immediate script execution)
-echo "Waiting for IBM Cloud CLI..."
-timeout=300
-elapsed=0
-while [ ! -f /usr/local/bin/ibmcloud ] && [ $elapsed -lt $timeout ]; do
-  sleep 5
-  elapsed=$((elapsed + 5))
-done
-
-if [ ! -f /usr/local/bin/ibmcloud ]; then
-  echo "ERROR: IBM Cloud CLI not found after $timeout seconds" | logger -t ibmcloud-setup
-  exit 1
-fi
-
-# Perform initial login immediately (critical for scripts that run within 1-2 min)
-echo "Performing initial IBM Cloud CLI login..." | logger -t ibmcloud-setup
-export IBMCLOUD_HOME=/root/.ibmcloud
-mkdir -p $IBMCLOUD_HOME
-/usr/local/bin/ibmcloud config --check-version=false
-/usr/local/bin/ibmcloud api https://cloud.ibm.com
-/usr/local/bin/ibmcloud login --apikey "${ibm_iam_service_api_key.ces_api_key.apikey}" -r us-south
-if [ $? -eq 0 ]; then
-  echo "IBM Cloud CLI login successful" | logger -t ibmcloud-setup
-  /usr/local/bin/ibmcloud plugin install vpc-infrastructure -f
-  # Make the login persistent by setting environment variable globally
-  echo 'export IBMCLOUD_HOME=/root/.ibmcloud' >> /root/.bashrc
-  echo 'export IBMCLOUD_HOME=/root/.ibmcloud' >> /root/.bash_profile
-  echo 'export IBMCLOUD_HOME=/root/.ibmcloud' >> /etc/environment
-else
-  echo "ERROR: IBM Cloud CLI login failed" | logger -t ibmcloud-setup
-fi
-
-# Enable systemd service and timer for session persistence
-systemctl daemon-reload
-systemctl enable ibmcloud-auto-login.service
-systemctl enable ibmcloud-auto-login.timer
-systemctl start ibmcloud-auto-login.timer
-
-# IBM Storage Scale device discovery helper
-mkdir -p "/var/mmfs/etc"
-
-cat > "/var/mmfs/etc/nsddevices" <<'KSH'
-#!/bin/ksh
-# Generated by IBM Storage Scale deployment.
-KSH
-
-BOOT_DISK=$(findmnt -n -o SOURCE / | sed 's/[0-9]*$//')
-for disk in /dev/vd[b-z]; do
-    [[ ! -b "$disk" ]] && continue
-    [[ "$disk" == "$BOOT_DISK" ]] && continue
-
-    SIZE=$(blockdev --getsize64 "$disk")
-    if [[ $SIZE -gt 1073741824 ]]; then    # >1GB
-        echo "echo $disk generic" >> "/var/mmfs/etc/nsddevices"
-    fi
-done
-
-echo "# Bypass the NSD device discovery" >> "/var/mmfs/etc/nsddevices"
-echo "return 0" >> "/var/mmfs/etc/nsddevices"
-chmod u+x "/var/mmfs/etc/nsddevices"
+hostnamectl set-hostname --static "${var.name_prefix}.${local.forward_zone_name}"
+echo "${var.name_prefix}.${local.forward_zone_name}" > /etc/hostname
 EOF
 
   metadata_service {
     enabled  = true
     protocol = "http"
   }
+
+  tags = var.tags
 
   lifecycle {
     ignore_changes = all
@@ -213,35 +116,23 @@ EOF
 
 # Create "A" record: hostname -> private IPv4
 resource "ibm_dns_resource_record" "a_itself" {
-  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
-
-  # IBM Cloud DNS Services instance GUID (from ibm_resource_instance "dns-svcs")
   instance_id = var.dns_services_instance_id
-
-  # Forward DNS zone ID (from ibm_dns_zone)
-  zone_id = var.forward_dns_zone_id
-
-  type  = "A"
-  name  = format("%s.%s", var.name_prefix, var.dns_domain)
-  rdata = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
-  ttl   = 3600
+  zone_id     = var.forward_dns_zone_id
+  type        = "A"
+  name        = format("%s.%s", var.name_prefix, local.forward_zone_name)
+  rdata       = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
+  ttl         = 3600
 }
 
 # Create "PTR" record: IPv4 -> hostname (in the same forward zone)
 resource "ibm_dns_resource_record" "ptr_itself" {
-  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
-
   instance_id = var.dns_services_instance_id
-  zone_id     = var.forward_dns_zone_id
-
-  type = "PTR"
-  name = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
-
-  # rdata is the FQDN you want this IP to resolve to
-  rdata = format("%s.%s", var.name_prefix, var.dns_domain)
-  ttl   = 3600
-
-  depends_on = [ibm_dns_resource_record.a_itself]
+  zone_id     = var.reverse_dns_zone_id
+  type        = "PTR"
+  name        = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
+  rdata       = format("%s.%s", var.name_prefix, local.forward_zone_name)
+  ttl         = 3600
+  depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
 data "ibm_is_subnet" "itself" {
@@ -253,49 +144,37 @@ resource "ibm_is_vpc_routing_table_route" "itself" {
   routing_table = data.ibm_is_subnet.itself.routing_table[0].id
   destination   = format("%s/32", var.ces_ipaddress)
   action        = "deliver"
-  next_hop      = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
+  next_hop      = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
   zone          = var.zone
 }
 
 # Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
 resource "ibm_dns_resource_record" "ces_a_itself" {
-  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
-
-  # IBM Cloud DNS Services instance GUID (from ibm_resource_instance "dns-svcs")
-  instance_id = var.dns_services_instance_id
-
-  # Forward DNS zone ID (from ibm_dns_zone)
-  zone_id = var.forward_dns_zone_id
-
-  type  = "A"
-  name  = format("%s-ces.%s", var.name_prefix, var.dns_domain)
-  rdata = var.ces_ipaddress
-  ttl   = 3600
-}
-
-# Create "PTR" record: IPv4 -> hostname (in the same forward zone)
-resource "ibm_dns_resource_record" "ces_ptr_itself" {
-  count = var.dns_services_instance_id != null && var.dns_services_instance_id != "" ? 1 : 0
-
   instance_id = var.dns_services_instance_id
   zone_id     = var.forward_dns_zone_id
+  type        = "A"
+  name        = format("%s-ces.%s", var.name_prefix, local.forward_zone_name)
+  rdata       = var.ces_ipaddress
+  ttl         = 3600
+}
 
-  type = "PTR"
-  name = var.ces_ipaddress
-
-  # rdata is the FQDN you want this IP to resolve to
-  rdata = format("%s-ces.%s", var.name_prefix, var.dns_domain)
-  ttl   = 3600
-
-  depends_on = [ibm_dns_resource_record.ces_a_itself]
+# Create "PTR" record: IPv4 -> hostname
+resource "ibm_dns_resource_record" "ces_ptr_itself" {
+  instance_id = var.dns_services_instance_id
+  zone_id     = var.reverse_dns_zone_id
+  type        = "PTR"
+  name        = var.ces_ipaddress
+  rdata       = format("%s-ces.%s", var.name_prefix, local.forward_zone_name)
+  ttl         = 3600
+  depends_on  = [ibm_dns_resource_record.ces_a_itself]
 }
 
 
 output "instance_details" {
   value = {
-    private_ip     = ibm_is_instance.itself.primary_network_interface[0].primary_ipv4_address
+    private_ip     = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
     id             = ibm_is_instance.itself.id
-    dns            = format("%s.%s", var.name_prefix, var.dns_domain)
+    dns            = format("%s.%s", var.name_prefix, local.forward_zone_name)
     zone           = ibm_is_instance.itself.zone
     ces_private_ip = var.ces_ipaddress
   }

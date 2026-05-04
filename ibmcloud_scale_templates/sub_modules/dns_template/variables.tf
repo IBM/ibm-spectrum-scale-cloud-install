@@ -75,3 +75,9 @@ variable "vpc_protocol_cluster_dns_domain" {
   default     = null
   description = "IBM Cloud DNS zone name for protocol cluster. If not provided, protocol nodes will use storage cluster DNS zone."
 }
+
+variable "tags" {
+  type        = list(string)
+  default     = []
+  description = "List of tags to be attached to DNS resources."
+}

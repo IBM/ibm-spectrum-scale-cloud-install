@@ -16,10 +16,15 @@ variable "bastion_instance_type" {
   description = "Instance type to use for the bastion instance."
 }
 
-variable "bastion_key_pair" {
+variable "bastion_public_key_path" {
   type        = string
   nullable    = false
-  description = "The key pair to use to launch the bastion host."
+  description = "Path to the SSH public key file for bastion host access."
+
+  validation {
+    condition     = fileexists(var.bastion_public_key_path)
+    error_message = "The bastion_public_key_path must be a valid file path to an existing SSH public key file: ${var.bastion_public_key_path}"
+  }
 }
 
 variable "bastion_public_ssh_port" {
@@ -101,4 +106,10 @@ variable "vpc_ref" {
   type        = string
   nullable    = false
   description = "VPC id were to deploy the bastion."
+}
+
+variable "tags" {
+  type        = list(string)
+  default     = []
+  description = "List of tags to be attached to bastion resources."
 }

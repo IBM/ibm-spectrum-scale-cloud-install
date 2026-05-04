@@ -598,6 +598,7 @@ terraform destroy -auto-approve
 | <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of CIDR blocks for public subnets, one per availability zone. Set to null if no public subnets are needed. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where VPC and all resources will be deployed (e.g., 'us-east', 'us-south', 'eu-de'). | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of CIDR blocks for storage cluster private subnets, one per availability zone. | `list(string)` |
+| <a name="input_tags"></a> [tags](#input_tags) | List of tags to be attached to all VPC resources. | `list(string)` |
 
 #### Outputs
 

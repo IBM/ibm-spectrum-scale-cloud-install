@@ -74,3 +74,9 @@ variable "vpc_storage_cluster_private_subnets_cidr_blocks" {
   nullable    = true
   description = "List of CIDR blocks for storage cluster private subnets, one per availability zone."
 }
+
+variable "tags" {
+  type        = list(string)
+  default     = []
+  description = "List of tags to be attached to all VPC resources."
+}

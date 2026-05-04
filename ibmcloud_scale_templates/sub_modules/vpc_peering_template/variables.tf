@@ -58,3 +58,9 @@ variable "vpc_region" {
   nullable    = false
   description = "IBM Cloud region where the Transit Gateway will be created."
 }
+
+variable "tags" {
+  type        = list(string)
+  default     = []
+  description = "Tags to be applied to Transit Gateway resources."
+}

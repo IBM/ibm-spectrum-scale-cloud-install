@@ -1,3 +1,7 @@
+/*
+    Creates a Instance group.
+*/
+
 terraform {
   required_providers {
     ibm = {
@@ -6,11 +10,6 @@ terraform {
     }
   }
 }
-
-/*
-    Creates a Instance group.
-*/
-
 
 variable "asg_name" {}
 variable "launch_template_id" {}
@@ -38,4 +37,13 @@ resource "ibm_is_floating_ip" "itself" {
 
 output "asg_id" {
   value = ibm_is_instance_group.itself.id
+}
+
+output "asg_crn" {
+  value = ibm_is_instance_group.itself.crn
+}
+
+output "floating_ip_addresses" {
+  value       = ibm_is_floating_ip.itself[*].address
+  description = "List of floating IP addresses assigned to instances in the autoscaling group."
 }
