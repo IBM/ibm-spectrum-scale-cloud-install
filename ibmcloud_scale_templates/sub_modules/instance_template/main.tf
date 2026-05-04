@@ -56,6 +56,30 @@ module "scale_cluster_ingress_security_rule" {
   )
 }
 
+# Create security rules to enable direct connection to scale cluster
+module "scale_cluster_ingress_security_rule_using_direct_connection" {
+  source            = "../../../resources/ibmcloud/security/security_rule"
+  enable_rule       = var.using_direct_connection != null ? var.using_direct_connection : false
+  security_group_id = module.cluster_security_group.sec_group_id
+  sg_direction      = "inbound"
+  remote_ip_addr    = var.client_ip_ranges
+  rules = concat(
+    [{
+      protocol = "icmp"
+    }],
+    [{
+      protocol = "tcp"
+      port_min = 22
+      port_max = 22
+    }],
+    [{
+      protocol = "tcp"
+      port_min = 443
+      port_max = 443
+    }]
+  )
+}
+
 # Create security rules to enable jumphost communication to scale cluster
 module "scale_cluster_ingress_security_rule_using_jumphost" {
   source                   = "../../../resources/ibmcloud/security/security_rule_source"
@@ -63,6 +87,15 @@ module "scale_cluster_ingress_security_rule_using_jumphost" {
   security_group_id        = [module.cluster_security_group.sec_group_id]
   sg_direction             = ["inbound"]
   source_security_group_id = [var.bastion_security_group_id]
+}
+
+# Create security rules to enable scale communication from cloud connection method
+module "scale_cluster_ingress_security_rule_using_cloud_connection" {
+  source                   = "../../../resources/ibmcloud/security/security_rule_source"
+  total_rules              = var.using_cloud_connection ? 1 : 0
+  security_group_id        = [module.cluster_security_group.sec_group_id]
+  sg_direction             = ["inbound"]
+  source_security_group_id = [var.client_security_group_id]
 }
 
 # Create security rule to enable scale cluster egress communication

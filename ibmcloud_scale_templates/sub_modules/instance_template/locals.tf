@@ -1,12 +1,9 @@
 locals {
-  # Cluster type helpers - simplified boolean logic
-  is_compute_cluster = contains(["Compute-only", "Combined-compute-storage"], var.cluster_type)
-  is_storage_cluster = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type)
-
-  compute_or_combined    = local.is_compute_cluster && var.total_compute_cluster_instances > 0
-  storage_or_combined    = local.is_storage_cluster && var.total_storage_cluster_instances > 0
-  storage_and_protocol   = local.is_storage_cluster && var.total_protocol_instances > 0
-  storage_and_gateway    = local.is_storage_cluster && var.total_gateway_instances > 0
+  # Cluster type helpers
+  compute_or_combined    = contains(["Compute-only", "Combined-compute-storage"], var.cluster_type) && var.total_compute_cluster_instances > 0
+  storage_or_combined    = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_storage_cluster_instances > 0
+  storage_and_protocol   = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_protocol_instances > 0
+  storage_and_gateway    = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_gateway_instances > 0
   create_placement_group = length(var.vpc_availability_zones) == 1 && var.enable_placement_group
 
   # Derive storage DNS domain name from zone ID
@@ -22,15 +19,9 @@ locals {
   # Internode protocol ports (CTDB traffic)
   protocol_traffic_ports = [4379]
 
-  # Common subnet/zone selection helpers
-  is_multi_az               = length(var.vpc_availability_zones) > 1
-  is_multi_subnet           = length(var.vpc_storage_cluster_private_subnets) > 1
-  first_two_zones           = local.is_multi_az ? slice(var.vpc_availability_zones, 0, 2) : var.vpc_availability_zones
-  first_two_storage_subnets = local.is_multi_subnet ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets
-
-  # Use protocol subnets if available, otherwise fall back to storage subnets
-  has_protocol_subnets       = var.vpc_protocol_cluster_private_subnets != null && length(var.vpc_protocol_cluster_private_subnets) > 0
-  first_two_protocol_subnets = local.has_protocol_subnets ? (length(var.vpc_protocol_cluster_private_subnets) > 1 ? slice(var.vpc_protocol_cluster_private_subnets, 0, 2) : var.vpc_protocol_cluster_private_subnets) : local.first_two_storage_subnets
+  # Subnet/zone selection helpers - get first two or all if less than two
+  first_two_zones           = length(var.vpc_availability_zones) > 1 ? slice(var.vpc_availability_zones, 0, 2) : var.vpc_availability_zones
+  first_two_storage_subnets = length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets
 
   # Compute vm name list
   compute_vm_names = local.compute_or_combined ? [
@@ -66,11 +57,11 @@ locals {
     }
   }
 
-  # Protocol VM subnet mapping
+  # Protocol VM subnet mapping - always use storage subnets for primary NIC
   protocol_vm_subnet_map = {
     for idx, vm_name in local.protocol_vm_names :
     vm_name => {
-      subnet           = element(local.first_two_protocol_subnets, idx)
+      subnet           = element(local.first_two_storage_subnets, idx)
       ces_ip_addresses = element(var.ces_ip_addresses, idx)
       zone             = element(local.first_two_zones, idx)
     }

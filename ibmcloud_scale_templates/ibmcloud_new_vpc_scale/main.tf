@@ -84,7 +84,6 @@ module "scale_instances" {
   vpc_id                                   = module.vpc.vpc_ref
   vpc_storage_cluster_private_subnets      = module.vpc.vpc_storage_cluster_private_subnets
   vpc_compute_cluster_private_subnets      = coalescelist(module.vpc.vpc_compute_cluster_private_subnets, module.vpc.vpc_storage_cluster_private_subnets)
-  vpc_protocol_cluster_private_subnets     = module.vpc.vpc_protocol_private_subnets
   dns_service_instance_id                  = module.dns.dns_service_instance_id
   vpc_storage_cluster_dns_zone_id          = module.dns.vpc_storage_dns_zone_id
   vpc_compute_cluster_dns_zone_id          = module.dns.vpc_compute_dns_zone_id
@@ -108,8 +107,12 @@ module "scale_instances" {
   total_protocol_instances                 = var.total_protocol_instances
   protocol_instance_type                   = var.protocol_vsi_profile
   ces_ip_addresses                         = var.ces_ip_addresses
+  client_ip_ranges                         = var.client_ip_ranges
+  client_security_group_id                 = var.client_security_group_id
+  using_cloud_connection                   = var.using_cloud_connection
+  using_direct_connection                  = var.using_direct_connection
   bastion_security_group_id                = var.enable_bastion ? module.bastion.bastion_security_group_id : null
-  using_jumphost_connection                = var.enable_bastion
+  using_jumphost_connection                = var.using_jumphost_connection != null ? var.using_jumphost_connection : var.enable_bastion
   root_device_kms_key_id                   = var.root_device_kms_key_id
   root_device_kms_key_name                 = var.root_device_kms_key_name
   airgap                                   = false

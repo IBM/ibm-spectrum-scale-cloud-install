@@ -27,6 +27,40 @@ variable "boot_disk_type" {
 }
 
 # ========================================
+# Connection Method Configuration
+# ========================================
+
+variable "client_ip_ranges" {
+  type        = list(string)
+  default     = null
+  description = "List of client IP/CIDR ranges for direct connection access via VPN or direct connection."
+}
+
+variable "client_security_group_id" {
+  type        = string
+  default     = null
+  description = "Client security group ID for cloud connection access from another VPC."
+}
+
+variable "using_cloud_connection" {
+  type        = bool
+  default     = false
+  description = "Enable communication from a cloud VM to the VPC. Supports: (1) Same VPC with different security group, (2) Different VPC via VPC peering. Requires client_security_group_id."
+}
+
+variable "using_direct_connection" {
+  type        = bool
+  default     = false
+  description = "Enable communication from on-premise VM to VPC via VPN or Direct Connect. Requires client_ip_ranges."
+}
+
+variable "using_jumphost_connection" {
+  type        = bool
+  default     = false
+  description = "Enable communication from on-premise VM to VPC via bastion/jumphost. When enable_bastion=true, this is automatically enabled unless explicitly set to false. Requires bastion_security_group_id (either from module.bastion or external)."
+}
+
+# ========================================
 # VPC Network Configuration
 # ========================================
 

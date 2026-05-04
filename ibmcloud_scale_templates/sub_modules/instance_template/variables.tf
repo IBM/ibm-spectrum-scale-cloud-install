@@ -87,12 +87,6 @@ variable "vpc_compute_cluster_private_subnets" {
   description = "List of IDs of compute cluster private subnets."
 }
 
-variable "vpc_protocol_cluster_private_subnets" {
-  type        = list(string)
-  nullable    = true
-  description = "List of IDs of protocol cluster private subnets."
-}
-
 # ========================================
 # Bastion
 # ========================================
@@ -103,10 +97,37 @@ variable "bastion_security_group_id" {
   description = "Bastion security group ID."
 }
 
+variable "client_ip_ranges" {
+  type        = list(string)
+  nullable    = true
+  description = "List of client IP/CIDR ranges for direct connection access."
+}
+
+variable "client_security_group_id" {
+  type        = string
+  nullable    = true
+  description = "Client security group ID for cloud connection access (same VPC or peered VPC)."
+}
+
+variable "using_cloud_connection" {
+  type        = bool
+  nullable    = true
+  default     = false
+  description = "Enable communication from a cloud VM to the VPC. Supports: (1) Same VPC with different security group, (2) Different VPC via VPC peering. Requires `client_security_group_id` - the deployment VM's security group will be added to the allowed ingress list of scale cluster security groups."
+}
+
+variable "using_direct_connection" {
+  type        = bool
+  nullable    = true
+  default     = false
+  description = "Enable communication from on-premise VM to VPC via VPN or Direct Connect. Requires `client_ip_ranges` - the on-premise client IPs/CIDRs will be added to the allowed ingress list of scale cluster security groups."
+}
+
 variable "using_jumphost_connection" {
   type        = bool
   nullable    = true
-  description = "This flag is intended to enable ansible related communication between an on-premise virtual machine (VM) to cloud existing virtual private cloud (VPC). This mode requires variable `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_ref`, `bastion_ssh_private_key`, as the jump host related security group reference (id/self-link) will be added to the allowed ingress list of scale (storage/compute) cluster security groups."
+  default     = false
+  description = "Enable communication from on-premise VM to VPC via bastion/jumphost. Requires `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_id`, `bastion_ssh_private_key` - the bastion security group will be added to the allowed ingress list of scale cluster security groups."
 }
 
 # ========================================

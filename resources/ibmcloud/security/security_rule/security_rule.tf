@@ -49,18 +49,33 @@ locals {
   # Normalize inputs
   sg_id     = element(flatten([var.security_group_id]), 0)
   direction = element(flatten([var.sg_direction]), 0)
-  remote    = element(flatten([var.remote_ip_addr]), 0)
 
-  # Create rules only if enabled
-  active_rules = var.enable_rule ? var.rules : []
+  # Normalize remote_ip_addr to always be a list
+  remote_list = flatten([var.remote_ip_addr])
+
+  # Create a flattened list of (rule, remote) combinations
+  # This allows multiple CIDRs to be specified, creating a separate rule for each
+  rule_remote_combinations = var.enable_rule ? flatten([
+    for rule_idx, rule in var.rules : [
+      for remote_idx, remote in local.remote_list : {
+        key       = "${rule.protocol}-${rule_idx}-remote-${remote_idx}"
+        protocol  = rule.protocol
+        port_min  = rule.port_min
+        port_max  = rule.port_max
+        icmp_type = rule.icmp_type
+        icmp_code = rule.icmp_code
+        remote    = remote
+      }
+    ]
+  ]) : []
 }
 
 resource "ibm_is_security_group_rule" "itself" {
-  for_each = { for idx, rule in local.active_rules : "${rule.protocol}-${idx}" => rule }
+  for_each = { for combo in local.rule_remote_combinations : combo.key => combo }
 
   group     = local.sg_id
   direction = local.direction
-  remote    = local.remote
+  remote    = each.value.remote
   protocol  = each.value.protocol
 
   # TCP/UDP ports

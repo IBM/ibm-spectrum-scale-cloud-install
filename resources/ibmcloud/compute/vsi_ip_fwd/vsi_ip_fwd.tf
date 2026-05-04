@@ -156,7 +156,7 @@ resource "ibm_dns_resource_record" "ces_a_itself" {
   ttl         = 3600
 }
 
-# Create "PTR" record: IPv4 -> hostname
+# Create "PTR" records
 resource "ibm_dns_resource_record" "ces_ptr_itself" {
   instance_id = var.dns_services_instance_id
   zone_id     = var.reverse_dns_zone_id
