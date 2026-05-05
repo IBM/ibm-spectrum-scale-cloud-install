@@ -34,11 +34,11 @@ module "protocol_security_group" {
 
 # Create security rules to enable scale/gpfs traffic within compute/storage instances.
 module "scale_cluster_ingress_security_rule" {
-  source            = "../../../resources/ibmcloud/security/security_rule"
-  enable_rule       = true
-  security_group_id = module.cluster_security_group.sec_group_id
-  sg_direction      = "inbound"
-  remote_ip_addr    = module.cluster_security_group.sec_group_id
+  source                   = "../../../resources/ibmcloud/security/security_rule_sg"
+  enable_rule              = true
+  security_group_id        = module.cluster_security_group.sec_group_id
+  sg_direction             = "inbound"
+  source_security_group_id = module.cluster_security_group.sec_group_id
   rules = concat(
     [for port in local.tcp_port_scale_cluster : {
       protocol = "tcp"
@@ -108,11 +108,11 @@ module "scale_cluster_egress_security_rule" {
 }
 
 module "protocol_cluster_security_rule" {
-  source            = "../../../resources/ibmcloud/security/security_rule"
-  enable_rule       = var.total_protocol_instances > 0
-  security_group_id = module.protocol_security_group.sec_group_id
-  sg_direction      = "inbound"
-  remote_ip_addr    = module.protocol_security_group.sec_group_id
+  source                   = "../../../resources/ibmcloud/security/security_rule_sg"
+  enable_rule              = var.total_protocol_instances > 0
+  security_group_id        = module.protocol_security_group.sec_group_id
+  sg_direction             = "inbound"
+  source_security_group_id = module.protocol_security_group.sec_group_id
   rules = [for port in local.protocol_traffic_ports : {
     protocol = "tcp"
     port_min = port
@@ -159,14 +159,13 @@ module "compute_cluster_instances" {
   source                            = "../../../resources/ibmcloud/compute/vsi_0_vol"
   ami_id                            = var.compute_cluster_image_id
   dns_services_instance_id          = var.dns_service_instance_id
-  forward_dns_zone_id               = var.vpc_compute_cluster_dns_zone_id
-  reverse_dns_zone_id               = var.vpc_reverse_dns_zone_id
+  dns_zone_id                       = var.vpc_compute_cluster_dns_zone_id
   instance_type                     = var.compute_cluster_instance_type
   name_prefix                       = each.key
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
-  security_groups                   = [module.cluster_security_group.sec_group_id]
+  security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
   ssh_key_id                        = module.compute_ssh_key.ssh_key_id
@@ -180,15 +179,14 @@ module "storage_cluster_instances" {
   ami_id                            = var.storage_cluster_image_id
   disks                             = each.value["disks"]
   dns_services_instance_id          = var.dns_service_instance_id
-  forward_dns_zone_id               = var.vpc_storage_cluster_dns_zone_id
-  reverse_dns_zone_id               = var.vpc_reverse_dns_zone_id
+  dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
   instance_type                     = var.storage_cluster_instance_type
   name_prefix                       = each.key
   placement_group                   = local.create_placement_group ? ibm_is_placement_group.storage_cluster[0].id : null
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
-  security_groups                   = [module.cluster_security_group.sec_group_id]
+  security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
   ssh_key_id                        = module.storage_ssh_key.ssh_key_id
@@ -203,15 +201,14 @@ module "storage_cluster_tie_breaker_instance" {
   ami_id                            = var.storage_cluster_image_id
   disks                             = each.value["disks"]
   dns_services_instance_id          = var.dns_service_instance_id
-  forward_dns_zone_id               = var.vpc_storage_cluster_dns_zone_id
-  reverse_dns_zone_id               = var.vpc_reverse_dns_zone_id
+  dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
   instance_type                     = var.storage_cluster_tiebreaker_instance_type
   name_prefix                       = each.key
   placement_group                   = local.create_placement_group ? ibm_is_placement_group.storage_cluster[0].id : null
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
-  security_groups                   = [module.cluster_security_group.sec_group_id]
+  security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
   ssh_key_id                        = module.storage_ssh_key.ssh_key_id
@@ -225,14 +222,13 @@ module "protocol_instances" {
   source                            = "../../../resources/ibmcloud/compute/vsi_ip_fwd"
   ami_id                            = var.storage_cluster_image_id
   dns_services_instance_id          = var.dns_service_instance_id
-  forward_dns_zone_id               = var.vpc_storage_cluster_dns_zone_id
-  reverse_dns_zone_id               = var.vpc_reverse_dns_zone_id
+  dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
   instance_type                     = var.protocol_instance_type
   name_prefix                       = each.key
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
-  security_groups                   = [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
+  security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   ces_ipaddress                     = each.value["ces_ip_addresses"]
   tags                              = var.tags
@@ -246,8 +242,7 @@ module "gateway_instances" {
   source                            = "../../../resources/ibmcloud/compute/vsi_0_vol"
   ami_id                            = var.storage_cluster_image_id
   dns_services_instance_id          = var.dns_service_instance_id
-  forward_dns_zone_id               = var.vpc_storage_cluster_dns_zone_id
-  reverse_dns_zone_id               = var.vpc_reverse_dns_zone_id
+  dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
   instance_type                     = var.gateway_instance_type
   name_prefix                       = each.key
   root_device_kms_key_instance_id   = var.root_device_kms_key_id

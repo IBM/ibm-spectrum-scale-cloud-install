@@ -68,12 +68,6 @@ variable "vpc_compute_cluster_dns_zone_id" {
   description = "DNS zone ID for compute cluster."
 }
 
-variable "vpc_reverse_dns_zone_id" {
-  type        = string
-  nullable    = true
-  default     = null
-  description = "DNS zone ID for reverse DNS lookups."
-}
 
 variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)

@@ -18,11 +18,6 @@ output "vpc_storage_dns_zone_id" {
   description = "IBM Cloud DNS storage cluster zone ID."
 }
 
-output "vpc_reverse_dns_zone_id" {
-  value       = local.reverse_dns_zone_exists ? local.reverse_dns_zone_id : module.reverse_dns_zone.dns_zone_id
-  description = "IBM Cloud DNS reverse zone ID."
-}
-
 output "vpc_protocol_dns_zone_id" {
   value       = module.protocol_dns_zone.dns_zone_id
   description = "IBM Cloud DNS protocol cluster zone ID."

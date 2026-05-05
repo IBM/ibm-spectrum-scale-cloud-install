@@ -34,7 +34,6 @@ module "dns" {
   vpc_storage_cluster_dns_domain  = var.vpc_storage_cluster_dns_domain
   vpc_compute_cluster_dns_domain  = var.vpc_compute_cluster_dns_domain
   vpc_protocol_cluster_dns_domain = var.vpc_protocol_cluster_dns_domain
-  vpc_reverse_dns_domain          = var.vpc_reverse_dns_domain
   ibmcloud_api_key                = var.ibmcloud_api_key
   tags                            = var.tags
 }
@@ -87,7 +86,6 @@ module "scale_instances" {
   dns_service_instance_id                  = module.dns.dns_service_instance_id
   vpc_storage_cluster_dns_zone_id          = module.dns.vpc_storage_dns_zone_id
   vpc_compute_cluster_dns_zone_id          = module.dns.vpc_compute_dns_zone_id
-  vpc_reverse_dns_zone_id                  = module.dns.vpc_reverse_dns_zone_id
   total_storage_cluster_instances          = var.total_storage_cluster_instances
   storage_cluster_image_id                 = var.storage_vsi_osimage_id
   storage_cluster_instance_type            = var.storage_vsi_profile

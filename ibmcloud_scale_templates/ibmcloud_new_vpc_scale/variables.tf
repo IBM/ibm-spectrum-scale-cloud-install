@@ -56,7 +56,7 @@ variable "using_direct_connection" {
 
 variable "using_jumphost_connection" {
   type        = bool
-  default     = false
+  default     = null
   description = "Enable communication from on-premise VM to VPC via bastion/jumphost. When enable_bastion=true, this is automatically enabled unless explicitly set to false. Requires bastion_security_group_id (either from module.bastion or external)."
 }
 
@@ -126,12 +126,6 @@ variable "vpc_protocol_cluster_dns_domain" {
   type        = string
   default     = "protoscale.com"
   description = "DNS domain name for protocol cluster nodes."
-}
-
-variable "vpc_reverse_dns_domain" {
-  type        = string
-  default     = "10.in-addr.arpa"
-  description = "Reverse DNS domain name for reverse DNS lookups (PTR records)."
 }
 
 variable "create_dns_zone" {

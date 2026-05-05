@@ -17,10 +17,9 @@
     4. Compute DNS permitted network (associates VPC with compute zone)
     5. Protocol DNS zone (optional, if vpc_protocol_cluster_dns_domain is provided)
     6. Protocol DNS permitted network (associates VPC with protocol zone)
-    7. Reverse DNS zone (for Compute-only and Combined-compute-storage)
-    8. Reverse DNS permitted network (associates VPC with reverse zone)
 
     Note: If DNS zones already exist, the module will reuse them instead of creating new ones.
+    Note: Reverse DNS (PTR records) can be added directly to the forward DNS zones as per IBM Cloud DNS documentation.
 */
 
 # Create DNS service instance if not provided
@@ -103,23 +102,5 @@ module "protocol_dns_permitted_network" {
   permitted_count = (var.create_dns_zone || local.protocol_dns_zone_exists) && local.is_protocol_cluster ? 1 : 0
   instance_id     = local.dns_instance_id
   zone_id         = local.protocol_dns_zone_exists ? local.protocol_dns_zone_id : module.protocol_dns_zone.dns_zone_id
-  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
-}
-
-# Creates a new reverse private DNS zone in IBMCloud
-module "reverse_dns_zone" {
-  source         = "../../../resources/ibmcloud/network/dns_zone"
-  turn_on        = var.create_dns_zone && local.is_compute_cluster
-  dns_domain     = var.vpc_reverse_dns_domain
-  dns_service_id = local.dns_instance_id
-  description    = "Private DNS Zone for Spectrum Scale reverse DNS lookups."
-  dns_label      = var.resource_prefix
-}
-
-module "reverse_dns_permitted_network" {
-  source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  permitted_count = (var.create_dns_zone || local.reverse_dns_zone_exists) && local.is_compute_cluster ? 1 : 0
-  instance_id     = local.dns_instance_id
-  zone_id         = local.reverse_dns_zone_exists ? local.reverse_dns_zone_id : module.reverse_dns_zone.dns_zone_id
   vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
 }

@@ -597,7 +597,6 @@ terraform destroy -auto-approve
 | <a name="input_using_direct_connection"></a> [using_direct_connection](#input_using_direct_connection) | Enable communication from on-premise VM to VPC via VPN or Direct Connect. Requires `client_ip_ranges` - the on-premise client IPs/CIDRs will be added to the allowed ingress list of scale cluster security groups. | `bool` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | Enable communication from on-premise VM to VPC via bastion/jumphost. Requires `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_id`, `bastion_ssh_private_key` - the bastion security group will be added to the allowed ingress list of scale cluster security groups. | `bool` |
 | <a name="input_vpc_compute_cluster_dns_zone_id"></a> [vpc_compute_cluster_dns_zone_id](#input_vpc_compute_cluster_dns_zone_id) | DNS zone ID for compute cluster. | `string` |
-| <a name="input_vpc_reverse_dns_zone_id"></a> [vpc_reverse_dns_zone_id](#input_vpc_reverse_dns_zone_id) | DNS zone ID for reverse DNS lookups. | `string` |
 | <a name="input_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#input_vpc_storage_cluster_dns_zone_id) | DNS zone ID for storage cluster. | `string` |
 
 #### Outputs

@@ -14,15 +14,13 @@ locals {
   # DNS zone IDs from existing zones
   storage_dns_zone_id  = lookup(local.dns_zone_map, var.vpc_storage_cluster_dns_domain, null)
   compute_dns_zone_id  = lookup(local.dns_zone_map, var.vpc_compute_cluster_dns_domain, null)
-  reverse_dns_zone_id  = lookup(local.dns_zone_map, var.vpc_reverse_dns_domain, null)
   protocol_dns_zone_id = local.is_protocol_cluster ? lookup(local.dns_zone_map, var.vpc_protocol_cluster_dns_domain, null) : null
 
   # DNS zone existence flags
   storage_dns_zone_exists  = local.storage_dns_zone_id != null
   compute_dns_zone_exists  = local.compute_dns_zone_id != null
-  reverse_dns_zone_exists  = local.reverse_dns_zone_id != null
   protocol_dns_zone_exists = local.protocol_dns_zone_id != null
 
   # Determine if VPC data source is needed
-  needs_vpc_data = var.create_dns_zone || local.storage_dns_zone_exists || local.compute_dns_zone_exists || local.reverse_dns_zone_exists || local.protocol_dns_zone_exists
+  needs_vpc_data = var.create_dns_zone || local.storage_dns_zone_exists || local.compute_dns_zone_exists || local.protocol_dns_zone_exists
 }

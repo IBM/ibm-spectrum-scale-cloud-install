@@ -103,10 +103,6 @@ output "vpc_compute_dns_zone_id" {
   description = "IBM Cloud DNS compute cluster zone ID."
 }
 
-output "vpc_reverse_dns_zone_id" {
-  value       = module.dns.vpc_reverse_dns_zone_id
-  description = "IBM Cloud DNS reverse zone ID."
-}
 
 output "vpc_protocol_dns_zone_id" {
   value       = module.dns.vpc_protocol_dns_zone_id
@@ -162,7 +158,7 @@ output "bastion_public_ip_addresses" {
   value       = module.bastion.bastion_public_ip_addresses
   description = "List of public IP addresses for bastion instances. Use these IPs to SSH into the bastion."
 }
-/*
+
 output "compute_cluster_instance_ids" {
   value       = try(module.scale_instances.compute_cluster_instance_ids, [])
   description = "Compute cluster instance ids."
@@ -207,4 +203,3 @@ output "placement_group_id" {
   value       = try(module.scale_instances.placement_group_id, null)
   description = "IBM Cloud placement group id for single-AZ deployments."
 }
-*/

@@ -58,12 +58,6 @@ variable "vpc_region" {
   description = "The IBM Cloud region where resources will be created. Examples: us-south, us-east, eu-gb, eu-de."
 }
 
-variable "vpc_reverse_dns_domain" {
-  type        = string
-  nullable    = false
-  description = "IBM Cloud reverse DNS zone name."
-}
-
 variable "vpc_storage_cluster_dns_domain" {
   type        = string
   nullable    = false
