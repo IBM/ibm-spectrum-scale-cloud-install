@@ -42,8 +42,8 @@ variable "resource_group_id" {
 
 variable "vpc_compute_cluster_dns_domain" {
   type        = string
-  nullable    = false
-  description = "IBM Cloud DNS zone name for compute cluster."
+  default     = null
+  description = "IBM Cloud DNS zone name for compute cluster. Required only when deploying compute nodes."
 }
 
 variable "vpc_ref" {
@@ -60,8 +60,8 @@ variable "vpc_region" {
 
 variable "vpc_storage_cluster_dns_domain" {
   type        = string
-  nullable    = false
-  description = "IBM Cloud DNS zone name for storage cluster."
+  default     = null
+  description = "IBM Cloud DNS zone name for storage cluster. Required only when deploying storage nodes."
 }
 
 variable "vpc_protocol_cluster_dns_domain" {

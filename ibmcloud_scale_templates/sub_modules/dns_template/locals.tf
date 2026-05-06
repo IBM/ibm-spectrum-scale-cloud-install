@@ -11,9 +11,9 @@ locals {
     for zone in data.ibm_dns_zones.all_zones.dns_zones : zone.name => zone.zone_id
   }
 
-  # DNS zone IDs from existing zones
-  storage_dns_zone_id  = lookup(local.dns_zone_map, var.vpc_storage_cluster_dns_domain, null)
-  compute_dns_zone_id  = lookup(local.dns_zone_map, var.vpc_compute_cluster_dns_domain, null)
+  # DNS zone IDs from existing zones (only lookup if domain is provided)
+  storage_dns_zone_id  = var.vpc_storage_cluster_dns_domain != null ? lookup(local.dns_zone_map, var.vpc_storage_cluster_dns_domain, null) : null
+  compute_dns_zone_id  = var.vpc_compute_cluster_dns_domain != null ? lookup(local.dns_zone_map, var.vpc_compute_cluster_dns_domain, null) : null
   protocol_dns_zone_id = local.is_protocol_cluster ? lookup(local.dns_zone_map, var.vpc_protocol_cluster_dns_domain, null) : null
 
   # DNS zone existence flags

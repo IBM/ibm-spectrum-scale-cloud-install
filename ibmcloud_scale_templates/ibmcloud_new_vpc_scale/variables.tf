@@ -88,14 +88,14 @@ variable "vpc_storage_cluster_private_subnets_cidr_blocks" {
 
 variable "vpc_compute_cluster_private_subnets_cidr_blocks" {
   type        = list(string)
-  default     = ["10.241.0.0/24"]
-  description = "List of CIDR blocks for compute cluster private subnets. Set to empty array [] to use storage cluster subnets instead."
+  default     = []
+  description = "List of CIDR blocks for compute cluster private subnets. Set to empty array [] to use storage cluster subnets or skip compute subnet creation."
 }
 
 variable "vpc_protocol_private_subnets_cidr_blocks" {
   type        = list(string)
-  default     = ["10.241.2.0/24", "10.241.65.0/24", "10.241.129.0/24"]
-  description = "List of CIDR blocks for protocol node private subnets, one per availability zone. Required only if deploying protocol nodes."
+  default     = []
+  description = "List of CIDR blocks for protocol node private subnets, one per availability zone. Required only if deploying protocol nodes. Set to empty array [] to skip protocol subnet creation."
 }
 
 variable "vpc_public_subnets_cidr_blocks" {
@@ -112,20 +112,20 @@ variable "dns_service_instance_id" {
 
 variable "vpc_storage_cluster_dns_domain" {
   type        = string
-  default     = "strgscale.com"
-  description = "DNS domain name for storage cluster nodes."
+  default     = null
+  description = "DNS domain name for storage cluster nodes. Required when deploying storage nodes."
 }
 
 variable "vpc_compute_cluster_dns_domain" {
   type        = string
-  default     = "compscale.com"
-  description = "DNS domain name for compute cluster nodes."
+  default     = null
+  description = "DNS domain name for compute cluster nodes. Required only if deploying compute nodes."
 }
 
 variable "vpc_protocol_cluster_dns_domain" {
   type        = string
-  default     = "protoscale.com"
-  description = "DNS domain name for protocol cluster nodes."
+  default     = null
+  description = "DNS domain name for protocol cluster nodes. Required only if deploying protocol nodes."
 }
 
 variable "create_dns_zone" {
@@ -151,7 +151,12 @@ variable "bastion_public_key_path" {
 
   validation {
     condition     = var.bastion_public_key_path == null || fileexists(var.bastion_public_key_path)
-    error_message = "The bastion_public_key_path must be a valid file path to an existing SSH public key file: ${var.bastion_public_key_path}"
+    error_message = "The bastion_public_key_path must be a valid file path to an existing SSH public key file when provided."
+  }
+
+  validation {
+    condition     = !var.enable_bastion || var.bastion_public_key_path != null
+    error_message = "The bastion_public_key_path is required when enable_bastion is true."
   }
 }
 
@@ -178,8 +183,8 @@ variable "remote_cidr_blocks" {
 
 variable "total_storage_cluster_instances" {
   type        = number
-  default     = 4
-  description = "Total number of virtual server instances to deploy for the storage cluster."
+  default     = 0
+  description = "Total number of virtual server instances to deploy for the storage cluster. Set to 0 to skip storage cluster deployment."
 }
 
 variable "total_storage_volumes" {
@@ -208,12 +213,17 @@ variable "storage_volume_iops" {
 
 variable "storage_cluster_public_key_path" {
   type        = string
-  nullable    = false
-  description = "The ssh public key to be created used to launch the storage cluster."
+  default     = null
+  description = "The ssh public key to be created used to launch the storage cluster. Required only when total_storage_cluster_instances > 0."
 
   validation {
-    condition     = fileexists(var.storage_cluster_public_key_path)
-    error_message = "The storage_cluster_public_key_path must be a valid file path to an existing SSH public key file: ${var.storage_cluster_public_key_path}"
+    condition     = var.storage_cluster_public_key_path == null || fileexists(var.storage_cluster_public_key_path)
+    error_message = "The storage_cluster_public_key_path must be a valid file path to an existing SSH public key file when provided."
+  }
+
+  validation {
+    condition     = var.total_storage_cluster_instances == 0 || var.storage_cluster_public_key_path != null
+    error_message = "The storage_cluster_public_key_path is required when total_storage_cluster_instances > 0."
   }
 }
 
@@ -241,18 +251,23 @@ variable "storage_cluster_tiebreaker_instance_type" {
 
 variable "total_compute_cluster_instances" {
   type        = number
-  default     = 3
-  description = "Total number of virtual server instances to deploy for the compute cluster."
+  default     = 0
+  description = "Total number of virtual server instances to deploy for the compute cluster. Set to 0 for storage-only deployments."
 }
 
 variable "compute_cluster_public_key_path" {
   type        = string
-  nullable    = false
-  description = "The ssh public key to be created used to launch the compute cluster."
+  default     = null
+  description = "The ssh public key to be created used to launch the compute cluster. Required only when total_compute_cluster_instances > 0."
 
   validation {
-    condition     = fileexists(var.compute_cluster_public_key_path)
-    error_message = "The compute_cluster_public_key_path must be a valid file path to an existing SSH public key file: ${var.compute_cluster_public_key_path}"
+    condition     = var.compute_cluster_public_key_path == null || fileexists(var.compute_cluster_public_key_path)
+    error_message = "The compute_cluster_public_key_path must be a valid file path to an existing SSH public key file when provided."
+  }
+
+  validation {
+    condition     = var.total_compute_cluster_instances == 0 || var.compute_cluster_public_key_path != null
+    error_message = "The compute_cluster_public_key_path is required when total_compute_cluster_instances > 0."
   }
 }
 

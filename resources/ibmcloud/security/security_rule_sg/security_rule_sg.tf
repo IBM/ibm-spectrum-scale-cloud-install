@@ -1,9 +1,6 @@
 /*
     Creates protocol-specific security group rules for TCP, UDP, and ICMP
     using a source security group as the remote target.
-
-    This module is intended for security-group-to-security-group rules and
-    avoids for_each over apply-time security group IDs.
 */
 
 terraform {

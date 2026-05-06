@@ -440,13 +440,13 @@ terraform destroy -auto-approve
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key needed for authentication. | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | ID of the resource group where DNS service instance will be created (only used if dns_service_instance_id is not provided). | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. Example: ibm-storage-scale | `string` |
-| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | IBM Cloud DNS zone name for compute cluster. | `string` |
 | <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC name to be associated with the DNS zone. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | The IBM Cloud region where resources will be created. Examples: us-south, us-east, eu-gb, eu-de. | `string` |
-| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | IBM Cloud DNS zone name for storage cluster. | `string` |
 | <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id. If not provided, a new DNS service instance will be created. | `string` |
 | <a name="input_tags"></a> [tags](#input_tags) | List of tags to be attached to DNS resources. | `list(string)` |
+| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | IBM Cloud DNS zone name for compute cluster. Required only when deploying compute nodes. | `string` |
 | <a name="input_vpc_protocol_cluster_dns_domain"></a> [vpc_protocol_cluster_dns_domain](#input_vpc_protocol_cluster_dns_domain) | IBM Cloud DNS zone name for protocol cluster. If not provided, protocol nodes will use storage cluster DNS zone. | `string` |
+| <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | IBM Cloud DNS zone name for storage cluster. Required only when deploying storage nodes. | `string` |
 
 #### Outputs
 

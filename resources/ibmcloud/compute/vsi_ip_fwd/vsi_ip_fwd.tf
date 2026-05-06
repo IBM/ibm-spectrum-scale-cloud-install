@@ -94,7 +94,6 @@ resource "ibm_is_instance" "itself" {
 
   user_data = <<EOF
 #!/usr/bin/env bash
-# Hostname settings
 hostnamectl set-hostname --static "${var.name_prefix}.${local.zone_name}"
 echo "${var.name_prefix}.${local.zone_name}" > /etc/hostname
 EOF

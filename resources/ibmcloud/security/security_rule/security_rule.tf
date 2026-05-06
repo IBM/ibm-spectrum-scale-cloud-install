@@ -1,6 +1,5 @@
 /*
     Creates protocol-specific security group rules for TCP, UDP, and ICMP.
-    Supports multiple protocols and ports in a single module call using modern IBM provider API.
 */
 
 terraform {

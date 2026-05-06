@@ -148,12 +148,17 @@ variable "storage_cluster_instance_type" {
 
 variable "storage_cluster_public_key_path" {
   type        = string
-  nullable    = false
-  description = "The ssh public key to be created used to launch the storage cluster."
+  default     = null
+  description = "The ssh public key to be created used to launch the storage cluster. Required only when total_storage_cluster_instances > 0."
 
   validation {
-    condition     = fileexists(var.storage_cluster_public_key_path)
-    error_message = "The storage_cluster_public_key_path must be a valid file path to an existing SSH public key file: ${var.storage_cluster_public_key_path}"
+    condition     = var.storage_cluster_public_key_path == null || fileexists(var.storage_cluster_public_key_path)
+    error_message = "The storage_cluster_public_key_path must be a valid file path to an existing SSH public key file when provided."
+  }
+
+  validation {
+    condition     = var.total_storage_cluster_instances == 0 || var.storage_cluster_public_key_path != null
+    error_message = "The storage_cluster_public_key_path is required when total_storage_cluster_instances > 0."
   }
 }
 
@@ -211,12 +216,17 @@ variable "compute_cluster_instance_type" {
 
 variable "compute_cluster_public_key_path" {
   type        = string
-  nullable    = false
-  description = "The ssh public key to be created used to launch the compute cluster."
+  default     = null
+  description = "The ssh public key to be created used to launch the compute cluster. Required only when total_compute_cluster_instances > 0."
 
   validation {
-    condition     = fileexists(var.compute_cluster_public_key_path)
-    error_message = "The compute_cluster_public_key_path must be a valid file path to an existing SSH public key file: ${var.compute_cluster_public_key_path}"
+    condition     = var.compute_cluster_public_key_path == null || fileexists(var.compute_cluster_public_key_path)
+    error_message = "The compute_cluster_public_key_path must be a valid file path to an existing SSH public key file when provided."
+  }
+
+  validation {
+    condition     = var.total_compute_cluster_instances == 0 || var.compute_cluster_public_key_path != null
+    error_message = "The compute_cluster_public_key_path is required when total_compute_cluster_instances > 0."
   }
 }
 
