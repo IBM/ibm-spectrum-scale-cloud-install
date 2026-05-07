@@ -6,30 +6,40 @@ variable "enable_bastion" {
 
 variable "bastion_image_ref" {
   type        = string
-  nullable    = false
-  description = "IBM Cloud image ID for the bastion instance."
+  default     = null
+  description = "IBM Cloud image ID for the bastion instance. Required when enable_bastion is true."
+
+  validation {
+    condition     = !var.enable_bastion || var.bastion_image_ref != null
+    error_message = "bastion_image_ref is required when enable_bastion is true."
+  }
 }
 
 variable "bastion_instance_type" {
   type        = string
-  nullable    = false
-  description = "Instance type to use for the bastion instance."
+  default     = null
+  description = "Instance type to use for the bastion instance. Required when enable_bastion is true."
+
+  validation {
+    condition     = !var.enable_bastion || var.bastion_instance_type != null
+    error_message = "bastion_instance_type is required when enable_bastion is true."
+  }
 }
 
 variable "bastion_public_key_path" {
   type        = string
-  nullable    = false
-  description = "Path to the SSH public key file for bastion host access."
+  default     = null
+  description = "Path to the SSH public key file for bastion host access. Required when enable_bastion is true."
 
   validation {
-    condition     = fileexists(var.bastion_public_key_path)
-    error_message = "The bastion_public_key_path must be a valid file path to an existing SSH public key file: ${var.bastion_public_key_path}"
+    condition     = !var.enable_bastion || (var.bastion_public_key_path != null && fileexists(var.bastion_public_key_path))
+    error_message = "bastion_public_key_path is required and must be a valid file path when enable_bastion is true."
   }
 }
 
 variable "bastion_public_ssh_port" {
   type        = number
-  nullable    = false
+  default     = 22
   description = "Set the SSH port to use from desktop to the bastion."
 
   validation {
@@ -40,7 +50,7 @@ variable "bastion_public_ssh_port" {
 
 variable "desired_instance_count" {
   type        = number
-  nullable    = false
+  default     = 1
   description = "Bastion instance desired count."
 }
 

@@ -17,7 +17,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 
     ```jsonc
     {
-        "ibmcloud_api_key": "YOUR_API_KEY",
+        "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
         "resource_group": null,
         "resource_prefix": "ibm-storage-scale",
         "vpc_region": "us-south",
@@ -30,15 +30,49 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
         ],
         "vpc_storage_cluster_dns_domain": "strgscale.com",
         "enable_bastion": true,
-        "bastion_public_key_path": "/root/.ssh/id_rsa.pub",
-        "bastion_osimage_id": "r006-30e6297e-e9a1-4b26-8659-301a063c57ec",
+        "bastion_public_key_path": "/path/to/your/ssh/public_key.pub",
+        "bastion_osimage_id": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         "bastion_vsi_profile": "cx2-2x4",
         "remote_cidr_blocks": [
-            "0.0.0.0/0"
+            "YOUR_IP_ADDRESS/32"
         ],
         "total_storage_cluster_instances": 4,
-        "storage_cluster_public_key_path": "/root/.ssh/id_rsa.pub",
-        "storage_vsi_osimage_id": "r006-6c2c359b-0202-4252-b68a-755ac654a7c7",
+        "storage_cluster_public_key_path": "/path/to/your/ssh/public_key.pub",
+        "storage_vsi_osimage_id": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "storage_vsi_profile": "bx2d-8x32",
+        "total_storage_volumes": 4,
+        "cluster_type": "Storage-only",
+        "enable_placement_group": true,
+        "tags": ["project:storage-scale", "owner:terraform"]
+    }
+    ```
+
+    Minimal Example (with VPC peering and direct connection):
+
+    ```jsonc
+    {
+        "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
+        "resource_group": null,
+        "resource_prefix": "ibm-storage-scale",
+        "vpc_region": "us-south",
+        "vpc_availability_zones": [
+            "us-south-1"
+        ],
+        "vpc_cidr_block": "10.241.0.0/18",
+        "vpc_storage_cluster_private_subnets_cidr_blocks": [
+            "10.241.1.0/24"
+        ],
+        "vpc_storage_cluster_dns_domain": "strgscale.com",
+        "enable_bastion": false,
+        "enable_transit_gateway": true,
+        "peer_vpc_crn": "crn:v1:bluemix:public:is:REGION:a/ACCOUNT_ID::vpc:VPC_ID",
+        "using_direct_connection": true,
+        "client_ip_ranges": [
+            "YOUR_NETWORK_CIDR"
+        ],
+        "total_storage_cluster_instances": 4,
+        "storage_cluster_public_key_path": "/path/to/your/ssh/public_key.pub",
+        "storage_vsi_osimage_id": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
         "storage_vsi_profile": "bx2d-8x32",
         "total_storage_volumes": 4,
         "cluster_type": "Storage-only",

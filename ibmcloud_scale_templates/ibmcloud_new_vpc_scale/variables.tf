@@ -162,6 +162,7 @@ variable "bastion_public_key_path" {
 
 variable "bastion_osimage_id" {
   type        = string
+  default     = null
   description = "IBM Cloud OS image ID for bastion virtual server instance. Use 'ibmcloud is images' to find available image IDs in your region."
 }
 
