@@ -203,3 +203,38 @@ output "placement_group_id" {
   value       = try(module.scale_instances.placement_group_id, null)
   description = "IBM Cloud placement group id for single-AZ deployments."
 }
+
+# Node list consumed by the scale-operator cluster controller via
+# spec.cloud.outputsRef. The controller reads the "nodes" key from the
+# tofu-controller output Secret and expects each entry to have:
+#   hostname (string), ip (string), role (string).
+output "nodes" {
+  description = "Node inventory for the scale-operator cluster controller."
+  value = concat(
+    [for inst in try(module.scale_instances.storage_cluster_instance_details, []) : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "storage"
+    }],
+    [for inst in try(module.scale_instances.storage_cluster_dec_instance_details, []) : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "storage-tiebreaker"
+    }],
+    [for inst in try(module.scale_instances.compute_cluster_instance_details, []) : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "compute"
+    }],
+    [for inst in try(module.scale_instances.gateway_instance_details, []) : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "gateway"
+    }],
+    [for inst in try(module.scale_instances.protocol_instance_details, []) : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "protocol"
+    }]
+  )
+}
