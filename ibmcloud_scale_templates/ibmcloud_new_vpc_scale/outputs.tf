@@ -18,14 +18,14 @@ output "resource_group_id" {
   description = "The ID of the resource group used for VPC resources."
 }
 
+output "resource_group_name" {
+  value       = module.vpc.resource_group_name
+  description = "The name of the resource group used for VPC resources."
+}
+
 output "vpc_storage_cluster_private_subnets" {
   value       = module.vpc.vpc_storage_cluster_private_subnets
   description = "List of IDs of storage cluster private subnets."
-}
-
-output "vpc_storage_cluster_private_subnets_name" {
-  value       = module.vpc.vpc_storage_cluster_private_subnets_name
-  description = "List of names of storage cluster private subnets."
 }
 
 output "vpc_storage_cluster_private_subnets_crn" {
@@ -33,14 +33,14 @@ output "vpc_storage_cluster_private_subnets_crn" {
   description = "List of CRNs of storage cluster private subnets."
 }
 
+output "vpc_storage_cluster_private_subnets_name" {
+  value       = module.vpc.vpc_storage_cluster_private_subnets_name
+  description = "List of names of storage cluster private subnets."
+}
+
 output "vpc_compute_cluster_private_subnets" {
   value       = module.vpc.vpc_compute_cluster_private_subnets
   description = "List of IDs of compute cluster private subnets."
-}
-
-output "vpc_compute_cluster_private_subnets_name" {
-  value       = module.vpc.vpc_compute_cluster_private_subnets_name
-  description = "List of names of compute cluster private subnets."
 }
 
 output "vpc_compute_cluster_private_subnets_crn" {
@@ -48,14 +48,14 @@ output "vpc_compute_cluster_private_subnets_crn" {
   description = "List of CRNs of compute cluster private subnets."
 }
 
+output "vpc_compute_cluster_private_subnets_name" {
+  value       = module.vpc.vpc_compute_cluster_private_subnets_name
+  description = "List of names of compute cluster private subnets."
+}
+
 output "vpc_protocol_private_subnets" {
   value       = module.vpc.vpc_protocol_private_subnets
   description = "List of IDs of protocol cluster private subnets."
-}
-
-output "vpc_protocol_private_subnets_name" {
-  value       = module.vpc.vpc_protocol_private_subnets_name
-  description = "List of names of protocol cluster private subnets."
 }
 
 output "vpc_protocol_private_subnets_crn" {
@@ -63,19 +63,24 @@ output "vpc_protocol_private_subnets_crn" {
   description = "List of CRNs of protocol cluster private subnets."
 }
 
+output "vpc_protocol_private_subnets_name" {
+  value       = module.vpc.vpc_protocol_private_subnets_name
+  description = "List of names of protocol cluster private subnets."
+}
+
 output "vpc_public_subnets" {
   value       = module.vpc.vpc_public_subnets
   description = "List of IDs of public subnets."
 }
 
-output "vpc_public_subnets_name" {
-  value       = module.vpc.vpc_public_subnets_name
-  description = "List of names of public subnets."
-}
-
 output "vpc_public_subnets_crn" {
   value       = module.vpc.vpc_public_subnets_crn
   description = "List of CRNs of public subnets."
+}
+
+output "vpc_public_subnets_name" {
+  value       = module.vpc.vpc_public_subnets_name
+  description = "List of names of public subnets."
 }
 
 output "vpc_public_gateway_ids" {

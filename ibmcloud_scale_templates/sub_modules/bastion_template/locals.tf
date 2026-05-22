@@ -9,9 +9,9 @@ locals {
 
   # Validate that required arrays are not empty
   has_availability_zones = length(var.vpc_availability_zones) > 0
-  has_subnets            = length(var.vpc_auto_scaling_group_subnets) > 0
+  has_subnets            = length(var.vpc_auto_scaling_group_subnet_ids) > 0
 
   # Select first zone and subnet (with validation)
   selected_zone   = local.has_availability_zones ? var.vpc_availability_zones[0] : null
-  selected_subnet = local.has_subnets ? var.vpc_auto_scaling_group_subnets[0] : null
+  selected_subnet = local.has_subnets ? var.vpc_auto_scaling_group_subnet_ids[0] : null
 }

@@ -9,11 +9,6 @@
     7. SSH key pairs for instance access
 */
 
-# Fetch all DNS zones to derive storage DNS domain from zone ID
-data "ibm_dns_zones" "storage_zones" {
-  instance_id = var.dns_service_instance_id
-}
-
 # Create cluster security group
 module "cluster_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
@@ -162,6 +157,7 @@ module "compute_cluster_instances" {
   dns_zone_id                       = var.vpc_compute_cluster_dns_zone_id
   instance_type                     = var.compute_cluster_instance_type
   name_prefix                       = each.key
+  resource_group_id                 = var.resource_group_id
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
@@ -183,6 +179,7 @@ module "storage_cluster_instances" {
   instance_type                     = var.storage_cluster_instance_type
   name_prefix                       = each.key
   placement_group                   = local.create_placement_group ? ibm_is_placement_group.storage_cluster[0].id : null
+  resource_group_id                 = var.resource_group_id
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
@@ -205,6 +202,7 @@ module "storage_cluster_tie_breaker_instance" {
   instance_type                     = var.storage_cluster_tiebreaker_instance_type
   name_prefix                       = each.key
   placement_group                   = local.create_placement_group ? ibm_is_placement_group.storage_cluster[0].id : null
+  resource_group_id                 = var.resource_group_id
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
@@ -225,6 +223,7 @@ module "protocol_instances" {
   dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
   instance_type                     = var.protocol_instance_type
   name_prefix                       = each.key
+  resource_group_id                 = var.resource_group_id
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
@@ -245,6 +244,7 @@ module "gateway_instances" {
   dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
   instance_type                     = var.gateway_instance_type
   name_prefix                       = each.key
+  resource_group_id                 = var.resource_group_id
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type

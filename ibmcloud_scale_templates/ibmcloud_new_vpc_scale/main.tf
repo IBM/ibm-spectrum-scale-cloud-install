@@ -25,36 +25,35 @@ module "vpc" {
 module "dns" {
   source                          = "../sub_modules/dns_template"
   vpc_region                      = var.vpc_region
-  vpc_ref                         = module.vpc.vpc_ref
+  vpc_crn                         = module.vpc.vpc_crn
   resource_prefix                 = var.resource_prefix
   resource_group_id               = module.vpc.resource_group_id
   cluster_type                    = var.cluster_type
   create_dns_zone                 = var.create_dns_zone
   dns_service_instance_id         = var.dns_service_instance_id
   vpc_storage_cluster_dns_domain  = var.vpc_storage_cluster_dns_domain
-  vpc_compute_cluster_dns_domain  = var.vpc_compute_cluster_dns_domain
   vpc_protocol_cluster_dns_domain = var.vpc_protocol_cluster_dns_domain
   ibmcloud_api_key                = var.ibmcloud_api_key
   tags                            = var.tags
 }
 
 module "bastion" {
-  source                         = "../sub_modules/bastion_template"
-  enable_bastion                 = var.enable_bastion
-  vpc_region                     = var.vpc_region
-  vpc_availability_zones         = var.vpc_availability_zones
-  vpc_ref                        = module.vpc.vpc_ref
-  resource_prefix                = var.resource_prefix
-  resource_group_id              = module.vpc.resource_group_id
-  bastion_image_ref              = var.bastion_osimage_id
-  remote_cidr_blocks             = var.remote_cidr_blocks
-  bastion_instance_type          = var.bastion_vsi_profile
-  bastion_public_key_path        = var.bastion_public_key_path
-  vpc_auto_scaling_group_subnets = module.vpc.vpc_storage_cluster_private_subnets
-  bastion_public_ssh_port        = 22
-  desired_instance_count         = 1
-  ibmcloud_api_key               = var.ibmcloud_api_key
-  tags                           = var.tags
+  source                            = "../sub_modules/bastion_template"
+  enable_bastion                    = var.enable_bastion
+  vpc_region                        = var.vpc_region
+  vpc_availability_zones            = var.vpc_availability_zones
+  vpc_id                            = module.vpc.vpc_ref
+  resource_prefix                   = var.resource_prefix
+  resource_group_id                 = module.vpc.resource_group_id
+  bastion_image_ref                 = var.bastion_osimage_id
+  remote_cidr_blocks                = var.remote_cidr_blocks
+  bastion_instance_type             = var.bastion_vsi_profile
+  bastion_public_key_path           = var.bastion_public_key_path
+  vpc_auto_scaling_group_subnet_ids = coalescelist(module.vpc.vpc_compute_cluster_private_subnets, module.vpc.vpc_storage_cluster_private_subnets)
+  bastion_public_ssh_port           = 22
+  desired_instance_count            = 1
+  ibmcloud_api_key                  = var.ibmcloud_api_key
+  tags                              = var.tags
 }
 
 module "vpc_peering" {
@@ -81,8 +80,8 @@ module "scale_instances" {
   cluster_type                             = var.cluster_type
   ibmcloud_api_key                         = var.ibmcloud_api_key
   vpc_id                                   = module.vpc.vpc_ref
-  vpc_storage_cluster_private_subnets      = module.vpc.vpc_storage_cluster_private_subnets
-  vpc_compute_cluster_private_subnets      = coalescelist(module.vpc.vpc_compute_cluster_private_subnets, module.vpc.vpc_storage_cluster_private_subnets)
+  vpc_storage_cluster_private_subnet_ids   = module.vpc.vpc_storage_cluster_private_subnets
+  vpc_compute_cluster_private_subnet_ids   = coalescelist(module.vpc.vpc_compute_cluster_private_subnets, module.vpc.vpc_storage_cluster_private_subnets)
   dns_service_instance_id                  = module.dns.dns_service_instance_id
   vpc_storage_cluster_dns_zone_id          = module.dns.vpc_storage_dns_zone_id
   vpc_compute_cluster_dns_zone_id          = module.dns.vpc_compute_dns_zone_id
@@ -106,7 +105,7 @@ module "scale_instances" {
   protocol_instance_type                   = var.protocol_vsi_profile
   ces_ip_addresses                         = var.ces_ip_addresses
   client_ip_ranges                         = var.client_ip_ranges
-  client_security_group_id                 = var.client_security_group_id
+  client_security_group_id                 = var.client_security_group_name
   using_cloud_connection                   = var.using_cloud_connection
   using_direct_connection                  = var.using_direct_connection
   bastion_security_group_id                = var.enable_bastion ? module.bastion.bastion_security_group_id : null

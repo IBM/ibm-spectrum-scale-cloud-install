@@ -25,7 +25,7 @@ variable "ibmcloud_api_key" {
 variable "dns_service_instance_id" {
   type        = string
   default     = null
-  description = "IBM Cloud DNS Service Instance Id. If not provided, a new DNS service instance will be created."
+  description = "IBM Cloud DNS Service Instance GUID. If not provided, a new DNS service instance will be created. You must provide the GUID (e.g., 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'), not the instance name."
 }
 
 variable "resource_prefix" {
@@ -37,7 +37,7 @@ variable "resource_prefix" {
 variable "resource_group_id" {
   type        = string
   nullable    = false
-  description = "ID of the resource group where DNS service instance will be created (only used if dns_service_instance_id is not provided)."
+  description = "ID of the IBM Cloud resource group where DNS service instance will be created."
 }
 
 variable "vpc_compute_cluster_dns_domain" {
@@ -46,10 +46,10 @@ variable "vpc_compute_cluster_dns_domain" {
   description = "IBM Cloud DNS zone name for compute cluster. Required only when deploying compute nodes."
 }
 
-variable "vpc_ref" {
+variable "vpc_crn" {
   type        = string
   nullable    = false
-  description = "VPC name to be associated with the DNS zone."
+  description = "VPC CRN to be associated with the DNS zone."
 }
 
 variable "vpc_region" {

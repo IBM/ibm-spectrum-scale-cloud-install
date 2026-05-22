@@ -36,10 +36,10 @@ variable "client_ip_ranges" {
   description = "List of client IP/CIDR ranges for direct connection access via VPN or direct connection."
 }
 
-variable "client_security_group_id" {
+variable "client_security_group_name" {
   type        = string
   default     = null
-  description = "Client security group ID for cloud connection access from another VPC."
+  description = "Client security group name for cloud connection access from another VPC."
 }
 
 variable "using_cloud_connection" {
@@ -116,12 +116,6 @@ variable "vpc_storage_cluster_dns_domain" {
   description = "DNS domain name for storage cluster nodes. Required when deploying storage nodes."
 }
 
-variable "vpc_compute_cluster_dns_domain" {
-  type        = string
-  default     = null
-  description = "DNS domain name for compute cluster nodes. Required only if deploying compute nodes."
-}
-
 variable "vpc_protocol_cluster_dns_domain" {
   type        = string
   default     = null
@@ -152,11 +146,6 @@ variable "bastion_public_key_path" {
   validation {
     condition     = var.bastion_public_key_path == null || fileexists(var.bastion_public_key_path)
     error_message = "The bastion_public_key_path must be a valid file path to an existing SSH public key file when provided."
-  }
-
-  validation {
-    condition     = !var.enable_bastion || var.bastion_public_key_path != null
-    error_message = "The bastion_public_key_path is required when enable_bastion is true."
   }
 }
 
@@ -221,11 +210,6 @@ variable "storage_cluster_public_key_path" {
     condition     = var.storage_cluster_public_key_path == null || fileexists(var.storage_cluster_public_key_path)
     error_message = "The storage_cluster_public_key_path must be a valid file path to an existing SSH public key file when provided."
   }
-
-  validation {
-    condition     = var.total_storage_cluster_instances == 0 || var.storage_cluster_public_key_path != null
-    error_message = "The storage_cluster_public_key_path is required when total_storage_cluster_instances > 0."
-  }
 }
 
 variable "storage_vsi_osimage_id" {
@@ -264,11 +248,6 @@ variable "compute_cluster_public_key_path" {
   validation {
     condition     = var.compute_cluster_public_key_path == null || fileexists(var.compute_cluster_public_key_path)
     error_message = "The compute_cluster_public_key_path must be a valid file path to an existing SSH public key file when provided."
-  }
-
-  validation {
-    condition     = var.total_compute_cluster_instances == 0 || var.compute_cluster_public_key_path != null
-    error_message = "The compute_cluster_public_key_path is required when total_compute_cluster_instances > 0."
   }
 }
 

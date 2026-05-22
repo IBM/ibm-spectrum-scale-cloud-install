@@ -13,6 +13,24 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
     | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zones` keyword. Ex: `"vpc_availability_zones": ["us-south-1", "us-south-2", "us-south-3"]` |
     | --- |
 
+    **CIDR Configuration Guidelines:**
+
+    - **Default VPC CIDR**: `10.241.0.0/18` (provides address space for all subnets)
+    - **Default Subnet CIDRs**:
+      - Storage cluster private subnets: `10.241.1.0/24`
+      - Public subnets: `10.241.0.0/24` (if bastion is enabled)
+      - Compute cluster private subnets: Use storage cluster subnets or specify custom ranges
+      - Protocol private subnets: Specify custom ranges if deploying protocol nodes
+
+    **Important**: If you need to use CIDR ranges outside the default `10.241.0.0/18` range, you **must explicitly specify ALL CIDR blocks**, including:
+    - `vpc_cidr_block` - The main VPC CIDR block
+    - `vpc_public_subnets_cidr_blocks` - Public subnet CIDRs (required if `enable_bastion` is true)
+    - `vpc_storage_cluster_private_subnets_cidr_blocks` - Storage cluster subnet CIDRs
+    - `vpc_compute_cluster_private_subnets_cidr_blocks` - Compute cluster subnet CIDRs (if applicable)
+    - `vpc_protocol_private_subnets_cidr_blocks` - Protocol node subnet CIDRs (if applicable)
+
+    All subnet CIDR blocks must fall within the VPC CIDR block range. Ensure there are no overlapping CIDR ranges between different subnet types.
+
     Minimal Example (create storage-only cluster):
 
     ```jsonc
@@ -103,7 +121,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="input_boot_disk_type"></a> [boot_disk_type](#input_boot_disk_type) | Boot disk profile/type for all cluster instances (e.g., general-purpose, 5iops-tier, 10iops-tier). | `string` |
 | <a name="input_ces_ip_addresses"></a> [ces_ip_addresses](#input_ces_ip_addresses) | List of CES (Cluster Export Services) IP addresses for protocol nodes. Length must equal total_protocol_instances. | `list(string)` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of client IP/CIDR ranges for direct connection access via VPN or direct connection. | `list(string)` |
-| <a name="input_client_security_group_id"></a> [client_security_group_id](#input_client_security_group_id) | Client security group ID for cloud connection access from another VPC. | `string` |
+| <a name="input_client_security_group_name"></a> [client_security_group_name](#input_client_security_group_name) | Client security group name for cloud connection access from another VPC. | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Options: 'Storage-only', 'Compute-only', 'Combined-compute-storage'. | `string` |
 | <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | The ssh public key to be created used to launch the compute cluster. Required only when total_compute_cluster_instances > 0. | `string` |
 | <a name="input_compute_vsi_osimage_id"></a> [compute_vsi_osimage_id](#input_compute_vsi_osimage_id) | IBM Cloud OS image ID for compute cluster virtual server instances. Format: r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. Use 'ibmcloud is images' to find available image IDs in your region. | `string` |
@@ -142,7 +160,6 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="input_using_direct_connection"></a> [using_direct_connection](#input_using_direct_connection) | Enable communication from on-premise VM to VPC via VPN or Direct Connect. Requires client_ip_ranges. | `bool` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | Enable communication from on-premise VM to VPC via bastion/jumphost. When enable_bastion=true, this is automatically enabled unless explicitly set to false. Requires bastion_security_group_id (either from module.bastion or external). | `bool` |
 | <a name="input_vpc_cidr_block"></a> [vpc_cidr_block](#input_vpc_cidr_block) | CIDR block for VPC that will be automatically subdivided into address prefixes for each availability zone. | `string` |
-| <a name="input_vpc_compute_cluster_dns_domain"></a> [vpc_compute_cluster_dns_domain](#input_vpc_compute_cluster_dns_domain) | DNS domain name for compute cluster nodes. Required only if deploying compute nodes. | `string` |
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of CIDR blocks for compute cluster private subnets. Set to empty array [] to use storage cluster subnets or skip compute subnet creation. | `list(string)` |
 | <a name="input_vpc_protocol_cluster_dns_domain"></a> [vpc_protocol_cluster_dns_domain](#input_vpc_protocol_cluster_dns_domain) | DNS domain name for protocol cluster nodes. Required only if deploying protocol nodes. | `string` |
 | <a name="input_vpc_protocol_private_subnets_cidr_blocks"></a> [vpc_protocol_private_subnets_cidr_blocks](#input_vpc_protocol_private_subnets_cidr_blocks) | List of CIDR blocks for protocol node private subnets, one per availability zone. Required only if deploying protocol nodes. Set to empty array [] to skip protocol subnet creation. | `list(string)` |
@@ -166,6 +183,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="output_peer_vpc_connection_id"></a> [peer_vpc_connection_id](#output_peer_vpc_connection_id) | ID of the Transit Gateway connection for the peer VPC. |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | IBM Cloud placement group id for single-AZ deployments. |
 | <a name="output_resource_group_id"></a> [resource_group_id](#output_resource_group_id) | The ID of the resource group used for VPC resources. |
+| <a name="output_resource_group_name"></a> [resource_group_name](#output_resource_group_name) | The name of the resource group used for VPC resources. |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |

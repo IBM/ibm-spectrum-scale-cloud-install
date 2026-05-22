@@ -22,3 +22,18 @@ output "vpc_protocol_dns_zone_id" {
   value       = module.protocol_dns_zone.dns_zone_id
   description = "IBM Cloud DNS protocol cluster zone ID."
 }
+
+output "vpc_storage_dns_domain" {
+  value       = var.vpc_storage_cluster_dns_domain
+  description = "IBM Cloud DNS storage cluster domain name."
+}
+
+output "vpc_compute_dns_domain" {
+  value       = var.vpc_compute_cluster_dns_domain
+  description = "IBM Cloud DNS compute cluster domain name."
+}
+
+output "vpc_protocol_dns_domain" {
+  value       = var.vpc_protocol_cluster_dns_domain
+  description = "IBM Cloud DNS protocol cluster domain name."
+}

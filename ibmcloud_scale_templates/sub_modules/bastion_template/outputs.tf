@@ -13,6 +13,11 @@ output "bastion_security_group_id" {
   description = "Bastion security group ID."
 }
 
+output "bastion_security_group_name" {
+  value       = var.enable_bastion ? local.bastion_sg_name : null
+  description = "Bastion security group name."
+}
+
 output "bastion_public_ip_addresses" {
   value       = try(module.bastion_autoscaling_group[0].floating_ip_addresses, [])
   description = "List of public IP addresses for bastion instances."

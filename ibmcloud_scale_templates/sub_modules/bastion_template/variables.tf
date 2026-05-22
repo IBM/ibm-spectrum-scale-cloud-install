@@ -8,33 +8,18 @@ variable "bastion_image_ref" {
   type        = string
   default     = null
   description = "IBM Cloud image ID for the bastion instance. Required when enable_bastion is true."
-
-  validation {
-    condition     = !var.enable_bastion || var.bastion_image_ref != null
-    error_message = "bastion_image_ref is required when enable_bastion is true."
-  }
 }
 
 variable "bastion_instance_type" {
   type        = string
   default     = null
   description = "Instance type to use for the bastion instance. Required when enable_bastion is true."
-
-  validation {
-    condition     = !var.enable_bastion || var.bastion_instance_type != null
-    error_message = "bastion_instance_type is required when enable_bastion is true."
-  }
 }
 
 variable "bastion_public_key_path" {
   type        = string
   default     = null
   description = "Path to the SSH public key file for bastion host access. Required when enable_bastion is true."
-
-  validation {
-    condition     = !var.enable_bastion || (var.bastion_public_key_path != null && fileexists(var.bastion_public_key_path))
-    error_message = "bastion_public_key_path is required and must be a valid file path when enable_bastion is true."
-  }
 }
 
 variable "bastion_public_ssh_port" {
@@ -64,7 +49,7 @@ variable "ibmcloud_api_key" {
 variable "resource_group_id" {
   type        = string
   nullable    = false
-  description = "The ID of the resource group for bastion resources."
+  description = "ID of the IBM Cloud resource group for bastion resources."
 }
 
 variable "remote_cidr_blocks" {
@@ -90,14 +75,14 @@ variable "vpc_region" {
   description = "IBM Cloud region where bastion and all resources will be deployed (e.g., 'us-east', 'us-south', 'eu-de')."
 }
 
-variable "vpc_auto_scaling_group_subnets" {
+variable "vpc_auto_scaling_group_subnet_ids" {
   type        = list(string)
   nullable    = false
-  description = "List of subnets where the Auto Scaling Group will deploy the instances."
+  description = "List of subnet IDs where the Auto Scaling Group will deploy the instances."
 
   validation {
-    condition     = length(var.vpc_auto_scaling_group_subnets) > 0
-    error_message = "vpc_auto_scaling_group_subnets must contain at least one subnet."
+    condition     = length(var.vpc_auto_scaling_group_subnet_ids) > 0
+    error_message = "vpc_auto_scaling_group_subnet_ids must contain at least one subnet."
   }
 }
 
@@ -112,10 +97,10 @@ variable "vpc_availability_zones" {
   }
 }
 
-variable "vpc_ref" {
+variable "vpc_id" {
   type        = string
   nullable    = false
-  description = "VPC id were to deploy the bastion."
+  description = "ID of the VPC where to deploy the bastion."
 }
 
 variable "tags" {

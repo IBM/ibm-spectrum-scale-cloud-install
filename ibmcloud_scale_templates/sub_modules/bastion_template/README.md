@@ -38,26 +38,21 @@ Create `terraform.tfvars.json`:
 
 ```jsonc
 {
+    "ibmcloud_api_key": "your-ibm-cloud-api-key",
     "vpc_region": "us-south",
     "vpc_availability_zones": ["us-south-1"],
     "resource_prefix": "scale-bastion",
-    "resource_group_id": "xxxx-xxxx-xxxx-xxxx",
-    "vpc_id": "r013-xxxx-xxxx-xxxx",
-    "bastion_vsi_profile": "cx2-2x4",
-    "bastion_osimage_name": "ibm-ubuntu-22-04-minimal-amd64-2",
-    "bastion_key_pair": "my-ssh-key",
-    "bastion_subnet_id": "xxxx-xxxx-xxxx-xxxx",
-    "remote_cidr_blocks": ["203.0.113.0/24"]
+    "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "vpc_id": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "bastion_instance_type": "cx2-2x4",
+    "bastion_image_ref": "r006-yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+    "bastion_public_key_path": "/path/to/your/ssh/key.pub",
+    "vpc_auto_scaling_group_subnet_ids": ["0717-zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"],
+    "remote_cidr_blocks": ["x.x.x.x/x"]
 }
 ```
 
-### 3. Set IBM Cloud Credentials
-
-```bash
-export IC_API_KEY="your-ibm-cloud-api-key"
-```
-
-### 4. Deploy Bastion
+### 3. Deploy Bastion
 
 ```bash
 terraform init
@@ -71,15 +66,16 @@ terraform apply -auto-approve
 
 ```jsonc
 {
+    "ibmcloud_api_key": "your-ibm-cloud-api-key",
     "vpc_region": "us-south",
     "vpc_availability_zones": ["us-south-1"],
     "resource_prefix": "bastion",
-    "resource_group_id": "abc123-def456-ghi789",
-    "vpc_id": "r013-vpc-id-here",
-    "bastion_vsi_profile": "cx2-2x4",
-    "bastion_osimage_name": "ibm-ubuntu-22-04-minimal-amd64-2",
-    "bastion_key_pair": "bastion-ssh-key",
-    "bastion_subnet_id": "subnet-id-here",
+    "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "vpc_id": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "bastion_instance_type": "cx2-2x4",
+    "bastion_image_ref": "r006-yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+    "bastion_public_key_path": "/path/to/bastion-ssh-key.pub",
+    "vpc_auto_scaling_group_subnet_ids": ["0717-zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"],
     "remote_cidr_blocks": ["0.0.0.0/0"]
 }
 ```
@@ -88,18 +84,19 @@ terraform apply -auto-approve
 
 ```jsonc
 {
+    "ibmcloud_api_key": "your-ibm-cloud-api-key",
     "vpc_region": "us-east",
     "vpc_availability_zones": ["us-east-1"],
     "resource_prefix": "prod-bastion",
-    "resource_group_id": "abc123-def456-ghi789",
-    "vpc_id": "r013-vpc-id-here",
-    "bastion_vsi_profile": "cx2-4x8",
-    "bastion_osimage_name": "ibm-ubuntu-22-04-minimal-amd64-2",
-    "bastion_key_pair": "prod-bastion-key",
-    "bastion_subnet_id": "subnet-id-here",
+    "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "vpc_id": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "bastion_instance_type": "cx2-4x8",
+    "bastion_image_ref": "r006-yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
+    "bastion_public_key_path": "/path/to/prod-bastion-key.pub",
+    "vpc_auto_scaling_group_subnet_ids": ["0717-zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"],
     "remote_cidr_blocks": [
-        "203.0.113.0/24",    // Office network
-        "198.51.100.50/32"   // Admin workstation
+        "x.x.x.x/x",    // Office network
+        "x.x.x.x/x"   // Admin workstation
     ]
 }
 ```
@@ -296,17 +293,18 @@ This sub-module is automatically used by the main `ibmcloud_new_vpc_scale` templ
 
 ```hcl
 module "bastion" {
-  source                 = "../sub_modules/bastion_template"
-  vpc_region             = var.vpc_region
-  vpc_availability_zones = var.vpc_availability_zones
-  vpc_id                 = module.vpc.vpc_id
-  resource_prefix        = var.resource_prefix
-  resource_group_id      = data.ibm_resource_group.itself.id
-  bastion_osimage_name   = var.bastion_osimage_name
-  remote_cidr_blocks     = var.remote_cidr_blocks
-  bastion_vsi_profile    = var.bastion_vsi_profile
-  bastion_key_pair       = var.bastion_key_pair
-  bastion_subnet_id      = module.vpc.vpc_storage_cluster_private_subnets[0]
+  source                              = "../sub_modules/bastion_template"
+  ibmcloud_api_key                    = var.ibmcloud_api_key
+  vpc_region                          = var.vpc_region
+  vpc_availability_zones              = var.vpc_availability_zones
+  vpc_id                              = module.vpc.vpc_id
+  resource_prefix                     = var.resource_prefix
+  resource_group_id                   = module.vpc.resource_group_id
+  bastion_image_ref                   = var.bastion_image_ref
+  bastion_instance_type               = var.bastion_instance_type
+  bastion_public_key_path             = var.bastion_public_key_path
+  vpc_auto_scaling_group_subnet_ids   = [module.vpc.vpc_storage_cluster_private_subnets[0]]
+  remote_cidr_blocks                  = var.remote_cidr_blocks
 }
 ```
 
@@ -338,11 +336,11 @@ terraform destroy -auto-approve
 | Name | Description | Type |
 | ---- | ----------- | ---- |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
-| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | The ID of the resource group for bastion resources. | `string` |
+| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | ID of the IBM Cloud resource group for bastion resources. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix added to all resource names for identification and organization (e.g., 'ibm-storage-scale'). | `string` |
-| <a name="input_vpc_auto_scaling_group_subnets"></a> [vpc_auto_scaling_group_subnets](#input_vpc_auto_scaling_group_subnets) | List of subnets where the Auto Scaling Group will deploy the instances. | `list(string)` |
+| <a name="input_vpc_auto_scaling_group_subnet_ids"></a> [vpc_auto_scaling_group_subnet_ids](#input_vpc_auto_scaling_group_subnet_ids) | List of subnet IDs where the Auto Scaling Group will deploy the instances. | `list(string)` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
-| <a name="input_vpc_ref"></a> [vpc_ref](#input_vpc_ref) | VPC id were to deploy the bastion. | `string` |
+| <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | ID of the VPC where to deploy the bastion. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where bastion and all resources will be deployed (e.g., 'us-east', 'us-south', 'eu-de'). | `string` |
 | <a name="input_bastion_image_ref"></a> [bastion_image_ref](#input_bastion_image_ref) | IBM Cloud image ID for the bastion instance. Required when enable_bastion is true. | `string` |
 | <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for the bastion instance. Required when enable_bastion is true. | `string` |
@@ -361,4 +359,5 @@ terraform destroy -auto-approve
 | <a name="output_bastion_instance_autoscaling_group_id"></a> [bastion_instance_autoscaling_group_id](#output_bastion_instance_autoscaling_group_id) | Bastion instances autoscaling group ID. |
 | <a name="output_bastion_public_ip_addresses"></a> [bastion_public_ip_addresses](#output_bastion_public_ip_addresses) | List of public IP addresses for bastion instances. |
 | <a name="output_bastion_security_group_id"></a> [bastion_security_group_id](#output_bastion_security_group_id) | Bastion security group ID. |
+| <a name="output_bastion_security_group_name"></a> [bastion_security_group_name](#output_bastion_security_group_name) | Bastion security group name. |
 <!-- END_TF_DOCS -->

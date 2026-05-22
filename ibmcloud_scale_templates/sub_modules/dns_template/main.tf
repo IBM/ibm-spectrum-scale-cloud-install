@@ -52,19 +52,13 @@ module "storage_dns_zone" {
   dns_label      = var.resource_prefix
 }
 
-# Conditionally fetch VPC data only when DNS resources will be created
-data "ibm_is_vpc" "vpc" {
-  count      = local.needs_vpc_data ? 1 : 0
-  identifier = var.vpc_ref
-}
-
 # Creates a storage DNS permitted network
 module "storage_dns_permitted_network" {
   source          = "../../../resources/ibmcloud/network/dns_permitted_network"
   permitted_count = (var.create_dns_zone || local.storage_dns_zone_exists) && local.is_storage_cluster ? 1 : 0
   instance_id     = local.dns_instance_id
   zone_id         = local.storage_dns_zone_exists ? local.storage_dns_zone_id : module.storage_dns_zone.dns_zone_id
-  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
+  vpc_crn         = var.vpc_crn
 }
 
 # Creates a new compute private DNS zone in IBMCloud
@@ -83,7 +77,7 @@ module "compute_dns_permitted_network" {
   permitted_count = (var.create_dns_zone || local.compute_dns_zone_exists) && local.is_compute_cluster ? 1 : 0
   instance_id     = local.dns_instance_id
   zone_id         = local.compute_dns_zone_exists ? local.compute_dns_zone_id : module.compute_dns_zone.dns_zone_id
-  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
+  vpc_crn         = var.vpc_crn
 }
 
 # Creates a new protocol private DNS zone in IBMCloud
@@ -102,5 +96,5 @@ module "protocol_dns_permitted_network" {
   permitted_count = (var.create_dns_zone || local.protocol_dns_zone_exists) && local.is_protocol_cluster ? 1 : 0
   instance_id     = local.dns_instance_id
   zone_id         = local.protocol_dns_zone_exists ? local.protocol_dns_zone_id : module.protocol_dns_zone.dns_zone_id
-  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
+  vpc_crn         = var.vpc_crn
 }

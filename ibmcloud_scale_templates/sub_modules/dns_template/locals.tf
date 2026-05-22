@@ -21,6 +21,4 @@ locals {
   compute_dns_zone_exists  = local.compute_dns_zone_id != null
   protocol_dns_zone_exists = local.protocol_dns_zone_id != null
 
-  # Determine if VPC data source is needed
-  needs_vpc_data = var.create_dns_zone || local.storage_dns_zone_exists || local.compute_dns_zone_exists || local.protocol_dns_zone_exists
 }

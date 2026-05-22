@@ -9,12 +9,14 @@
     4. Auto-scaling group for bastion instances
 */
 
+# Use provided IDs directly - no data source lookups needed
+
 module "bastion_security_group" {
   count             = local.create_count
   source            = "../../../resources/ibmcloud/security/security_group"
   turn_on           = true
   sec_group_name    = local.bastion_sg_name
-  vpc_id            = var.vpc_ref
+  vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
   tags              = var.tags
 }
@@ -62,7 +64,7 @@ module "bastion_autoscaling_launch_template" {
   resource_group_id    = var.resource_group_id
   instance_type        = var.bastion_instance_type
   image_id             = var.bastion_image_ref
-  vpc                  = var.vpc_ref
+  vpc                  = var.vpc_id
   zone                 = local.selected_zone
   subnet               = local.selected_subnet
   security_groups      = [module.bastion_security_group[0].sec_group_id]
@@ -75,5 +77,6 @@ module "bastion_autoscaling_group" {
   asg_name               = local.bastion_asg_name
   launch_template_id     = module.bastion_autoscaling_launch_template[0].instance_template_id
   desired_instance_count = var.desired_instance_count
-  subnets                = var.vpc_auto_scaling_group_subnets
+  subnets                = var.vpc_auto_scaling_group_subnet_ids
+  resource_group_id      = var.resource_group_id
 }
