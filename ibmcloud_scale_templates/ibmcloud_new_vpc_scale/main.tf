@@ -50,7 +50,7 @@ module "bastion" {
   remote_cidr_blocks             = var.remote_cidr_blocks
   bastion_instance_type          = var.bastion_vsi_profile
   bastion_public_key_path        = var.bastion_public_key_path
-  vpc_auto_scaling_group_subnets = module.vpc.vpc_storage_cluster_private_subnets
+  vpc_auto_scaling_group_subnets = coalescelist(module.vpc.vpc_compute_cluster_private_subnets, module.vpc.vpc_storage_cluster_private_subnets)
   bastion_public_ssh_port        = 22
   desired_instance_count         = 1
   ibmcloud_api_key               = var.ibmcloud_api_key

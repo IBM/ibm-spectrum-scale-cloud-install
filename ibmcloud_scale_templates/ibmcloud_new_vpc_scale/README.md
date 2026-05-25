@@ -13,6 +13,24 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
     | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zones` keyword. Ex: `"vpc_availability_zones": ["us-south-1", "us-south-2", "us-south-3"]` |
     | --- |
 
+    **CIDR Configuration Guidelines:**
+
+    - **Default VPC CIDR**: `10.241.0.0/18` (provides address space for all subnets)
+    - **Default Subnet CIDRs**:
+      - Storage cluster private subnets: `10.241.1.0/24`
+      - Public subnets: `10.241.0.0/24` (if bastion is enabled)
+      - Compute cluster private subnets: Use storage cluster subnets or specify custom ranges
+      - Protocol private subnets: Specify custom ranges if deploying protocol nodes
+
+    **Important**: If you need to use CIDR ranges outside the default `10.241.0.0/18` range, you **must explicitly specify ALL CIDR blocks**, including:
+    - `vpc_cidr_block` - The main VPC CIDR block
+    - `vpc_public_subnets_cidr_blocks` - Public subnet CIDRs (required if `enable_bastion` is true)
+    - `vpc_storage_cluster_private_subnets_cidr_blocks` - Storage cluster subnet CIDRs
+    - `vpc_compute_cluster_private_subnets_cidr_blocks` - Compute cluster subnet CIDRs (if applicable)
+    - `vpc_protocol_private_subnets_cidr_blocks` - Protocol node subnet CIDRs (if applicable)
+
+    All subnet CIDR blocks must fall within the VPC CIDR block range. Ensure there are no overlapping CIDR ranges between different subnet types.
+
     Minimal Example (create storage-only cluster):
 
     ```jsonc
