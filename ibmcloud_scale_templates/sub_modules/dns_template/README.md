@@ -37,25 +37,25 @@ cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/dns_tem
 
 Create `terraform.tfvars.json`:
 
+**Note**: The `dns_service_instance_id` parameter is optional:
+- **Omit it** (or set to `null`) to create a new DNS service instance
+- **Provide a GUID** (e.g., `"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"`) to reuse an existing DNS service instance by ID
+
 ```jsonc
 {
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
     "vpc_region": "us-south",
     "resource_prefix": "scale-dns",
-    "vpc_id": "r013-xxxx-xxxx-xxxx",
+    "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "vpc_ref": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "cluster_type": "Combined-compute-storage",
     "vpc_storage_cluster_dns_domain": "storage.scale.local",
     "vpc_compute_cluster_dns_domain": "compute.scale.local",
-    "vpc_create_separate_subnets": true,
     "create_dns_zone": true
 }
 ```
 
-### 3. Set IBM Cloud Credentials
-
-```bash
-export IC_API_KEY="your-ibm-cloud-api-key"
-```
-
-### 4. Deploy DNS Resources
+### 3. Deploy DNS Resources
 
 ```bash
 terraform init
@@ -65,46 +65,71 @@ terraform apply -auto-approve
 
 ## Configuration Examples
 
-### Example 1: Storage-Only Cluster DNS
+### Example 1: Storage-Only Cluster DNS (Create New DNS Service Instance)
 
 ```jsonc
 {
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
     "vpc_region": "us-south",
     "resource_prefix": "storage-dns",
-    "vpc_id": "r013-vpc-id-here",
+    "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "vpc_ref": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "cluster_type": "Storage-only",
     "vpc_storage_cluster_dns_domain": "strgscale.com",
-    "vpc_compute_cluster_dns_domain": "",
-    "vpc_create_separate_subnets": false,
     "create_dns_zone": true
 }
 ```
 
-### Example 2: Compute + Storage Cluster DNS
+**Note**: Since `dns_service_instance_id` is not provided, a new DNS service instance will be created.
+
+### Example 2: Combined Compute + Storage Cluster DNS
 
 ```jsonc
 {
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
     "vpc_region": "us-east",
     "resource_prefix": "scale-dns",
-    "vpc_id": "r013-vpc-id-here",
+    "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "vpc_ref": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "cluster_type": "Combined-compute-storage",
     "vpc_storage_cluster_dns_domain": "storage.scale.local",
     "vpc_compute_cluster_dns_domain": "compute.scale.local",
-    "vpc_create_separate_subnets": true,
     "create_dns_zone": true
 }
 ```
 
-### Example 3: Reuse Existing DNS Service
+### Example 3: Reuse Existing DNS Service Instance (by GUID)
 
 ```jsonc
 {
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
     "vpc_region": "us-south",
     "resource_prefix": "scale-dns",
-    "vpc_id": "r013-vpc-id-here",
+    "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "vpc_ref": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "cluster_type": "Combined-compute-storage",
     "vpc_storage_cluster_dns_domain": "storage.scale.local",
     "vpc_compute_cluster_dns_domain": "compute.scale.local",
-    "vpc_create_separate_subnets": true,
-    "create_dns_zone": false,
-    "vpc_dns_service_id": "existing-dns-service-id"
+    "create_dns_zone": true,
+    "dns_service_instance_id": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff"
+}
+```
+
+**Note**: You must provide the DNS service instance **GUID** (not the name). When provided, the existing DNS service instance will be reused instead of creating a new one. You can find the GUID using `ibmcloud resource service-instances --service dns-svcs`.
+
+### Example 4: DNS with Protocol Nodes
+
+```jsonc
+{
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
+    "vpc_region": "us-south",
+    "resource_prefix": "scale-protocol-dns",
+    "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "vpc_ref": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    "cluster_type": "Storage-only",
+    "vpc_storage_cluster_dns_domain": "storage.scale.local",
+    "vpc_protocol_cluster_dns_domain": "protocol.scale.local",
+    "create_dns_zone": true
 }
 ```
 
@@ -151,193 +176,6 @@ ping storage-node-1.storage.scale.local
 ssh root@compute-node-1.compute.scale.local
 ```
 
-### Add Custom DNS Records
-
-```bash
-# Using IBM Cloud CLI
-ibmcloud dns resource-record-create <zone-id> \
-  --type A \
-  --name custom-service \
-  --rdata 10.241.1.10
-
-# Verify
-nslookup custom-service.storage.scale.local
-```
-
-### List DNS Zones and Records
-
-```bash
-# List all DNS zones
-ibmcloud dns zones
-
-# List records in a zone
-ibmcloud dns resource-records <zone-id>
-
-# Get zone details
-ibmcloud dns zone <zone-id>
-```
-
-## DNS Best Practices
-
-### Naming Conventions
-
-1. **Use Descriptive Names**: `storage-node-1`, `compute-node-1`
-2. **Consistent Patterns**: Follow a naming scheme across all nodes
-3. **Environment Prefixes**: `prod-storage-node-1`, `dev-compute-node-1`
-4. **Service Names**: `nfs-server`, `gui-server`, `admin-node`
-
-### Domain Selection
-
-1. **Private Domains**: Use `.local`, `.internal`, or `.private` TLDs
-2. **Avoid Public Domains**: Don't use domains you don't own
-3. **Unique Names**: Ensure domains don't conflict with existing zones
-4. **Meaningful Names**: `storage.scale.local` vs `cluster1.local`
-
-### Performance Optimization
-
-1. **TTL Settings**: Use appropriate TTL values (300-3600 seconds)
-2. **Caching**: Leverage DNS caching on instances
-3. **Multiple Resolvers**: Configure backup DNS servers
-4. **Zone Separation**: Separate zones for different cluster types
-
-## Troubleshooting
-
-### DNS Resolution Fails
-
-**Problem**: Cannot resolve hostnames
-
-**Solutions**:
-```bash
-# 1. Check DNS zones exist
-ibmcloud dns zones
-
-# 2. Verify DNS service is active
-ibmcloud dns instance <service-id>
-
-# 3. Check VPC custom resolver
-ibmcloud is vpc <vpc-id>
-
-# 4. Verify /etc/resolv.conf on instance
-cat /etc/resolv.conf
-# Should contain VPC DNS resolver IP (typically 161.26.0.7)
-
-# 5. Test DNS resolution
-nslookup storage-node-1.storage.scale.local
-dig @161.26.0.7 storage-node-1.storage.scale.local
-
-# 6. Check DNS records exist
-ibmcloud dns resource-records <zone-id>
-```
-
-### Slow DNS Resolution
-
-**Problem**: DNS queries take too long
-
-**Solutions**:
-```bash
-# 1. Check DNS query time
-time nslookup storage-node-1.storage.scale.local
-
-# 2. Verify DNS caching
-systemctl status systemd-resolved
-
-# 3. Configure local DNS cache
-sudo apt install dnsmasq
-# or
-sudo yum install dnsmasq
-
-# 4. Adjust DNS timeout settings
-# Edit /etc/resolv.conf
-options timeout:2 attempts:3
-```
-
-### DNS Records Not Created
-
-**Problem**: Terraform creates zones but no records
-
-**Solutions**:
-```bash
-# 1. Check if instance module creates records
-# DNS records are typically created by instance_template module
-
-# 2. Verify zone IDs are passed correctly
-terraform output vpc_storage_dns_zone_id
-terraform output vpc_compute_dns_zone_id
-
-# 3. Check instance module configuration
-# Ensure dns_zone_id variables are set
-
-# 4. Manually create test record
-ibmcloud dns resource-record-create <zone-id> \
-  --type A --name test --rdata 10.241.1.100
-```
-
-### VPC Not Linked to DNS Zone
-
-**Problem**: DNS resolution doesn't work in VPC
-
-**Solutions**:
-```bash
-# 1. Check VPC permitted networks
-ibmcloud dns permitted-networks <zone-id>
-
-# 2. Add VPC to permitted networks
-ibmcloud dns permitted-network-add <zone-id> \
-  --vpc-crn <vpc-crn> \
-  --type vpc
-
-# 3. Verify custom resolver
-ibmcloud is vpc <vpc-id>
-# Look for dns.resolver section
-```
-
-## Cost Considerations
-
-### DNS Service Pricing
-
-| Component | Cost |
-|-----------|------|
-| DNS Service Instance | Free |
-| DNS Zone | $0.50/zone/month |
-| DNS Queries | First 1 billion queries/month free |
-| Additional Queries | $0.40 per million queries |
-
-### Cost Optimization
-
-1. **Consolidate Zones**: Use fewer zones when possible
-2. **Query Optimization**: Implement DNS caching to reduce queries
-3. **TTL Management**: Use appropriate TTL values to reduce query frequency
-4. **Monitor Usage**: Track DNS query volume
-
-### Example Costs
-
-**Small Deployment** (2 zones):
-- 2 DNS zones: $1.00/month
-- Queries: Free (< 1B/month)
-- **Total: ~$1/month**
-
-**Large Deployment** (5 zones):
-- 5 DNS zones: $2.50/month
-- Queries: Free (< 1B/month)
-- **Total: ~$2.50/month**
-
-## Integration with Main Template
-
-This sub-module is used by the VPC template:
-
-```hcl
-module "dns" {
-  source                          = "../sub_modules/dns_template"
-  vpc_region                      = var.vpc_region
-  vpc_id                          = ibm_is_vpc.vpc.id
-  resource_prefix                 = var.resource_prefix
-  vpc_storage_cluster_dns_domain  = var.vpc_storage_cluster_dns_domain
-  vpc_compute_cluster_dns_domain  = var.vpc_compute_cluster_dns_domain
-  vpc_create_separate_subnets     = var.vpc_create_separate_subnets
-  create_dns_zone                 = true
-}
-```
-
 ## Outputs
 
 After deployment, the following outputs are available:
@@ -347,62 +185,10 @@ After deployment, the following outputs are available:
 terraform output
 
 # Specific outputs
-terraform output vpc_storage_dns_zone_id
+terraform output dns_service_instance_id
 terraform output vpc_compute_dns_zone_id
-terraform output vpc_dns_service_id
-```
-
-## Advanced Configuration
-
-### Custom DNS Records
-
-```bash
-# Add A record
-ibmcloud dns resource-record-create <zone-id> \
-  --type A \
-  --name web-server \
-  --rdata 10.241.1.50 \
-  --ttl 300
-
-# Add CNAME record
-ibmcloud dns resource-record-create <zone-id> \
-  --type CNAME \
-  --name www \
-  --rdata web-server.storage.scale.local \
-  --ttl 300
-
-# Add PTR record (reverse DNS)
-ibmcloud dns resource-record-create <reverse-zone-id> \
-  --type PTR \
-  --name 50.1.241.10.in-addr.arpa \
-  --rdata web-server.storage.scale.local \
-  --ttl 300
-```
-
-### DNS Forwarding
-
-```bash
-# Configure conditional forwarding on instances
-# Edit /etc/systemd/resolved.conf
-[Resolve]
-DNS=161.26.0.7
-Domains=~storage.scale.local ~compute.scale.local
-
-# Restart resolver
-sudo systemctl restart systemd-resolved
-```
-
-### Health Checks
-
-```bash
-# Monitor DNS resolution
-while true; do
-  echo "$(date): $(dig +short storage-node-1.storage.scale.local)"
-  sleep 60
-done
-
-# Check DNS service health
-ibmcloud dns instance <service-id>
+terraform output vpc_storage_dns_zone_id
+terraform output vpc_protocol_dns_zone_id
 ```
 
 ## Cleanup
@@ -413,13 +199,6 @@ terraform destroy -auto-approve
 
 # Note: This will delete all DNS zones and records
 ```
-
-## Additional Resources
-
-- [IBM Cloud DNS Services Documentation](https://cloud.ibm.com/docs/dns-svcs)
-- [VPC Custom Resolver](https://cloud.ibm.com/docs/vpc?topic=vpc-about-dns-svcs)
-- [DNS Best Practices](https://cloud.ibm.com/docs/dns-svcs?topic=dns-svcs-best-practices)
-- [DNS CLI Reference](https://cloud.ibm.com/docs/dns-svcs?topic=dns-svcs-cli-plugin-dns-svcs-cli)
 
 ---
 

@@ -13,40 +13,116 @@ The following steps will provision IBM Cloud resources (compute and storage inst
     | Note: In case of multi availability zone, provide 3 AZ values for the `vpc_availability_zones` keyword. Ex: `"vpc_availability_zones": ["us-south-1", "us-south-2", "us-south-3"]` |
     | --- |
 
-    Minimal Example (create storage and compute cluster):
+    **Example 1: Storage-only Cluster**
 
-    ```jsonc
+    chec```json
     {
+        "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
         "vpc_region": "us-south",
         "vpc_availability_zones": ["us-south-1"],
         "resource_prefix": "spectrum-scale",
-        "resource_group_id": null,                           // Use an existing resource group id
-        "ibmcloud_api_key": null,                            // Set via environment variable IC_API_KEY
-        "vpc_id": null,                                      // Use an existing vpc id
-        "vpc_storage_cluster_private_subnets": [],           // Use an existing vpc private subnet
-        "vpc_compute_cluster_private_subnets": [],           // Use an existing vpc private subnet
+        "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        "vpc_id": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "vpc_storage_cluster_private_subnets": ["0717-yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"],
+        "cluster_type": "Storage-only",
         "total_storage_cluster_instances": 4,
-        "total_compute_cluster_instances": 3,
-        "storage_vsi_profile": "bx2d-8x32",
-        "compute_vsi_profile": "cx2-4x8",
-        "storage_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
-        "compute_vsi_osimage_name": "ibm-redhat-8-6-minimal-amd64-4",
-        "storage_cluster_key_pair": null,                    // Use an existing SSH key name
-        "compute_cluster_key_pair": null,                    // Use an existing SSH key name
-        "storage_cluster_gui_username": "admin",
-        "storage_cluster_gui_password": "Passw0rd",
-        "compute_cluster_gui_username": "admin",
-        "compute_cluster_gui_password": "Passw0rd",
-        "bastion_instance_public_ip": null,                  // Use null if direct connectivity to vpc exists
-        "bastion_security_group_id": null,                   // Use null if direct connectivity to vpc exists
-        "bastion_ssh_private_key": null,                     // Use bastion ssh private key path
-        "dns_service_instance_id": null,                     // IBM Cloud DNS Service instance ID
-        "vpc_storage_cluster_dns_zone_id": null,             // DNS zone ID for storage cluster
-        "vpc_compute_cluster_dns_zone_id": null,             // DNS zone ID for compute cluster
-        "vpc_storage_cluster_dns_domain": "storage.scale.local",
-        "vpc_compute_cluster_dns_domain": "compute.scale.local"
+        "storage_cluster_instance_type": "bx2d-8x32",
+        "storage_cluster_image_id": "r006-zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz",
+        "storage_cluster_public_key_path": "~/.ssh/storage_cluster_key.pub",
+        "bastion_security_group_id": "r006-xxxx-xxxx-xxxx-xxxx",
+        "dns_service_instance_id": "my-dns-service",
+        "vpc_storage_cluster_dns_zone_id": "zone-id-for-storage",
+        "using_jumphost_connection": true,
+        "airgap": false
     }
     ```
+
+    **Example 2: Compute-only Cluster**
+
+    ```json
+    {
+        "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
+        "vpc_region": "us-south",
+        "vpc_availability_zones": ["us-south-1"],
+        "resource_prefix": "spectrum-scale",
+        "resource_group_id": "default",
+        "vpc_id": "r006-xxxx-xxxx-xxxx-xxxx",
+        "vpc_compute_cluster_private_subnets": ["r006-xxxx-xxxx-xxxx-xxxx"],
+        "cluster_type": "Compute-only",
+        "total_compute_cluster_instances": 3,
+        "compute_cluster_instance_type": "cx2-4x8",
+        "compute_cluster_image_id": "r006-xxxx-xxxx-xxxx",
+        "compute_cluster_public_key_path": "~/.ssh/compute_cluster_key.pub",
+        "bastion_security_group_id": "r006-xxxx-xxxx-xxxx-xxxx",
+        "dns_service_instance_id": "my-dns-service",
+        "vpc_compute_cluster_dns_zone_id": "zone-id-for-compute",
+        "using_jumphost_connection": true,
+        "airgap": false
+    }
+    ```
+
+    **Example 3: Combined Storage and Compute Cluster**
+
+    ```json
+    {
+        "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
+        "vpc_region": "us-south",
+        "vpc_availability_zones": ["us-south-1"],
+        "resource_prefix": "spectrum-scale",
+        "resource_group_id": "default",
+        "vpc_id": "r006-xxxx-xxxx-xxxx-xxxx",
+        "vpc_storage_cluster_private_subnets": ["r006-xxxx-xxxx-xxxx-xxxx"],
+        "vpc_compute_cluster_private_subnets": ["r006-xxxx-xxxx-xxxx-xxxx"],
+        "cluster_type": "Combined-compute-storage",
+        "total_storage_cluster_instances": 4,
+        "total_compute_cluster_instances": 3,
+        "storage_cluster_instance_type": "bx2d-8x32",
+        "compute_cluster_instance_type": "cx2-4x8",
+        "storage_cluster_image_id": "r006-xxxx-xxxx-xxxx",
+        "compute_cluster_image_id": "r006-xxxx-xxxx-xxxx",
+        "storage_cluster_public_key_path": "~/.ssh/storage_cluster_key.pub",
+        "compute_cluster_public_key_path": "~/.ssh/compute_cluster_key.pub",
+        "bastion_security_group_id": "r006-xxxx-xxxx-xxxx-xxxx",
+        "dns_service_instance_id": "my-dns-service",
+        "vpc_storage_cluster_dns_zone_id": "zone-id-for-storage",
+        "vpc_compute_cluster_dns_zone_id": "zone-id-for-compute",
+        "using_jumphost_connection": true,
+        "airgap": false
+    }
+    ```
+
+    **Important Notes:**
+    - `cluster_type` is **required** and must be one of: `Storage-only`, `Compute-only`, or `Combined-compute-storage`
+    - `resource_group_id` is **required** - provide the ID of an existing resource group
+    - `vpc_id` is **required** - provide the ID of an existing VPC
+    - `vpc_storage_cluster_private_subnets` and `vpc_compute_cluster_private_subnets` should contain **subnet IDs** (not names)
+    - `storage_cluster_public_key_path` is **required** when `total_storage_cluster_instances > 0`
+    - `compute_cluster_public_key_path` is **required** when `total_compute_cluster_instances > 0`
+    - SSH key paths must point to valid public key files (e.g., `~/.ssh/id_rsa.pub`)
+    - Image IDs must be valid IBM Cloud image identifiers (use `ibmcloud is images` to list available images)
+    - `dns_service_instance_id` can be either a DNS service instance **name** or **GUID**
+    - Optional parameters with default values (can be omitted if defaults are acceptable):
+      - `total_storage_volumes` (default: 0)
+      - `storage_volume_size` (default: 100)
+      - `storage_volume_profile` (default: "general-purpose")
+      - `storage_volume_iops` (default: null)
+      - `boot_disk_type` (default: null)
+      - `enable_placement_group` (default: true)
+      - `placement_group_strategy` (default: "host_spread")
+      - `storage_cluster_image_id` (default: "ibm-redhat-8-3-minimal-amd64-3")
+      - `storage_cluster_instance_type` (default: "bx2d-8x32")
+      - `compute_cluster_image_id` (default: "ibm-redhat-8-3-minimal-amd64-3")
+      - `compute_cluster_instance_type` (default: "cx2-2x4")
+      - `total_compute_cluster_instances` (default: 0)
+      - `total_protocol_instances` (default: 0)
+      - `protocol_instance_type` (default: "cx2-2x4")
+      - `total_gateway_instances` (default: 0)
+      - `gateway_instance_type` (default: "cx2-2x4")
+      - `ces_ip_addresses` (default: [])
+    - At least one connection method should be configured (`using_jumphost_connection`, `using_direct_connection`, or `using_cloud_connection`)
+    - If using `using_jumphost_connection`, you must also provide `bastion_security_group_id`
+    - If using `using_direct_connection`, you must also provide `client_ip_ranges`
+    - If using `using_cloud_connection`, you must also provide `client_security_group_name`
 
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 
@@ -63,47 +139,47 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | ---- | ----------- | ---- |
 | <a name="input_airgap"></a> [airgap](#input_airgap) | If true, instance iam profile, git utils which need internet access will be skipped. | `bool` |
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group ID. | `string` |
+| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
+| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
+| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` |
+| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
+| <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | Image ID to use for provisioning the storage cluster instances. | `string` |
+| <a name="input_storage_cluster_instance_type"></a> [storage_cluster_instance_type](#input_storage_cluster_instance_type) | Instance type to use for provisioning the storage cluster instances. | `string` |
+| <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of virtual server instances to be launched for storage cluster. | `number` |
+| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
+| <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC id were to deploy the bastion. | `string` |
+| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where resources will be provisioned. Example: us-south. | `string` |
 | <a name="input_boot_disk_type"></a> [boot_disk_type](#input_boot_disk_type) | Boot disk type for all cluster instances. | `string` |
 | <a name="input_ces_ip_addresses"></a> [ces_ip_addresses](#input_ces_ip_addresses) | CES IP addresses (length must be equal to number of protocol nodes). | `list(string)` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of client IP/CIDR ranges for direct connection access. | `list(string)` |
 | <a name="input_client_security_group_id"></a> [client_security_group_id](#input_client_security_group_id) | Client security group ID for cloud connection access (same VPC or peered VPC). | `string` |
-| <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_compute_cluster_image_id"></a> [compute_cluster_image_id](#input_compute_cluster_image_id) | Image ID to use for provisioning the compute cluster instances. | `string` |
 | <a name="input_compute_cluster_instance_type"></a> [compute_cluster_instance_type](#input_compute_cluster_instance_type) | Instance type to use for provisioning the compute cluster instances. | `string` |
+| <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | The ssh public key to be created used to launch the compute cluster. Required only when total_compute_cluster_instances > 0. | `string` |
+| <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id | `string` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, an IBM Cloud placement group will be created for single-AZ deployments and attached to storage instances. | `bool` |
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
-| <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
 | <a name="input_placement_group_strategy"></a> [placement_group_strategy](#input_placement_group_strategy) | Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources). | `string` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
-| <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` |
-| <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_root_device_kms_key_id"></a> [root_device_kms_key_id](#input_root_device_kms_key_id) | GUID of the Key Protect/HPCS instance to be used when encrypting the root volume. | `string` |
 | <a name="input_root_device_kms_key_name"></a> [root_device_kms_key_name](#input_root_device_kms_key_name) | Name of the root/standard key to be used when encrypting the root volume. | `string` |
-| <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | Image ID to use for provisioning the storage cluster instances. | `string` |
-| <a name="input_storage_cluster_instance_type"></a> [storage_cluster_instance_type](#input_storage_cluster_instance_type) | Instance type to use for provisioning the storage cluster instances. | `string` |
+| <a name="input_storage_cluster_public_key_path"></a> [storage_cluster_public_key_path](#input_storage_cluster_public_key_path) | The ssh public key to be created used to launch the storage cluster. Required only when total_storage_cluster_instances > 0. | `string` |
 | <a name="input_storage_cluster_tiebreaker_instance_type"></a> [storage_cluster_tiebreaker_instance_type](#input_storage_cluster_tiebreaker_instance_type) | Instance type to use for the tie breaker instance (will be provisioned only in Multi-AZ configuration). | `string` |
 | <a name="input_storage_volume_iops"></a> [storage_volume_iops](#input_storage_volume_iops) | IOPS for unattached storage volumes. | `number` |
 | <a name="input_storage_volume_profile"></a> [storage_volume_profile](#input_storage_volume_profile) | IBM Cloud volume profile for unattached storage volumes. | `string` |
 | <a name="input_storage_volume_size"></a> [storage_volume_size](#input_storage_volume_size) | Size of each unattached storage volume in GB. | `number` |
+| <a name="input_tags"></a> [tags](#input_tags) | List of tags to attach to resources in format key:value | `list(string)` |
 | <a name="input_total_compute_cluster_instances"></a> [total_compute_cluster_instances](#input_total_compute_cluster_instances) | Number of virtual server instances to be launched for compute cluster. | `number` |
 | <a name="input_total_gateway_instances"></a> [total_gateway_instances](#input_total_gateway_instances) | Number of virtual server instances to be launched for gateway nodes. | `number` |
 | <a name="input_total_protocol_instances"></a> [total_protocol_instances](#input_total_protocol_instances) | Number of virtual server instances to be launched for protocol nodes. | `number` |
-| <a name="input_total_storage_cluster_instances"></a> [total_storage_cluster_instances](#input_total_storage_cluster_instances) | Number of virtual server instances to be launched for storage cluster. | `number` |
 | <a name="input_total_storage_volumes"></a> [total_storage_volumes](#input_total_storage_volumes) | Number of unattached storage volumes to provision. | `number` |
-| <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | A list of availability zones names or ids in the region. | `list(string)` |
-| <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
-| <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC id were to deploy the bastion. | `string` |
-| <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where resources will be provisioned. Example: us-south. | `string` |
-| <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
-| <a name="input_compute_cluster_public_key_path"></a> [compute_cluster_public_key_path](#input_compute_cluster_public_key_path) | The ssh public key to be created used to launch the compute cluster. Required only when total_compute_cluster_instances > 0. | `string` |
-| <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id | `string` |
-| <a name="input_storage_cluster_public_key_path"></a> [storage_cluster_public_key_path](#input_storage_cluster_public_key_path) | The ssh public key to be created used to launch the storage cluster. Required only when total_storage_cluster_instances > 0. | `string` |
-| <a name="input_tags"></a> [tags](#input_tags) | List of tags to attach to resources in format key:value | `list(string)` |
 | <a name="input_using_cloud_connection"></a> [using_cloud_connection](#input_using_cloud_connection) | Enable communication from a cloud VM to the VPC. Supports: (1) Same VPC with different security group, (2) Different VPC via VPC peering. Requires `client_security_group_id` - the deployment VM's security group will be added to the allowed ingress list of scale cluster security groups. | `bool` |
 | <a name="input_using_direct_connection"></a> [using_direct_connection](#input_using_direct_connection) | Enable communication from on-premise VM to VPC via VPN or Direct Connect. Requires `client_ip_ranges` - the on-premise client IPs/CIDRs will be added to the allowed ingress list of scale cluster security groups. | `bool` |
 | <a name="input_using_jumphost_connection"></a> [using_jumphost_connection](#input_using_jumphost_connection) | Enable communication from on-premise VM to VPC via bastion/jumphost. Requires `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_id`, `bastion_ssh_private_key` - the bastion security group will be added to the allowed ingress list of scale cluster security groups. | `bool` |
 | <a name="input_vpc_compute_cluster_dns_zone_id"></a> [vpc_compute_cluster_dns_zone_id](#input_vpc_compute_cluster_dns_zone_id) | DNS zone ID for compute cluster. | `string` |
+| <a name="input_vpc_compute_cluster_private_subnets"></a> [vpc_compute_cluster_private_subnets](#input_vpc_compute_cluster_private_subnets) | List of IDs of compute cluster private subnets. | `list(string)` |
 | <a name="input_vpc_storage_cluster_dns_zone_id"></a> [vpc_storage_cluster_dns_zone_id](#input_vpc_storage_cluster_dns_zone_id) | DNS zone ID for storage cluster. | `string` |
+| <a name="input_vpc_storage_cluster_private_subnets"></a> [vpc_storage_cluster_private_subnets](#input_vpc_storage_cluster_private_subnets) | List of IDs of storage cluster private subnets. | `list(string)` |
 
 #### Outputs
 

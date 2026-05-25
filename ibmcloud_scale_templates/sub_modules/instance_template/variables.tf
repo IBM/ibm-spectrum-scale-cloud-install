@@ -72,12 +72,14 @@ variable "vpc_compute_cluster_dns_zone_id" {
 variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)
   nullable    = true
+  default     = []
   description = "List of IDs of storage cluster private subnets."
 }
 
 variable "vpc_compute_cluster_private_subnets" {
   type        = list(string)
   nullable    = true
+  default     = []
   description = "List of IDs of compute cluster private subnets."
 }
 
@@ -94,12 +96,14 @@ variable "bastion_security_group_id" {
 variable "client_ip_ranges" {
   type        = list(string)
   nullable    = true
+  default     = null
   description = "List of client IP/CIDR ranges for direct connection access."
 }
 
 variable "client_security_group_id" {
   type        = string
   nullable    = true
+  default     = null
   description = "Client security group ID for cloud connection access (same VPC or peered VPC)."
 }
 
@@ -131,6 +135,7 @@ variable "using_jumphost_connection" {
 variable "boot_disk_type" {
   type        = string
   nullable    = true
+  default     = null
   description = "Boot disk type for all cluster instances."
 }
 
@@ -165,6 +170,7 @@ variable "storage_cluster_public_key_path" {
 variable "storage_cluster_tiebreaker_instance_type" {
   type        = string
   nullable    = true
+  default     = null
   description = "Instance type to use for the tie breaker instance (will be provisioned only in Multi-AZ configuration)."
 }
 
@@ -176,25 +182,25 @@ variable "total_storage_cluster_instances" {
 
 variable "total_storage_volumes" {
   type        = number
-  nullable    = true
+  default     = 0
   description = "Number of unattached storage volumes to provision."
 }
 
 variable "storage_volume_size" {
   type        = number
-  nullable    = true
+  default     = 100
   description = "Size of each unattached storage volume in GB."
 }
 
 variable "storage_volume_profile" {
   type        = string
-  nullable    = true
+  default     = "general-purpose"
   description = "IBM Cloud volume profile for unattached storage volumes."
 }
 
 variable "storage_volume_iops" {
   type        = number
-  nullable    = true
+  default     = null
   description = "IOPS for unattached storage volumes."
 }
 
@@ -204,13 +210,13 @@ variable "storage_volume_iops" {
 
 variable "compute_cluster_image_id" {
   type        = string
-  nullable    = true
+  default     = "ibm-redhat-8-3-minimal-amd64-3"
   description = "Image ID to use for provisioning the compute cluster instances."
 }
 
 variable "compute_cluster_instance_type" {
   type        = string
-  nullable    = true
+  default     = "cx2-2x4"
   description = "Instance type to use for provisioning the compute cluster instances."
 }
 
@@ -232,7 +238,7 @@ variable "compute_cluster_public_key_path" {
 
 variable "total_compute_cluster_instances" {
   type        = number
-  nullable    = true
+  default     = 0
   description = "Number of virtual server instances to be launched for compute cluster."
 }
 
@@ -242,19 +248,19 @@ variable "total_compute_cluster_instances" {
 
 variable "ces_ip_addresses" {
   type        = list(string)
-  nullable    = true
+  default     = []
   description = "CES IP addresses (length must be equal to number of protocol nodes)."
 }
 
 variable "protocol_instance_type" {
   type        = string
-  nullable    = true
+  default     = "cx2-2x4"
   description = "Instance type to use for provisioning the protocol instances."
 }
 
 variable "total_protocol_instances" {
   type        = number
-  nullable    = true
+  default     = 0
   description = "Number of virtual server instances to be launched for protocol nodes."
 }
 
@@ -264,13 +270,13 @@ variable "total_protocol_instances" {
 
 variable "gateway_instance_type" {
   type        = string
-  nullable    = true
+  default     = "cx2-2x4"
   description = "Instance type to use for provisioning the gateway instances."
 }
 
 variable "total_gateway_instances" {
   type        = number
-  nullable    = true
+  default     = 0
   description = "Number of virtual server instances to be launched for gateway nodes."
 }
 
@@ -293,23 +299,31 @@ variable "cluster_type" {
 variable "root_device_kms_key_id" {
   type        = string
   nullable    = true
+  default     = null
   description = "GUID of the Key Protect/HPCS instance to be used when encrypting the root volume."
 }
 
 variable "root_device_kms_key_name" {
   type        = string
   nullable    = true
+  default     = null
   description = "Name of the root/standard key to be used when encrypting the root volume."
 }
 
 variable "enable_placement_group" {
   type        = bool
-  nullable    = true
+  default     = true
   description = "If true, an IBM Cloud placement group will be created for single-AZ deployments and attached to storage instances."
 }
 
 variable "placement_group_strategy" {
   type        = string
   nullable    = true
+  default     = "host_spread"
   description = "Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources)."
+
+  validation {
+    condition     = contains(["host_spread", "power_spread"], var.placement_group_strategy)
+    error_message = "placement_group_strategy must be either 'host_spread' or 'power_spread'."
+  }
 }

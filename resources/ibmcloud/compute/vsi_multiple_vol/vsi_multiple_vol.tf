@@ -28,6 +28,7 @@ variable "zone" {}
 variable "dns_services_instance_id" {}
 variable "vpc_id" {}
 variable "attach_volumes" {}
+variable "resource_group_id" {}
 
 # Fetch all DNS zones to get domain name from zone ID
 data "ibm_dns_zones" "all_zones" {
@@ -51,10 +52,11 @@ data "ibm_kms_key" "itself" {
 
 # Virtual Server for VPC (VSI)
 resource "ibm_is_instance" "itself" {
-  name    = var.name_prefix
-  image   = var.ami_id
-  profile = var.instance_type
-  keys    = [var.ssh_key_id]
+  name           = var.name_prefix
+  image          = var.ami_id
+  profile        = var.instance_type
+  keys           = [var.ssh_key_id]
+  resource_group = var.resource_group_id
 
   vpc  = var.vpc_id
   zone = var.zone

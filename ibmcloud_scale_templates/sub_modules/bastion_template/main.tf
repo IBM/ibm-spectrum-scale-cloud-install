@@ -76,4 +76,5 @@ module "bastion_autoscaling_group" {
   launch_template_id     = module.bastion_autoscaling_launch_template[0].instance_template_id
   desired_instance_count = var.desired_instance_count
   subnets                = var.vpc_auto_scaling_group_subnets
+  resource_group_id      = var.resource_group_id
 }
