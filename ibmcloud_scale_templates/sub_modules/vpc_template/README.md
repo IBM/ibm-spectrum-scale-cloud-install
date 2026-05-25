@@ -40,28 +40,43 @@ cd ibm-spectrum-scale-cloud-install/ibmcloud_scale_templates/sub_modules/vpc_tem
 
 Create `terraform.tfvars.json`:
 
+**Option A: Create a new resource group**
 ```jsonc
 {
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
     "vpc_region": "us-south",
     "vpc_availability_zones": ["us-south-1"],
     "resource_prefix": "scale-vpc",
-    "resource_group_id": "xxxx-xxxx-xxxx-xxxx",
-    "vpc_cidr_block": ["10.241.0.0/18"],
+    "create_resource_group": true,
+    "resource_group_name": "scale-vpc-rg",
+    "cluster_type": "Storage-only",
+    "vpc_cidr_block": "10.241.0.0/18",
+    "vpc_public_subnets_cidr_blocks": ["10.241.2.0/24"],
     "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.241.1.0/24"],
     "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.241.0.0/24"],
-    "vpc_create_separate_subnets": true,
-    "vpc_storage_cluster_dns_domain": "storage.scale.local",
-    "vpc_compute_cluster_dns_domain": "compute.scale.local"
+    "vpc_protocol_private_subnets_cidr_blocks": []
 }
 ```
 
-### 3. Set IBM Cloud Credentials
-
-```bash
-export IC_API_KEY="your-ibm-cloud-api-key"
+**Option B: Use an existing resource group**
+```jsonc
+{
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
+    "vpc_region": "us-south",
+    "vpc_availability_zones": ["us-south-1"],
+    "resource_prefix": "scale-vpc",
+    "create_resource_group": false,
+    "resource_group_name": "existing-resource-group-name",
+    "cluster_type": "Storage-only",
+    "vpc_cidr_block": "10.241.0.0/18",
+    "vpc_public_subnets_cidr_blocks": ["10.241.2.0/24"],
+    "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.241.1.0/24"],
+    "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.241.0.0/24"],
+    "vpc_protocol_private_subnets_cidr_blocks": []
+}
 ```
 
-### 4. Deploy VPC
+### 3. Deploy VPC
 
 ```bash
 terraform init
@@ -71,27 +86,30 @@ terraform apply -auto-approve
 
 ## Configuration Examples
 
-### Example 1: Single-Zone VPC
+### Example 1: Single-Zone Storage-Only VPC
 
 ```jsonc
 {
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
     "vpc_region": "us-south",
     "vpc_availability_zones": ["us-south-1"],
     "resource_prefix": "scale-dev",
-    "resource_group_id": "resource-group-id",
-    "vpc_cidr_block": ["10.241.0.0/18"],
+    "create_resource_group": true,
+    "resource_group_name": "scale-dev-rg",
+    "cluster_type": "Storage-only",
+    "vpc_cidr_block": "10.241.0.0/18",
+    "vpc_public_subnets_cidr_blocks": ["10.241.2.0/24"],
     "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.241.1.0/24"],
     "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.241.0.0/24"],
-    "vpc_create_separate_subnets": true,
-    "vpc_storage_cluster_dns_domain": "storage.scale.local",
-    "vpc_compute_cluster_dns_domain": "compute.scale.local"
+    "vpc_protocol_private_subnets_cidr_blocks": []
 }
 ```
 
-### Example 2: Multi-Zone High Availability VPC
+### Example 2: Multi-Zone Combined Compute-Storage VPC
 
 ```jsonc
 {
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
     "vpc_region": "us-south",
     "vpc_availability_zones": [
         "us-south-1",
@@ -99,42 +117,63 @@ terraform apply -auto-approve
         "us-south-3"
     ],
     "resource_prefix": "scale-prod",
-    "resource_group_id": "resource-group-id",
-    "vpc_cidr_block": [
-        "10.241.0.0/18",
-        "10.241.64.0/18",
-        "10.241.128.0/18"
+    "create_resource_group": false,
+    "resource_group_name": "existing-prod-rg",
+    "cluster_type": "Combined-compute-storage",
+    "vpc_cidr_block": "10.241.0.0/16",
+    "vpc_public_subnets_cidr_blocks": [
+        "10.241.2.0/24",
+        "10.241.66.0/24",
+        "10.241.130.0/24"
     ],
     "vpc_storage_cluster_private_subnets_cidr_blocks": [
         "10.241.1.0/24",
-        "10.241.64.1/24",
-        "10.241.128.1/24"
+        "10.241.65.0/24",
+        "10.241.129.0/24"
     ],
     "vpc_compute_cluster_private_subnets_cidr_blocks": [
         "10.241.0.0/24",
         "10.241.64.0/24",
         "10.241.128.0/24"
     ],
-    "vpc_create_separate_subnets": true,
-    "vpc_storage_cluster_dns_domain": "storage.scale.local",
-    "vpc_compute_cluster_dns_domain": "compute.scale.local"
+    "vpc_protocol_private_subnets_cidr_blocks": []
 }
 ```
 
-### Example 3: Storage-Only Cluster (Shared Subnet)
+### Example 3: VPC with Protocol Nodes (NFS/CES)
 
 ```jsonc
 {
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
+    "vpc_region": "us-south",
+    "vpc_availability_zones": ["us-south-1"],
+    "resource_prefix": "scale-protocol",
+    "create_resource_group": true,
+    "resource_group_name": "scale-protocol-rg",
+    "cluster_type": "Storage-only",
+    "vpc_cidr_block": "10.241.0.0/18",
+    "vpc_public_subnets_cidr_blocks": ["10.241.4.0/24"],
+    "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.241.1.0/24"],
+    "vpc_compute_cluster_private_subnets_cidr_blocks": ["10.241.0.0/24"],
+    "vpc_protocol_private_subnets_cidr_blocks": ["10.241.3.0/24"]
+}
+```
+
+### Example 4: Minimal Storage-Only Configuration
+
+```jsonc
+{
+    "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
     "vpc_region": "us-east",
     "vpc_availability_zones": ["us-east-1"],
     "resource_prefix": "storage-only",
-    "resource_group_id": "resource-group-id",
-    "vpc_cidr_block": ["10.0.0.0/16"],
+    "create_resource_group": true,
+    "resource_group_name": "storage-only-rg",
+    "cluster_type": "Storage-only",
+    "vpc_cidr_block": "10.0.0.0/16",
     "vpc_storage_cluster_private_subnets_cidr_blocks": ["10.0.1.0/24"],
     "vpc_compute_cluster_private_subnets_cidr_blocks": [],
-    "vpc_create_separate_subnets": false,
-    "vpc_storage_cluster_dns_domain": "storage.scale.local",
-    "vpc_compute_cluster_dns_domain": ""
+    "vpc_protocol_private_subnets_cidr_blocks": []
 }
 ```
 
