@@ -15,7 +15,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 
     **Example 1: Storage-only Cluster**
 
-    chec```json
+    ```json
     {
         "ibmcloud_api_key": "YOUR_IBM_CLOUD_API_KEY",
         "vpc_region": "us-south",
@@ -90,39 +90,6 @@ The following steps will provision IBM Cloud resources (compute and storage inst
         "airgap": false
     }
     ```
-
-    **Important Notes:**
-    - `cluster_type` is **required** and must be one of: `Storage-only`, `Compute-only`, or `Combined-compute-storage`
-    - `resource_group_id` is **required** - provide the ID of an existing resource group
-    - `vpc_id` is **required** - provide the ID of an existing VPC
-    - `vpc_storage_cluster_private_subnets` and `vpc_compute_cluster_private_subnets` should contain **subnet IDs** (not names)
-    - `storage_cluster_public_key_path` is **required** when `total_storage_cluster_instances > 0`
-    - `compute_cluster_public_key_path` is **required** when `total_compute_cluster_instances > 0`
-    - SSH key paths must point to valid public key files (e.g., `~/.ssh/id_rsa.pub`)
-    - Image IDs must be valid IBM Cloud image identifiers (use `ibmcloud is images` to list available images)
-    - `dns_service_instance_id` can be either a DNS service instance **name** or **GUID**
-    - Optional parameters with default values (can be omitted if defaults are acceptable):
-      - `total_storage_volumes` (default: 0)
-      - `storage_volume_size` (default: 100)
-      - `storage_volume_profile` (default: "general-purpose")
-      - `storage_volume_iops` (default: null)
-      - `boot_disk_type` (default: null)
-      - `enable_placement_group` (default: true)
-      - `placement_group_strategy` (default: "host_spread")
-      - `storage_cluster_image_id` (default: "ibm-redhat-8-3-minimal-amd64-3")
-      - `storage_cluster_instance_type` (default: "bx2d-8x32")
-      - `compute_cluster_image_id` (default: "ibm-redhat-8-3-minimal-amd64-3")
-      - `compute_cluster_instance_type` (default: "cx2-2x4")
-      - `total_compute_cluster_instances` (default: 0)
-      - `total_protocol_instances` (default: 0)
-      - `protocol_instance_type` (default: "cx2-2x4")
-      - `total_gateway_instances` (default: 0)
-      - `gateway_instance_type` (default: "cx2-2x4")
-      - `ces_ip_addresses` (default: [])
-    - At least one connection method should be configured (`using_jumphost_connection`, `using_direct_connection`, or `using_cloud_connection`)
-    - If using `using_jumphost_connection`, you must also provide `bastion_security_group_id`
-    - If using `using_direct_connection`, you must also provide `client_ip_ranges`
-    - If using `using_cloud_connection`, you must also provide `client_security_group_name`
 
 3. Run `terraform init` and `terraform apply -auto-approve` to provision resources.
 

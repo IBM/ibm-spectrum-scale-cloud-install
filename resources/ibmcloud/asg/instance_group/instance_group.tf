@@ -15,9 +15,7 @@ variable "asg_name" {}
 variable "launch_template_id" {}
 variable "desired_instance_count" {}
 variable "subnets" {}
-variable "resource_group_id" {
-  default = null
-}
+variable "resource_group_id" {}
 
 resource "ibm_is_instance_group" "itself" {
   name              = var.asg_name
