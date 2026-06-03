@@ -65,7 +65,6 @@ module "vpc_peering" {
   peer_vpc_crn                   = var.peer_vpc_crn
   resource_prefix                = var.resource_prefix
   resource_group_id              = module.vpc.resource_group_id
-  transit_gateway_id             = var.transit_gateway_id
   transit_gateway_name           = var.transit_gateway_name
   transit_gateway_global_routing = var.transit_gateway_global_routing
   ibmcloud_api_key               = var.ibmcloud_api_key

@@ -364,12 +364,6 @@ variable "enable_transit_gateway" {
   description = "Flag to enable Transit Gateway connection between the newly created VPC and an existing user-provided VPC. Transit Gateway enables connectivity across VPCs in the same or different regions."
 }
 
-variable "transit_gateway_id" {
-  type        = string
-  default     = null
-  description = "ID of an existing Transit Gateway to attach the new VPC to. If not provided and enable_transit_gateway is true, a new Transit Gateway will be created."
-}
-
 variable "peer_vpc_crn" {
   type        = string
   default     = null
@@ -379,7 +373,7 @@ variable "peer_vpc_crn" {
 variable "transit_gateway_name" {
   type        = string
   default     = null
-  description = "Name for the new Transit Gateway. Used only if enable_transit_gateway is true and transit_gateway_id is not provided. Defaults to '<resource_prefix>-tgw'."
+  description = "Name of an existing Transit Gateway to use. If not provided, a new Transit Gateway will be created and Defaults to '<resource_prefix>-tgw' if not provided."
 }
 
 variable "transit_gateway_global_routing" {

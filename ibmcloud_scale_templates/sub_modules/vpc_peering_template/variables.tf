@@ -35,16 +35,10 @@ variable "transit_gateway_global_routing" {
   description = "Enable global routing for Transit Gateway to allow connections across different regions."
 }
 
-variable "transit_gateway_id" {
-  type        = string
-  default     = null
-  description = "ID of an existing Transit Gateway to use. If not provided, a new Transit Gateway will be created."
-}
-
 variable "transit_gateway_name" {
   type        = string
   default     = null
-  description = "Name for the new Transit Gateway. Defaults to '<resource_prefix>-tgw' if not provided."
+  description = "Name of an existing Transit Gateway to use. If not provided, a new Transit Gateway will be created and Defaults to '<resource_prefix>-tgw' if not provided."
 }
 
 variable "vpc_crn" {

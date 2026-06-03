@@ -9,7 +9,7 @@ output "transit_gateway_crn" {
 }
 
 output "transit_gateway_name" {
-  value       = try(var.transit_gateway_id != null ? data.ibm_tg_gateway.existing[0].name : ibm_tg_gateway.new[0].name, null)
+  value       = try(var.transit_gateway_name != null ? data.ibm_tg_gateway.existing[0].name : ibm_tg_gateway.new[0].name, null)
   description = "Name of the Transit Gateway."
 }
 
@@ -24,6 +24,6 @@ output "peer_vpc_connection_id" {
 }
 
 output "transit_gateway_status" {
-  value       = try(var.transit_gateway_id != null ? data.ibm_tg_gateway.existing[0].status : ibm_tg_gateway.new[0].status, null)
+  value       = try(var.transit_gateway_name != null ? data.ibm_tg_gateway.existing[0].status : ibm_tg_gateway.new[0].status, null)
   description = "Status of the Transit Gateway."
 }

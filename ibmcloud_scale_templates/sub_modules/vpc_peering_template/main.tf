@@ -14,13 +14,13 @@
 
 # Data source to get existing Transit Gateway if provided
 data "ibm_tg_gateway" "existing" {
-  count = var.transit_gateway_id != null ? 1 : 0
-  name  = var.transit_gateway_id
+  count = var.transit_gateway_name != null ? 1 : 0
+  name  = var.transit_gateway_name
 }
 
 # Create new Transit Gateway if not provided
 resource "ibm_tg_gateway" "new" {
-  count          = var.transit_gateway_id == null ? local.create_count : 0
+  count          = var.transit_gateway_name == null ? local.create_count : 0
   name           = var.transit_gateway_name != null ? var.transit_gateway_name : "${var.resource_prefix}-tgw"
   location       = var.vpc_region
   global         = var.transit_gateway_global_routing
