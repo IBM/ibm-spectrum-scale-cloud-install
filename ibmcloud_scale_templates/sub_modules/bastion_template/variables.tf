@@ -26,15 +26,10 @@ variable "bastion_instance_type" {
   }
 }
 
-variable "bastion_public_key_path" {
+variable "bastion_public_key" {
   type        = string
   default     = null
-  description = "Path to the SSH public key file for bastion host access. Required when enable_bastion is true."
-
-  validation {
-    condition     = !var.enable_bastion || (var.bastion_public_key_path != null && fileexists(var.bastion_public_key_path))
-    error_message = "bastion_public_key_path is required and must be a valid file path when enable_bastion is true."
-  }
+  description = "SSH public key content for the bastion host. Required when enable_bastion is true."
 }
 
 variable "bastion_public_ssh_port" {

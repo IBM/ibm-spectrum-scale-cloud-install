@@ -21,9 +21,9 @@ variable "ssh_key_name" {
   description = "Name for the SSH key resource."
 }
 
-variable "public_key_path" {
+variable "public_key" {
   type        = string
-  description = "Path to the SSH public key file."
+  description = "SSH public key content."
 }
 
 variable "resource_group_id" {
@@ -40,7 +40,7 @@ variable "tags" {
 resource "ibm_is_ssh_key" "itself" {
   count          = var.create_ssh_key ? 1 : 0
   name           = var.ssh_key_name
-  public_key     = file(var.public_key_path)
+  public_key     = trimspace(var.public_key)
   resource_group = var.resource_group_id
   tags           = var.tags
 }

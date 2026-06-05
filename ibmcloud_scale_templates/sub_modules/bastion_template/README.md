@@ -158,7 +158,7 @@ terraform destroy -auto-approve
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where bastion and all resources will be deployed (e.g., 'us-east', 'us-south', 'eu-de'). | `string` |
 | <a name="input_bastion_image_ref"></a> [bastion_image_ref](#input_bastion_image_ref) | IBM Cloud image ID for the bastion instance. Required when enable_bastion is true. | `string` |
 | <a name="input_bastion_instance_type"></a> [bastion_instance_type](#input_bastion_instance_type) | Instance type to use for the bastion instance. Required when enable_bastion is true. | `string` |
-| <a name="input_bastion_public_key_path"></a> [bastion_public_key_path](#input_bastion_public_key_path) | Path to the SSH public key file for bastion host access. Required when enable_bastion is true. | `string` |
+| <a name="input_bastion_public_key"></a> [bastion_public_key](#input_bastion_public_key) | SSH public key content for the bastion host. Required when enable_bastion is true. | `string` |
 | <a name="input_bastion_public_ssh_port"></a> [bastion_public_ssh_port](#input_bastion_public_ssh_port) | Set the SSH port to use from desktop to the bastion. | `number` |
 | <a name="input_desired_instance_count"></a> [desired_instance_count](#input_desired_instance_count) | Bastion instance desired count. | `number` |
 | <a name="input_enable_bastion"></a> [enable_bastion](#input_enable_bastion) | Enable or disable bastion host creation. When false, no resources will be created. | `bool` |

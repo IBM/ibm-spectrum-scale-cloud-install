@@ -144,20 +144,10 @@ variable "enable_bastion" {
   description = "Flag to enable or disable bastion host deployment. Set to false to skip bastion creation."
 }
 
-variable "bastion_public_key_path" {
+variable "bastion_public_key" {
   type        = string
   default     = null
-  description = "Path to the SSH public key file for bastion host access. Required only if enable_bastion is true."
-
-  validation {
-    condition     = var.bastion_public_key_path == null || fileexists(var.bastion_public_key_path)
-    error_message = "The bastion_public_key_path must be a valid file path to an existing SSH public key file when provided."
-  }
-
-  validation {
-    condition     = !var.enable_bastion || var.bastion_public_key_path != null
-    error_message = "The bastion_public_key_path is required when enable_bastion is true."
-  }
+  description = "SSH public key content for the bastion host. Required when enable_bastion is true."
 }
 
 variable "bastion_osimage_id" {
@@ -212,20 +202,10 @@ variable "storage_volume_iops" {
   description = "IOPS for unattached storage volumes. Only applicable for custom IOPS profiles."
 }
 
-variable "storage_cluster_public_key_path" {
+variable "storage_cluster_public_key" {
   type        = string
   default     = null
-  description = "The ssh public key to be created used to launch the storage cluster. Required only when total_storage_cluster_instances > 0."
-
-  validation {
-    condition     = var.storage_cluster_public_key_path == null || fileexists(var.storage_cluster_public_key_path)
-    error_message = "The storage_cluster_public_key_path must be a valid file path to an existing SSH public key file when provided."
-  }
-
-  validation {
-    condition     = var.total_storage_cluster_instances == 0 || var.storage_cluster_public_key_path != null
-    error_message = "The storage_cluster_public_key_path is required when total_storage_cluster_instances > 0."
-  }
+  description = "SSH public key content for the storage cluster. Required when total_storage_cluster_instances > 0."
 }
 
 variable "storage_vsi_osimage_id" {
@@ -256,20 +236,10 @@ variable "total_compute_cluster_instances" {
   description = "Total number of virtual server instances to deploy for the compute cluster. Set to 0 for storage-only deployments."
 }
 
-variable "compute_cluster_public_key_path" {
+variable "compute_cluster_public_key" {
   type        = string
   default     = null
-  description = "The ssh public key to be created used to launch the compute cluster. Required only when total_compute_cluster_instances > 0."
-
-  validation {
-    condition     = var.compute_cluster_public_key_path == null || fileexists(var.compute_cluster_public_key_path)
-    error_message = "The compute_cluster_public_key_path must be a valid file path to an existing SSH public key file when provided."
-  }
-
-  validation {
-    condition     = var.total_compute_cluster_instances == 0 || var.compute_cluster_public_key_path != null
-    error_message = "The compute_cluster_public_key_path is required when total_compute_cluster_instances > 0."
-  }
+  description = "SSH public key content for the compute cluster. Required when total_compute_cluster_instances > 0."
 }
 
 variable "compute_vsi_osimage_id" {

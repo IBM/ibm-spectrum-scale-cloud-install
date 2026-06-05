@@ -128,24 +128,20 @@ module "protocol_cluster_egress_security_rule" {
   remote_ip_addr     = ["0.0.0.0/0"]
 }
 
-# Create ssh key to access the scale storage instance
-module "storage_ssh_key" {
-  source            = "../../../resources/ibmcloud/security/ssh_key"
-  create_ssh_key    = local.storage_or_combined
-  ssh_key_name      = "${var.resource_prefix}-storage-cluster-ssh-key"
-  public_key_path   = var.storage_cluster_public_key_path
-  resource_group_id = var.resource_group_id
-  tags              = var.tags
+resource "ibm_is_ssh_key" "storage_ssh_key" {
+  count          = local.storage_or_combined ? 1 : 0
+  name           = "${var.resource_prefix}-storage-cluster-ssh-key"
+  public_key     = trimspace(var.storage_cluster_public_key)
+  resource_group = var.resource_group_id
+  tags           = var.tags
 }
 
-# Create ssh key to access the scale compute instance
-module "compute_ssh_key" {
-  source            = "../../../resources/ibmcloud/security/ssh_key"
-  create_ssh_key    = local.compute_or_combined
-  ssh_key_name      = "${var.resource_prefix}-compute-cluster-ssh-key"
-  public_key_path   = var.compute_cluster_public_key_path
-  resource_group_id = var.resource_group_id
-  tags              = var.tags
+resource "ibm_is_ssh_key" "compute_ssh_key" {
+  count          = local.compute_or_combined ? 1 : 0
+  name           = "${var.resource_prefix}-compute-cluster-ssh-key"
+  public_key     = trimspace(var.compute_cluster_public_key)
+  resource_group = var.resource_group_id
+  tags           = var.tags
 }
 
 resource "ibm_is_placement_group" "storage_cluster" {
@@ -169,7 +165,7 @@ module "compute_cluster_instances" {
   security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
-  ssh_key_id                        = module.compute_ssh_key.ssh_key_id
+  ssh_key_id                        = try(ibm_is_ssh_key.compute_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = var.vpc_availability_zones
 }
@@ -191,7 +187,7 @@ module "storage_cluster_instances" {
   security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
-  ssh_key_id                        = module.storage_ssh_key.ssh_key_id
+  ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
   attach_volumes                    = false
@@ -214,7 +210,7 @@ module "storage_cluster_tie_breaker_instance" {
   security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
-  ssh_key_id                        = module.storage_ssh_key.ssh_key_id
+  ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
   attach_volumes                    = true
@@ -236,7 +232,7 @@ module "protocol_instances" {
   subnet_id                         = each.value["subnet"]
   ces_ipaddress                     = each.value["ces_ip_addresses"]
   tags                              = var.tags
-  ssh_key_id                        = module.storage_ssh_key.ssh_key_id
+  ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
 }
@@ -256,7 +252,7 @@ module "gateway_instances" {
   security_groups                   = [module.cluster_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   tags                              = var.tags
-  ssh_key_id                        = module.storage_ssh_key.ssh_key_id
+  ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = var.vpc_availability_zones
 }

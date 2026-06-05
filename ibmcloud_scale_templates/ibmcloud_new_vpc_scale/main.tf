@@ -49,7 +49,7 @@ module "bastion" {
   bastion_image_ref              = var.bastion_osimage_id
   remote_cidr_blocks             = var.remote_cidr_blocks
   bastion_instance_type          = var.bastion_vsi_profile
-  bastion_public_key_path        = var.bastion_public_key_path
+  bastion_public_key             = var.bastion_public_key
   vpc_auto_scaling_group_subnets = coalescelist(module.vpc.vpc_compute_cluster_private_subnets, module.vpc.vpc_storage_cluster_private_subnets)
   bastion_public_ssh_port        = 22
   desired_instance_count         = 1
@@ -89,7 +89,7 @@ module "scale_instances" {
   total_storage_cluster_instances          = var.total_storage_cluster_instances
   storage_cluster_image_id                 = var.storage_vsi_osimage_id
   storage_cluster_instance_type            = var.storage_vsi_profile
-  storage_cluster_public_key_path          = var.storage_cluster_public_key_path
+  storage_cluster_public_key               = var.storage_cluster_public_key
   boot_disk_type                           = var.boot_disk_type
   storage_cluster_tiebreaker_instance_type = var.storage_cluster_tiebreaker_instance_type
   total_storage_volumes                    = var.total_storage_volumes
@@ -99,7 +99,7 @@ module "scale_instances" {
   total_compute_cluster_instances          = var.total_compute_cluster_instances
   compute_cluster_image_id                 = var.compute_vsi_osimage_id
   compute_cluster_instance_type            = var.compute_vsi_profile
-  compute_cluster_public_key_path          = var.compute_cluster_public_key_path
+  compute_cluster_public_key               = var.compute_cluster_public_key
   total_gateway_instances                  = var.total_gateway_instances
   gateway_instance_type                    = var.gateway_vsi_profile
   total_protocol_instances                 = var.total_protocol_instances

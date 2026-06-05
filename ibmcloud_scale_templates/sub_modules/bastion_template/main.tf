@@ -51,7 +51,7 @@ module "bastion_sg_outbound_rule" {
 resource "ibm_is_ssh_key" "bastion_ssh_key" {
   count          = local.create_count
   name           = "${var.resource_prefix}-bastion-ssh-key"
-  public_key     = file(var.bastion_public_key_path)
+  public_key     = trimspace(var.bastion_public_key)
   resource_group = var.resource_group_id
 }
 
