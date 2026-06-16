@@ -211,10 +211,10 @@ output "placement_group_id" {
 output "nodes" {
   description = "Node inventory for the scale-operator cluster controller."
   value = concat(
-    [for inst in try(module.scale_instances.storage_cluster_instance_details, []) : {
+    [for i, inst in try(module.scale_instances.storage_cluster_instance_details, []) : {
       hostname = inst.dns
       ip       = inst.private_ip
-      role     = "storage"
+      role     = i == 0 ? "storage,bootstrap" : "storage"
     }],
     [for inst in try(module.scale_instances.storage_cluster_dec_instance_details, []) : {
       hostname = inst.dns
