@@ -26,6 +26,7 @@ variable "vpc_id" {}
 variable "zone" {}
 variable "dns_services_instance_id" {}
 variable "resource_group_id" {}
+variable "orchestrator_server_url" {}
 
 # Fetch all DNS zones to get domain name from zone ID
 data "ibm_dns_zones" "all_zones" {
@@ -80,6 +81,7 @@ resource "ibm_is_instance" "itself" {
 #!/usr/bin/env bash
 hostnamectl set-hostname --static "${var.name_prefix}.${local.zone_name}"
 echo "${var.name_prefix}.${local.zone_name}" > /etc/hostname
+sed -i "s|^server_url:.*|server_url: ${var.orchestrator_server_url}|" /etc/scale-agent/config.yaml
 EOF
 
   tags = var.tags

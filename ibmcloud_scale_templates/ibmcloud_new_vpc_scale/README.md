@@ -113,6 +113,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | Name | Description | Type |
 | ---- | ----------- | ---- |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | IBM Cloud API key for authentication. | `string` |
+| <a name="input_orchestrator_server_url"></a> [orchestrator_server_url](#input_orchestrator_server_url) | URL of the scale-orchestrator server running on the OCP worker node, e.g. http://10.x.x.x:57096. Injected into /etc/scale-agent/config.yaml on each VM at first boot. | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zone names or IDs within the selected region for multi-zone deployment. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where VPC and all resources will be deployed (e.g., us-east, us-south, eu-de). | `string` |
 | <a name="input_bastion_osimage_id"></a> [bastion_osimage_id](#input_bastion_osimage_id) | IBM Cloud OS image ID for bastion virtual server instance. Use 'ibmcloud is images' to find available image IDs in your region. | `string` |

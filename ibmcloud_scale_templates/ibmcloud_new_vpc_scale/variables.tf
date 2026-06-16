@@ -1,7 +1,3 @@
-# ========================================
-# IBM Cloud Authentication Settings
-# ========================================
-
 variable "ibmcloud_api_key" {
   type        = string
   sensitive   = true
@@ -25,10 +21,6 @@ variable "boot_disk_type" {
   default     = null
   description = "Boot disk profile/type for all cluster instances (e.g., general-purpose, 5iops-tier, 10iops-tier)."
 }
-
-# ========================================
-# Connection Method Configuration
-# ========================================
 
 variable "client_ip_ranges" {
   type        = list(string)
@@ -59,10 +51,6 @@ variable "using_jumphost_connection" {
   default     = null
   description = "Enable communication from on-premise VM to VPC via bastion/jumphost. When enable_bastion=true, this is automatically enabled unless explicitly set to false. Requires bastion_security_group_id (either from module.bastion or external)."
 }
-
-# ========================================
-# VPC Network Configuration
-# ========================================
 
 variable "vpc_region" {
   type        = string
@@ -134,10 +122,6 @@ variable "create_dns_zone" {
   description = "Flag to create new private DNS zones. Set to false to reuse existing DNS zones."
 }
 
-# ========================================
-# Bastion Host Configuration
-# ========================================
-
 variable "enable_bastion" {
   type        = bool
   default     = true
@@ -167,10 +151,6 @@ variable "remote_cidr_blocks" {
   default     = ["0.0.0.0/0"]
   description = "List of CIDR blocks allowed to access the bastion host via SSH."
 }
-
-# ========================================
-# Storage Cluster Configuration
-# ========================================
 
 variable "total_storage_cluster_instances" {
   type        = number
@@ -226,10 +206,6 @@ variable "storage_cluster_tiebreaker_instance_type" {
   description = "IBM Cloud VSI profile (instance type) for tie-breaker instance in Multi-AZ deployments. Set to null for single-zone deployments or to use the same profile as storage nodes."
 }
 
-# ========================================
-# Compute Cluster Configuration
-# ========================================
-
 variable "total_compute_cluster_instances" {
   type        = number
   default     = 0
@@ -254,10 +230,6 @@ variable "compute_vsi_profile" {
   description = "IBM Cloud VSI profile (instance type) for compute cluster nodes."
 }
 
-# ========================================
-# Protocol Cluster Configuration
-# ========================================
-
 variable "total_protocol_instances" {
   type        = number
   default     = 0
@@ -276,10 +248,6 @@ variable "ces_ip_addresses" {
   description = "List of CES (Cluster Export Services) IP addresses for protocol nodes. Length must equal total_protocol_instances."
 }
 
-# ========================================
-# Gateway Cluster Configuration
-# ========================================
-
 variable "total_gateway_instances" {
   type        = number
   default     = 0
@@ -291,10 +259,6 @@ variable "gateway_vsi_profile" {
   default     = "cx2-2x4"
   description = "IBM Cloud VSI profile (instance type) for gateway cluster nodes."
 }
-
-# ========================================
-# Advanced Options
-# ========================================
 
 variable "enable_placement_group" {
   type        = bool
@@ -324,10 +288,6 @@ variable "cluster_type" {
   }
 }
 
-# ========================================
-# Transit Gateway Configuration
-# ========================================
-
 variable "enable_transit_gateway" {
   type        = bool
   default     = false
@@ -352,10 +312,6 @@ variable "transit_gateway_global_routing" {
   description = "Enable global routing for Transit Gateway to allow connections across different regions. Set to true if peer VPC is in a different region."
 }
 
-# ========================================
-# Encryption Configuration
-# ========================================
-
 variable "root_device_kms_key_id" {
   type        = string
   default     = null
@@ -368,12 +324,13 @@ variable "root_device_kms_key_name" {
   description = "Name of the root key or standard key in Key Protect/HPCS to use for root volume encryption. Required only if root_device_kms_key_id is provided."
 }
 
-# ========================================
-# Tagging Configuration
-# ========================================
-
 variable "tags" {
   type        = list(string)
   default     = []
   description = "List of tags to be attached to all resources created by this module."
+}
+
+variable "orchestrator_server_url" {
+  type        = string
+  description = "URL of the scale-orchestrator server running on the OCP worker node, e.g. http://10.x.x.x:57096. Injected into /etc/scale-agent/config.yaml on each VM at first boot."
 }

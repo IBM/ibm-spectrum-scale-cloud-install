@@ -1,7 +1,3 @@
-# ========================================
-# Authentication
-# ========================================
-
 variable "ibmcloud_api_key" {
   type        = string
   nullable    = false
@@ -19,15 +15,12 @@ variable "resource_prefix" {
   nullable    = false
   description = "Prefix is added to all resources that are created."
 }
+
 variable "tags" {
   type        = list(string)
   default     = []
   description = "List of tags to attach to resources in format key:value"
 }
-
-# ========================================
-# VPC Network
-# ========================================
 
 variable "vpc_id" {
   type        = string
@@ -68,7 +61,6 @@ variable "vpc_compute_cluster_dns_zone_id" {
   description = "DNS zone ID for compute cluster."
 }
 
-
 variable "vpc_storage_cluster_private_subnets" {
   type        = list(string)
   nullable    = true
@@ -82,10 +74,6 @@ variable "vpc_compute_cluster_private_subnets" {
   default     = []
   description = "List of IDs of compute cluster private subnets."
 }
-
-# ========================================
-# Bastion
-# ========================================
 
 variable "bastion_security_group_id" {
   type        = string
@@ -127,10 +115,6 @@ variable "using_jumphost_connection" {
   default     = false
   description = "Enable communication from on-premise VM to VPC via bastion/jumphost. Requires `bastion_user`, `bastion_instance_public_ip`, `bastion_security_group_id`, `bastion_ssh_private_key` - the bastion security group will be added to the allowed ingress list of scale cluster security groups."
 }
-
-# ========================================
-# Storage Cluster
-# ========================================
 
 variable "boot_disk_type" {
   type        = string
@@ -194,10 +178,6 @@ variable "storage_volume_iops" {
   description = "IOPS for unattached storage volumes."
 }
 
-# ========================================
-# Compute Cluster
-# ========================================
-
 variable "compute_cluster_image_id" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"
@@ -222,10 +202,6 @@ variable "total_compute_cluster_instances" {
   description = "Number of virtual server instances to be launched for compute cluster."
 }
 
-# ========================================
-# Protocol Cluster
-# ========================================
-
 variable "ces_ip_addresses" {
   type        = list(string)
   default     = []
@@ -244,10 +220,6 @@ variable "total_protocol_instances" {
   description = "Number of virtual server instances to be launched for protocol nodes."
 }
 
-# ========================================
-# Gateway Cluster
-# ========================================
-
 variable "gateway_instance_type" {
   type        = string
   default     = "cx2-2x4"
@@ -259,10 +231,6 @@ variable "total_gateway_instances" {
   default     = 0
   description = "Number of virtual server instances to be launched for gateway nodes."
 }
-
-# ========================================
-# Advanced Options
-# ========================================
 
 variable "airgap" {
   type        = bool
@@ -288,6 +256,11 @@ variable "root_device_kms_key_name" {
   nullable    = true
   default     = null
   description = "Name of the root/standard key to be used when encrypting the root volume."
+}
+
+variable "orchestrator_server_url" {
+  type        = string
+  description = "URL of the scale-orchestrator server, e.g. http://10.x.x.x:57096. Written into /etc/scale-agent/config.yaml on each VM at first boot."
 }
 
 variable "enable_placement_group" {
