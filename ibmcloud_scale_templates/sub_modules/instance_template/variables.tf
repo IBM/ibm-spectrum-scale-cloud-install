@@ -260,7 +260,7 @@ variable "root_device_kms_key_name" {
 
 variable "orchestrator_server_url" {
   type        = string
-  description = "URL of the scale-orchestrator server, e.g. http://10.x.x.x:57096. Written into /etc/scale-agent/config.yaml on each VM at first boot."
+  description = "IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot."
 }
 
 variable "enable_placement_group" {

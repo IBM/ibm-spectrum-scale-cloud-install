@@ -332,5 +332,5 @@ variable "tags" {
 
 variable "orchestrator_server_url" {
   type        = string
-  description = "URL of the scale-orchestrator server running on the OCP worker node, e.g. http://10.x.x.x:57096. Injected into /etc/scale-agent/config.yaml on each VM at first boot."
+  description = "IP or hostname of the scale-orchestrator server running on the OCP worker node, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot."
 }

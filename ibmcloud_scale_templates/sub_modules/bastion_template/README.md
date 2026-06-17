@@ -46,7 +46,7 @@ Create `terraform.tfvars.json`:
     "vpc_ref": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "bastion_instance_type": "cx2-2x4",
     "bastion_image_ref": "r006-yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
-    "bastion_public_key_path": "/path/to/your/ssh/key.pub",
+    "bastion_public_key": "ssh-rsa AAAA...your-public-key-content...",
     "vpc_auto_scaling_group_subnets": ["0717-zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"],
     "remote_cidr_blocks": ["x.x.x.x/x"]
 }
@@ -74,7 +74,7 @@ terraform apply -auto-approve
     "vpc_ref": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "bastion_instance_type": "cx2-2x4",
     "bastion_image_ref": "r006-yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
-    "bastion_public_key_path": "/path/to/bastion-ssh-key.pub",
+    "bastion_public_key": "ssh-rsa AAAA...your-public-key-content...",
     "vpc_auto_scaling_group_subnets": ["0717-zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"],
     "remote_cidr_blocks": ["0.0.0.0/0"]
 }
@@ -92,7 +92,7 @@ terraform apply -auto-approve
     "vpc_ref": "r006-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "bastion_instance_type": "cx2-4x8",
     "bastion_image_ref": "r006-yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
-    "bastion_public_key_path": "/path/to/prod-bastion-key.pub",
+    "bastion_public_key": "ssh-rsa AAAA...your-public-key-content...",
     "vpc_auto_scaling_group_subnets": ["0717-zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"],
     "remote_cidr_blocks": [
         "x.x.x.x/x",    // Office network
@@ -110,7 +110,7 @@ terraform apply -auto-approve
 terraform output bastion_public_ip_addresses
 
 # SSH to bastion
-ssh -i ~/.ssh/bastion-key root@<bastion-public-ip>
+ssh -i ~/.ssh/bastion-key vpcuser@<bastion-public-ip>
 ```
 
 ## Outputs

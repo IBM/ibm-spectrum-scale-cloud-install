@@ -81,7 +81,8 @@ resource "ibm_is_instance" "itself" {
 #!/usr/bin/env bash
 hostnamectl set-hostname --static "${var.name_prefix}.${local.zone_name}"
 echo "${var.name_prefix}.${local.zone_name}" > /etc/hostname
-sed -i "s|^server_url:.*|server_url: ${var.orchestrator_server_url}|" /etc/scale-agent/config.yaml
+sed -i "s|^server_url:.*|server_url: http://${var.orchestrator_server_url}:57096|" /etc/scale-agent/config.yaml
+systemctl restart scale-agent
 EOF
 
   tags = var.tags

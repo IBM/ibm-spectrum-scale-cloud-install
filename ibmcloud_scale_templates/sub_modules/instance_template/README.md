@@ -28,7 +28,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
         "total_storage_cluster_instances": 4,
         "storage_cluster_instance_type": "bx2d-8x32",
         "storage_cluster_image_id": "r006-zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz",
-        "storage_cluster_public_key_path": "~/.ssh/storage_cluster_key.pub",
+        "storage_cluster_public_key": "ssh-rsa AAAA...your-public-key-content...",
         "bastion_security_group_id": "r006-xxxx-xxxx-xxxx-xxxx",
         "dns_service_instance_id": "my-dns-service",
         "vpc_storage_cluster_dns_zone_id": "zone-id-for-storage",
@@ -52,7 +52,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
         "total_compute_cluster_instances": 3,
         "compute_cluster_instance_type": "cx2-4x8",
         "compute_cluster_image_id": "r006-xxxx-xxxx-xxxx",
-        "compute_cluster_public_key_path": "~/.ssh/compute_cluster_key.pub",
+        "compute_cluster_public_key": "ssh-rsa AAAA...your-public-key-content...",
         "bastion_security_group_id": "r006-xxxx-xxxx-xxxx-xxxx",
         "dns_service_instance_id": "my-dns-service",
         "vpc_compute_cluster_dns_zone_id": "zone-id-for-compute",
@@ -80,8 +80,8 @@ The following steps will provision IBM Cloud resources (compute and storage inst
         "compute_cluster_instance_type": "cx2-4x8",
         "storage_cluster_image_id": "r006-xxxx-xxxx-xxxx",
         "compute_cluster_image_id": "r006-xxxx-xxxx-xxxx",
-        "storage_cluster_public_key_path": "~/.ssh/storage_cluster_key.pub",
-        "compute_cluster_public_key_path": "~/.ssh/compute_cluster_key.pub",
+        "storage_cluster_public_key": "ssh-rsa AAAA...your-public-key-content...",
+        "compute_cluster_public_key": "ssh-rsa AAAA...your-public-key-content...",
         "bastion_security_group_id": "r006-xxxx-xxxx-xxxx-xxxx",
         "dns_service_instance_id": "my-dns-service",
         "vpc_storage_cluster_dns_zone_id": "zone-id-for-storage",
@@ -108,7 +108,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group ID. | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
-| <a name="input_orchestrator_server_url"></a> [orchestrator_server_url](#input_orchestrator_server_url) | URL of the scale-orchestrator server, e.g. http://10.x.x.x:57096. Written into /etc/scale-agent/config.yaml on each VM at first boot. | `string` |
+| <a name="input_orchestrator_server_url"></a> [orchestrator_server_url](#input_orchestrator_server_url) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot. | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | Image ID to use for provisioning the storage cluster instances. | `string` |

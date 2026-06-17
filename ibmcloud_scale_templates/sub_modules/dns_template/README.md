@@ -173,7 +173,7 @@ dig compute-node-1.compute.scale.local
 
 # Test connectivity
 ping storage-node-1.storage.scale.local
-ssh root@compute-node-1.compute.scale.local
+ssh vpcuser@compute-node-1.compute.scale.local
 ```
 
 ## Outputs
