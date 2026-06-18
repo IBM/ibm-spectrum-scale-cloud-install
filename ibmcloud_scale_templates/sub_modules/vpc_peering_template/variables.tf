@@ -58,3 +58,9 @@ variable "tags" {
   default     = []
   description = "Tags to be applied to Transit Gateway resources."
 }
+
+variable "vpc_cidr_block" {
+  type        = string
+  default     = null
+  description = "CIDR block of the new VPC. Used as source IP range for security rules in peer VPC."
+}

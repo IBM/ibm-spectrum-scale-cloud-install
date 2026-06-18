@@ -67,6 +67,7 @@ module "vpc_peering" {
   resource_group_id              = module.vpc.resource_group_id
   transit_gateway_name           = var.transit_gateway_name
   transit_gateway_global_routing = var.transit_gateway_global_routing
+  vpc_cidr_block                 = var.vpc_cidr_block
   ibmcloud_api_key               = var.ibmcloud_api_key
   tags                           = var.tags
 }

@@ -45,3 +45,21 @@ resource "ibm_tg_connection" "peer_vpc" {
   name         = "${var.resource_prefix}-peer-vpc-connection"
   network_id   = var.peer_vpc_crn
 }
+
+# Data source to get peer VPC details including default security group
+data "ibm_is_vpc" "peer" {
+  count      = var.peer_vpc_crn != null && var.vpc_cidr_block != null ? 1 : 0
+  identifier = var.peer_vpc_crn
+}
+
+# Create security rule in peer VPC to allow inbound traffic from new VPC on port 57096
+resource "ibm_is_security_group_rule" "peer_vpc_allow_inbound" {
+  count     = var.peer_vpc_crn != null && var.vpc_cidr_block != null ? 1 : 0
+  group     = data.ibm_is_vpc.peer[0].default_security_group
+  direction = "inbound"
+  remote    = var.vpc_cidr_block
+  tcp {
+    port_min = 57096
+    port_max = 57096
+  }
+}
