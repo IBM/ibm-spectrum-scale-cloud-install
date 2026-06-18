@@ -47,9 +47,11 @@ resource "ibm_tg_connection" "peer_vpc" {
 }
 
 # Data source to get peer VPC details including default security group
+# Extract VPC ID from CRN (format: crn:v1:bluemix:public:is:region:account::vpc:VPC_ID)
 data "ibm_is_vpc" "peer" {
-  count      = var.peer_vpc_crn != null && var.vpc_cidr_block != null ? 1 : 0
-  identifier = var.peer_vpc_crn
+  count = var.peer_vpc_crn != null && var.vpc_cidr_block != null ? 1 : 0
+  # Extract VPC ID from CRN by taking the last segment after the last colon
+  identifier = element(split(":", var.peer_vpc_crn), length(split(":", var.peer_vpc_crn)) - 1)
 }
 
 # Create security rule in peer VPC to allow inbound traffic from new VPC on port 57096
