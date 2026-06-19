@@ -60,8 +60,7 @@ resource "ibm_is_security_group_rule" "peer_vpc_allow_inbound" {
   group     = data.ibm_is_vpc.peer[0].default_security_group
   direction = "inbound"
   remote    = var.vpc_cidr_block
-  tcp {
-    port_min = 57096
-    port_max = 57096
-  }
+  protocol  = "tcp"
+  port_min  = 57096
+  port_max  = 57096
 }
