@@ -42,13 +42,14 @@ data "ibm_dns_zones" "all_zones" {
   instance_id = local.dns_instance_id
 }
 
-# Creates a new storage private DNS zone in IBMCloud
-module "storage_dns_zone" {
+# Creates a new private DNS zone in IBMCloud for each enabled cluster type (storage/compute/protocol)
+module "dns_zone" {
+  for_each       = local.enabled_dns_zone_configs
   source         = "../../../resources/ibmcloud/network/dns_zone"
-  turn_on        = var.create_dns_zone && local.is_storage_cluster
-  dns_domain     = var.vpc_storage_cluster_dns_domain
+  turn_on        = var.create_dns_zone
+  dns_domain     = each.value.domain
   dns_service_id = local.dns_instance_id
-  description    = "Private DNS Zone for Spectrum Scale storage VPC DNS communication."
+  description    = each.value.description
   dns_label      = var.resource_prefix
 }
 
@@ -58,49 +59,12 @@ data "ibm_is_vpc" "vpc" {
   identifier = var.vpc_ref
 }
 
-# Creates a storage DNS permitted network
-module "storage_dns_permitted_network" {
+# Creates a DNS permitted network for each enabled cluster type, associating the VPC with its zone
+module "dns_permitted_network" {
+  for_each        = local.enabled_dns_zone_configs
   source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  permitted_count = (var.create_dns_zone || local.storage_dns_zone_exists) && local.is_storage_cluster ? 1 : 0
+  permitted_count = (var.create_dns_zone || each.value.exists) ? 1 : 0
   instance_id     = local.dns_instance_id
-  zone_id         = local.storage_dns_zone_exists ? local.storage_dns_zone_id : module.storage_dns_zone.dns_zone_id
-  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
-}
-
-# Creates a new compute private DNS zone in IBMCloud
-module "compute_dns_zone" {
-  source         = "../../../resources/ibmcloud/network/dns_zone"
-  turn_on        = var.create_dns_zone && local.is_compute_cluster
-  dns_domain     = var.vpc_compute_cluster_dns_domain
-  dns_service_id = local.dns_instance_id
-  description    = "Private DNS Zone for Spectrum Scale compute VPC DNS communication."
-  dns_label      = var.resource_prefix
-}
-
-# Creates a compute DNS permitted network
-module "compute_dns_permitted_network" {
-  source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  permitted_count = (var.create_dns_zone || local.compute_dns_zone_exists) && local.is_compute_cluster ? 1 : 0
-  instance_id     = local.dns_instance_id
-  zone_id         = local.compute_dns_zone_exists ? local.compute_dns_zone_id : module.compute_dns_zone.dns_zone_id
-  vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
-}
-
-# Creates a new protocol private DNS zone in IBMCloud
-module "protocol_dns_zone" {
-  source         = "../../../resources/ibmcloud/network/dns_zone"
-  turn_on        = var.create_dns_zone && local.is_protocol_cluster
-  dns_domain     = var.vpc_protocol_cluster_dns_domain
-  dns_service_id = local.dns_instance_id
-  description    = "Private DNS Zone for Spectrum Scale protocol VPC DNS communication."
-  dns_label      = var.resource_prefix
-}
-
-# Creates a protocol DNS permitted network
-module "protocol_dns_permitted_network" {
-  source          = "../../../resources/ibmcloud/network/dns_permitted_network"
-  permitted_count = (var.create_dns_zone || local.protocol_dns_zone_exists) && local.is_protocol_cluster ? 1 : 0
-  instance_id     = local.dns_instance_id
-  zone_id         = local.protocol_dns_zone_exists ? local.protocol_dns_zone_id : module.protocol_dns_zone.dns_zone_id
+  zone_id         = each.value.exists ? each.value.existing_id : module.dns_zone[each.key].dns_zone_id
   vpc_crn         = one(data.ibm_is_vpc.vpc[*].crn)
 }

@@ -24,22 +24,10 @@ variable "security_groups" {}
 variable "tags" {}
 variable "ssh_key_id" {}
 variable "zone" {}
-variable "dns_services_instance_id" {}
+variable "dns_service_instance_id" {}
+variable "dns_domain" {}
 variable "vpc_id" {}
 variable "resource_group_id" {}
-
-# Fetch all DNS zones to get domain name from zone ID
-data "ibm_dns_zones" "all_zones" {
-  instance_id = var.dns_services_instance_id
-}
-
-locals {
-  # Find the zone name by matching zone_id
-  zone_name = try(
-    [for zone in data.ibm_dns_zones.all_zones.dns_zones : zone.name if zone.zone_id == var.dns_zone_id][0],
-    ""
-  )
-}
 
 # Create a Service ID for CES automation (equivalent to AWS IAM Role)
 resource "ibm_iam_service_id" "ces_automation" {
@@ -96,8 +84,8 @@ resource "ibm_is_instance" "itself" {
 
   user_data = <<EOF
 #!/usr/bin/env bash
-hostnamectl set-hostname --static "${var.name_prefix}.${local.zone_name}"
-echo "${var.name_prefix}.${local.zone_name}" > /etc/hostname
+hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 EOF
 
   metadata_service {
@@ -114,21 +102,21 @@ EOF
 
 # Create "A" record: hostname -> private IPv4
 resource "ibm_dns_resource_record" "a_itself" {
-  instance_id = var.dns_services_instance_id
+  instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "A"
-  name        = format("%s.%s", var.name_prefix, local.zone_name)
+  name        = format("%s.%s", var.name_prefix, var.dns_domain)
   rdata       = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
   ttl         = 3600
 }
 
 # Create "PTR" record: IPv4 -> hostname (in the same DNS zone)
 resource "ibm_dns_resource_record" "ptr_itself" {
-  instance_id = var.dns_services_instance_id
+  instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "PTR"
   name        = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
-  rdata       = format("%s.%s", var.name_prefix, local.zone_name)
+  rdata       = format("%s.%s", var.name_prefix, var.dns_domain)
   ttl         = 3600
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
@@ -148,21 +136,21 @@ resource "ibm_is_vpc_routing_table_route" "itself" {
 
 # Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
 resource "ibm_dns_resource_record" "ces_a_itself" {
-  instance_id = var.dns_services_instance_id
+  instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "A"
-  name        = format("%s-ces.%s", var.name_prefix, local.zone_name)
+  name        = format("%s-ces.%s", var.name_prefix, var.dns_domain)
   rdata       = var.ces_ipaddress
   ttl         = 3600
 }
 
 # Create "PTR" records in the same DNS zone (IBM Cloud DNS supports this)
 resource "ibm_dns_resource_record" "ces_ptr_itself" {
-  instance_id = var.dns_services_instance_id
+  instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "PTR"
   name        = var.ces_ipaddress
-  rdata       = format("%s-ces.%s", var.name_prefix, local.zone_name)
+  rdata       = format("%s-ces.%s", var.name_prefix, var.dns_domain)
   ttl         = 3600
   depends_on  = [ibm_dns_resource_record.ces_a_itself]
 }
@@ -172,7 +160,7 @@ output "instance_details" {
   value = {
     private_ip     = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
     id             = ibm_is_instance.itself.id
-    dns            = format("%s.%s", var.name_prefix, local.zone_name)
+    dns            = format("%s.%s", var.name_prefix, var.dns_domain)
     zone           = ibm_is_instance.itself.zone
     ces_private_ip = var.ces_ipaddress
   }

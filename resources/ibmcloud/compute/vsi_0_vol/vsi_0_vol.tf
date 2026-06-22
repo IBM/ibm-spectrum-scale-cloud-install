@@ -24,22 +24,10 @@ variable "tags" {}
 variable "ssh_key_id" {}
 variable "vpc_id" {}
 variable "zone" {}
-variable "dns_services_instance_id" {}
+variable "dns_service_instance_id" {}
+variable "dns_domain" {}
 variable "resource_group_id" {}
 variable "orchestrator_server_url" {}
-
-# Fetch all DNS zones to get domain name from zone ID
-data "ibm_dns_zones" "all_zones" {
-  instance_id = var.dns_services_instance_id
-}
-
-locals {
-  # Find the zone name by matching zone_id
-  zone_name = try(
-    [for zone in data.ibm_dns_zones.all_zones.dns_zones : zone.name if zone.zone_id == var.dns_zone_id][0],
-    ""
-  )
-}
 
 # Resolves the CRN of your KMS key for boot volume encryption
 data "ibm_kms_key" "itself" {
@@ -79,8 +67,8 @@ resource "ibm_is_instance" "itself" {
 
   user_data = <<EOF
 #!/usr/bin/env bash
-hostnamectl set-hostname --static "${var.name_prefix}.${local.zone_name}"
-echo "${var.name_prefix}.${local.zone_name}" > /etc/hostname
+hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
+echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 sed -i "s|^server_url:.*|server_url: http://${var.orchestrator_server_url}:57096|" /etc/scale-agent/config.yaml
 systemctl restart scale-agent
 EOF
@@ -94,21 +82,21 @@ EOF
 
 # Create "A" records
 resource "ibm_dns_resource_record" "a_itself" {
-  instance_id = var.dns_services_instance_id
+  instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "A"
-  name        = format("%s.%s", var.name_prefix, local.zone_name)
+  name        = format("%s.%s", var.name_prefix, var.dns_domain)
   rdata       = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
   ttl         = 3600
 }
 
 # Create "PTR" records in the same DNS zone (IBM Cloud DNS supports this)
 resource "ibm_dns_resource_record" "ptr_itself" {
-  instance_id = var.dns_services_instance_id
+  instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "PTR"
   name        = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
-  rdata       = format("%s.%s", var.name_prefix, local.zone_name)
+  rdata       = format("%s.%s", var.name_prefix, var.dns_domain)
   ttl         = 3600
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
@@ -117,7 +105,7 @@ output "instance_details" {
   value = {
     private_ip = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
     id         = ibm_is_instance.itself.id
-    dns        = format("%s.%s", var.name_prefix, local.zone_name)
+    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
     zone       = ibm_is_instance.itself.zone
   }
 }

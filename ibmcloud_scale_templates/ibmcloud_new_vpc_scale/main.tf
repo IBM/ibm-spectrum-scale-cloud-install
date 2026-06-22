@@ -85,7 +85,9 @@ module "scale_instances" {
   vpc_compute_cluster_private_subnets      = coalescelist(module.vpc.vpc_compute_cluster_private_subnets, module.vpc.vpc_storage_cluster_private_subnets)
   dns_service_instance_id                  = module.dns.dns_service_instance_id
   vpc_storage_cluster_dns_zone_id          = module.dns.vpc_storage_dns_zone_id
+  vpc_storage_cluster_dns_domain           = module.dns.vpc_storage_dns_domain
   vpc_compute_cluster_dns_zone_id          = module.dns.vpc_compute_dns_zone_id
+  vpc_compute_cluster_dns_domain           = module.dns.vpc_compute_dns_domain
   total_storage_cluster_instances          = var.total_storage_cluster_instances
   storage_cluster_image_id                 = var.storage_vsi_osimage_id
   storage_cluster_instance_type            = var.storage_vsi_profile

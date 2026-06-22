@@ -23,4 +23,31 @@ locals {
 
   # Determine if VPC data source is needed
   needs_vpc_data = var.create_dns_zone || local.storage_dns_zone_exists || local.compute_dns_zone_exists || local.protocol_dns_zone_exists
+
+  # Per-cluster-type DNS zone configuration, used to create one zone + permitted network per enabled cluster type
+  dns_zone_configs = {
+    storage = {
+      enabled     = local.is_storage_cluster
+      domain      = var.vpc_storage_cluster_dns_domain
+      exists      = local.storage_dns_zone_exists
+      existing_id = local.storage_dns_zone_id
+      description = "Private DNS Zone for Spectrum Scale storage VPC DNS communication."
+    }
+    compute = {
+      enabled     = local.is_compute_cluster
+      domain      = var.vpc_compute_cluster_dns_domain
+      exists      = local.compute_dns_zone_exists
+      existing_id = local.compute_dns_zone_id
+      description = "Private DNS Zone for Spectrum Scale compute VPC DNS communication."
+    }
+    protocol = {
+      enabled     = local.is_protocol_cluster
+      domain      = var.vpc_protocol_cluster_dns_domain
+      exists      = local.protocol_dns_zone_exists
+      existing_id = local.protocol_dns_zone_id
+      description = "Private DNS Zone for Spectrum Scale protocol VPC DNS communication."
+    }
+  }
+
+  enabled_dns_zone_configs = { for k, v in local.dns_zone_configs : k => v if v.enabled }
 }

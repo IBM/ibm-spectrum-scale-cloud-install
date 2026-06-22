@@ -233,7 +233,9 @@ terraform destroy -auto-approve
 | ---- | ----------- |
 | <a name="output_dns_service_instance_crn"></a> [dns_service_instance_crn](#output_dns_service_instance_crn) | IBM Cloud DNS Service Instance CRN (only available if newly created). |
 | <a name="output_dns_service_instance_id"></a> [dns_service_instance_id](#output_dns_service_instance_id) | IBM Cloud DNS Service Instance ID (either provided or newly created). |
+| <a name="output_vpc_compute_dns_domain"></a> [vpc_compute_dns_domain](#output_vpc_compute_dns_domain) | IBM Cloud DNS compute cluster domain name. |
 | <a name="output_vpc_compute_dns_zone_id"></a> [vpc_compute_dns_zone_id](#output_vpc_compute_dns_zone_id) | IBM Cloud DNS compute cluster zone ID. |
 | <a name="output_vpc_protocol_dns_zone_id"></a> [vpc_protocol_dns_zone_id](#output_vpc_protocol_dns_zone_id) | IBM Cloud DNS protocol cluster zone ID. |
+| <a name="output_vpc_storage_dns_domain"></a> [vpc_storage_dns_domain](#output_vpc_storage_dns_domain) | IBM Cloud DNS storage cluster domain name. |
 | <a name="output_vpc_storage_dns_zone_id"></a> [vpc_storage_dns_zone_id](#output_vpc_storage_dns_zone_id) | IBM Cloud DNS storage cluster zone ID. |
 <!-- END_TF_DOCS -->

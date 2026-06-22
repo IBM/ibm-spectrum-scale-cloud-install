@@ -6,12 +6,6 @@ locals {
   storage_and_gateway    = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_gateway_instances > 0
   create_placement_group = length(var.vpc_availability_zones) == 1 && var.enable_placement_group
 
-  # Derive storage DNS domain name from zone ID
-  storage_dns_domain = var.dns_service_instance_id != null && var.vpc_storage_cluster_dns_zone_id != null ? try(
-    [for zone in data.ibm_dns_zones.storage_zones.dns_zones : zone.name if zone.zone_id == var.vpc_storage_cluster_dns_zone_id][0],
-    ""
-  ) : ""
-
   # Internode scale firewall ports
   tcp_port_scale_cluster = ["22", "1191", "60000", "61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
   udp_port_scale_cluster = ["47443", "4739"]
@@ -92,7 +86,7 @@ locals {
   # Storage instance IPs with disk mapping (using FQDN)
   storage_instance_ips_with_disk_mapping = {
     for idx, vm_name in local.storage_vm_names :
-    "${vm_name}.${local.storage_dns_domain}" => {
+    "${vm_name}.${var.vpc_storage_cluster_dns_domain}" => {
       zone = element(local.first_two_zones, idx)
       disks = local.has_storage_volumes ? {
         for disk_idx in range(local.disks_per_vm + (idx < local.extra_disks ? 1 : 0)) :

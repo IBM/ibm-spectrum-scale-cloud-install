@@ -25,9 +25,18 @@ module "resource_group" {
   resource_group_name = var.resource_group_name
 }
 
+# Newly created resource groups can take time to propagate to the VPC ("is") API backend;
+# without this delay, ibm_is_vpc/ibm_is_ssh_key intermittently fail right after creation with
+# "Resource Group ID provided was not found".
+resource "time_sleep" "wait_for_resource_group" {
+  count           = var.create_resource_group ? 1 : 0
+  depends_on      = [module.resource_group]
+  create_duration = "30s"
+}
+
 data "ibm_resource_group" "itself" {
   name       = var.resource_group_name
-  depends_on = [module.resource_group]
+  depends_on = [module.resource_group, time_sleep.wait_for_resource_group]
 }
 
 module "vpc" {
