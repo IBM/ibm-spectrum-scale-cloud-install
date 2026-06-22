@@ -46,21 +46,24 @@ resource "ibm_tg_connection" "peer_vpc" {
   network_id   = var.peer_vpc_crn
 }
 
-# Data source to get peer VPC details including default security group
-# Extract VPC ID from CRN (format: crn:v1:bluemix:public:is:region:account::vpc:VPC_ID)
-data "ibm_is_vpc" "peer" {
-  count = var.peer_vpc_crn != null && var.vpc_cidr_block != null ? 1 : 0
-  # Extract VPC ID from CRN by taking the last segment after the last colon
-  identifier = element(split(":", var.peer_vpc_crn), length(split(":", var.peer_vpc_crn)) - 1)
-}
-
-# Create security rule in peer VPC to allow inbound traffic from new VPC on port 57096
+# Create security rule on the given peer security group to allow inbound traffic from new VPC on port 57096
 resource "ibm_is_security_group_rule" "peer_vpc_allow_inbound" {
-  count     = var.peer_vpc_crn != null && var.vpc_cidr_block != null ? 1 : 0
-  group     = data.ibm_is_vpc.peer[0].default_security_group
+  count     = var.vpc_cidr_block != null && var.peer_security_group_id != null ? 1 : 0
+  group     = var.peer_security_group_id
   direction = "inbound"
   remote    = var.vpc_cidr_block
   protocol  = "tcp"
   port_min  = 57096
   port_max  = 57096
+}
+
+# Create security rule on the given peer security group to allow outbound traffic to new VPC on port 46443
+resource "ibm_is_security_group_rule" "peer_vpc_allow_outbound" {
+  count     = var.vpc_cidr_block != null && var.peer_security_group_id != null ? 1 : 0
+  group     = var.peer_security_group_id
+  direction = "outbound"
+  remote    = var.vpc_cidr_block
+  protocol  = "tcp"
+  port_min  = 46443
+  port_max  = 46443
 }

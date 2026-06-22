@@ -64,3 +64,9 @@ variable "vpc_cidr_block" {
   default     = null
   description = "CIDR block of the new VPC. Used as source IP range for security rules in peer VPC."
 }
+
+variable "peer_security_group_id" {
+  type        = string
+  default     = null
+  description = "ID of the security group in the peer VPC to attach connectivity rules to."
+}

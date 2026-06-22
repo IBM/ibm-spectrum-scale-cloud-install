@@ -63,6 +63,7 @@ module "vpc_peering" {
   vpc_region                     = var.vpc_region
   vpc_crn                        = module.vpc.vpc_crn
   peer_vpc_crn                   = var.peer_vpc_crn
+  peer_security_group_id         = var.peer_security_group_id
   resource_prefix                = var.resource_prefix
   resource_group_id              = module.vpc.resource_group_id
   transit_gateway_name           = var.transit_gateway_name

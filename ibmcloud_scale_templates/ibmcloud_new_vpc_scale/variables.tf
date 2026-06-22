@@ -300,6 +300,12 @@ variable "peer_vpc_crn" {
   description = "CRN of the existing VPC to connect via Transit Gateway. Required only if enable_transit_gateway is true and creating a new Transit Gateway."
 }
 
+variable "peer_security_group_id" {
+  type        = string
+  default     = null
+  description = "ID of the security group in the peer VPC to attach connectivity rules to."
+}
+
 variable "transit_gateway_name" {
   type        = string
   default     = null
