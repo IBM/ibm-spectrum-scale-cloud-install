@@ -272,7 +272,7 @@ variable "root_device_kms_key_name" {
   description = "Name of the root/standard key to be used when encrypting the root volume."
 }
 
-variable "orchestrator_server_url" {
+variable "orchestrator_server" {
   type        = string
   description = "IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot."
 }

@@ -336,7 +336,7 @@ variable "tags" {
   description = "List of tags to be attached to all resources created by this module."
 }
 
-variable "orchestrator_server_url" {
+variable "orchestrator_server" {
   type        = string
   description = "IP or hostname of the scale-orchestrator server running on the OCP worker node, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot."
 }

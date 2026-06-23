@@ -119,5 +119,5 @@ module "scale_instances" {
   airgap                                   = false
   enable_placement_group                   = var.enable_placement_group
   placement_group_strategy                 = var.placement_group_strategy
-  orchestrator_server_url                  = var.orchestrator_server_url
+  orchestrator_server                      = var.orchestrator_server
 }
