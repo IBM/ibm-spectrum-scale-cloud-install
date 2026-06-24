@@ -7,8 +7,14 @@ locals {
   create_placement_group = length(var.vpc_availability_zones) == 1 && var.enable_placement_group
 
   # Internode scale firewall ports
-  tcp_port_scale_cluster = ["22", "1191", "60000", "61000", "47080", "4444", "4739", "9080", "9081", "80", "443"]
+  tcp_port_scale_cluster = ["22", "1191", "47080", "4444", "4739", "9080", "9081", "80", "443"]
   udp_port_scale_cluster = ["47443", "4739"]
+
+  # GPFS ephemeral RPC port range used for internode daemon traffic
+  gpfs_ephemeral_port_range = {
+    port_min = 60000
+    port_max = 61000
+  }
 
   # Internode protocol ports (CTDB traffic)
   protocol_traffic_ports = [4379]

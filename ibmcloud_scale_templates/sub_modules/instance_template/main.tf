@@ -40,6 +40,11 @@ module "scale_cluster_ingress_security_rule" {
       port_min = tonumber(port)
       port_max = tonumber(port)
     }],
+    [{
+      protocol = "tcp"
+      port_min = local.gpfs_ephemeral_port_range.port_min
+      port_max = local.gpfs_ephemeral_port_range.port_max
+    }],
     [for port in local.udp_port_scale_cluster : {
       protocol = "udp"
       port_min = tonumber(port)
