@@ -182,6 +182,12 @@ variable "storage_volume_iops" {
   description = "IOPS for unattached storage volumes. Only applicable for custom IOPS profiles."
 }
 
+variable "attach_storage_volumes" {
+  type        = bool
+  default     = false
+  description = "If true, the provisioned storage volumes will be attached to the storage cluster instances via ibm_is_instance_volume_attachment."
+}
+
 variable "storage_cluster_public_key" {
   type        = string
   default     = null
@@ -338,5 +344,22 @@ variable "tags" {
 
 variable "orchestrator_server" {
   type        = string
-  description = "IP or hostname of the scale-orchestrator server running on the OCP worker node, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot."
+  description = "IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x."
+}
+
+variable "orchestrator_port" {
+  type        = number
+  default     = 57096
+  description = "TCP port the scale-agent connects to on the orchestrator server."
+}
+
+variable "orchestrator_protocol" {
+  type        = string
+  default     = "http"
+  description = "Protocol used to reach the orchestrator server. Must be 'http' or 'https'."
+
+  validation {
+    condition     = contains(["http", "https"], var.orchestrator_protocol)
+    error_message = "orchestrator_protocol must be either 'http' or 'https'."
+  }
 }

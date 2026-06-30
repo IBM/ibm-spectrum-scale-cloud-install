@@ -19,8 +19,18 @@ output "new_vpc_connection_id" {
 }
 
 output "peer_vpc_connection_id" {
-  value       = try(ibm_tg_connection.peer_vpc[0].id, null)
-  description = "ID of the Transit Gateway connection for the peer VPC."
+  value       = local.peer_vpc_already_attached ? local.existing_peer_vpc_connection_id : try(ibm_tg_connection.peer_vpc[0].id, null)
+  description = "ID of the Transit Gateway connection for the peer VPC (either existing or newly created)."
+}
+
+output "peer_vpc_already_attached" {
+  value       = local.peer_vpc_already_attached
+  description = "Boolean flag indicating if the peer VPC was already attached to the Transit Gateway."
+}
+
+output "peer_vpc_connection_status" {
+  value       = local.peer_vpc_already_attached ? "existing" : (var.peer_vpc_crn != null ? "created" : "not_configured")
+  description = "Status of peer VPC connection: 'existing' (already attached), 'created' (newly attached), or 'not_configured' (no peer VPC specified)."
 }
 
 output "transit_gateway_status" {

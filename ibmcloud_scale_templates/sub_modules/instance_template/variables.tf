@@ -192,6 +192,12 @@ variable "storage_volume_iops" {
   description = "IOPS for unattached storage volumes."
 }
 
+variable "attach_storage_volumes" {
+  type        = bool
+  default     = false
+  description = "If true, the provisioned storage volumes will be attached to the storage cluster instances via ibm_is_instance_volume_attachment."
+}
+
 variable "compute_cluster_image_id" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"
@@ -274,7 +280,24 @@ variable "root_device_kms_key_name" {
 
 variable "orchestrator_server" {
   type        = string
-  description = "IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot."
+  description = "IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x."
+}
+
+variable "orchestrator_port" {
+  type        = number
+  default     = 57096
+  description = "TCP port the scale-agent connects to on the orchestrator server."
+}
+
+variable "orchestrator_protocol" {
+  type        = string
+  default     = "http"
+  description = "Protocol used to reach the orchestrator server. Must be 'http' or 'https'."
+
+  validation {
+    condition     = contains(["http", "https"], var.orchestrator_protocol)
+    error_message = "orchestrator_protocol must be either 'http' or 'https'."
+  }
 }
 
 variable "enable_placement_group" {

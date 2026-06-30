@@ -176,6 +176,8 @@ module "compute_cluster_instances" {
   vpc_id                            = var.vpc_id
   zone                              = var.vpc_availability_zones
   orchestrator_server               = var.orchestrator_server
+  orchestrator_port                 = var.orchestrator_port
+  orchestrator_protocol             = var.orchestrator_protocol
 }
 
 module "storage_cluster_instances" {
@@ -199,8 +201,10 @@ module "storage_cluster_instances" {
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
-  attach_volumes                    = false
+  attach_volumes                    = var.attach_storage_volumes
   orchestrator_server               = var.orchestrator_server
+  orchestrator_port                 = var.orchestrator_port
+  orchestrator_protocol             = var.orchestrator_protocol
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -226,6 +230,8 @@ module "storage_cluster_tie_breaker_instance" {
   zone                              = each.value["zone"]
   attach_volumes                    = true
   orchestrator_server               = var.orchestrator_server
+  orchestrator_port                 = var.orchestrator_port
+  orchestrator_protocol             = var.orchestrator_protocol
 }
 
 module "protocol_instances" {
@@ -270,4 +276,6 @@ module "gateway_instances" {
   vpc_id                            = var.vpc_id
   zone                              = var.vpc_availability_zones
   orchestrator_server               = var.orchestrator_server
+  orchestrator_port                 = var.orchestrator_port
+  orchestrator_protocol             = var.orchestrator_protocol
 }

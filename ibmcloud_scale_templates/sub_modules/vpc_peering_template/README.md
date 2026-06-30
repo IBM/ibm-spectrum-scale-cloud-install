@@ -7,6 +7,7 @@ This Terraform sub-module provisions IBM Cloud Transit Gateway resources to enab
 The VPC peering template creates:
 - **Transit Gateway**: Central hub for connecting multiple VPCs (optional - can use existing)
 - **VPC Connections**: Attachments for new and peer VPCs to Transit Gateway
+- **Duplicate Connection Prevention**: Automatically detects if peer VPC is already attached to existing Transit Gateway
 - **Global Routing**: Optional cross-region connectivity support
 
 ## Purpose
@@ -16,6 +17,7 @@ This module provides network connectivity between VPCs for Spectrum Scale:
 - Enable multi-region deployments with global routing
 - Centralized network management through Transit Gateway
 - Secure private network communication between VPCs
+- **Smart duplicate detection**: Prevents creating duplicate connections when peer VPC is already attached to the Transit Gateway
 
 ## Prerequisites
 
@@ -84,7 +86,7 @@ Connect a newly created VPC with an existing peer VPC using a new Transit Gatewa
 
 ### Example 2: Use Existing Transit Gateway
 
-Connect VPCs to an existing Transit Gateway instead of creating a new one.
+Connect VPCs to an existing Transit Gateway instead of creating a new one. The module will automatically check if the peer VPC is already attached to the Transit Gateway and skip creating a duplicate connection.
 
 ```jsonc
 {
@@ -95,9 +97,15 @@ Connect VPCs to an existing Transit Gateway instead of creating a new one.
     "peer_vpc_crn": "crn:v1:bluemix:public:is:REGION:a/ACCOUNT_ID::vpc:PEER_VPC_ID",
     "resource_prefix": "scale-prod",
     "resource_group_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
-    "existing_transit_gateway_name": "existing-transit-gateway-name"
+    "transit_gateway_name": "existing-transit-gateway-name"
 }
 ```
+
+**Note**: When using an existing Transit Gateway, the module automatically checks if the peer VPC is already connected. If it is, the module will:
+- Skip creating a duplicate connection
+- Set `peer_vpc_already_attached` output to `true`
+- Set `peer_vpc_connection_status` output to `"existing"`
+- Return the existing connection ID in `peer_vpc_connection_id` output
 
 ### Example 3: Global Routing for Cross-Region Connectivity
 
@@ -151,6 +159,7 @@ Connect only the new VPC to Transit Gateway without a peer VPC.
 - Required for multi-region deployments
 - Additional charges apply for cross-region data transfer
 
+
 ## Outputs
 
 After deployment, the following outputs are available:
@@ -165,6 +174,8 @@ terraform output transit_gateway_crn
 terraform output transit_gateway_name
 terraform output new_vpc_connection_id
 terraform output peer_vpc_connection_id
+terraform output peer_vpc_already_attached
+terraform output peer_vpc_connection_status
 terraform output transit_gateway_status
 ```
 
@@ -211,7 +222,9 @@ terraform destroy -auto-approve
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_new_vpc_connection_id"></a> [new_vpc_connection_id](#output_new_vpc_connection_id) | ID of the Transit Gateway connection for the new VPC. |
-| <a name="output_peer_vpc_connection_id"></a> [peer_vpc_connection_id](#output_peer_vpc_connection_id) | ID of the Transit Gateway connection for the peer VPC. |
+| <a name="output_peer_vpc_connection_id"></a> [peer_vpc_connection_id](#output_peer_vpc_connection_id) | ID of the Transit Gateway connection for the peer VPC (either existing or newly created). |
+| <a name="output_peer_vpc_already_attached"></a> [peer_vpc_already_attached](#output_peer_vpc_already_attached) | Boolean flag indicating if the peer VPC was already attached to the Transit Gateway. |
+| <a name="output_peer_vpc_connection_status"></a> [peer_vpc_connection_status](#output_peer_vpc_connection_status) | Status of peer VPC connection: 'existing' (already attached), 'created' (newly attached), or 'not_configured' (no peer VPC specified). |
 | <a name="output_transit_gateway_crn"></a> [transit_gateway_crn](#output_transit_gateway_crn) | CRN of the Transit Gateway (either existing or newly created). |
 | <a name="output_transit_gateway_id"></a> [transit_gateway_id](#output_transit_gateway_id) | ID of the Transit Gateway (either existing or newly created). |
 | <a name="output_transit_gateway_name"></a> [transit_gateway_name](#output_transit_gateway_name) | Name of the Transit Gateway. |

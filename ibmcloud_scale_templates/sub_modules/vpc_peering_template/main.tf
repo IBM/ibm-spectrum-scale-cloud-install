@@ -37,9 +37,9 @@ resource "ibm_tg_connection" "new_vpc" {
   network_id   = var.vpc_crn
 }
 
-# Attach the peer VPC to Transit Gateway
+# Attach the peer VPC to Transit Gateway only if not already attached
 resource "ibm_tg_connection" "peer_vpc" {
-  count        = var.peer_vpc_crn != null ? local.create_count : 0
+  count        = var.peer_vpc_crn != null && !local.peer_vpc_already_attached ? local.create_count : 0
   gateway      = local.transit_gateway_id
   network_type = "vpc"
   name         = "${var.resource_prefix}-peer-vpc-connection"

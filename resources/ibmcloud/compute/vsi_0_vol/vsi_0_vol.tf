@@ -28,6 +28,12 @@ variable "dns_service_instance_id" {}
 variable "dns_domain" {}
 variable "resource_group_id" {}
 variable "orchestrator_server" {}
+variable "orchestrator_port" {
+  default = 57096
+}
+variable "orchestrator_protocol" {
+  default = "http"
+}
 
 # Resolves the CRN of your KMS key for boot volume encryption
 data "ibm_kms_key" "itself" {
@@ -69,7 +75,7 @@ resource "ibm_is_instance" "itself" {
 #!/usr/bin/env bash
 hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
 echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
-sed -i "s|^server_url:.*|server_url: http://${var.orchestrator_server}:57096|" /etc/scale-agent/config.yaml
+sed -i "s|^server_url:.*|server_url: ${var.orchestrator_protocol}://${var.orchestrator_server}:${var.orchestrator_port}|" /etc/scale-agent/config.yaml
 systemctl restart scale-agent
 EOF
 
