@@ -122,5 +122,4 @@ module "scale_instances" {
   orchestrator_server                      = var.orchestrator_server
   orchestrator_port                        = var.orchestrator_port
   orchestrator_protocol                    = var.orchestrator_protocol
-  attach_storage_volumes                   = var.attach_storage_volumes
 }

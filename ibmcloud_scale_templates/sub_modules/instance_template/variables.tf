@@ -192,12 +192,6 @@ variable "storage_volume_iops" {
   description = "IOPS for unattached storage volumes."
 }
 
-variable "attach_storage_volumes" {
-  type        = bool
-  default     = false
-  description = "If true, the provisioned storage volumes will be attached to the storage cluster instances via ibm_is_instance_volume_attachment."
-}
-
 variable "compute_cluster_image_id" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"

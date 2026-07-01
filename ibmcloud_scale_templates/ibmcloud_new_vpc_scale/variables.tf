@@ -182,12 +182,6 @@ variable "storage_volume_iops" {
   description = "IOPS for unattached storage volumes. Only applicable for custom IOPS profiles."
 }
 
-variable "attach_storage_volumes" {
-  type        = bool
-  default     = false
-  description = "If true, the provisioned storage volumes will be attached to the storage cluster instances via ibm_is_instance_volume_attachment."
-}
-
 variable "storage_cluster_public_key" {
   type        = string
   default     = null
