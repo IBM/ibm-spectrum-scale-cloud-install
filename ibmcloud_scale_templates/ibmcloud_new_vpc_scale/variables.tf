@@ -347,13 +347,3 @@ variable "orchestrator_port" {
   description = "TCP port the scale-agent connects to on the orchestrator server."
 }
 
-variable "orchestrator_protocol" {
-  type        = string
-  default     = "http"
-  description = "Protocol used to reach the orchestrator server. Must be 'http' or 'https'."
-
-  validation {
-    condition     = contains(["http", "https"], var.orchestrator_protocol)
-    error_message = "orchestrator_protocol must be either 'http' or 'https'."
-  }
-}

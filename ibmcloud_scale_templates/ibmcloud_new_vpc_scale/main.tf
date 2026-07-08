@@ -121,5 +121,4 @@ module "scale_instances" {
   placement_group_strategy                 = var.placement_group_strategy
   orchestrator_server                      = var.orchestrator_server
   orchestrator_port                        = var.orchestrator_port
-  orchestrator_protocol                    = var.orchestrator_protocol
 }
