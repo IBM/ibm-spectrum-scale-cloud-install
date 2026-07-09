@@ -28,9 +28,7 @@ variable "dns_service_instance_id" {}
 variable "dns_domain" {}
 variable "resource_group_id" {}
 variable "orchestrator_server" {}
-variable "orchestrator_port" {
-  default = 57096
-}
+variable "orchestrator_port" {}
 # Resolves the CRN of your KMS key for boot volume encryption
 data "ibm_kms_key" "itself" {
   count       = var.root_device_kms_key_instance_id != null && var.root_device_kms_key_instance_name != null ? 1 : 0

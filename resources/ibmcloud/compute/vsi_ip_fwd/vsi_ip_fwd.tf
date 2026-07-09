@@ -29,9 +29,7 @@ variable "dns_domain" {}
 variable "vpc_id" {}
 variable "resource_group_id" {}
 variable "orchestrator_server" {}
-variable "orchestrator_port" {
-  default = 57096
-}
+variable "orchestrator_port" {}
 # Create a Service ID for CES automation (equivalent to AWS IAM Role)
 resource "ibm_iam_service_id" "ces_automation" {
   name        = "${var.name_prefix}-ces-automation"
