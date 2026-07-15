@@ -283,6 +283,11 @@ variable "orchestrator_port" {
   description = "TCP port the scale-agent connects to on the orchestrator server."
 }
 
+variable "orchestrator_ca_fingerprint" {
+  type        = string
+  sensitive   = true
+  description = "SHA-256 fingerprint of the orchestrator's CA certificate. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'."
+}
 
 variable "enable_placement_group" {
   type        = bool

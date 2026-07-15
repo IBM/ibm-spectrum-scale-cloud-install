@@ -30,6 +30,7 @@ variable "vpc_id" {}
 variable "resource_group_id" {}
 variable "orchestrator_server" {}
 variable "orchestrator_port" {}
+variable "orchestrator_ca_fingerprint" {}
 # Create a Service ID for CES automation (equivalent to AWS IAM Role)
 resource "ibm_iam_service_id" "ces_automation" {
   name        = "${var.name_prefix}-ces-automation"
@@ -88,6 +89,7 @@ resource "ibm_is_instance" "itself" {
 hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
 echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 sed -i "s|^server_url:.*|server_url: https://${var.orchestrator_server}:${var.orchestrator_port}|" /etc/scale-agent/config.yaml
+sed -i "s|^ca_fingerprint:.*|ca_fingerprint: \"${var.orchestrator_ca_fingerprint}\"|" /etc/scale-agent/config.yaml
 systemctl restart scale-agent
 EOF
 

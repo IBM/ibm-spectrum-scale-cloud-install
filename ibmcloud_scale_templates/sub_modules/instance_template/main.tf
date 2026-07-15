@@ -177,6 +177,7 @@ module "compute_cluster_instances" {
   zone                              = var.vpc_availability_zones
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
+  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
 }
 
 module "storage_cluster_instances" {
@@ -203,6 +204,7 @@ module "storage_cluster_instances" {
   attach_volumes                    = true
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
+  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -229,6 +231,7 @@ module "storage_cluster_tie_breaker_instance" {
   attach_volumes                    = true
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
+  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
 }
 
 module "protocol_instances" {
@@ -253,6 +256,7 @@ module "protocol_instances" {
   zone                              = each.value["zone"]
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
+  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
 }
 
 module "gateway_instances" {
@@ -276,4 +280,5 @@ module "gateway_instances" {
   zone                              = var.vpc_availability_zones
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
+  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
 }
