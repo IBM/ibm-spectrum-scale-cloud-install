@@ -59,10 +59,9 @@ module "vpc_address_prefix" {
 }
 
 # IBM Cloud does not offer native NAT (attaching public gateway handles outbound connectivity)
-# Create one internet gateway per subnet (public, private) in given number of AZ's.
 module "vpc_internet_gw" {
   source            = "../../../resources/ibmcloud/network/public_gw"
-  turn_on           = local.enable_public_subnets
+  turn_on           = true
   public_gw_name    = local.public_gw_name
   resource_group_id = data.ibm_resource_group.itself.id
   vpc_id            = module.vpc.vpc_id
