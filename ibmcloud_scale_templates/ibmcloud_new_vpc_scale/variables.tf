@@ -88,8 +88,9 @@ variable "vpc_protocol_private_subnets_cidr_blocks" {
 
 variable "vpc_public_subnets_cidr_blocks" {
   type        = list(string)
-  default     = ["10.241.3.0/24", "10.241.66.0/24", "10.241.130.0/24"]
-  description = "List of CIDR blocks for public subnets, one per availability zone. Set to empty array [] if no public subnets are needed."
+  nullable    = true
+  default     = null
+  description = "List of CIDR blocks for public subnets, one per availability zone. Leave null (default) when no bastion host is deployed — skips public subnet and public gateway creation entirely."
 }
 
 variable "dns_service_instance_id" {

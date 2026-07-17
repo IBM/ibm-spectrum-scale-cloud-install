@@ -30,7 +30,7 @@ resource "ibm_is_subnet" "itself" {
   resource_group  = var.resource_group_id
   zone            = element(var.zones, count.index)
   ipv4_cidr_block = element(var.subnets_cidr, count.index)
-  public_gateway  = element(var.public_gateway, count.index)
+  public_gateway  = length(var.public_gateway) > 0 ? element(var.public_gateway, count.index) : null
   tags            = var.tags
 }
 

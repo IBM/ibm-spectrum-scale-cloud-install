@@ -199,6 +199,16 @@ output "storage_cluster_desc_data_volume_mapping" {
   description = "Mapping of storage cluster desc instance ip vs. device path."
 }
 
+output "protocol_cluster_instance_ids" {
+  value       = [for inst in try(module.scale_instances.protocol_instance_details, []) : inst.id]
+  description = "Protocol cluster instance ids."
+}
+
+output "protocol_cluster_instance_private_ips" {
+  value       = [for inst in try(module.scale_instances.protocol_instance_details, []) : inst.private_ip]
+  description = "Private IP address of protocol cluster instances."
+}
+
 output "placement_group_id" {
   value       = try(module.scale_instances.placement_group_id, null)
   description = "IBM Cloud placement group id for single-AZ deployments."
@@ -237,4 +247,14 @@ output "nodes" {
       role     = "protocol"
     }]
   )
+}
+
+output "storage_cluster_volume_ids" {
+  value       = try(module.scale_instances.storage_cluster_volume_ids, {})
+  description = "Map of disk-key to volume ID for all storage cluster data volumes."
+}
+
+output "storage_cluster_desc_volume_ids" {
+  value       = try(module.scale_instances.storage_cluster_desc_volume_ids, {})
+  description = "Map of disk-key to volume ID for storage cluster tiebreaker data volumes."
 }

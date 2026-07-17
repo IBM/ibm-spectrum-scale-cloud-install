@@ -137,3 +137,8 @@ output "instance_details" {
     zone       = ibm_is_instance.itself.zone
   }
 }
+
+output "volume_ids" {
+  value       = { for k, v in ibm_is_volume.itself : "${var.name_prefix}-${k}" => v.id }
+  description = "Map of '<instance>-<disk-key>' to volume ID for volumes attached to this instance."
+}

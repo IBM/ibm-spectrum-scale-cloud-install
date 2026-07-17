@@ -21,6 +21,6 @@ locals {
   is_compute_cluster = contains(["Compute-only", "Combined-compute-storage"], var.cluster_type)
 
   # Feature flags
-  enable_public_subnets  = var.vpc_public_subnets_cidr_blocks != null
+  enable_public_subnets  = var.vpc_public_subnets_cidr_blocks != null && length(var.vpc_public_subnets_cidr_blocks) > 0
   enable_protocol_subnet = local.is_storage_cluster && var.vpc_protocol_private_subnets_cidr_blocks != null
 }

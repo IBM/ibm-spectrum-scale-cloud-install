@@ -110,3 +110,13 @@ output "storage_vm_zone_map" {
 output "storage_instance_ips_with_disk_mapping" {
   value = local.storage_instance_ips_with_disk_mapping
 }
+
+output "storage_cluster_volume_ids" {
+  value       = merge([for instance in module.storage_cluster_instances : instance.volume_ids]...)
+  description = "Flat map of disk-key to volume ID for all storage cluster data volumes."
+}
+
+output "storage_cluster_desc_volume_ids" {
+  value       = merge([for instance in module.storage_cluster_tie_breaker_instance : instance.volume_ids]...)
+  description = "Flat map of disk-key to volume ID for storage cluster tiebreaker data volumes."
+}
