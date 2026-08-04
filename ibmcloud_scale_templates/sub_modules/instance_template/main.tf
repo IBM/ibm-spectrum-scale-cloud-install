@@ -202,6 +202,7 @@ module "storage_cluster_instances" {
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
   attach_volumes                    = true
+  total_volume_bandwidth            = local.effective_storage_vol_bandwidth
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
   orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
@@ -229,6 +230,7 @@ module "storage_cluster_tie_breaker_instance" {
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
   attach_volumes                    = true
+  total_volume_bandwidth            = null
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
   orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
@@ -250,6 +252,7 @@ module "protocol_instances" {
   security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
   subnet_id                         = each.value["subnet"]
   ces_ipaddress                     = each.value["ces_ip_addresses"]
+  total_volume_bandwidth            = local.effective_protocol_vol_bandwidth
   tags                              = var.tags
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id

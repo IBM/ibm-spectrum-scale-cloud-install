@@ -99,6 +99,9 @@ module "scale_instances" {
   storage_volume_size                      = var.storage_volume_size
   storage_volume_profile                   = var.storage_volume_profile
   storage_volume_iops                      = var.storage_volume_iops
+  storage_volume_mbps                      = var.storage_volume_mbps
+  storage_vol_bandwidth                    = var.storage_vol_bandwidth
+  protocol_vol_bandwidth                   = var.protocol_vol_bandwidth
   total_compute_cluster_instances          = var.total_compute_cluster_instances
   compute_cluster_image_id                 = var.compute_vsi_osimage_id
   compute_cluster_instance_type            = var.compute_vsi_profile

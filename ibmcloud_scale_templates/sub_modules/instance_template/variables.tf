@@ -192,6 +192,36 @@ variable "storage_volume_iops" {
   description = "IOPS for unattached storage volumes."
 }
 
+variable "storage_volume_mbps" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = "Throughput (Mbps) per attached storage volume. Used to compute storage_vol_bandwidth when not explicitly set: storage_vol_bandwidth = (vols_per_vsi * storage_volume_mbps) + 393. Leave null to use IBM Cloud's default bandwidth allocation."
+
+  validation {
+    condition     = var.storage_volume_mbps == null || var.storage_volume_mbps >= 1
+    error_message = "storage_volume_mbps must be a positive integer or null."
+  }
+}
+
+variable "storage_vol_bandwidth" {
+  type        = number
+  nullable    = true
+  default     = null
+  description = <<-EOT
+    Bandwidth (Mbps) reserved for volume I/O on each NSD VSI.
+    Default when null: (vols_per_vsi * storage_volume_mbps) + 393.
+    When set explicitly, overrides the formula.
+  EOT
+}
+
+variable "protocol_vol_bandwidth" {
+  type        = number
+  nullable    = true
+  default     = 800
+  description = "Bandwidth (Mbps) reserved for volume I/O on each protocol/CES VSI. Default 800 Mbps."
+}
+
 variable "compute_cluster_image_id" {
   type        = string
   default     = "ibm-redhat-8-3-minimal-amd64-3"

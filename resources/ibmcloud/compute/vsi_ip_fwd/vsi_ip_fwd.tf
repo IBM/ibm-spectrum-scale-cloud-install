@@ -31,6 +31,7 @@ variable "resource_group_id" {}
 variable "orchestrator_server" {}
 variable "orchestrator_port" {}
 variable "orchestrator_ca_fingerprint" {}
+variable "total_volume_bandwidth" {}
 # Create a Service ID for CES automation (equivalent to AWS IAM Role)
 resource "ibm_iam_service_id" "ces_automation" {
   name        = "${var.name_prefix}-ces-automation"
@@ -71,6 +72,10 @@ resource "ibm_is_instance" "itself" {
 
   vpc  = var.vpc_id
   zone = var.zone
+
+  # Reserve Mbps for volume I/O on protocol/CES nodes (default 800 Mbps).
+  # IBM Cloud automatically assigns the remainder to the NIC.
+  total_volume_bandwidth = var.total_volume_bandwidth
 
   primary_network_interface {
     subnet          = var.subnet_id

@@ -33,6 +33,8 @@ variable "resource_group_id" {}
 variable "orchestrator_server" {}
 variable "orchestrator_port" {}
 variable "orchestrator_ca_fingerprint" {}
+variable "total_volume_bandwidth" {}
+
 # Resolves the CRN of your KMS key for boot volume encryption
 data "ibm_kms_key" "itself" {
   count       = var.root_device_kms_key_instance_id != null && var.root_device_kms_key_instance_name != null ? 1 : 0
@@ -53,6 +55,10 @@ resource "ibm_is_instance" "itself" {
 
   # Assign to placement group if provided
   placement_group = var.placement_group
+
+  # Reserve Mbps for volume I/O. IBM Cloud automatically assigns the remainder
+  # to the NIC as total_network_bandwidth (Computed-only — cannot be set explicitly).
+  total_volume_bandwidth = var.total_volume_bandwidth
 
   primary_network_interface {
     subnet          = var.subnet_id
