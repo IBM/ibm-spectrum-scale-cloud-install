@@ -143,7 +143,7 @@ terraform destroy -auto-approve
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.0 |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 2 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 2.3.0 |
 
 #### Inputs
 

@@ -106,14 +106,15 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 2 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 2.3.0 |
 
 #### Inputs
 
 | Name | Description | Type |
 | ---- | ----------- | ---- |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | IBM Cloud API key for authentication. | `string` |
-| <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server running on the OCP worker node, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot. | `string` |
+| <a name="input_orchestrator_ca_fingerprint"></a> [orchestrator_ca_fingerprint](#input_orchestrator_ca_fingerprint) | SHA-256 fingerprint of the orchestrator's CA certificate, used to authenticate the agent-to-orchestrator TLS connection. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'. | `string` |
+| <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zone names or IDs within the selected region for multi-zone deployment. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where VPC and all resources will be deployed (e.g., us-east, us-south, eu-de). | `string` |
 | <a name="input_bastion_osimage_id"></a> [bastion_osimage_id](#input_bastion_osimage_id) | IBM Cloud OS image ID for bastion virtual server instance. Use 'ibmcloud is images' to find available image IDs in your region. | `string` |
@@ -133,6 +134,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | Enable IBM Cloud placement group to distribute instances in single-AZ deployments. | `bool` |
 | <a name="input_enable_transit_gateway"></a> [enable_transit_gateway](#input_enable_transit_gateway) | Flag to enable Transit Gateway connection between the newly created VPC and an existing user-provided VPC. Transit Gateway enables connectivity across VPCs in the same or different regions. | `bool` |
 | <a name="input_gateway_vsi_profile"></a> [gateway_vsi_profile](#input_gateway_vsi_profile) | IBM Cloud VSI profile (instance type) for gateway cluster nodes. | `string` |
+| <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | TCP port the scale-agent connects to on the orchestrator server. | `number` |
 | <a name="input_peer_security_group_id"></a> [peer_security_group_id](#input_peer_security_group_id) | ID of the security group in the peer VPC to attach connectivity rules to. | `string` |
 | <a name="input_peer_vpc_crn"></a> [peer_vpc_crn](#input_peer_vpc_crn) | CRN of the existing VPC to connect via Transit Gateway. Required only if enable_transit_gateway is true and creating a new Transit Gateway. | `string` |
 | <a name="input_placement_group_strategy"></a> [placement_group_strategy](#input_placement_group_strategy) | Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources). Note: Strategy is required and forces new resource if changed. | `string` |
@@ -165,7 +167,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="input_vpc_compute_cluster_private_subnets_cidr_blocks"></a> [vpc_compute_cluster_private_subnets_cidr_blocks](#input_vpc_compute_cluster_private_subnets_cidr_blocks) | List of CIDR blocks for compute cluster private subnets. Set to empty array [] to use storage cluster subnets or skip compute subnet creation. | `list(string)` |
 | <a name="input_vpc_protocol_cluster_dns_domain"></a> [vpc_protocol_cluster_dns_domain](#input_vpc_protocol_cluster_dns_domain) | DNS domain name for protocol cluster nodes. Required only if deploying protocol nodes. | `string` |
 | <a name="input_vpc_protocol_private_subnets_cidr_blocks"></a> [vpc_protocol_private_subnets_cidr_blocks](#input_vpc_protocol_private_subnets_cidr_blocks) | List of CIDR blocks for protocol node private subnets, one per availability zone. Required only if deploying protocol nodes. Set to empty array [] to skip protocol subnet creation. | `list(string)` |
-| <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of CIDR blocks for public subnets, one per availability zone. Set to empty array [] if no public subnets are needed. | `list(string)` |
+| <a name="input_vpc_public_subnets_cidr_blocks"></a> [vpc_public_subnets_cidr_blocks](#input_vpc_public_subnets_cidr_blocks) | List of CIDR blocks for public subnets, one per availability zone. Leave null (default) when no bastion host is deployed — skips public subnet and public gateway creation entirely. | `list(string)` |
 | <a name="input_vpc_storage_cluster_dns_domain"></a> [vpc_storage_cluster_dns_domain](#input_vpc_storage_cluster_dns_domain) | DNS domain name for storage cluster nodes. Required when deploying storage nodes. | `string` |
 | <a name="input_vpc_storage_cluster_private_subnets_cidr_blocks"></a> [vpc_storage_cluster_private_subnets_cidr_blocks](#input_vpc_storage_cluster_private_subnets_cidr_blocks) | List of CIDR blocks for storage cluster private subnets, one per availability zone. | `list(string)` |
 
@@ -185,12 +187,16 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="output_nodes"></a> [nodes](#output_nodes) | Node inventory for the scale-operator cluster controller. |
 | <a name="output_peer_vpc_connection_id"></a> [peer_vpc_connection_id](#output_peer_vpc_connection_id) | ID of the Transit Gateway connection for the peer VPC. |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | IBM Cloud placement group id for single-AZ deployments. |
+| <a name="output_protocol_cluster_instance_ids"></a> [protocol_cluster_instance_ids](#output_protocol_cluster_instance_ids) | Protocol cluster instance ids. |
+| <a name="output_protocol_cluster_instance_private_ips"></a> [protocol_cluster_instance_private_ips](#output_protocol_cluster_instance_private_ips) | Private IP address of protocol cluster instances. |
 | <a name="output_resource_group_id"></a> [resource_group_id](#output_resource_group_id) | The ID of the resource group used for VPC resources. |
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
+| <a name="output_storage_cluster_desc_volume_ids"></a> [storage_cluster_desc_volume_ids](#output_storage_cluster_desc_volume_ids) | Map of disk-key to volume ID for storage cluster tiebreaker data volumes. |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
+| <a name="output_storage_cluster_volume_ids"></a> [storage_cluster_volume_ids](#output_storage_cluster_volume_ids) | Map of disk-key to volume ID for all storage cluster data volumes. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
 | <a name="output_transit_gateway_crn"></a> [transit_gateway_crn](#output_transit_gateway_crn) | CRN of the Transit Gateway used for VPC connectivity. |
 | <a name="output_transit_gateway_id"></a> [transit_gateway_id](#output_transit_gateway_id) | ID of the Transit Gateway used for VPC connectivity. |

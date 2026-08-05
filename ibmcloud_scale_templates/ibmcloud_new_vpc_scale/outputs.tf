@@ -239,7 +239,7 @@ output "nodes" {
     [for inst in try(module.scale_instances.gateway_instance_details, []) : {
       hostname = inst.dns
       ip       = inst.private_ip
-      role     = "gateway"
+      role     = "afm"
     }],
     [for inst in try(module.scale_instances.protocol_instance_details, []) : {
       hostname = inst.dns

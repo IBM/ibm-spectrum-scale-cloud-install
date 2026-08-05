@@ -98,7 +98,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | ~> 2 |
+| <a name="requirement_ibm"></a> [ibm](#requirement_ibm) | 2.3.0 |
 
 #### Inputs
 
@@ -108,7 +108,8 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group ID. | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
-| <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. Injected as http://<value>:57096 into /etc/scale-agent/config.yaml on each VM at first boot. | `string` |
+| <a name="input_orchestrator_ca_fingerprint"></a> [orchestrator_ca_fingerprint](#input_orchestrator_ca_fingerprint) | SHA-256 fingerprint of the orchestrator's CA certificate. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'. | `string` |
+| <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | Image ID to use for provisioning the storage cluster instances. | `string` |
@@ -127,6 +128,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id | `string` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, an IBM Cloud placement group will be created for single-AZ deployments and attached to storage instances. | `bool` |
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
+| <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | TCP port the scale-agent connects to on the orchestrator server. | `number` |
 | <a name="input_placement_group_strategy"></a> [placement_group_strategy](#input_placement_group_strategy) | Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources). | `string` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
 | <a name="input_root_device_kms_key_id"></a> [root_device_kms_key_id](#input_root_device_kms_key_id) | GUID of the Key Protect/HPCS instance to be used when encrypting the root volume. | `string` |
@@ -169,10 +171,12 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
+| <a name="output_storage_cluster_desc_volume_ids"></a> [storage_cluster_desc_volume_ids](#output_storage_cluster_desc_volume_ids) | Flat map of disk-key to volume ID for storage cluster tiebreaker data volumes. |
 | <a name="output_storage_cluster_instance_details"></a> [storage_cluster_instance_details](#output_storage_cluster_instance_details) | Protocol instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
 | <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group id. |
+| <a name="output_storage_cluster_volume_ids"></a> [storage_cluster_volume_ids](#output_storage_cluster_volume_ids) | Flat map of disk-key to volume ID for all storage cluster data volumes. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
 | <a name="output_storage_instance_ips_with_disk_mapping"></a> [storage_instance_ips_with_disk_mapping](#output_storage_instance_ips_with_disk_mapping) | n/a |
 | <a name="output_storage_vm_zone_map"></a> [storage_vm_zone_map](#output_storage_vm_zone_map) | n/a |
