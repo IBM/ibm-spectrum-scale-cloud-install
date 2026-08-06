@@ -209,6 +209,16 @@ output "protocol_cluster_instance_private_ips" {
   description = "Private IP address of protocol cluster instances."
 }
 
+output "storage_cluster_instance_id_name_map" {
+  value       = try(module.scale_instances.storage_cluster_instance_id_name_map, {})
+  description = "Map of storage cluster instance ID to DNS hostname."
+}
+
+output "protocol_cluster_instance_id_name_map" {
+  value       = try(module.scale_instances.protocol_cluster_instance_id_name_map, {})
+  description = "Map of protocol cluster instance ID to DNS hostname."
+}
+
 output "placement_group_id" {
   value       = try(module.scale_instances.placement_group_id, null)
   description = "IBM Cloud placement group id for single-AZ deployments."

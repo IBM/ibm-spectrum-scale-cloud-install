@@ -111,12 +111,22 @@ output "storage_instance_ips_with_disk_mapping" {
   value = local.storage_instance_ips_with_disk_mapping
 }
 
+output "storage_cluster_instance_id_name_map" {
+  value       = { for instance in module.storage_cluster_instances : instance.instance_details.id => instance.instance_details.dns }
+  description = "Map of storage cluster instance ID to DNS hostname."
+}
+
+output "protocol_cluster_instance_id_name_map" {
+  value       = { for instance in module.protocol_instances : instance.instance_details.id => instance.instance_details.dns }
+  description = "Map of protocol cluster instance ID to DNS hostname."
+}
+
 output "storage_cluster_volume_ids" {
-  value       = merge([for instance in module.storage_cluster_instances : instance.volume_ids]...)
+  value       = length(module.storage_cluster_instances) > 0 ? merge([for instance in module.storage_cluster_instances : instance.volume_ids]...) : {}
   description = "Flat map of disk-key to volume ID for all storage cluster data volumes."
 }
 
 output "storage_cluster_desc_volume_ids" {
-  value       = merge([for instance in module.storage_cluster_tie_breaker_instance : instance.volume_ids]...)
+  value       = length(module.storage_cluster_tie_breaker_instance) > 0 ? merge([for instance in module.storage_cluster_tie_breaker_instance : instance.volume_ids]...) : {}
   description = "Flat map of disk-key to volume ID for storage cluster tiebreaker data volumes."
 }
