@@ -131,11 +131,14 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | TCP port the scale-agent connects to on the orchestrator server. | `number` |
 | <a name="input_placement_group_strategy"></a> [placement_group_strategy](#input_placement_group_strategy) | Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources). | `string` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
+| <a name="input_protocol_vol_bandwidth"></a> [protocol_vol_bandwidth](#input_protocol_vol_bandwidth) | Bandwidth (Mbps) reserved for volume I/O on each protocol/CES VSI. Default 800 Mbps. | `number` |
 | <a name="input_root_device_kms_key_id"></a> [root_device_kms_key_id](#input_root_device_kms_key_id) | GUID of the Key Protect/HPCS instance to be used when encrypting the root volume. | `string` |
 | <a name="input_root_device_kms_key_name"></a> [root_device_kms_key_name](#input_root_device_kms_key_name) | Name of the root/standard key to be used when encrypting the root volume. | `string` |
 | <a name="input_storage_cluster_public_key"></a> [storage_cluster_public_key](#input_storage_cluster_public_key) | SSH public key content for the storage cluster. Required when total_storage_cluster_instances > 0. | `string` |
 | <a name="input_storage_cluster_tiebreaker_instance_type"></a> [storage_cluster_tiebreaker_instance_type](#input_storage_cluster_tiebreaker_instance_type) | Instance type to use for the tie breaker instance (will be provisioned only in Multi-AZ configuration). | `string` |
+| <a name="input_storage_vol_bandwidth"></a> [storage_vol_bandwidth](#input_storage_vol_bandwidth) | Bandwidth (Mbps) reserved for volume I/O on each NSD VSI.<br/>Default when null: (vols_per_vsi * storage_volume_mbps) + 393.<br/>When set explicitly, overrides the formula. | `number` |
 | <a name="input_storage_volume_iops"></a> [storage_volume_iops](#input_storage_volume_iops) | IOPS for unattached storage volumes. | `number` |
+| <a name="input_storage_volume_mbps"></a> [storage_volume_mbps](#input_storage_volume_mbps) | Throughput (Mbps) per attached storage volume. Used to compute storage_vol_bandwidth when not explicitly set: storage_vol_bandwidth = (vols_per_vsi * storage_volume_mbps) + 393. Leave null to use IBM Cloud's default bandwidth allocation. | `number` |
 | <a name="input_storage_volume_profile"></a> [storage_volume_profile](#input_storage_volume_profile) | IBM Cloud volume profile for unattached storage volumes. | `string` |
 | <a name="input_storage_volume_size"></a> [storage_volume_size](#input_storage_volume_size) | Size of each unattached storage volume in GB. | `number` |
 | <a name="input_tags"></a> [tags](#input_tags) | List of tags to attach to resources in format key:value | `list(string)` |
@@ -165,6 +168,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
 | <a name="output_gateway_instance_details"></a> [gateway_instance_details](#output_gateway_instance_details) | Gateway instance details (map of id, private_ip, dns) |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | IBM Cloud placement group id. |
+| <a name="output_protocol_cluster_instance_id_name_map"></a> [protocol_cluster_instance_id_name_map](#output_protocol_cluster_instance_id_name_map) | Map of protocol cluster instance ID to DNS hostname. |
 | <a name="output_protocol_cluster_security_group_id"></a> [protocol_cluster_security_group_id](#output_protocol_cluster_security_group_id) | Protocol cluster security group id. |
 | <a name="output_protocol_instance_details"></a> [protocol_instance_details](#output_protocol_instance_details) | Protocol instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_dec_instance_details"></a> [storage_cluster_dec_instance_details](#output_storage_cluster_dec_instance_details) | Storage cluster desc instance details (map of id, private_ip, dns) |
@@ -173,6 +177,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
 | <a name="output_storage_cluster_desc_volume_ids"></a> [storage_cluster_desc_volume_ids](#output_storage_cluster_desc_volume_ids) | Flat map of disk-key to volume ID for storage cluster tiebreaker data volumes. |
 | <a name="output_storage_cluster_instance_details"></a> [storage_cluster_instance_details](#output_storage_cluster_instance_details) | Protocol instance details (map of id, private_ip, dns) |
+| <a name="output_storage_cluster_instance_id_name_map"></a> [storage_cluster_instance_id_name_map](#output_storage_cluster_instance_id_name_map) | Map of storage cluster instance ID to DNS hostname. |
 | <a name="output_storage_cluster_instance_ids"></a> [storage_cluster_instance_ids](#output_storage_cluster_instance_ids) | Storage cluster instance ids. |
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
 | <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group id. |

@@ -40,7 +40,7 @@ The below steps will provision the Azure private DNS zones required for the IBM 
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement_terraform) | ~> 1.3 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 4.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement_azurerm) | ~> 5.0 |
 
 #### Inputs
 

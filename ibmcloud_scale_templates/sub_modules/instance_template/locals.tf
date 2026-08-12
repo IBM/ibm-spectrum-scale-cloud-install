@@ -139,10 +139,10 @@ locals {
     var.storage_vol_bandwidth != null
     ? var.storage_vol_bandwidth
     : (
-        var.storage_volume_mbps != null && local.disks_per_vm > 0
-        ? (local.disks_per_vm * var.storage_volume_mbps) + 393
-        : null
-      )
+      var.storage_volume_mbps != null && local.disks_per_vm > 0
+      ? (local.disks_per_vm * var.storage_volume_mbps) + 393
+      : null
+    )
   )
 
   # Protocol nodes: user input or default 800 Mbps.
