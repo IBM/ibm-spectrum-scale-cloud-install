@@ -60,7 +60,7 @@ output "protocol_instance_details" {
 
 output "storage_cluster_desc_data_volume_mapping" {
   value       = local.storage_instance_desc_ip_with_disk_mapping
-  description = "Mapping of storage cluster desc instance ip vs. device path."
+  description = "Requested disks per storage tie-breaker instance, keyed by FQDN."
 }
 
 output "storage_cluster_dec_instance_details" {
@@ -97,19 +97,25 @@ output "storage_cluster_instance_private_ips" {
   description = "Private IP address of storage cluster instances."
 }
 
+output "storage_volume_tag" {
+  value       = local.scale_volume_tag
+  description = "Tag on this deployment's storage volumes."
+}
+
+output "storage_volumes_attached_by_terraform" {
+  value       = !var.operator_managed_volumes
+  description = "Whether Terraform attached the storage data volumes. False means the operator owns placement."
+}
+
 output "storage_cluster_with_data_volume_mapping" {
   value       = local.storage_instance_ips_with_disk_mapping
-  description = "Mapping of storage cluster instance ip vs. device path."
+  description = "Requested disks per storage instance, keyed by FQDN: zone, and each disk's size, type and iops."
 }
 
 output "storage_vm_zone_map" {
   value = local.storage_vm_zone_map
 }
 
-
-output "storage_instance_ips_with_disk_mapping" {
-  value = local.storage_instance_ips_with_disk_mapping
-}
 
 output "storage_cluster_instance_id_name_map" {
   value       = { for instance in module.storage_cluster_instances : instance.instance_details.id => instance.instance_details.dns }

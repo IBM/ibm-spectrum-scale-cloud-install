@@ -105,6 +105,12 @@ locals {
     }
   }
 
+  # Tag marking the storage volumes whose placement scale-operator owns. Scoped
+  # by resource_prefix so two deployments never adopt each other's disks.
+  scale_volume_tag = format("scale-operator:%s", var.resource_prefix)
+
+  storage_volume_tags = concat(var.tags, [local.scale_volume_tag])
+
   # Storage tie-breaker VM zone mapping
   storage_tie_vm_zone_map = local.storage_tie_vm_name != "" ? {
     (local.storage_tie_vm_name) = {

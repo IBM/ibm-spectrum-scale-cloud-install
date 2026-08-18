@@ -201,7 +201,8 @@ module "storage_cluster_instances" {
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
-  attach_volumes                    = true
+  attach_volumes                    = !var.operator_managed_volumes
+  volume_tags                       = local.storage_volume_tags
   total_volume_bandwidth            = local.effective_storage_vol_bandwidth
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
@@ -229,7 +230,8 @@ module "storage_cluster_tie_breaker_instance" {
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
-  attach_volumes                    = true
+  attach_volumes                    = !var.operator_managed_volumes
+  volume_tags                       = local.storage_volume_tags
   total_volume_bandwidth            = null
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port

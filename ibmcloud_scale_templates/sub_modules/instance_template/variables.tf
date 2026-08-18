@@ -22,6 +22,12 @@ variable "tags" {
   description = "List of tags to attach to resources in format key:value"
 }
 
+variable "operator_managed_volumes" {
+  type        = bool
+  default     = true
+  description = "When true, Terraform creates the storage data volumes but leaves them unattached; the operator places them and moves them off failed nodes. Set false for deployments without the operator."
+}
+
 variable "vpc_id" {
   type        = string
   nullable    = false

@@ -29,6 +29,7 @@ variable "dns_service_instance_id" {}
 variable "dns_domain" {}
 variable "vpc_id" {}
 variable "attach_volumes" {}
+variable "volume_tags" {}
 variable "resource_group_id" {}
 variable "orchestrator_server" {}
 variable "orchestrator_port" {}
@@ -102,6 +103,9 @@ resource "ibm_is_volume" "itself" {
   profile        = each.value["type"]
   iops           = each.value["iops"] == "" ? null : each.value["iops"]
   encryption_key = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
+
+  # Tag the volumes so the operator can find them.
+  tags = var.volume_tags
 }
 
 # Create "A" records
@@ -126,7 +130,7 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on = [ibm_dns_resource_record.a_itself]
 }
 
-# Attach the volumes to the provisioned IBM Cloud instance (only if attach_volumes is true)
+# Attach the volumes to the provisioned IBM Cloud instance (only if attach_volumes is true).
 resource "ibm_is_instance_volume_attachment" "itself" {
   for_each = var.attach_volumes ? ibm_is_volume.itself : {}
 
