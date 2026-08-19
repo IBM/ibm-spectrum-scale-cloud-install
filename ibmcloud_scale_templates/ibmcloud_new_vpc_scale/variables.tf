@@ -366,7 +366,7 @@ variable "orchestrator_server" {
 
 variable "orchestrator_port" {
   type        = number
-  default     = 57096
+  default     = 30181
   description = "TCP port the scale-agent connects to on the orchestrator server."
 }
 
@@ -375,4 +375,3 @@ variable "orchestrator_ca_fingerprint" {
   sensitive   = true
   description = "SHA-256 fingerprint of the orchestrator's CA certificate, used to authenticate the agent-to-orchestrator TLS connection. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'."
 }
-

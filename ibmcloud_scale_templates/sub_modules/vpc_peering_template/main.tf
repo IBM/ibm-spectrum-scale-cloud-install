@@ -46,15 +46,15 @@ resource "ibm_tg_connection" "peer_vpc" {
   network_id   = var.peer_vpc_crn
 }
 
-# Create security rule on the given peer security group to allow inbound traffic from new VPC on port 57096
+# Create security rule on the given peer security group to allow inbound traffic from new VPC on the orchestrator NodePort
 resource "ibm_is_security_group_rule" "peer_vpc_allow_inbound" {
   count     = var.vpc_cidr_block != null && var.peer_security_group_id != null ? 1 : 0
   group     = var.peer_security_group_id
   direction = "inbound"
   remote    = var.vpc_cidr_block
   protocol  = "tcp"
-  port_min  = 57096
-  port_max  = 57096
+  port_min  = 30181
+  port_max  = 30181
 }
 
 # Create security rule on the given peer security group to allow outbound traffic to new VPC on port 46443

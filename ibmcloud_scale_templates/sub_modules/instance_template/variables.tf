@@ -309,7 +309,7 @@ variable "orchestrator_server" {
 
 variable "orchestrator_port" {
   type        = number
-  default     = 57096
+  default     = 30181
   description = "TCP port the scale-agent connects to on the orchestrator server."
 }
 
