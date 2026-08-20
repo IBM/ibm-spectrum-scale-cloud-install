@@ -53,8 +53,8 @@ resource "ibm_is_security_group_rule" "peer_vpc_allow_inbound" {
   direction = "inbound"
   remote    = var.vpc_cidr_block
   protocol  = "tcp"
-  port_min  = 30181
-  port_max  = 30181
+  port_min  = var.orchestrator_port
+  port_max  = var.orchestrator_port
 }
 
 # Create security rule on the given peer security group to allow outbound traffic to new VPC on port 46443

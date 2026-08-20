@@ -71,6 +71,7 @@ module "vpc_peering" {
   vpc_cidr_block                 = var.vpc_cidr_block
   ibmcloud_api_key               = var.ibmcloud_api_key
   tags                           = var.tags
+  orchestrator_port              = var.orchestrator_port
 }
 
 module "scale_instances" {
