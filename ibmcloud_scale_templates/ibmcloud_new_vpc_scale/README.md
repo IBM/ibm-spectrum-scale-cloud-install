@@ -114,6 +114,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | ---- | ----------- | ---- |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | IBM Cloud API key for authentication. | `string` |
 | <a name="input_orchestrator_ca_fingerprint"></a> [orchestrator_ca_fingerprint](#input_orchestrator_ca_fingerprint) | SHA-256 fingerprint of the orchestrator's CA certificate, used to authenticate the agent-to-orchestrator TLS connection. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'. | `string` |
+| <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | NodePort the scale-agent connects to on the orchestrator (the workload Service NodePort). | `number` |
 | <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zone names or IDs within the selected region for multi-zone deployment. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where VPC and all resources will be deployed (e.g., us-east, us-south, eu-de). | `string` |
@@ -134,7 +135,6 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | Enable IBM Cloud placement group to distribute instances in single-AZ deployments. | `bool` |
 | <a name="input_enable_transit_gateway"></a> [enable_transit_gateway](#input_enable_transit_gateway) | Flag to enable Transit Gateway connection between the newly created VPC and an existing user-provided VPC. Transit Gateway enables connectivity across VPCs in the same or different regions. | `bool` |
 | <a name="input_gateway_vsi_profile"></a> [gateway_vsi_profile](#input_gateway_vsi_profile) | IBM Cloud VSI profile (instance type) for gateway cluster nodes. | `string` |
-| <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | TCP port the scale-agent connects to on the orchestrator server. | `number` |
 | <a name="input_peer_security_group_id"></a> [peer_security_group_id](#input_peer_security_group_id) | ID of the security group in the peer VPC to attach connectivity rules to. | `string` |
 | <a name="input_peer_vpc_crn"></a> [peer_vpc_crn](#input_peer_vpc_crn) | CRN of the existing VPC to connect via Transit Gateway. Required only if enable_transit_gateway is true and creating a new Transit Gateway. | `string` |
 | <a name="input_placement_group_strategy"></a> [placement_group_strategy](#input_placement_group_strategy) | Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources). Note: Strategy is required and forces new resource if changed. | `string` |

@@ -309,8 +309,8 @@ variable "orchestrator_server" {
 
 variable "orchestrator_port" {
   type        = number
-  default     = 30181
-  description = "TCP port the scale-agent connects to on the orchestrator server."
+  nullable    = false
+  description = "TCP port the scale-agent connects to on the orchestrator server (the workload Service NodePort)."
 }
 
 variable "orchestrator_ca_fingerprint" {

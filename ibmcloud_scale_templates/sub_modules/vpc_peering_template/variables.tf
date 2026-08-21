@@ -73,6 +73,6 @@ variable "peer_security_group_id" {
 
 variable "orchestrator_port" {
   type        = number
-  default     = 30181
-  description = "TCP port the scale-agent connects to on the orchestrator server (the workload Service NodePort). Used to open the correct inbound security group rule in the peer VPC."
+  nullable    = false
+  description = "NodePort the scale-agent connects to on the orchestrator (the workload Service NodePort). Opens an inbound security group rule in the peer VPC."
 }
