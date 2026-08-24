@@ -29,10 +29,13 @@ resource "ibm_is_instance_template" "itself" {
   image          = var.image_id
   profile        = var.instance_type
 
-  primary_network_interface {
-    name            = format("%s-nic", var.launch_template_name)
-    subnet          = var.subnet
-    security_groups = var.security_groups
+  primary_network_attachment {
+    name = format("%s-pna", var.launch_template_name)
+    virtual_network_interface {
+      name            = format("%s-vni", var.launch_template_name)
+      subnet          = var.subnet
+      security_groups = var.security_groups
+    }
   }
 
   boot_volume {

@@ -33,9 +33,16 @@ data "ibm_is_instances" "itself" {
 resource "ibm_is_floating_ip" "itself" {
   count          = var.desired_instance_count
   name           = format("fip-%s", data.ibm_is_instances.itself.instances[count.index].name)
-  target         = data.ibm_is_instances.itself.instances[count.index].primary_network_interface[0].id
+  zone           = data.ibm_is_instances.itself.instances[count.index].zone
   depends_on     = [ibm_is_instance_group.itself]
   resource_group = var.resource_group_id
+}
+
+# Bind each floating IP to the instance's primary virtual network interface (VNI-based attachment).
+resource "ibm_is_virtual_network_interface_floating_ip" "itself" {
+  count                      = var.desired_instance_count
+  virtual_network_interface  = data.ibm_is_instances.itself.instances[count.index].primary_network_attachment[0].virtual_network_interface[0].id
+  floating_ip                = ibm_is_floating_ip.itself[count.index].id
 }
 
 output "asg_id" {

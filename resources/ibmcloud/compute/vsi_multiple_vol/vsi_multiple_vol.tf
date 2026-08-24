@@ -60,9 +60,12 @@ resource "ibm_is_instance" "itself" {
   # to the NIC as total_network_bandwidth (Computed-only — cannot be set explicitly).
   total_volume_bandwidth = var.total_volume_bandwidth
 
-  primary_network_interface {
-    subnet          = var.subnet_id
-    security_groups = var.security_groups
+  primary_network_attachment {
+    name = format("%s-pna", var.name_prefix)
+    virtual_network_interface {
+      subnet          = var.subnet_id
+      security_groups = var.security_groups
+    }
   }
 
   # Encrypt the root volume with the KMS key CRN
@@ -110,7 +113,7 @@ resource "ibm_dns_resource_record" "a_itself" {
   zone_id     = var.dns_zone_id
   type        = "A"
   name        = format("%s.%s", var.name_prefix, var.dns_domain)
-  rdata       = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
+  rdata       = ibm_is_instance.itself.primary_network_attachment[0].primary_ip[0].address
   ttl         = 3600
 }
 
@@ -119,7 +122,7 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "PTR"
-  name        = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
+  name        = ibm_is_instance.itself.primary_network_attachment[0].primary_ip[0].address
   rdata       = format("%s.%s", var.name_prefix, var.dns_domain)
   ttl         = 3600
 
@@ -137,7 +140,7 @@ resource "ibm_is_instance_volume_attachment" "itself" {
 
 output "instance_details" {
   value = {
-    private_ip = ibm_is_instance.itself.primary_network_interface[0].primary_ip[0].address
+    private_ip = ibm_is_instance.itself.primary_network_attachment[0].primary_ip[0].address
     id         = ibm_is_instance.itself.id
     dns        = format("%s.%s", var.name_prefix, var.dns_domain)
     zone       = ibm_is_instance.itself.zone
