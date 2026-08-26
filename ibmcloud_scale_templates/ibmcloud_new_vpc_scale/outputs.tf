@@ -230,33 +230,7 @@ output "placement_group_id" {
 #   hostname (string), ip (string), role (string).
 output "nodes" {
   description = "Node inventory for the scale-operator cluster controller."
-  value = concat(
-    [for i, inst in try(module.scale_instances.storage_cluster_instance_details, []) : {
-      hostname = inst.dns
-      ip       = inst.private_ip
-      role     = i == 0 ? "storage,bootstrap" : "storage"
-    }],
-    [for inst in try(module.scale_instances.storage_cluster_dec_instance_details, []) : {
-      hostname = inst.dns
-      ip       = inst.private_ip
-      role     = "storage-tiebreaker"
-    }],
-    [for inst in try(module.scale_instances.compute_cluster_instance_details, []) : {
-      hostname = inst.dns
-      ip       = inst.private_ip
-      role     = "compute"
-    }],
-    [for inst in try(module.scale_instances.gateway_instance_details, []) : {
-      hostname = inst.dns
-      ip       = inst.private_ip
-      role     = "afm"
-    }],
-    [for inst in try(module.scale_instances.protocol_instance_details, []) : {
-      hostname = inst.dns
-      ip       = inst.private_ip
-      role     = "protocol"
-    }]
-  )
+  value       = try(module.scale_instances.nodes, [])
 }
 
 output "storage_cluster_volume_ids" {

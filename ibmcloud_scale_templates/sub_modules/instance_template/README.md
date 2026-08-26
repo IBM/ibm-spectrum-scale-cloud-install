@@ -129,6 +129,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | IBM Cloud DNS Service Instance Id | `string` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | If true, an IBM Cloud placement group will be created for single-AZ deployments and attached to storage instances. | `bool` |
 | <a name="input_gateway_instance_type"></a> [gateway_instance_type](#input_gateway_instance_type) | Instance type to use for provisioning the gateway instances. | `string` |
+| <a name="input_operator_managed_volumes"></a> [operator_managed_volumes](#input_operator_managed_volumes) | When true, Terraform creates the storage data volumes but leaves them unattached; the operator places them and moves them off failed nodes. Set false for deployments without the operator. | `bool` |
 | <a name="input_placement_group_strategy"></a> [placement_group_strategy](#input_placement_group_strategy) | Placement group strategy. Options: 'host_spread' (place on different compute hosts), 'power_spread' (place on compute hosts that use different power sources). | `string` |
 | <a name="input_protocol_instance_type"></a> [protocol_instance_type](#input_protocol_instance_type) | Instance type to use for provisioning the protocol instances. | `string` |
 | <a name="input_protocol_vol_bandwidth"></a> [protocol_vol_bandwidth](#input_protocol_vol_bandwidth) | Bandwidth (Mbps) reserved for volume I/O on each protocol/CES VSI. Default 800 Mbps. | `number` |
@@ -167,12 +168,13 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_compute_cluster_security_group_id"></a> [compute_cluster_security_group_id](#output_compute_cluster_security_group_id) | Compute cluster security group id. |
 | <a name="output_gateway_instance_details"></a> [gateway_instance_details](#output_gateway_instance_details) | Gateway instance details (map of id, private_ip, dns) |
+| <a name="output_nodes"></a> [nodes](#output_nodes) | Node inventory for the scale-operator cluster controller. |
 | <a name="output_placement_group_id"></a> [placement_group_id](#output_placement_group_id) | IBM Cloud placement group id. |
 | <a name="output_protocol_cluster_instance_id_name_map"></a> [protocol_cluster_instance_id_name_map](#output_protocol_cluster_instance_id_name_map) | Map of protocol cluster instance ID to DNS hostname. |
 | <a name="output_protocol_cluster_security_group_id"></a> [protocol_cluster_security_group_id](#output_protocol_cluster_security_group_id) | Protocol cluster security group id. |
 | <a name="output_protocol_instance_details"></a> [protocol_instance_details](#output_protocol_instance_details) | Protocol instance details (map of id, private_ip, dns) |
 | <a name="output_storage_cluster_dec_instance_details"></a> [storage_cluster_dec_instance_details](#output_storage_cluster_dec_instance_details) | Storage cluster desc instance details (map of id, private_ip, dns) |
-| <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Mapping of storage cluster desc instance ip vs. device path. |
+| <a name="output_storage_cluster_desc_data_volume_mapping"></a> [storage_cluster_desc_data_volume_mapping](#output_storage_cluster_desc_data_volume_mapping) | Requested disks per storage tie-breaker instance, keyed by FQDN. |
 | <a name="output_storage_cluster_desc_instance_ids"></a> [storage_cluster_desc_instance_ids](#output_storage_cluster_desc_instance_ids) | Storage cluster desc instance id. |
 | <a name="output_storage_cluster_desc_instance_private_ips"></a> [storage_cluster_desc_instance_private_ips](#output_storage_cluster_desc_instance_private_ips) | Private IP address of storage cluster desc instance. |
 | <a name="output_storage_cluster_desc_volume_ids"></a> [storage_cluster_desc_volume_ids](#output_storage_cluster_desc_volume_ids) | Flat map of disk-key to volume ID for storage cluster tiebreaker data volumes. |
@@ -182,7 +184,8 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="output_storage_cluster_instance_private_ips"></a> [storage_cluster_instance_private_ips](#output_storage_cluster_instance_private_ips) | Private IP address of storage cluster instances. |
 | <a name="output_storage_cluster_security_group_id"></a> [storage_cluster_security_group_id](#output_storage_cluster_security_group_id) | Storage cluster security group id. |
 | <a name="output_storage_cluster_volume_ids"></a> [storage_cluster_volume_ids](#output_storage_cluster_volume_ids) | Flat map of disk-key to volume ID for all storage cluster data volumes. |
-| <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Mapping of storage cluster instance ip vs. device path. |
-| <a name="output_storage_instance_ips_with_disk_mapping"></a> [storage_instance_ips_with_disk_mapping](#output_storage_instance_ips_with_disk_mapping) | n/a |
+| <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Requested disks per storage instance, keyed by FQDN: zone, and each disk's size, type and iops. |
 | <a name="output_storage_vm_zone_map"></a> [storage_vm_zone_map](#output_storage_vm_zone_map) | n/a |
+| <a name="output_storage_volume_tag"></a> [storage_volume_tag](#output_storage_volume_tag) | Tag on this deployment's storage volumes. |
+| <a name="output_storage_volumes_attached_by_terraform"></a> [storage_volumes_attached_by_terraform](#output_storage_volumes_attached_by_terraform) | Whether Terraform attached the storage data volumes. False means the operator owns placement. |
 <!-- END_TF_DOCS -->

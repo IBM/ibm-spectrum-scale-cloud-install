@@ -136,3 +136,37 @@ output "storage_cluster_desc_volume_ids" {
   value       = length(module.storage_cluster_tie_breaker_instance) > 0 ? merge([for instance in module.storage_cluster_tie_breaker_instance : instance.volume_ids]...) : {}
   description = "Flat map of disk-key to volume ID for storage cluster tiebreaker data volumes."
 }
+
+# Node inventory consumed by the scale-operator cluster controller.
+# Each entry carries hostname (FQDN), ip, and role so callers do not
+# have to re-assemble the list from individual detail outputs.
+output "nodes" {
+  description = "Node inventory for the scale-operator cluster controller."
+  value = concat(
+    [for i, inst in [for instance in module.storage_cluster_instances : instance.instance_details] : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = i == 0 ? "storage,bootstrap" : "storage"
+    }],
+    [for inst in [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details] : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "storage-tiebreaker"
+    }],
+    [for inst in [for instance in module.compute_cluster_instances : instance.instance_details] : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "compute"
+    }],
+    [for inst in [for instance in module.gateway_instances : instance.instance_details] : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "afm"
+    }],
+    [for inst in [for instance in module.protocol_instances : instance.instance_details] : {
+      hostname = inst.dns
+      ip       = inst.private_ip
+      role     = "protocol"
+    }]
+  )
+}
