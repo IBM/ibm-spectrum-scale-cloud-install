@@ -126,4 +126,5 @@ module "scale_instances" {
   orchestrator_server                      = var.orchestrator_server
   orchestrator_port                        = var.orchestrator_port
   orchestrator_ca_fingerprint              = var.orchestrator_ca_fingerprint
+  orchestrator_workload_secret             = var.orchestrator_workload_secret
 }

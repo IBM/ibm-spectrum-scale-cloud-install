@@ -375,3 +375,9 @@ variable "orchestrator_ca_fingerprint" {
   sensitive   = true
   description = "SHA-256 fingerprint of the orchestrator's CA certificate, used to authenticate the agent-to-orchestrator TLS connection. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'."
 }
+
+variable "orchestrator_workload_secret" {
+  type        = string
+  sensitive   = true
+  description = "Shared secret the agent presents to the orchestrator's workload API (X-Scale-Workload-Secret header)."
+}

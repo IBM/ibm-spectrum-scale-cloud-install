@@ -30,6 +30,7 @@ variable "resource_group_id" {}
 variable "orchestrator_server" {}
 variable "orchestrator_port" {}
 variable "orchestrator_ca_fingerprint" {}
+variable "orchestrator_workload_secret" {}
 # Resolves the CRN of your KMS key for boot volume encryption
 data "ibm_kms_key" "itself" {
   count       = var.root_device_kms_key_instance_id != null && var.root_device_kms_key_instance_name != null ? 1 : 0
@@ -75,6 +76,7 @@ hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
 echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 sed -i "s|^server_url:.*|server_url: https://${var.orchestrator_server}:${var.orchestrator_port}|" /etc/scale-agent/config.yaml
 sed -i "s|^ca_fingerprint:.*|ca_fingerprint: \"${var.orchestrator_ca_fingerprint}\"|" /etc/scale-agent/config.yaml
+if grep -q "^workload_secret:" /etc/scale-agent/config.yaml; then sed -i "s|^workload_secret:.*|workload_secret: \"${var.orchestrator_workload_secret}\"|" /etc/scale-agent/config.yaml; else echo "workload_secret: \"${var.orchestrator_workload_secret}\"" >> /etc/scale-agent/config.yaml; fi
 systemctl restart scale-agent
 EOF
 

@@ -178,6 +178,7 @@ module "compute_cluster_instances" {
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
   orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
+  orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
 module "storage_cluster_instances" {
@@ -207,6 +208,7 @@ module "storage_cluster_instances" {
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
   orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
+  orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
 module "storage_cluster_tie_breaker_instance" {
@@ -236,6 +238,7 @@ module "storage_cluster_tie_breaker_instance" {
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
   orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
+  orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
 module "protocol_instances" {
@@ -262,6 +265,7 @@ module "protocol_instances" {
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
   orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
+  orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
 module "gateway_instances" {
@@ -286,4 +290,5 @@ module "gateway_instances" {
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
   orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
+  orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
