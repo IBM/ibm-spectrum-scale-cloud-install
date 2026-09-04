@@ -325,6 +325,12 @@ variable "orchestrator_ca_fingerprint" {
   description = "SHA-256 fingerprint of the orchestrator's CA certificate. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'."
 }
 
+variable "orchestrator_workload_secret" {
+  type        = string
+  sensitive   = true
+  description = "Shared secret the agent presents to the orchestrator's workload API (X-Scale-Workload-Secret header)."
+}
+
 variable "enable_placement_group" {
   type        = bool
   default     = true

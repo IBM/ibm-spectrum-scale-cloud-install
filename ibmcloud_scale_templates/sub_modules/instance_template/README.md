@@ -111,6 +111,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_orchestrator_ca_fingerprint"></a> [orchestrator_ca_fingerprint](#input_orchestrator_ca_fingerprint) | SHA-256 fingerprint of the orchestrator's CA certificate. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'. | `string` |
 | <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | TCP port the scale-agent connects to on the orchestrator server (the workload Service NodePort). | `number` |
 | <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. | `string` |
+| <a name="input_orchestrator_workload_secret"></a> [orchestrator_workload_secret](#input_orchestrator_workload_secret) | Shared secret the agent presents to the orchestrator's workload API (X-Scale-Workload-Secret header). | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |
 | <a name="input_storage_cluster_image_id"></a> [storage_cluster_image_id](#input_storage_cluster_image_id) | Image ID to use for provisioning the storage cluster instances. | `string` |
