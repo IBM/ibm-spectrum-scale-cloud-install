@@ -43,12 +43,6 @@ output "gateway_instance_details" {
   description = "Gateway instance details (map of id, private_ip, dns)"
 }
 
-/*
-output "instance_iam_profile" {
-  value = (var.airgap == true) ? null : module.cluster_instance_iam_profile.iam_instance_profile_name[0]
-}
-*/
-
 output "placement_group_id" {
   value       = local.create_placement_group ? ibm_is_placement_group.storage_cluster[0].id : null
   description = "IBM Cloud placement group id."

@@ -370,11 +370,6 @@ variable "orchestrator_port" {
   description = "NodePort the scale-agent connects to on the orchestrator (the workload Service NodePort)."
 }
 
-variable "orchestrator_ca_fingerprint" {
-  type        = string
-  sensitive   = true
-  description = "SHA-256 fingerprint of the orchestrator's CA certificate, used to authenticate the agent-to-orchestrator TLS connection. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'."
-}
 
 variable "orchestrator_workload_secret" {
   type        = string

@@ -1,6 +1,4 @@
-/*
-     Creates IBMCloud Virtual Server instance(s) with a static route
-*/
+# Creates IBMCloud Virtual Server instance(s) with a static route
 
 terraform {
   required_providers {
@@ -30,7 +28,6 @@ variable "vpc_id" {}
 variable "resource_group_id" {}
 variable "orchestrator_server" {}
 variable "orchestrator_port" {}
-variable "orchestrator_ca_fingerprint" {}
 variable "orchestrator_workload_secret" {}
 variable "total_volume_bandwidth" {}
 # Create a Service ID for CES automation (equivalent to AWS IAM Role)
@@ -98,7 +95,6 @@ resource "ibm_is_instance" "itself" {
 hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
 echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
 sed -i "s|^server_url:.*|server_url: https://${var.orchestrator_server}:${var.orchestrator_port}|" /etc/scale-agent/config.yaml
-sed -i "s|^ca_fingerprint:.*|ca_fingerprint: \"${var.orchestrator_ca_fingerprint}\"|" /etc/scale-agent/config.yaml
 if grep -q "^workload_secret:" /etc/scale-agent/config.yaml; then sed -i "s|^workload_secret:.*|workload_secret: \"${var.orchestrator_workload_secret}\"|" /etc/scale-agent/config.yaml; else echo "workload_secret: \"${var.orchestrator_workload_secret}\"" >> /etc/scale-agent/config.yaml; fi
 systemctl restart scale-agent
 EOF

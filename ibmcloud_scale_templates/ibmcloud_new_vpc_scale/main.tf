@@ -1,9 +1,7 @@
-/*
-    This nested module creates;
-    1. New IBM Cloud VPC
-    2. Bastion Instance
-    3. (Compute, Storage) Instances along with Instance store attachments to storage instances
-*/
+#    This nested module creates;
+#    1. New IBM Cloud VPC
+#    2. Bastion Instance
+#    3. (Compute, Storage) Instances along with Instance store attachments to storage instances
 
 module "vpc" {
   source                                          = "../sub_modules/vpc_template"
@@ -125,6 +123,5 @@ module "scale_instances" {
   placement_group_strategy                 = var.placement_group_strategy
   orchestrator_server                      = var.orchestrator_server
   orchestrator_port                        = var.orchestrator_port
-  orchestrator_ca_fingerprint              = var.orchestrator_ca_fingerprint
   orchestrator_workload_secret             = var.orchestrator_workload_secret
 }
