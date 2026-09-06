@@ -1,13 +1,11 @@
-/*
-    This nested module creates:
-    1. Storage cluster instances (with and without attached volumes)
-    2. Compute cluster instances
-    3. Protocol/CES nodes for NFS/SMB services
-    4. Gateway nodes for multi-cluster connectivity
-    5. Security groups and network configurations
-    6. DNS records for cluster nodes
-    7. SSH key pairs for instance access
-*/
+#    This nested module creates:
+#    1. Storage cluster instances (with and without attached volumes)
+#    2. Compute cluster instances
+#    3. Protocol/CES nodes for NFS/SMB services
+#    4. Gateway nodes for multi-cluster connectivity
+#    5. Security groups and network configurations
+#    6. DNS records for cluster nodes
+#    7. SSH key pairs for instance access
 
 # Create cluster security group
 module "cluster_security_group" {
@@ -177,7 +175,6 @@ module "compute_cluster_instances" {
   zone                              = var.vpc_availability_zones
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
-  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
   orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
@@ -207,7 +204,6 @@ module "storage_cluster_instances" {
   total_volume_bandwidth            = local.effective_storage_vol_bandwidth
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
-  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
   orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
@@ -237,7 +233,6 @@ module "storage_cluster_tie_breaker_instance" {
   total_volume_bandwidth            = null
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
-  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
   orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
@@ -264,7 +259,6 @@ module "protocol_instances" {
   zone                              = each.value["zone"]
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
-  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
   orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
@@ -289,6 +283,5 @@ module "gateway_instances" {
   zone                              = var.vpc_availability_zones
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
-  orchestrator_ca_fingerprint       = var.orchestrator_ca_fingerprint
   orchestrator_workload_secret      = var.orchestrator_workload_secret
 }

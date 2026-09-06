@@ -108,7 +108,6 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_bastion_security_group_id"></a> [bastion_security_group_id](#input_bastion_security_group_id) | Bastion security group ID. | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
-| <a name="input_orchestrator_ca_fingerprint"></a> [orchestrator_ca_fingerprint](#input_orchestrator_ca_fingerprint) | SHA-256 fingerprint of the orchestrator's CA certificate. Expected format: 'SHA256 Fingerprint=XX:XX:...:XX'. | `string` |
 | <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | TCP port the scale-agent connects to on the orchestrator server (the workload Service NodePort). | `number` |
 | <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. | `string` |
 | <a name="input_orchestrator_workload_secret"></a> [orchestrator_workload_secret](#input_orchestrator_workload_secret) | Shared secret the agent presents to the orchestrator's workload API (X-Scale-Workload-Secret header). | `string` |
