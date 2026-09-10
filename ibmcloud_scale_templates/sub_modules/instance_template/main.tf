@@ -79,6 +79,11 @@ module "scale_cluster_ingress_security_rule_using_direct_connection" {
       protocol = "tcp"
       port_min = 46443
       port_max = 46443
+    }],
+    [{
+      protocol = "tcp"
+      port_min = 9250
+      port_max = 9250
     }]
   )
 }
