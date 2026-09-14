@@ -105,9 +105,11 @@ locals {
     }
   }
 
-  # Tag marking the storage volumes whose placement scale-operator owns. Scoped
-  # by resource_prefix so two deployments never adopt each other's disks.
-  scale_volume_tag = format("scale-operator:%s", var.resource_prefix)
+  # Tag marking the storage volumes scale-operator owns. Scoped by
+  # resource_prefix and VPC: the prefix is only unique within one VPC, while
+  # volumes and tag search are not. The VPC ID's last segment keeps the tag
+  # short and colon-free.
+  scale_volume_tag = format("scale-operator:%s-%s", var.resource_prefix, element(split("-", var.vpc_id), length(split("-", var.vpc_id)) - 1))
 
   storage_volume_tags = concat(var.tags, [local.scale_volume_tag])
 

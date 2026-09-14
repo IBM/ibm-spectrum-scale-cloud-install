@@ -93,7 +93,7 @@ output "storage_cluster_instance_private_ips" {
 
 output "storage_volume_tag" {
   value       = local.scale_volume_tag
-  description = "Tag on this deployment's storage volumes."
+  description = "Tag on this deployment's storage volumes: scale-operator:<resource_prefix>-<vpc id suffix>."
 }
 
 output "storage_volumes_attached_by_terraform" {
