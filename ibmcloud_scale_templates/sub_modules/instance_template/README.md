@@ -186,6 +186,6 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="output_storage_cluster_volume_ids"></a> [storage_cluster_volume_ids](#output_storage_cluster_volume_ids) | Flat map of disk-key to volume ID for all storage cluster data volumes. |
 | <a name="output_storage_cluster_with_data_volume_mapping"></a> [storage_cluster_with_data_volume_mapping](#output_storage_cluster_with_data_volume_mapping) | Requested disks per storage instance, keyed by FQDN: zone, and each disk's size, type and iops. |
 | <a name="output_storage_vm_zone_map"></a> [storage_vm_zone_map](#output_storage_vm_zone_map) | n/a |
-| <a name="output_storage_volume_tag"></a> [storage_volume_tag](#output_storage_volume_tag) | Tag on this deployment's storage volumes. |
+| <a name="output_storage_volume_tag"></a> [storage_volume_tag](#output_storage_volume_tag) | Tag on this deployment's storage volumes: scale-operator:<resource_prefix>-<vpc id suffix>. |
 | <a name="output_storage_volumes_attached_by_terraform"></a> [storage_volumes_attached_by_terraform](#output_storage_volumes_attached_by_terraform) | Whether Terraform attached the storage data volumes. False means the operator owns placement. |
 <!-- END_TF_DOCS -->
