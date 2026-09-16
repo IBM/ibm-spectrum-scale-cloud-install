@@ -109,7 +109,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Examples: Storage-only, Compute-only, Combined-compute-storage. | `string` |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | The IBM Cloud platform API key. | `string` |
 | <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | TCP port the scale-agent connects to on the orchestrator server (the workload Service NodePort). | `number` |
-| <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. | `string` |
+| <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | Private IP or hostname of the scale-orchestrator workload API — any cluster worker's private IP works, e.g. 10.x.x.x: the orchestrator's certificate covers every worker address, and agents switch to another advertised address if this one goes away. | `string` |
 | <a name="input_orchestrator_workload_secret"></a> [orchestrator_workload_secret](#input_orchestrator_workload_secret) | Shared secret the agent presents to the orchestrator's workload API (X-Scale-Workload-Secret header). | `string` |
 | <a name="input_resource_group_id"></a> [resource_group_id](#input_resource_group_id) | IBM Cloud resource group ID. | `string` |
 | <a name="input_resource_prefix"></a> [resource_prefix](#input_resource_prefix) | Prefix is added to all resources that are created. | `string` |

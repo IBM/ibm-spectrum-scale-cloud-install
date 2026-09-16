@@ -310,7 +310,7 @@ variable "root_device_kms_key_name" {
 
 variable "orchestrator_server" {
   type        = string
-  description = "IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x."
+  description = "Private IP or hostname of the scale-orchestrator workload API — any cluster worker's private IP works, e.g. 10.x.x.x: the orchestrator's certificate covers every worker address, and agents switch to another advertised address if this one goes away."
 }
 
 variable "orchestrator_port" {
