@@ -104,6 +104,7 @@ resource "ibm_is_volume" "itself" {
   profile        = each.value["type"]
   iops           = each.value["iops"] == "" ? null : each.value["iops"]
   encryption_key = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
+  resource_group = var.resource_group_id
 
   # Tag the volumes so the operator can find them.
   tags = var.volume_tags
