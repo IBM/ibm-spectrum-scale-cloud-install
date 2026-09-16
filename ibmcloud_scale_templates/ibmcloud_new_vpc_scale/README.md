@@ -114,7 +114,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | ---- | ----------- | ---- |
 | <a name="input_ibmcloud_api_key"></a> [ibmcloud_api_key](#input_ibmcloud_api_key) | IBM Cloud API key for authentication. | `string` |
 | <a name="input_orchestrator_port"></a> [orchestrator_port](#input_orchestrator_port) | NodePort the scale-agent connects to on the orchestrator (the workload Service NodePort). | `number` |
-| <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | IP or hostname of the scale-orchestrator server, e.g. 10.x.x.x. | `string` |
+| <a name="input_orchestrator_server"></a> [orchestrator_server](#input_orchestrator_server) | Private IP or hostname of the scale-orchestrator workload API — any cluster worker's private IP works, e.g. 10.x.x.x: the orchestrator's certificate covers every worker address, and agents switch to another advertised address if this one goes away. | `string` |
 | <a name="input_orchestrator_workload_secret"></a> [orchestrator_workload_secret](#input_orchestrator_workload_secret) | Shared secret the agent presents to the orchestrator's workload API (X-Scale-Workload-Secret header). | `string` |
 | <a name="input_vpc_availability_zones"></a> [vpc_availability_zones](#input_vpc_availability_zones) | List of availability zone names or IDs within the selected region for multi-zone deployment. | `list(string)` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where VPC and all resources will be deployed (e.g., us-east, us-south, eu-de). | `string` |
