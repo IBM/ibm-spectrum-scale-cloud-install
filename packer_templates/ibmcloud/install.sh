@@ -22,14 +22,9 @@ if [ -f /etc/os-release ] && grep -qiE 'Ubuntu' /etc/os-release; then
         sudo apt-get -y install gpfs.crypto
     fi
 elif [ -f /etc/os-release ] && grep -qiE 'redhat' /etc/os-release; then
-    # IBM Cloud VPC RHSM satellite does not mirror EUS content paths.
-    # Disable all active EUS repos dynamically
-    eus_repos=$(sudo subscription-manager repos --list-enabled 2>/dev/null \
-        | awk '/Repo ID:/ && /-eus-/ {print $3}')
-    if [ -n "$eus_repos" ]; then
-        sudo subscription-manager repos --disable $(echo "$eus_repos" | tr '\n' ' ') || true
-        sudo dnf clean all
-    fi
+    # IBM Cloud RHSM does not mirror EUS content; disable EUS repos to avoid 404s.
+    sudo sed -i '/\[.*eus.*\]/,/^\[/{s/^enabled=1/enabled=0/}' /etc/yum.repos.d/*.repo 2>/dev/null || true
+    sudo dnf clean all
     sudo dnf install -y unzip python3 python3-pip jq numactl
     sudo dnf install -y kernel-devel-`uname -r` kernel-headers-`uname -r`
     sudo dnf install -y make gcc-c++ elfutils-libelf-devel bind-utils nftables iptables nvme-cli
