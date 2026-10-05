@@ -242,3 +242,8 @@ output "storage_cluster_desc_volume_ids" {
   value       = try(module.scale_instances.storage_cluster_desc_volume_ids, {})
   description = "Map of disk-key to volume ID for storage cluster tiebreaker data volumes."
 }
+
+output "protocol_reserved_ips" {
+  value       = try(module.scale_instances.protocol_reserved_ips, [])
+  description = "Reserved CES IP addresses, one per protocol node."
+}

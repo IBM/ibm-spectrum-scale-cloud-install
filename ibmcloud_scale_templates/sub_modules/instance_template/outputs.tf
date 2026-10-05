@@ -23,6 +23,11 @@ output "ces_private_ips" {
   description = "CES/Protocol ENI (secondary private) ips."
 }
 
+output "protocol_reserved_ips" {
+  value       = local.storage_and_protocol ? module.reserved_ip[0].ces_ip_list : []
+  description = "Reserved CES IP addresses, one per protocol node. Auto-assigned when ces_ip_addresses input is empty."
+}
+
 output "compute_cluster_instance_details" {
   value       = [for instance in module.compute_cluster_instances : instance.instance_details]
   description = "Compute cluster instance details (map of id, private_ip, dns)"

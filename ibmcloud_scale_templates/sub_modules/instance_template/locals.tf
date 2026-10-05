@@ -23,6 +23,11 @@ locals {
   first_two_zones           = length(var.vpc_availability_zones) > 1 ? slice(var.vpc_availability_zones, 0, 2) : var.vpc_availability_zones
   first_two_storage_subnets = length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets
 
+  # Protocol subnets: dedicated when provided, fallback to storage subnets
+  protocol_subnets_to_use = length(var.vpc_protocol_cluster_private_subnets) > 0 ? (
+    length(var.vpc_protocol_cluster_private_subnets) > 1 ? slice(var.vpc_protocol_cluster_private_subnets, 0, 2) : var.vpc_protocol_cluster_private_subnets
+  ) : local.first_two_storage_subnets
+
   # Compute vm name list
   compute_vm_names = local.compute_or_combined ? [
     for i in range(var.total_compute_cluster_instances) : format("%s-compute-%s", var.resource_prefix, i + 1)
@@ -57,13 +62,13 @@ locals {
     }
   }
 
-  # Protocol VM subnet mapping - always use storage subnets for primary NIC
+  # Protocol VM subnet mapping
   protocol_vm_subnet_map = {
     for idx, vm_name in local.protocol_vm_names :
     vm_name => {
-      subnet           = element(local.first_two_storage_subnets, idx)
-      ces_ip_addresses = element(var.ces_ip_addresses, idx)
-      zone             = element(local.first_two_zones, idx)
+      subnet       = element(local.protocol_subnets_to_use, idx)
+      ces_ip       = module.reserved_ip[0].ces_ip_list[idx]
+      zone         = element(local.first_two_zones, idx)
     }
   }
 
