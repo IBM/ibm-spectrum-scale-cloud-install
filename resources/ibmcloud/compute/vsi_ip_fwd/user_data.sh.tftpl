@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+hostnamectl set-hostname --static "${hostname}"
+echo "${hostname}" > /etc/hostname
+%{ if ces_ip_cidr != "" ~}
+
+# Send CES traffic out through the CES NIC
+cat > /etc/sysctl.d/90-scale-ces.conf <<'SYSCTL'
+net.ipv4.conf.all.rp_filter = 2
+net.ipv4.conf.default.rp_filter = 2
+SYSCTL
+sysctl --system > /dev/null
+
+ces_table=100
+primary_nic=$(ip -4 route show default | awk '{print $5; exit}')
+ces_nic=$(ip -o link show | awk -F': ' '$2 != "lo" {print $2}' | cut -d@ -f1 | grep -vx "$primary_nic" | head -n 1)
+
+ces_con=$(nmcli -g GENERAL.CONNECTION device show "$ces_nic" 2> /dev/null)
+if [ -z "$ces_con" ] || [ "$ces_con" = "--" ]; then
+  nmcli connection add type ethernet ifname "$ces_nic" con-name scale-ces ipv4.method auto ipv6.method disabled
+  ces_con=scale-ces
+fi
+# Keep the default route on the primary NIC
+nmcli connection modify "$ces_con" ipv4.never-default yes
+nmcli connection up "$ces_con"
+
+ces_subnet=""
+for _ in $(seq 60); do
+  ces_subnet=$(ip -4 route show dev "$ces_nic" proto kernel scope link | awk '{print $1; exit}')
+  [ -n "$ces_subnet" ] && break
+  sleep 5
+done
+if [ -z "$ces_subnet" ]; then
+  echo "CES NIC $ces_nic has no IPv4 address; CES routing not configured" >&2
+else
+  # VPC gateway is the first address of the subnet
+  IFS=. read -r a b c d <<< "$${ces_subnet%/*}"
+  ces_gateway="$a.$b.$c.$((d + 1))"
+  nmcli connection modify "$ces_con" \
+    ipv4.routes "$ces_subnet table=$ces_table, 0.0.0.0/0 $ces_gateway table=$ces_table" \
+    ipv4.routing-rules "priority 100 from ${ces_ip_cidr} table $ces_table, priority 101 from $ces_subnet table $ces_table"
+  nmcli connection up "$ces_con"
+fi
+%{ endif ~}
+
+sed -i "s|^server_url:.*|server_url: https://${orchestrator_server}:${orchestrator_port}|" /etc/scale-agent/config.yaml
+if grep -q "^workload_secret:" /etc/scale-agent/config.yaml; then sed -i "s|^workload_secret:.*|workload_secret: \"${orchestrator_workload_secret}\"|" /etc/scale-agent/config.yaml; else echo "workload_secret: \"${orchestrator_workload_secret}\"" >> /etc/scale-agent/config.yaml; fi
+systemctl restart scale-agent

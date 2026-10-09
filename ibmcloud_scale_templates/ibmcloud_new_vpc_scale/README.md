@@ -31,6 +31,17 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 
     All subnet CIDR blocks must fall within the VPC CIDR block range. Ensure there are no overlapping CIDR ranges between different subnet types.
 
+    **Protocol (CES) Networking:**
+
+    Protocol nodes have two NICs: the primary NIC (storage subnet) for GPFS traffic and the CES NIC (protocol subnet) for NFS clients.
+
+    - `ces_ip_cidr` - Range for CES IPs, e.g. `10.250.0.0/26`. Must not overlap the VPC or any subnet. Each CES IP is routed to its protocol node in every zone.
+    - `ces_ips_per_node` - CES IPs per protocol node (default 2). CES IPs x zones must not exceed 200 (routing table quota).
+    - `vpc_protocol_private_subnets_cidr_blocks` - Required for protocol nodes.
+    - `ces_client_cidr_blocks` - Extra NFS client ranges (VPN, Transit Gateway, Direct Link). Storage and protocol subnets are always allowed.
+
+    NFS clients mount the `ces_dns_name` output. The CES NIC allows IP spoofing, so the API key needs the IAM **IP Spoofing Operator** role.
+
     Minimal Example (create storage-only cluster):
 
     ```jsonc

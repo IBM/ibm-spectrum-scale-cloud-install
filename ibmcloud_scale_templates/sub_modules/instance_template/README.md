@@ -120,7 +120,10 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_vpc_id"></a> [vpc_id](#input_vpc_id) | VPC id were to deploy the bastion. | `string` |
 | <a name="input_vpc_region"></a> [vpc_region](#input_vpc_region) | IBM Cloud region where resources will be provisioned. Example: us-south. | `string` |
 | <a name="input_boot_disk_type"></a> [boot_disk_type](#input_boot_disk_type) | Boot disk type for all cluster instances. | `string` |
-| <a name="input_ces_ip_addresses"></a> [ces_ip_addresses](#input_ces_ip_addresses) | CES IP addresses (length must be equal to number of protocol nodes). | `list(string)` |
+| <a name="input_ces_client_cidr_blocks"></a> [ces_client_cidr_blocks](#input_ces_client_cidr_blocks) | CIDR blocks of NFS clients allowed to reach the CES IPs. | `list(string)` |
+| <a name="input_ces_ip_addresses"></a> [ces_ip_addresses](#input_ces_ip_addresses) | Explicit CES IPs, inside ces_ip_cidr. Empty = taken from ces_ip_cidr. | `list(string)` |
+| <a name="input_ces_ip_cidr"></a> [ces_ip_cidr](#input_ces_ip_cidr) | IPv4 range for CES IPs. Must not overlap the VPC address prefixes. | `string` |
+| <a name="input_ces_ips_per_node"></a> [ces_ips_per_node](#input_ces_ips_per_node) | Number of CES IPs per protocol node, taken from ces_ip_cidr when ces_ip_addresses is empty. | `number` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of client IP/CIDR ranges for direct connection access. | `list(string)` |
 | <a name="input_client_security_group_id"></a> [client_security_group_id](#input_client_security_group_id) | Client security group ID for cloud connection access (same VPC or peered VPC). | `string` |
 | <a name="input_compute_cluster_image_id"></a> [compute_cluster_image_id](#input_compute_cluster_image_id) | Image ID to use for provisioning the compute cluster instances. | `string` |

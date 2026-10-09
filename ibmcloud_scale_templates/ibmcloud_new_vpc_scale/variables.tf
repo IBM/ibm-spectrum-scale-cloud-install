@@ -84,6 +84,11 @@ variable "vpc_protocol_private_subnets_cidr_blocks" {
   type        = list(string)
   default     = []
   description = "List of CIDR blocks for protocol node private subnets, one per availability zone. Required only if deploying protocol nodes. Set to empty array [] to skip protocol subnet creation."
+
+  validation {
+    condition     = length(var.vpc_protocol_private_subnets_cidr_blocks) > 0 || var.total_protocol_instances == 0 || var.ces_network_mode != "same_account"
+    error_message = "vpc_protocol_private_subnets_cidr_blocks is required when total_protocol_instances is greater than 0."
+  }
 }
 
 variable "vpc_public_subnets_cidr_blocks" {
@@ -265,16 +270,85 @@ variable "protocol_vsi_profile" {
   description = "IBM Cloud VSI profile (instance type) for protocol cluster nodes."
 }
 
+variable "ces_ip_cidr" {
+  type        = string
+  default     = null
+  description = "IPv4 range for CES (Cluster Export Services) IPs, e.g. 10.250.0.0/26. Must not overlap vpc_cidr_block or any subnet. Required when total_protocol_instances is greater than 0."
+
+  validation {
+    condition     = var.ces_ip_cidr != null || var.total_protocol_instances == 0
+    error_message = "ces_ip_cidr is required when total_protocol_instances is greater than 0."
+  }
+
+  validation {
+    condition     = var.ces_ip_cidr == null ? true : can(cidrhost(var.ces_ip_cidr, 0))
+    error_message = "ces_ip_cidr must be an IPv4 CIDR block, for example 10.250.0.0/26."
+  }
+
+  # Two CIDR blocks overlap when they share the shorter prefix.
+  validation {
+    condition = var.ces_ip_cidr == null ? true : alltrue([
+      for cidr in concat(
+        [var.vpc_cidr_block],
+        var.vpc_storage_cluster_private_subnets_cidr_blocks,
+        var.vpc_compute_cluster_private_subnets_cidr_blocks,
+        var.vpc_protocol_private_subnets_cidr_blocks,
+        var.vpc_public_subnets_cidr_blocks == null ? [] : var.vpc_public_subnets_cidr_blocks
+        ) : (
+        floor(sum([for i, octet in split(".", cidrhost(var.ces_ip_cidr, 0)) : tonumber(octet) * pow(256, 3 - i)]) / pow(2, 32 - min(tonumber(split("/", var.ces_ip_cidr)[1]), tonumber(split("/", cidr)[1]))))
+        != floor(sum([for i, octet in split(".", cidrhost(cidr, 0)) : tonumber(octet) * pow(256, 3 - i)]) / pow(2, 32 - min(tonumber(split("/", var.ces_ip_cidr)[1]), tonumber(split("/", cidr)[1]))))
+      )
+    ])
+    error_message = "ces_ip_cidr must not overlap vpc_cidr_block or any subnet CIDR block."
+  }
+}
+
+variable "ces_ips_per_node" {
+  type        = number
+  default     = 2
+  description = "Number of CES IPs per protocol node, taken from ces_ip_cidr when ces_ip_addresses is empty."
+
+  validation {
+    condition     = var.ces_ips_per_node >= 1
+    error_message = "ces_ips_per_node must be at least 1."
+  }
+
+  validation {
+    condition     = var.ces_ip_cidr == null || length(var.ces_ip_addresses) > 0 ? true : var.total_protocol_instances * var.ces_ips_per_node <= pow(2, 32 - tonumber(split("/", var.ces_ip_cidr)[1])) - 2
+    error_message = "ces_ip_cidr has fewer usable addresses than total_protocol_instances x ces_ips_per_node."
+  }
+}
+
 variable "ces_ip_addresses" {
   type        = list(string)
   default     = []
-  description = "List of CES (Cluster Export Services) IP addresses for protocol nodes. Length must equal total_protocol_instances."
+  description = "Explicit CES IPs, inside ces_ip_cidr, at least one per protocol node. Empty = taken from ces_ip_cidr."
+
+  validation {
+    condition     = length(var.ces_ip_addresses) == 0 || length(var.ces_ip_addresses) >= var.total_protocol_instances
+    error_message = "ces_ip_addresses must be empty or contain at least total_protocol_instances entries."
+  }
+
+  validation {
+    condition = var.ces_ip_cidr == null ? true : alltrue([
+      for ip in var.ces_ip_addresses :
+      floor(sum([for i, octet in split(".", ip) : tonumber(octet) * pow(256, 3 - i)]) / pow(2, 32 - tonumber(split("/", var.ces_ip_cidr)[1])))
+      == floor(sum([for i, octet in split(".", cidrhost(var.ces_ip_cidr, 0)) : tonumber(octet) * pow(256, 3 - i)]) / pow(2, 32 - tonumber(split("/", var.ces_ip_cidr)[1])))
+    ])
+    error_message = "Every entry of ces_ip_addresses must be inside ces_ip_cidr."
+  }
+}
+
+variable "ces_client_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "Extra NFS client CIDR blocks (e.g. VPN, Transit Gateway). Storage and protocol subnets are always allowed."
 }
 
 variable "ces_network_mode" {
   type        = string
   default     = "same_account"
-  description = "CES network deployment mode: 'same_account' provisions secondary NICs, reserved IPs and VPC routes within the same account; 'cross_account' attaches cross-account VNIs."
+  description = "CES network deployment mode: 'same_account' creates CES NICs and routes; 'cross_account' attaches cross-account VNIs."
 
   validation {
     condition     = contains(["same_account", "cross_account"], var.ces_network_mode)

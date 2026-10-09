@@ -243,7 +243,22 @@ output "storage_cluster_desc_volume_ids" {
   description = "Map of disk-key to volume ID for storage cluster tiebreaker data volumes."
 }
 
-output "protocol_reserved_ips" {
-  value       = try(module.scale_instances.protocol_reserved_ips, [])
-  description = "Reserved CES IP addresses, one per protocol node."
+output "ces_private_ips" {
+  value       = try(module.scale_instances.ces_private_ips, [])
+  description = "CES IP addresses."
+}
+
+output "ces_ip_cidr" {
+  value       = var.ces_ip_cidr
+  description = "IPv4 range the CES IPs come from."
+}
+
+output "ces_dns_name" {
+  value       = try(module.scale_instances.ces_dns_name, null)
+  description = "Round-robin DNS name for all CES IPs."
+}
+
+output "ces_routes" {
+  value       = try(module.scale_instances.ces_routes, null)
+  description = "VPC routes for the CES IPs, one per CES IP and zone."
 }

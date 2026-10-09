@@ -269,19 +269,47 @@ variable "total_compute_cluster_instances" {
 variable "vpc_protocol_cluster_private_subnets" {
   type        = list(string)
   default     = []
-  description = "Protocol subnet IDs (one per AZ) for CES nodes. Falls back to storage subnets when empty."
+  description = "Protocol subnet IDs (one per AZ) for the CES NICs."
+}
+
+variable "ces_ip_cidr" {
+  type        = string
+  default     = null
+  description = "IPv4 range for CES IPs. Must not overlap the VPC address prefixes."
+
+  validation {
+    condition     = var.ces_ip_cidr == null ? true : can(cidrhost(var.ces_ip_cidr, 0))
+    error_message = "ces_ip_cidr must be an IPv4 CIDR block, for example 10.250.0.0/26."
+  }
+}
+
+variable "ces_ips_per_node" {
+  type        = number
+  default     = 2
+  description = "Number of CES IPs per protocol node, taken from ces_ip_cidr when ces_ip_addresses is empty."
+
+  validation {
+    condition     = var.ces_ips_per_node >= 1
+    error_message = "ces_ips_per_node must be at least 1."
+  }
 }
 
 variable "ces_ip_addresses" {
   type        = list(string)
   default     = []
-  description = "Static CES IPs to reserve, one per protocol node. Empty = auto-assign from protocol subnet."
+  description = "Explicit CES IPs, inside ces_ip_cidr. Empty = taken from ces_ip_cidr."
+}
+
+variable "ces_client_cidr_blocks" {
+  type        = list(string)
+  default     = []
+  description = "CIDR blocks of NFS clients allowed to reach the CES IPs."
 }
 
 variable "ces_network_mode" {
   type        = string
   default     = "same_account"
-  description = "CES network deployment mode: 'same_account' provisions secondary NICs, reserved IPs and VPC routes within the same account; 'cross_account' attaches cross-account VNIs."
+  description = "CES network deployment mode: 'same_account' creates CES NICs and routes; 'cross_account' attaches cross-account VNIs."
 
   validation {
     condition     = contains(["same_account", "cross_account"], var.ces_network_mode)
