@@ -125,10 +125,8 @@ module "scale_instances" {
   vpc_protocol_cluster_dns_domain          = var.vpc_protocol_cluster_dns_domain
   ces_ip_cidr                              = var.ces_ip_cidr
   ces_ips_per_node                         = var.ces_ips_per_node
-  ces_ip_addresses                         = var.ces_ip_addresses
   ces_client_cidr_blocks                   = local.ces_client_cidr_blocks
   ces_network_mode                         = var.ces_network_mode
-  ces_vni_ids                              = var.ces_vni_ids
   client_ip_ranges                         = var.client_ip_ranges
   client_security_group_id                 = var.client_security_group_id
   using_cloud_connection                   = var.using_cloud_connection

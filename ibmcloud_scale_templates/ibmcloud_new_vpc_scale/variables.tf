@@ -87,7 +87,7 @@ variable "vpc_protocol_private_subnets_cidr_blocks" {
 
   validation {
     condition     = length(var.vpc_protocol_private_subnets_cidr_blocks) > 0 || var.total_protocol_instances == 0 || var.ces_network_mode != "same_account"
-    error_message = "vpc_protocol_private_subnets_cidr_blocks is required when total_protocol_instances is greater than 0."
+    error_message = "vpc_protocol_private_subnets_cidr_blocks is required when ces_network_mode is 'same_account' and total_protocol_instances is greater than 0."
   }
 }
 
@@ -273,11 +273,11 @@ variable "protocol_vsi_profile" {
 variable "ces_ip_cidr" {
   type        = string
   default     = null
-  description = "IPv4 range for CES (Cluster Export Services) IPs, e.g. 10.250.0.0/26. Must not overlap vpc_cidr_block or any subnet. Required when total_protocol_instances is greater than 0."
+  description = "IPv4 range for CES (Cluster Export Services) IPs, e.g. 10.250.0.0/26. Must not overlap vpc_cidr_block or any subnet. Required when ces_network_mode is 'same_account' and total_protocol_instances is greater than 0."
 
   validation {
-    condition     = var.ces_ip_cidr != null || var.total_protocol_instances == 0
-    error_message = "ces_ip_cidr is required when total_protocol_instances is greater than 0."
+    condition     = var.ces_ip_cidr != null || var.total_protocol_instances == 0 || var.ces_network_mode != "same_account"
+    error_message = "ces_ip_cidr is required when ces_network_mode is 'same_account' and total_protocol_instances is greater than 0."
   }
 
   validation {
@@ -306,7 +306,7 @@ variable "ces_ip_cidr" {
 variable "ces_ips_per_node" {
   type        = number
   default     = 2
-  description = "Number of CES IPs per protocol node, taken from ces_ip_cidr when ces_ip_addresses is empty."
+  description = "Number of CES IPs per protocol node, taken from ces_ip_cidr."
 
   validation {
     condition     = var.ces_ips_per_node >= 1
@@ -314,28 +314,19 @@ variable "ces_ips_per_node" {
   }
 
   validation {
-    condition     = var.ces_ip_cidr == null || length(var.ces_ip_addresses) > 0 ? true : var.total_protocol_instances * var.ces_ips_per_node <= pow(2, 32 - tonumber(split("/", var.ces_ip_cidr)[1])) - 2
+    condition     = var.ces_ip_cidr == null ? true : var.total_protocol_instances * var.ces_ips_per_node <= pow(2, 32 - tonumber(split("/", var.ces_ip_cidr)[1])) - 2
     error_message = "ces_ip_cidr has fewer usable addresses than total_protocol_instances x ces_ips_per_node."
   }
 }
 
-variable "ces_ip_addresses" {
-  type        = list(string)
-  default     = []
-  description = "Explicit CES IPs, inside ces_ip_cidr, at least one per protocol node. Empty = taken from ces_ip_cidr."
+variable "ces_network_mode" {
+  type        = string
+  default     = "same_account"
+  description = "CES network deployment mode. 'same_account': CES NICs in the protocol subnets, with CES IPs routed to them in every zone."
 
   validation {
-    condition     = length(var.ces_ip_addresses) == 0 || length(var.ces_ip_addresses) >= var.total_protocol_instances
-    error_message = "ces_ip_addresses must be empty or contain at least total_protocol_instances entries."
-  }
-
-  validation {
-    condition = var.ces_ip_cidr == null ? true : alltrue([
-      for ip in var.ces_ip_addresses :
-      floor(sum([for i, octet in split(".", ip) : tonumber(octet) * pow(256, 3 - i)]) / pow(2, 32 - tonumber(split("/", var.ces_ip_cidr)[1])))
-      == floor(sum([for i, octet in split(".", cidrhost(var.ces_ip_cidr, 0)) : tonumber(octet) * pow(256, 3 - i)]) / pow(2, 32 - tonumber(split("/", var.ces_ip_cidr)[1])))
-    ])
-    error_message = "Every entry of ces_ip_addresses must be inside ces_ip_cidr."
+    condition     = contains(["same_account"], var.ces_network_mode)
+    error_message = "ces_network_mode must be 'same_account'."
   }
 }
 
@@ -343,28 +334,6 @@ variable "ces_client_cidr_blocks" {
   type        = list(string)
   default     = []
   description = "Extra NFS client CIDR blocks (e.g. VPN, Transit Gateway). Storage and protocol subnets are always allowed."
-}
-
-variable "ces_network_mode" {
-  type        = string
-  default     = "same_account"
-  description = "CES network deployment mode: 'same_account' creates CES NICs and routes; 'cross_account' attaches cross-account VNIs."
-
-  validation {
-    condition     = contains(["same_account", "cross_account"], var.ces_network_mode)
-    error_message = "ces_network_mode must be either 'same_account' or 'cross_account'."
-  }
-}
-
-variable "ces_vni_ids" {
-  type        = list(string)
-  default     = []
-  description = "List of cross-account Virtual Network Interface (VNI) IDs (one per protocol node). Required when ces_network_mode is 'cross_account'."
-
-  validation {
-    condition     = var.ces_network_mode != "cross_account" || length(var.ces_vni_ids) == var.total_protocol_instances
-    error_message = "ces_vni_ids must contain exactly total_protocol_instances elements when ces_network_mode is 'cross_account'."
-  }
 }
 
 variable "total_gateway_instances" {
@@ -465,7 +434,6 @@ variable "orchestrator_port" {
   nullable    = false
   description = "NodePort the scale-agent connects to on the orchestrator (the workload Service NodePort)."
 }
-
 
 variable "orchestrator_workload_secret" {
   type        = string

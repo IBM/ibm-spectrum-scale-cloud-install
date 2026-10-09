@@ -11,15 +11,7 @@ terraform {
 
 variable "ami_id" {}
 variable "subnet_id" {}
-variable "ces_subnet_id" {
-  default = null
-}
-variable "ces_network_mode" {
-  default = "same_account"
-}
-variable "ces_vni_id" {
-  default = null
-}
+variable "ces_subnet_id" {}
 variable "dns_zone_id" {}
 variable "ces_ip_cidr" {
   default = null
@@ -102,10 +94,9 @@ resource "ibm_is_instance" "itself" {
   network_attachments {
     name = format("%s-ces-sna", var.name_prefix)
     virtual_network_interface {
-      id                = var.ces_network_mode == "cross_account" ? var.ces_vni_id : null
-      subnet            = var.ces_network_mode == "same_account" ? var.ces_subnet_id : null
-      security_groups   = var.ces_network_mode == "same_account" ? var.ces_security_groups : null
-      allow_ip_spoofing = var.ces_network_mode == "same_account" ? true : null
+      subnet            = var.ces_subnet_id
+      security_groups   = var.ces_security_groups
+      allow_ip_spoofing = true
     }
   }
 

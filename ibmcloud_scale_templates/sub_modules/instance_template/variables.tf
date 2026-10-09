@@ -286,7 +286,7 @@ variable "ces_ip_cidr" {
 variable "ces_ips_per_node" {
   type        = number
   default     = 2
-  description = "Number of CES IPs per protocol node, taken from ces_ip_cidr when ces_ip_addresses is empty."
+  description = "Number of CES IPs per protocol node, taken from ces_ip_cidr."
 
   validation {
     condition     = var.ces_ips_per_node >= 1
@@ -294,38 +294,21 @@ variable "ces_ips_per_node" {
   }
 }
 
-variable "ces_ip_addresses" {
-  type        = list(string)
-  default     = []
-  description = "Explicit CES IPs, inside ces_ip_cidr. Empty = taken from ces_ip_cidr."
+variable "ces_network_mode" {
+  type        = string
+  default     = "same_account"
+  description = "CES network deployment mode. 'same_account': CES NICs in the protocol subnets, with CES IPs routed to them in every zone."
+
+  validation {
+    condition     = contains(["same_account"], var.ces_network_mode)
+    error_message = "ces_network_mode must be 'same_account'."
+  }
 }
 
 variable "ces_client_cidr_blocks" {
   type        = list(string)
   default     = []
   description = "CIDR blocks of NFS clients allowed to reach the CES IPs."
-}
-
-variable "ces_network_mode" {
-  type        = string
-  default     = "same_account"
-  description = "CES network deployment mode: 'same_account' creates CES NICs and routes; 'cross_account' attaches cross-account VNIs."
-
-  validation {
-    condition     = contains(["same_account", "cross_account"], var.ces_network_mode)
-    error_message = "ces_network_mode must be either 'same_account' or 'cross_account'."
-  }
-}
-
-variable "ces_vni_ids" {
-  type        = list(string)
-  default     = []
-  description = "List of cross-account Virtual Network Interface (VNI) IDs (one per protocol node). Required when ces_network_mode is 'cross_account'."
-
-  validation {
-    condition     = var.ces_network_mode != "cross_account" || length(var.ces_vni_ids) == var.total_protocol_instances
-    error_message = "ces_vni_ids must contain exactly total_protocol_instances elements when ces_network_mode is 'cross_account'."
-  }
 }
 
 variable "protocol_instance_type" {
@@ -388,7 +371,6 @@ variable "orchestrator_port" {
   nullable    = false
   description = "TCP port the scale-agent connects to on the orchestrator server (the workload Service NodePort)."
 }
-
 
 variable "orchestrator_workload_secret" {
   type        = string

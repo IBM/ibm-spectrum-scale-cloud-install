@@ -3,6 +3,7 @@ locals {
   compute_or_combined    = contains(["Compute-only", "Combined-compute-storage"], var.cluster_type) && var.total_compute_cluster_instances > 0
   storage_or_combined    = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_storage_cluster_instances > 0
   storage_and_protocol   = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_protocol_instances > 0
+  ces_same_account       = local.storage_and_protocol && var.ces_network_mode == "same_account"
   storage_and_gateway    = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_gateway_instances > 0
   create_placement_group = length(var.vpc_availability_zones) == 1 && var.enable_placement_group
 
@@ -68,23 +69,20 @@ locals {
     for idx, vm_name in local.protocol_vm_names :
     vm_name => {
       base_subnet = element(local.first_two_storage_subnets, idx)
-      ces_subnet  = length(local.protocol_subnets_to_use) > 0 ? element(local.protocol_subnets_to_use, idx) : null
-      ces_vni_id  = length(var.ces_vni_ids) > idx ? var.ces_vni_ids[idx] : null
+      ces_subnet  = element(local.protocol_subnets_to_use, idx)
       zone        = element(local.first_two_zones, idx)
     }
   }
 
   ces_dns_name = local.storage_and_protocol ? format("%s-ces.%s", var.resource_prefix, coalesce(var.vpc_protocol_cluster_dns_domain, var.vpc_storage_cluster_dns_domain)) : null
 
-  # CES IPs: given explicitly, or the first hosts of ces_ip_cidr
-  ces_ips = !local.storage_and_protocol ? [] : (
-    length(var.ces_ip_addresses) > 0 ? var.ces_ip_addresses : [
-      for idx in range(var.total_protocol_instances * var.ces_ips_per_node) : cidrhost(var.ces_ip_cidr, idx + 1)
-    ]
-  )
+  # CES IPs: the first hosts of ces_ip_cidr
+  ces_ips = local.ces_same_account ? [
+    for idx in range(var.total_protocol_instances * var.ces_ips_per_node) : cidrhost(var.ces_ip_cidr, idx + 1)
+  ] : []
 
   # One route per CES IP per zone; CES IPs are spread round-robin over protocol nodes
-  ces_routes = var.ces_network_mode != "same_account" ? {} : merge([
+  ces_routes = merge([
     for idx, ip in local.ces_ips : {
       for zone in var.vpc_availability_zones :
       format("%s-ces-%d-%s", var.resource_prefix, idx + 1, zone) => {

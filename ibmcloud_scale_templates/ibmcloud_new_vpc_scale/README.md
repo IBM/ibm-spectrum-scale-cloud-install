@@ -133,7 +133,10 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="input_bastion_public_key"></a> [bastion_public_key](#input_bastion_public_key) | SSH public key content for the bastion host. Required when enable_bastion is true. | `string` |
 | <a name="input_bastion_vsi_profile"></a> [bastion_vsi_profile](#input_bastion_vsi_profile) | IBM Cloud VSI profile (instance type) for bastion host. | `string` |
 | <a name="input_boot_disk_type"></a> [boot_disk_type](#input_boot_disk_type) | Boot disk profile/type for all cluster instances (e.g., general-purpose, 5iops-tier, 10iops-tier). | `string` |
-| <a name="input_ces_ip_addresses"></a> [ces_ip_addresses](#input_ces_ip_addresses) | List of CES (Cluster Export Services) IP addresses for protocol nodes. Length must equal total_protocol_instances. | `list(string)` |
+| <a name="input_ces_client_cidr_blocks"></a> [ces_client_cidr_blocks](#input_ces_client_cidr_blocks) | Extra NFS client CIDR blocks (e.g. VPN, Transit Gateway). Storage and protocol subnets are always allowed. | `list(string)` |
+| <a name="input_ces_ip_cidr"></a> [ces_ip_cidr](#input_ces_ip_cidr) | IPv4 range for CES (Cluster Export Services) IPs, e.g. 10.250.0.0/26. Must not overlap vpc_cidr_block or any subnet. Required when ces_network_mode is 'same_account' and total_protocol_instances is greater than 0. | `string` |
+| <a name="input_ces_ips_per_node"></a> [ces_ips_per_node](#input_ces_ips_per_node) | Number of CES IPs per protocol node, taken from ces_ip_cidr. | `number` |
+| <a name="input_ces_network_mode"></a> [ces_network_mode](#input_ces_network_mode) | CES network deployment mode. 'same_account': CES NICs in the protocol subnets, with CES IPs routed to them in every zone. | `string` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of client IP/CIDR ranges for direct connection access via VPN or direct connection. | `list(string)` |
 | <a name="input_client_security_group_id"></a> [client_security_group_id](#input_client_security_group_id) | Client security group ID for cloud connection access from another VPC. | `string` |
 | <a name="input_cluster_type"></a> [cluster_type](#input_cluster_type) | Cluster type to provision. Options: 'Storage-only', 'Compute-only', 'Combined-compute-storage'. | `string` |
@@ -193,6 +196,10 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="output_bastion_instance_id"></a> [bastion_instance_id](#output_bastion_instance_id) | Bastion instance autoscaling group ID. |
 | <a name="output_bastion_public_ip_addresses"></a> [bastion_public_ip_addresses](#output_bastion_public_ip_addresses) | List of public IP addresses for bastion instances. Use these IPs to SSH into the bastion. |
 | <a name="output_bastion_security_group_id"></a> [bastion_security_group_id](#output_bastion_security_group_id) | Bastion security group ID. |
+| <a name="output_ces_dns_name"></a> [ces_dns_name](#output_ces_dns_name) | Round-robin DNS name for all CES IPs. |
+| <a name="output_ces_ip_cidr"></a> [ces_ip_cidr](#output_ces_ip_cidr) | IPv4 range the CES IPs come from. |
+| <a name="output_ces_private_ips"></a> [ces_private_ips](#output_ces_private_ips) | CES IP addresses. |
+| <a name="output_ces_routes"></a> [ces_routes](#output_ces_routes) | VPC routes for the CES IPs, one per CES IP and zone. |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_dns_service_instance_crn"></a> [dns_service_instance_crn](#output_dns_service_instance_crn) | IBM Cloud DNS Service Instance CRN (only available if newly created). |

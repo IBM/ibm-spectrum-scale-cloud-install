@@ -131,7 +131,7 @@ module "protocol_cluster_security_rule" {
 # Allow NFS clients to reach the CES IPs
 module "protocol_nfs_ingress_security_rule" {
   source            = "../../../resources/ibmcloud/security/security_rule"
-  enable_rule       = local.storage_and_protocol && var.ces_network_mode == "same_account"
+  enable_rule       = local.ces_same_account
   security_group_id = module.protocol_security_group.sec_group_id
   sg_direction      = "inbound"
   remote_ip_addr    = var.ces_client_cidr_blocks
@@ -277,9 +277,7 @@ module "protocol_instances" {
   ces_security_groups               = [module.protocol_security_group.sec_group_id]
   subnet_id                         = each.value["base_subnet"]
   ces_subnet_id                     = each.value["ces_subnet"]
-  ces_ip_cidr                       = var.ces_ip_cidr
-  ces_network_mode                  = var.ces_network_mode
-  ces_vni_id                        = each.value["ces_vni_id"]
+  ces_ip_cidr                       = var.ces_network_mode == "same_account" ? var.ces_ip_cidr : null
   total_volume_bandwidth            = local.effective_protocol_vol_bandwidth
   tags                              = var.tags
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
