@@ -297,11 +297,11 @@ variable "ces_ips_per_node" {
 variable "ces_network_mode" {
   type        = string
   default     = "same_account"
-  description = "CES network deployment mode. 'same_account': CES NICs in the protocol subnets, with CES IPs routed to them in every zone."
+  description = "CES network deployment mode. 'same_account': CES NICs in the protocol subnets, with CES IPs routed to them in every zone. 'cross_account': protocol nodes with a single NIC and no CES network setup."
 
   validation {
-    condition     = contains(["same_account"], var.ces_network_mode)
-    error_message = "ces_network_mode must be 'same_account'."
+    condition     = contains(["same_account", "cross_account"], var.ces_network_mode)
+    error_message = "ces_network_mode must be either 'same_account' or 'cross_account'."
   }
 }
 

@@ -19,7 +19,7 @@ module "cluster_security_group" {
 # Create protocol/ces nodes specific security group
 module "protocol_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = var.total_protocol_instances > 0
+  turn_on           = local.ces_same_account
   sec_group_name    = "${var.resource_prefix}-protocol-sec-group"
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
@@ -117,7 +117,7 @@ module "scale_cluster_egress_security_rule" {
 
 module "protocol_cluster_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_sg"
-  enable_rule              = var.total_protocol_instances > 0
+  enable_rule              = local.ces_same_account
   security_group_id        = module.protocol_security_group.sec_group_id
   sg_direction             = "inbound"
   source_security_group_id = module.protocol_security_group.sec_group_id
@@ -149,7 +149,7 @@ module "protocol_nfs_ingress_security_rule" {
 
 module "protocol_cluster_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
-  enable_rule        = var.total_protocol_instances > 0
+  enable_rule        = local.ces_same_account
   security_group_ids = module.protocol_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = ["0.0.0.0/0"]
@@ -274,10 +274,11 @@ module "protocol_instances" {
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
   security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
-  ces_security_groups               = [module.protocol_security_group.sec_group_id]
+  ces_security_groups               = local.ces_same_account ? [module.protocol_security_group.sec_group_id] : []
   subnet_id                         = each.value["base_subnet"]
   ces_subnet_id                     = each.value["ces_subnet"]
-  ces_ip_cidr                       = var.ces_network_mode == "same_account" ? var.ces_ip_cidr : null
+  ces_ip_cidr                       = local.ces_same_account ? var.ces_ip_cidr : null
+  ces_network_mode                  = var.ces_network_mode
   total_volume_bandwidth            = local.effective_protocol_vol_bandwidth
   tags                              = var.tags
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)

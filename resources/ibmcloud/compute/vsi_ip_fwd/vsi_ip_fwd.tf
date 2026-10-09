@@ -11,7 +11,12 @@ terraform {
 
 variable "ami_id" {}
 variable "subnet_id" {}
-variable "ces_subnet_id" {}
+variable "ces_subnet_id" {
+  default = null
+}
+variable "ces_network_mode" {
+  default = "same_account"
+}
 variable "dns_zone_id" {}
 variable "ces_ip_cidr" {
   default = null
@@ -36,22 +41,31 @@ variable "orchestrator_server" {}
 variable "orchestrator_port" {}
 variable "orchestrator_workload_secret" {}
 variable "total_volume_bandwidth" {}
+
+locals {
+  # CES NIC and CES automation only in same_account mode
+  ces_nic = var.ces_network_mode == "same_account"
+}
+
 # Create a Service ID for CES automation (equivalent to AWS IAM Role)
 resource "ibm_iam_service_id" "ces_automation" {
+  count       = local.ces_nic ? 1 : 0
   name        = "${var.name_prefix}-ces-automation"
   description = "Service ID for IBM Storage Scale CES IP management - AWS IAM role equivalent"
 }
 
 # Create an API key for the Service ID
 resource "ibm_iam_service_api_key" "ces_api_key" {
+  count          = local.ces_nic ? 1 : 0
   name           = "${var.name_prefix}-ces-api-key"
-  iam_service_id = ibm_iam_service_id.ces_automation.iam_id
+  iam_service_id = ibm_iam_service_id.ces_automation[0].iam_id
   description    = "API key for automatic IBM Cloud CLI authentication"
 }
 
 # Grant VPC Editor permissions to the Service ID
 resource "ibm_iam_service_policy" "ces_vpc_editor" {
-  iam_service_id = ibm_iam_service_id.ces_automation.id
+  count          = local.ces_nic ? 1 : 0
+  iam_service_id = ibm_iam_service_id.ces_automation[0].id
   roles          = ["Editor"]
 
   resources {
@@ -91,12 +105,15 @@ resource "ibm_is_instance" "itself" {
   }
 
   # Secondary NIC: CES traffic. IP spoofing is needed for the routed CES IPs.
-  network_attachments {
-    name = format("%s-ces-sna", var.name_prefix)
-    virtual_network_interface {
-      subnet            = var.ces_subnet_id
-      security_groups   = var.ces_security_groups
-      allow_ip_spoofing = true
+  dynamic "network_attachments" {
+    for_each = local.ces_nic ? [1] : []
+    content {
+      name = format("%s-ces-sna", var.name_prefix)
+      virtual_network_interface {
+        subnet            = var.ces_subnet_id
+        security_groups   = var.ces_security_groups
+        allow_ip_spoofing = true
+      }
     }
   }
 
@@ -154,10 +171,10 @@ output "instance_details" {
     id         = ibm_is_instance.itself.id
     dns        = format("%s.%s", var.name_prefix, var.dns_domain)
     zone       = ibm_is_instance.itself.zone
-    ces_nic_ip = ibm_is_instance.itself.network_attachments[0].primary_ip[0].address
+    ces_nic_ip = try(ibm_is_instance.itself.network_attachments[0].primary_ip[0].address, null)
   }
 }
 
 output "ces_nic_ip" {
-  value = ibm_is_instance.itself.network_attachments[0].primary_ip[0].address
+  value = try(ibm_is_instance.itself.network_attachments[0].primary_ip[0].address, null)
 }

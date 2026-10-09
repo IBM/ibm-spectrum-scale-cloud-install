@@ -123,7 +123,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="input_ces_client_cidr_blocks"></a> [ces_client_cidr_blocks](#input_ces_client_cidr_blocks) | CIDR blocks of NFS clients allowed to reach the CES IPs. | `list(string)` |
 | <a name="input_ces_ip_cidr"></a> [ces_ip_cidr](#input_ces_ip_cidr) | IPv4 range for CES IPs. Must not overlap the VPC address prefixes. | `string` |
 | <a name="input_ces_ips_per_node"></a> [ces_ips_per_node](#input_ces_ips_per_node) | Number of CES IPs per protocol node, taken from ces_ip_cidr. | `number` |
-| <a name="input_ces_network_mode"></a> [ces_network_mode](#input_ces_network_mode) | CES network deployment mode. 'same_account': CES NICs in the protocol subnets, with CES IPs routed to them in every zone. | `string` |
+| <a name="input_ces_network_mode"></a> [ces_network_mode](#input_ces_network_mode) | CES network deployment mode. 'same_account': CES NICs in the protocol subnets, with CES IPs routed to them in every zone. 'cross_account': protocol nodes with a single NIC and no CES network setup. | `string` |
 | <a name="input_client_ip_ranges"></a> [client_ip_ranges](#input_client_ip_ranges) | List of client IP/CIDR ranges for direct connection access. | `list(string)` |
 | <a name="input_client_security_group_id"></a> [client_security_group_id](#input_client_security_group_id) | Client security group ID for cloud connection access (same VPC or peered VPC). | `string` |
 | <a name="input_compute_cluster_image_id"></a> [compute_cluster_image_id](#input_compute_cluster_image_id) | Image ID to use for provisioning the compute cluster instances. | `string` |

@@ -69,7 +69,7 @@ locals {
     for idx, vm_name in local.protocol_vm_names :
     vm_name => {
       base_subnet = element(local.first_two_storage_subnets, idx)
-      ces_subnet  = element(local.protocol_subnets_to_use, idx)
+      ces_subnet  = local.ces_same_account ? element(local.protocol_subnets_to_use, idx) : null
       zone        = element(local.first_two_zones, idx)
     }
   }
