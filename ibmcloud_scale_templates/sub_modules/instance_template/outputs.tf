@@ -24,8 +24,8 @@ output "ces_private_ips" {
 }
 
 output "protocol_reserved_ips" {
-  value       = local.storage_and_protocol ? module.reserved_ip[0].ces_ip_list : []
-  description = "Reserved CES IP addresses, one per protocol node. Auto-assigned when ces_ip_addresses input is empty."
+  value       = local.storage_and_protocol && var.ces_network_mode == "same_account" ? module.reserved_ip[0].ces_ip_list : var.ces_ip_addresses
+  description = "Reserved CES IP addresses, one per protocol node. Auto-assigned when ces_ip_addresses input is empty in same_account mode."
 }
 
 output "compute_cluster_instance_details" {

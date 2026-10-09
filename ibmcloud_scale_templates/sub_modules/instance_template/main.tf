@@ -161,12 +161,12 @@ resource "ibm_is_placement_group" "storage_cluster" {
 
 # Reserve CES IPs in protocol subnets (static or auto-assigned).
 module "reserved_ip" {
-  count             = local.storage_and_protocol ? 1 : 0
-  source            = "../../../resources/ibmcloud/network/reserved_ip"
+  count              = local.storage_and_protocol && var.ces_network_mode == "same_account" ? 1 : 0
+  source             = "../../../resources/ibmcloud/network/reserved_ip"
   total_reserved_ips = var.total_protocol_instances
-  subnet_ids        = local.protocol_subnets_to_use
-  name_prefix       = "${var.resource_prefix}-protocol"
-  ces_ip_addresses  = var.ces_ip_addresses
+  subnet_ids         = local.protocol_subnets_to_use
+  name_prefix        = "${var.resource_prefix}-protocol"
+  ces_ip_addresses   = var.ces_ip_addresses
 }
 
 module "compute_cluster_instances" {
@@ -264,9 +264,13 @@ module "protocol_instances" {
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
-  security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
-  subnet_id                         = each.value["subnet"]
+  security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
+  ces_security_groups               = [module.protocol_security_group.sec_group_id]
+  subnet_id                         = each.value["base_subnet"]
+  ces_subnet_id                     = each.value["ces_subnet"]
   ces_ipaddress                     = each.value["ces_ip"]
+  ces_network_mode                  = var.ces_network_mode
+  ces_vni_id                        = each.value["ces_vni_id"]
   total_volume_bandwidth            = local.effective_protocol_vol_bandwidth
   tags                              = var.tags
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)

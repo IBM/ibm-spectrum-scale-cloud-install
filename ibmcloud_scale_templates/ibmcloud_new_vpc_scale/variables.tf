@@ -271,6 +271,28 @@ variable "ces_ip_addresses" {
   description = "List of CES (Cluster Export Services) IP addresses for protocol nodes. Length must equal total_protocol_instances."
 }
 
+variable "ces_network_mode" {
+  type        = string
+  default     = "same_account"
+  description = "CES network deployment mode: 'same_account' provisions secondary NICs, reserved IPs and VPC routes within the same account; 'cross_account' attaches cross-account VNIs."
+
+  validation {
+    condition     = contains(["same_account", "cross_account"], var.ces_network_mode)
+    error_message = "ces_network_mode must be either 'same_account' or 'cross_account'."
+  }
+}
+
+variable "ces_vni_ids" {
+  type        = list(string)
+  default     = []
+  description = "List of cross-account Virtual Network Interface (VNI) IDs (one per protocol node). Required when ces_network_mode is 'cross_account'."
+
+  validation {
+    condition     = var.ces_network_mode != "cross_account" || length(var.ces_vni_ids) == var.total_protocol_instances
+    error_message = "ces_vni_ids must contain exactly total_protocol_instances elements when ces_network_mode is 'cross_account'."
+  }
+}
+
 variable "total_gateway_instances" {
   type        = number
   default     = 0

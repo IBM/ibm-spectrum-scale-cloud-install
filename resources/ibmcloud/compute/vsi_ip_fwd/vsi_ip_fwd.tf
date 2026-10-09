@@ -11,14 +11,28 @@ terraform {
 
 variable "ami_id" {}
 variable "subnet_id" {}
+variable "ces_subnet_id" {
+  default = null
+}
+variable "ces_network_mode" {
+  default = "same_account"
+}
+variable "ces_vni_id" {
+  default = null
+}
 variable "dns_zone_id" {}
-variable "ces_ipaddress" {}
+variable "ces_ipaddress" {
+  default = null
+}
 variable "instance_type" {}
 variable "name_prefix" {}
 variable "root_device_kms_key_instance_id" {}
 variable "root_device_kms_key_instance_name" {}
 variable "root_volume_type" {}
 variable "security_groups" {}
+variable "ces_security_groups" {
+  default = []
+}
 variable "tags" {}
 variable "ssh_key_id" {}
 variable "zone" {}
@@ -75,11 +89,22 @@ resource "ibm_is_instance" "itself" {
   # IBM Cloud automatically assigns the remainder to the NIC.
   total_volume_bandwidth = var.total_volume_bandwidth
 
+  # Primary NIC: Cluster & Management Traffic
   primary_network_attachment {
     name = format("%s-pna", var.name_prefix)
     virtual_network_interface {
       subnet          = var.subnet_id
       security_groups = var.security_groups
+    }
+  }
+
+  # Secondary NIC: Protocol & CES Traffic (inline subnet for same-account or VNI ID for cross-account)
+  network_attachments {
+    name = format("%s-ces-sna", var.name_prefix)
+    virtual_network_interface {
+      id              = var.ces_network_mode == "cross_account" ? var.ces_vni_id : null
+      subnet          = var.ces_network_mode == "same_account" ? var.ces_subnet_id : null
+      security_groups = var.ces_network_mode == "same_account" ? var.ces_security_groups : null
     }
   }
 
@@ -94,6 +119,10 @@ resource "ibm_is_instance" "itself" {
 #!/usr/bin/env bash
 hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
 echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
+echo "net.ipv4.conf.all.rp_filter = 2" >> /etc/sysctl.conf
+echo "net.ipv4.conf.default.rp_filter = 2" >> /etc/sysctl.conf
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+sysctl -p
 sed -i "s|^server_url:.*|server_url: https://${var.orchestrator_server}:${var.orchestrator_port}|" /etc/scale-agent/config.yaml
 if grep -q "^workload_secret:" /etc/scale-agent/config.yaml; then sed -i "s|^workload_secret:.*|workload_secret: \"${var.orchestrator_workload_secret}\"|" /etc/scale-agent/config.yaml; else echo "workload_secret: \"${var.orchestrator_workload_secret}\"" >> /etc/scale-agent/config.yaml; fi
 systemctl restart scale-agent
@@ -132,21 +161,24 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
-data "ibm_is_subnet" "itself" {
-  identifier = var.subnet_id
+data "ibm_is_subnet" "ces_subnet" {
+  count      = var.ces_network_mode == "same_account" && var.ces_subnet_id != null ? 1 : 0
+  identifier = var.ces_subnet_id
 }
 
 resource "ibm_is_vpc_routing_table_route" "itself" {
+  count         = var.ces_network_mode == "same_account" && var.ces_subnet_id != null && var.ces_ipaddress != null ? 1 : 0
   vpc           = var.vpc_id
-  routing_table = data.ibm_is_subnet.itself.routing_table[0].id
+  routing_table = data.ibm_is_subnet.ces_subnet[0].routing_table[0].id
   destination   = format("%s/32", var.ces_ipaddress)
   action        = "deliver"
-  next_hop      = ibm_is_instance.itself.primary_network_attachment[0].primary_ip[0].address
+  next_hop      = ibm_is_instance.itself.network_attachments[0].primary_ip[0].address
   zone          = var.zone
 }
 
 # Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
 resource "ibm_dns_resource_record" "ces_a_itself" {
+  count       = var.ces_ipaddress != null ? 1 : 0
   instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "A"
@@ -157,6 +189,7 @@ resource "ibm_dns_resource_record" "ces_a_itself" {
 
 # Create "PTR" records in the same DNS zone (IBM Cloud DNS supports this)
 resource "ibm_dns_resource_record" "ces_ptr_itself" {
+  count       = var.ces_ipaddress != null ? 1 : 0
   instance_id = var.dns_service_instance_id
   zone_id     = var.dns_zone_id
   type        = "PTR"
@@ -174,9 +207,14 @@ output "instance_details" {
     dns            = format("%s.%s", var.name_prefix, var.dns_domain)
     zone           = ibm_is_instance.itself.zone
     ces_private_ip = var.ces_ipaddress
+    ces_nic_ip     = ibm_is_instance.itself.network_attachments[0].primary_ip[0].address
   }
 }
 
 output "ces_private_ip" {
   value = var.ces_ipaddress
+}
+
+output "ces_nic_ip" {
+  value = ibm_is_instance.itself.network_attachments[0].primary_ip[0].address
 }

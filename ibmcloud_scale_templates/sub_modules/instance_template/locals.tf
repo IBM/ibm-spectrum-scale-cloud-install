@@ -66,8 +66,10 @@ locals {
   protocol_vm_subnet_map = {
     for idx, vm_name in local.protocol_vm_names :
     vm_name => {
-      subnet       = element(local.protocol_subnets_to_use, idx)
-      ces_ip       = module.reserved_ip[0].ces_ip_list[idx]
+      base_subnet  = element(local.first_two_storage_subnets, idx)
+      ces_subnet   = length(local.protocol_subnets_to_use) > 0 ? element(local.protocol_subnets_to_use, idx) : null
+      ces_ip       = var.ces_network_mode == "same_account" ? module.reserved_ip[0].ces_ip_list[idx] : (length(var.ces_ip_addresses) > idx ? var.ces_ip_addresses[idx] : null)
+      ces_vni_id   = length(var.ces_vni_ids) > idx ? var.ces_vni_ids[idx] : null
       zone         = element(local.first_two_zones, idx)
     }
   }
