@@ -3,6 +3,7 @@ locals {
   compute_or_combined    = contains(["Compute-only", "Combined-compute-storage"], var.cluster_type) && var.total_compute_cluster_instances > 0
   storage_or_combined    = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_storage_cluster_instances > 0
   storage_and_protocol   = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_protocol_instances > 0
+  ces_same_account       = local.storage_and_protocol && var.ces_network_mode == "same_account"
   storage_and_gateway    = contains(["Storage-only", "Combined-compute-storage"], var.cluster_type) && var.total_gateway_instances > 0
   create_placement_group = length(var.vpc_availability_zones) == 1 && var.enable_placement_group
 
@@ -19,14 +20,15 @@ locals {
   # Internode protocol ports (CTDB traffic)
   protocol_traffic_ports = [4379]
 
+  # NFS ports (TCP/UDP): nfsd, rpcbind, statd/mountd/rquotad/nlm
+  nfs_port_ranges = [[2049, 2049], [111, 111], [32765, 32769]]
+
   # Subnet/zone selection helpers - get first two or all if less than two
   first_two_zones           = length(var.vpc_availability_zones) > 1 ? slice(var.vpc_availability_zones, 0, 2) : var.vpc_availability_zones
   first_two_storage_subnets = length(var.vpc_storage_cluster_private_subnets) > 1 ? slice(var.vpc_storage_cluster_private_subnets, 0, 2) : var.vpc_storage_cluster_private_subnets
 
-  # Protocol subnets: dedicated when provided, fallback to storage subnets
-  protocol_subnets_to_use = length(var.vpc_protocol_cluster_private_subnets) > 0 ? (
-    length(var.vpc_protocol_cluster_private_subnets) > 1 ? slice(var.vpc_protocol_cluster_private_subnets, 0, 2) : var.vpc_protocol_cluster_private_subnets
-  ) : local.first_two_storage_subnets
+  # Protocol subnets for the CES NICs
+  protocol_subnets_to_use = length(var.vpc_protocol_cluster_private_subnets) > 1 ? slice(var.vpc_protocol_cluster_private_subnets, 0, 2) : var.vpc_protocol_cluster_private_subnets
 
   # Compute vm name list
   compute_vm_names = local.compute_or_combined ? [
@@ -66,11 +68,30 @@ locals {
   protocol_vm_subnet_map = {
     for idx, vm_name in local.protocol_vm_names :
     vm_name => {
-      subnet       = element(local.protocol_subnets_to_use, idx)
-      ces_ip       = module.reserved_ip[0].ces_ip_list[idx]
-      zone         = element(local.first_two_zones, idx)
+      base_subnet = element(local.first_two_storage_subnets, idx)
+      ces_subnet  = local.ces_same_account ? element(local.protocol_subnets_to_use, idx) : null
+      zone        = element(local.first_two_zones, idx)
     }
   }
+
+  ces_dns_name = local.storage_and_protocol ? format("%s-ces.%s", var.resource_prefix, coalesce(var.vpc_protocol_cluster_dns_domain, var.vpc_storage_cluster_dns_domain)) : null
+
+  # CES IPs: the first hosts of ces_ip_cidr
+  ces_ips = local.ces_same_account ? [
+    for idx in range(var.total_protocol_instances * var.ces_ips_per_node) : cidrhost(var.ces_ip_cidr, idx + 1)
+  ] : []
+
+  # One route per CES IP per zone; CES IPs are spread round-robin over protocol nodes
+  ces_routes = merge([
+    for idx, ip in local.ces_ips : {
+      for zone in var.vpc_availability_zones :
+      format("%s-ces-%d-%s", var.resource_prefix, idx + 1, zone) => {
+        ip      = ip
+        zone    = zone
+        vm_name = local.protocol_vm_names[idx % var.total_protocol_instances]
+      }
+    }
+  ]...)
 
   # Storage volume distribution calculation
   has_storage_volumes = var.total_storage_volumes != null && var.total_storage_volumes > 0 && var.total_storage_cluster_instances > 0

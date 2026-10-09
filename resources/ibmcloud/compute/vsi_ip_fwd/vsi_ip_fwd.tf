@@ -1,4 +1,4 @@
-# Creates IBMCloud Virtual Server instance(s) with a static route
+# Creates an IBMCloud protocol (CES) Virtual Server instance with a CES NIC
 
 terraform {
   required_providers {
@@ -11,14 +11,25 @@ terraform {
 
 variable "ami_id" {}
 variable "subnet_id" {}
+variable "ces_subnet_id" {
+  default = null
+}
+variable "ces_network_mode" {
+  default = "same_account"
+}
 variable "dns_zone_id" {}
-variable "ces_ipaddress" {}
+variable "ces_ip_cidr" {
+  default = null
+}
 variable "instance_type" {}
 variable "name_prefix" {}
 variable "root_device_kms_key_instance_id" {}
 variable "root_device_kms_key_instance_name" {}
 variable "root_volume_type" {}
 variable "security_groups" {}
+variable "ces_security_groups" {
+  default = []
+}
 variable "tags" {}
 variable "ssh_key_id" {}
 variable "zone" {}
@@ -30,22 +41,31 @@ variable "orchestrator_server" {}
 variable "orchestrator_port" {}
 variable "orchestrator_workload_secret" {}
 variable "total_volume_bandwidth" {}
+
+locals {
+  # CES NIC and CES automation only in same_account mode
+  ces_nic = var.ces_network_mode == "same_account"
+}
+
 # Create a Service ID for CES automation (equivalent to AWS IAM Role)
 resource "ibm_iam_service_id" "ces_automation" {
+  count       = local.ces_nic ? 1 : 0
   name        = "${var.name_prefix}-ces-automation"
   description = "Service ID for IBM Storage Scale CES IP management - AWS IAM role equivalent"
 }
 
 # Create an API key for the Service ID
 resource "ibm_iam_service_api_key" "ces_api_key" {
+  count          = local.ces_nic ? 1 : 0
   name           = "${var.name_prefix}-ces-api-key"
-  iam_service_id = ibm_iam_service_id.ces_automation.iam_id
+  iam_service_id = ibm_iam_service_id.ces_automation[0].iam_id
   description    = "API key for automatic IBM Cloud CLI authentication"
 }
 
 # Grant VPC Editor permissions to the Service ID
 resource "ibm_iam_service_policy" "ces_vpc_editor" {
-  iam_service_id = ibm_iam_service_id.ces_automation.id
+  count          = local.ces_nic ? 1 : 0
+  iam_service_id = ibm_iam_service_id.ces_automation[0].id
   roles          = ["Editor"]
 
   resources {
@@ -75,11 +95,25 @@ resource "ibm_is_instance" "itself" {
   # IBM Cloud automatically assigns the remainder to the NIC.
   total_volume_bandwidth = var.total_volume_bandwidth
 
+  # Primary NIC: Cluster & Management Traffic
   primary_network_attachment {
     name = format("%s-pna", var.name_prefix)
     virtual_network_interface {
       subnet          = var.subnet_id
       security_groups = var.security_groups
+    }
+  }
+
+  # Secondary NIC: CES traffic. IP spoofing is needed for the routed CES IPs.
+  dynamic "network_attachments" {
+    for_each = local.ces_nic ? [1] : []
+    content {
+      name = format("%s-ces-sna", var.name_prefix)
+      virtual_network_interface {
+        subnet            = var.ces_subnet_id
+        security_groups   = var.ces_security_groups
+        allow_ip_spoofing = true
+      }
     }
   }
 
@@ -90,14 +124,13 @@ resource "ibm_is_instance" "itself" {
     tags       = var.tags
   }
 
-  user_data = <<EOF
-#!/usr/bin/env bash
-hostnamectl set-hostname --static "${var.name_prefix}.${var.dns_domain}"
-echo "${var.name_prefix}.${var.dns_domain}" > /etc/hostname
-sed -i "s|^server_url:.*|server_url: https://${var.orchestrator_server}:${var.orchestrator_port}|" /etc/scale-agent/config.yaml
-if grep -q "^workload_secret:" /etc/scale-agent/config.yaml; then sed -i "s|^workload_secret:.*|workload_secret: \"${var.orchestrator_workload_secret}\"|" /etc/scale-agent/config.yaml; else echo "workload_secret: \"${var.orchestrator_workload_secret}\"" >> /etc/scale-agent/config.yaml; fi
-systemctl restart scale-agent
-EOF
+  user_data = templatefile("${path.module}/user_data.sh.tftpl", {
+    hostname                     = format("%s.%s", var.name_prefix, var.dns_domain)
+    ces_ip_cidr                  = var.ces_ip_cidr == null ? "" : var.ces_ip_cidr
+    orchestrator_server          = var.orchestrator_server
+    orchestrator_port            = var.orchestrator_port
+    orchestrator_workload_secret = var.orchestrator_workload_secret
+  })
 
   metadata_service {
     enabled  = true
@@ -132,51 +165,16 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on  = [ibm_dns_resource_record.a_itself]
 }
 
-data "ibm_is_subnet" "itself" {
-  identifier = var.subnet_id
-}
-
-resource "ibm_is_vpc_routing_table_route" "itself" {
-  vpc           = var.vpc_id
-  routing_table = data.ibm_is_subnet.itself.routing_table[0].id
-  destination   = format("%s/32", var.ces_ipaddress)
-  action        = "deliver"
-  next_hop      = ibm_is_instance.itself.primary_network_attachment[0].primary_ip[0].address
-  zone          = var.zone
-}
-
-# Create "A" (IPv4 Address) record to map CES IPv4 address as hostname along with domain
-resource "ibm_dns_resource_record" "ces_a_itself" {
-  instance_id = var.dns_service_instance_id
-  zone_id     = var.dns_zone_id
-  type        = "A"
-  name        = format("%s-ces.%s", var.name_prefix, var.dns_domain)
-  rdata       = var.ces_ipaddress
-  ttl         = 3600
-}
-
-# Create "PTR" records in the same DNS zone (IBM Cloud DNS supports this)
-resource "ibm_dns_resource_record" "ces_ptr_itself" {
-  instance_id = var.dns_service_instance_id
-  zone_id     = var.dns_zone_id
-  type        = "PTR"
-  name        = var.ces_ipaddress
-  rdata       = format("%s-ces.%s", var.name_prefix, var.dns_domain)
-  ttl         = 3600
-  depends_on  = [ibm_dns_resource_record.ces_a_itself]
-}
-
-
 output "instance_details" {
   value = {
-    private_ip     = ibm_is_instance.itself.primary_network_attachment[0].primary_ip[0].address
-    id             = ibm_is_instance.itself.id
-    dns            = format("%s.%s", var.name_prefix, var.dns_domain)
-    zone           = ibm_is_instance.itself.zone
-    ces_private_ip = var.ces_ipaddress
+    private_ip = ibm_is_instance.itself.primary_network_attachment[0].primary_ip[0].address
+    id         = ibm_is_instance.itself.id
+    dns        = format("%s.%s", var.name_prefix, var.dns_domain)
+    zone       = ibm_is_instance.itself.zone
+    ces_nic_ip = try(ibm_is_instance.itself.network_attachments[0].primary_ip[0].address, null)
   }
 }
 
-output "ces_private_ip" {
-  value = var.ces_ipaddress
+output "ces_nic_ip" {
+  value = try(ibm_is_instance.itself.network_attachments[0].primary_ip[0].address, null)
 }

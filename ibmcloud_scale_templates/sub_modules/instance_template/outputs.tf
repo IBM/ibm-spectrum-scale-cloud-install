@@ -19,13 +19,32 @@ output "protocol_cluster_security_group_id" {
 }
 
 output "ces_private_ips" {
-  value       = [for ip in module.protocol_instances : ip.ces_private_ip]
-  description = "CES/Protocol ENI (secondary private) ips."
+  value       = local.ces_ips
+  description = "CES IP addresses."
 }
 
-output "protocol_reserved_ips" {
-  value       = local.storage_and_protocol ? module.reserved_ip[0].ces_ip_list : []
-  description = "Reserved CES IP addresses, one per protocol node. Auto-assigned when ces_ip_addresses input is empty."
+output "ces_ip_cidr" {
+  value       = var.ces_ip_cidr
+  description = "IPv4 range the CES IPs come from."
+}
+
+output "ces_dns_name" {
+  value       = length(local.ces_ips) > 0 ? local.ces_dns_name : null
+  description = "Round-robin DNS name for all CES IPs."
+}
+
+output "ces_routes" {
+  value = {
+    routing_table = try(data.ibm_is_vpc.itself[0].default_routing_table, null)
+    routes = {
+      for name, route in ibm_is_vpc_routing_table_route.ces : name => {
+        route_id    = route.route_id
+        destination = route.destination
+        zone        = route.zone
+      }
+    }
+  }
+  description = "VPC routes for the CES IPs, one per CES IP and zone."
 }
 
 output "compute_cluster_instance_details" {

@@ -3,6 +3,17 @@
 #    2. Bastion Instance
 #    3. (Compute, Storage) Instances along with Instance store attachments to storage instances
 
+locals {
+  # NFS clients: storage and protocol subnets plus extra ranges
+  ces_client_cidr_blocks = distinct([
+    for cidr in concat(
+      [for idx in range(length(var.vpc_availability_zones)) : element(var.vpc_storage_cluster_private_subnets_cidr_blocks, idx)],
+      length(var.vpc_protocol_private_subnets_cidr_blocks) > 0 ? [for idx in range(length(var.vpc_availability_zones)) : element(var.vpc_protocol_private_subnets_cidr_blocks, idx)] : [],
+      var.ces_client_cidr_blocks
+    ) : cidrsubnet(cidr, 0, 0)
+  ])
+}
+
 module "vpc" {
   source                                          = "../sub_modules/vpc_template"
   vpc_region                                      = var.vpc_region
@@ -112,7 +123,10 @@ module "scale_instances" {
   vpc_protocol_cluster_private_subnets     = module.vpc.vpc_protocol_private_subnets
   vpc_protocol_cluster_dns_zone_id         = module.dns.vpc_protocol_dns_zone_id
   vpc_protocol_cluster_dns_domain          = var.vpc_protocol_cluster_dns_domain
-  ces_ip_addresses                         = var.ces_ip_addresses
+  ces_ip_cidr                              = var.ces_ip_cidr
+  ces_ips_per_node                         = var.ces_ips_per_node
+  ces_client_cidr_blocks                   = local.ces_client_cidr_blocks
+  ces_network_mode                         = var.ces_network_mode
   client_ip_ranges                         = var.client_ip_ranges
   client_security_group_id                 = var.client_security_group_id
   using_cloud_connection                   = var.using_cloud_connection

@@ -19,7 +19,7 @@ module "cluster_security_group" {
 # Create protocol/ces nodes specific security group
 module "protocol_security_group" {
   source            = "../../../resources/ibmcloud/security/security_group"
-  turn_on           = var.total_protocol_instances > 0
+  turn_on           = local.ces_same_account
   sec_group_name    = "${var.resource_prefix}-protocol-sec-group"
   vpc_id            = var.vpc_id
   resource_group_id = var.resource_group_id
@@ -117,7 +117,7 @@ module "scale_cluster_egress_security_rule" {
 
 module "protocol_cluster_security_rule" {
   source                   = "../../../resources/ibmcloud/security/security_rule_sg"
-  enable_rule              = var.total_protocol_instances > 0
+  enable_rule              = local.ces_same_account
   security_group_id        = module.protocol_security_group.sec_group_id
   sg_direction             = "inbound"
   source_security_group_id = module.protocol_security_group.sec_group_id
@@ -128,9 +128,28 @@ module "protocol_cluster_security_rule" {
   }]
 }
 
+# Allow NFS clients to reach the CES IPs
+module "protocol_nfs_ingress_security_rule" {
+  source            = "../../../resources/ibmcloud/security/security_rule"
+  enable_rule       = local.ces_same_account
+  security_group_id = module.protocol_security_group.sec_group_id
+  sg_direction      = "inbound"
+  remote_ip_addr    = var.ces_client_cidr_blocks
+  rules = concat(
+    flatten([for protocol in ["tcp", "udp"] : [for ports in local.nfs_port_ranges : {
+      protocol = protocol
+      port_min = ports[0]
+      port_max = ports[1]
+    }]]),
+    [{
+      protocol = "icmp"
+    }]
+  )
+}
+
 module "protocol_cluster_egress_security_rule" {
   source             = "../../../resources/ibmcloud/security/security_allow_all"
-  enable_rule        = var.total_protocol_instances > 0
+  enable_rule        = local.ces_same_account
   security_group_ids = module.protocol_security_group.sec_group_id
   sg_direction       = "outbound"
   remote_ip_addr     = ["0.0.0.0/0"]
@@ -157,16 +176,6 @@ resource "ibm_is_placement_group" "storage_cluster" {
   name           = "${var.resource_prefix}-storage-placement-group"
   strategy       = var.placement_group_strategy
   resource_group = var.resource_group_id
-}
-
-# Reserve CES IPs in protocol subnets (static or auto-assigned).
-module "reserved_ip" {
-  count             = local.storage_and_protocol ? 1 : 0
-  source            = "../../../resources/ibmcloud/network/reserved_ip"
-  total_reserved_ips = var.total_protocol_instances
-  subnet_ids        = local.protocol_subnets_to_use
-  name_prefix       = "${var.resource_prefix}-protocol"
-  ces_ip_addresses  = var.ces_ip_addresses
 }
 
 module "compute_cluster_instances" {
@@ -264,9 +273,12 @@ module "protocol_instances" {
   root_device_kms_key_instance_id   = var.root_device_kms_key_id
   root_device_kms_key_instance_name = var.root_device_kms_key_name
   root_volume_type                  = var.boot_disk_type
-  security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id, module.protocol_security_group.sec_group_id]
-  subnet_id                         = each.value["subnet"]
-  ces_ipaddress                     = each.value["ces_ip"]
+  security_groups                   = var.using_jumphost_connection && var.bastion_security_group_id != null ? [module.cluster_security_group.sec_group_id, var.bastion_security_group_id] : [module.cluster_security_group.sec_group_id]
+  ces_security_groups               = local.ces_same_account ? [module.protocol_security_group.sec_group_id] : []
+  subnet_id                         = each.value["base_subnet"]
+  ces_subnet_id                     = each.value["ces_subnet"]
+  ces_ip_cidr                       = local.ces_same_account ? var.ces_ip_cidr : null
+  ces_network_mode                  = var.ces_network_mode
   total_volume_bandwidth            = local.effective_protocol_vol_bandwidth
   tags                              = var.tags
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
@@ -275,6 +287,55 @@ module "protocol_instances" {
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
   orchestrator_workload_secret      = var.orchestrator_workload_secret
+}
+
+data "ibm_is_vpc" "itself" {
+  count      = length(local.ces_routes) > 0 ? 1 : 0
+  identifier = var.vpc_id
+}
+
+# Route each CES IP to its protocol node's CES NIC
+resource "ibm_is_vpc_routing_table_route" "ces" {
+  for_each      = local.ces_routes
+  vpc           = var.vpc_id
+  routing_table = data.ibm_is_vpc.itself[0].default_routing_table
+  name          = each.key
+  zone          = each.value["zone"]
+  destination   = format("%s/32", each.value["ip"])
+  action        = "deliver"
+  next_hop      = module.protocol_instances[each.value["vm_name"]].ces_nic_ip
+
+  lifecycle {
+    # CES failover updates next_hop
+    ignore_changes = [next_hop]
+
+    precondition {
+      condition     = length(local.ces_routes) <= 200
+      error_message = "CES IPs x zones exceeds 200, the routes-per-routing-table quota. Use fewer CES IPs."
+    }
+  }
+}
+
+# Round-robin DNS name for the CES IPs
+resource "ibm_dns_resource_record" "ces_a" {
+  for_each    = toset(local.ces_ips)
+  instance_id = var.dns_service_instance_id
+  zone_id     = coalesce(var.vpc_protocol_cluster_dns_zone_id, var.vpc_storage_cluster_dns_zone_id)
+  type        = "A"
+  name        = local.ces_dns_name
+  rdata       = each.value
+  ttl         = 300
+}
+
+resource "ibm_dns_resource_record" "ces_ptr" {
+  for_each    = toset(local.ces_ips)
+  instance_id = var.dns_service_instance_id
+  zone_id     = coalesce(var.vpc_protocol_cluster_dns_zone_id, var.vpc_storage_cluster_dns_zone_id)
+  type        = "PTR"
+  name        = each.value
+  rdata       = local.ces_dns_name
+  ttl         = 300
+  depends_on  = [ibm_dns_resource_record.ces_a]
 }
 
 module "gateway_instances" {
