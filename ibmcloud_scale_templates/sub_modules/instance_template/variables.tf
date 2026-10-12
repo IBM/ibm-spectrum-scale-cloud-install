@@ -67,6 +67,20 @@ variable "vpc_storage_cluster_dns_domain" {
   description = "DNS domain name for storage cluster."
 }
 
+variable "vpc_protocol_cluster_dns_zone_id" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "DNS zone ID for protocol/CES nodes. Falls back to storage DNS zone when null."
+}
+
+variable "vpc_protocol_cluster_dns_domain" {
+  type        = string
+  nullable    = true
+  default     = null
+  description = "DNS domain for protocol/CES nodes. Falls back to storage DNS domain when null."
+}
+
 variable "vpc_compute_cluster_dns_zone_id" {
   type        = string
   nullable    = true
@@ -250,6 +264,12 @@ variable "total_compute_cluster_instances" {
   type        = number
   default     = 0
   description = "Number of virtual server instances to be launched for compute cluster."
+}
+
+variable "vpc_protocol_cluster_private_subnets" {
+  type        = list(string)
+  default     = []
+  description = "Protocol subnet IDs (one per AZ) for CES nodes. Falls back to storage subnets when empty."
 }
 
 variable "ces_ip_addresses" {

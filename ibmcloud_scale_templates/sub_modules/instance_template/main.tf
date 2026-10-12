@@ -246,8 +246,8 @@ module "protocol_instances" {
   source                            = "../../../resources/ibmcloud/compute/vsi_ip_fwd"
   ami_id                            = var.storage_cluster_image_id
   dns_service_instance_id           = var.dns_service_instance_id
-  dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
-  dns_domain                        = var.vpc_storage_cluster_dns_domain
+  dns_zone_id                       = coalesce(var.vpc_protocol_cluster_dns_zone_id, var.vpc_storage_cluster_dns_zone_id)
+  dns_domain                        = coalesce(var.vpc_protocol_cluster_dns_domain, var.vpc_storage_cluster_dns_domain)
   instance_type                     = var.protocol_instance_type
   name_prefix                       = each.key
   resource_group_id                 = var.resource_group_id

@@ -109,6 +109,9 @@ module "scale_instances" {
   gateway_instance_type                    = var.gateway_vsi_profile
   total_protocol_instances                 = var.total_protocol_instances
   protocol_instance_type                   = var.protocol_vsi_profile
+  vpc_protocol_cluster_private_subnets     = module.vpc.vpc_protocol_private_subnets
+  vpc_protocol_cluster_dns_zone_id         = module.dns.vpc_protocol_dns_zone_id
+  vpc_protocol_cluster_dns_domain          = var.vpc_protocol_cluster_dns_domain
   ces_ip_addresses                         = var.ces_ip_addresses
   client_ip_ranges                         = var.client_ip_ranges
   client_security_group_id                 = var.client_security_group_id
