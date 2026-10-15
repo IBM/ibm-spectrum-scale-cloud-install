@@ -188,3 +188,8 @@ output "nodes" {
     }]
   )
 }
+
+output "ces_trusted_profile_id" {
+  value       = try(ibm_iam_trusted_profile.ces[0].id, null)
+  description = "Trusted Profile linked to the protocol nodes for CES route management."
+}

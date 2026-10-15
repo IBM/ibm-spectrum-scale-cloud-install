@@ -17,6 +17,9 @@ variable "ces_subnet_id" {
 variable "ces_network_mode" {
   default = "same_account"
 }
+variable "ces_trusted_profile_id" {
+  default = null
+}
 variable "dns_zone_id" {}
 variable "ces_ip_cidr" {
   default = null
@@ -43,26 +46,8 @@ variable "orchestrator_workload_secret" {}
 variable "total_volume_bandwidth" {}
 
 locals {
-  # CES NIC and CES automation only in same_account mode
+  # CES NIC and Trusted Profile link only in same_account mode
   ces_nic = var.ces_network_mode == "same_account"
-}
-
-# Trusted Profile for the CES callout (no API key needed)
-resource "ibm_iam_trusted_profile" "ces" {
-  count       = local.ces_nic ? 1 : 0
-  name        = "${var.name_prefix}-ces-tp"
-  description = "Trusted Profile for IBM Storage Scale CES IP route management"
-}
-
-# VPC Editor so the callout can manage routes
-resource "ibm_iam_trusted_profile_policy" "ces_vpc_editor" {
-  count      = local.ces_nic ? 1 : 0
-  profile_id = ibm_iam_trusted_profile.ces[0].id
-  roles      = ["Editor"]
-
-  resources {
-    service = "is" # VPC Infrastructure Services
-  }
 }
 
 # Resolves the CRN of your KMS key for boot volume encryption
@@ -124,8 +109,8 @@ resource "ibm_is_instance" "itself" {
     orchestrator_workload_secret = var.orchestrator_workload_secret
   })
 
-  # Default trusted profile linked to the VSI
-  default_trusted_profile_target    = local.ces_nic ? ibm_iam_trusted_profile.ces[0].id : null
+  # CES callout gets its IAM token through this Trusted Profile
+  default_trusted_profile_target    = local.ces_nic ? var.ces_trusted_profile_id : null
   default_trusted_profile_auto_link = local.ces_nic ? true : null
 
   metadata_service {

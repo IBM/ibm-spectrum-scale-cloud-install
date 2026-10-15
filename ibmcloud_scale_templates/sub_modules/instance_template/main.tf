@@ -260,6 +260,28 @@ module "storage_cluster_tie_breaker_instance" {
   orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
+# Trusted Profile shared by all protocol nodes: CES failover runs the callout on
+# whichever node takes over a CES IP, and it updates that IP's VPC routes.
+resource "ibm_iam_trusted_profile" "ces" {
+  count       = local.ces_same_account ? 1 : 0
+  name        = "${var.resource_prefix}-ces-tp"
+  description = "IBM Storage Scale CES IP route management"
+}
+
+# Route changes are VPC actions, so Editor on this VPC only
+resource "ibm_iam_trusted_profile_policy" "ces_vpc_editor" {
+  count      = local.ces_same_account ? 1 : 0
+  profile_id = ibm_iam_trusted_profile.ces[0].id
+  roles      = ["Editor"]
+
+  resources {
+    service = "is"
+    attributes = {
+      vpcId = var.vpc_id
+    }
+  }
+}
+
 module "protocol_instances" {
   for_each                          = local.protocol_vm_subnet_map
   source                            = "../../../resources/ibmcloud/compute/vsi_ip_fwd"
@@ -279,6 +301,7 @@ module "protocol_instances" {
   ces_subnet_id                     = each.value["ces_subnet"]
   ces_ip_cidr                       = local.ces_same_account ? var.ces_ip_cidr : null
   ces_network_mode                  = var.ces_network_mode
+  ces_trusted_profile_id            = try(ibm_iam_trusted_profile.ces[0].id, null)
   total_volume_bandwidth            = local.effective_protocol_vol_bandwidth
   tags                              = var.tags
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)

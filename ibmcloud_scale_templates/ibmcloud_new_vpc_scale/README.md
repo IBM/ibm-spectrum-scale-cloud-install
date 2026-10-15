@@ -42,6 +42,8 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 
     NFS clients mount the `ces_dns_name` output. The CES NIC allows IP spoofing, so the API key needs the IAM **IP Spoofing Operator** role.
 
+    CES failover: Terraform creates the CES routes. When CES moves a CES IP, its callout on the node taking the IP over updates the next hop of that IP's routes in every zone; it does not delete them. Protocol nodes share one Trusted Profile (`ces_trusted_profile_id` output) with Editor on this VPC, which the callout uses through the instance metadata service. To create it, the API key needs Administrator on IAM Identity Service and on VPC Infrastructure Services. The profile is linked when a protocol node is created; Terraform does not change existing protocol nodes.
+
     Minimal Example (create storage-only cluster):
 
     ```jsonc
@@ -200,6 +202,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="output_ces_ip_cidr"></a> [ces_ip_cidr](#output_ces_ip_cidr) | IPv4 range the CES IPs come from. |
 | <a name="output_ces_private_ips"></a> [ces_private_ips](#output_ces_private_ips) | CES IP addresses. |
 | <a name="output_ces_routes"></a> [ces_routes](#output_ces_routes) | VPC routes for the CES IPs, one per CES IP and zone. |
+| <a name="output_ces_trusted_profile_id"></a> [ces_trusted_profile_id](#output_ces_trusted_profile_id) | Trusted Profile linked to the protocol nodes for CES route management. |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
 | <a name="output_dns_service_instance_crn"></a> [dns_service_instance_crn](#output_dns_service_instance_crn) | IBM Cloud DNS Service Instance CRN (only available if newly created). |

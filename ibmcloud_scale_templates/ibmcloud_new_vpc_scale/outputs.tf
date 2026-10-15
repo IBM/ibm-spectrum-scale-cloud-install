@@ -262,3 +262,8 @@ output "ces_routes" {
   value       = try(module.scale_instances.ces_routes, null)
   description = "VPC routes for the CES IPs, one per CES IP and zone."
 }
+
+output "ces_trusted_profile_id" {
+  value       = try(module.scale_instances.ces_trusted_profile_id, null)
+  description = "Trusted Profile linked to the protocol nodes for CES route management."
+}
