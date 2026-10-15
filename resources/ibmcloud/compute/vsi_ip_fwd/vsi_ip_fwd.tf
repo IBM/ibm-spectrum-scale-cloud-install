@@ -47,26 +47,18 @@ locals {
   ces_nic = var.ces_network_mode == "same_account"
 }
 
-# Create a Service ID for CES automation (equivalent to AWS IAM Role)
-resource "ibm_iam_service_id" "ces_automation" {
+# Trusted Profile for the CES callout (no API key needed)
+resource "ibm_iam_trusted_profile" "ces" {
   count       = local.ces_nic ? 1 : 0
-  name        = "${var.name_prefix}-ces-automation"
-  description = "Service ID for IBM Storage Scale CES IP management - AWS IAM role equivalent"
+  name        = "${var.name_prefix}-ces-tp"
+  description = "Trusted Profile for IBM Storage Scale CES IP route management"
 }
 
-# Create an API key for the Service ID
-resource "ibm_iam_service_api_key" "ces_api_key" {
-  count          = local.ces_nic ? 1 : 0
-  name           = "${var.name_prefix}-ces-api-key"
-  iam_service_id = ibm_iam_service_id.ces_automation[0].iam_id
-  description    = "API key for automatic IBM Cloud CLI authentication"
-}
-
-# Grant VPC Editor permissions to the Service ID
-resource "ibm_iam_service_policy" "ces_vpc_editor" {
-  count          = local.ces_nic ? 1 : 0
-  iam_service_id = ibm_iam_service_id.ces_automation[0].id
-  roles          = ["Editor"]
+# VPC Editor so the callout can manage routes
+resource "ibm_iam_trusted_profile_policy" "ces_vpc_editor" {
+  count      = local.ces_nic ? 1 : 0
+  profile_id = ibm_iam_trusted_profile.ces[0].id
+  roles      = ["Editor"]
 
   resources {
     service = "is" # VPC Infrastructure Services
@@ -131,6 +123,10 @@ resource "ibm_is_instance" "itself" {
     orchestrator_port            = var.orchestrator_port
     orchestrator_workload_secret = var.orchestrator_workload_secret
   })
+
+  # Default trusted profile linked to the VSI
+  default_trusted_profile_target    = local.ces_nic ? ibm_iam_trusted_profile.ces[0].id : null
+  default_trusted_profile_auto_link = local.ces_nic ? true : null
 
   metadata_service {
     enabled  = true
