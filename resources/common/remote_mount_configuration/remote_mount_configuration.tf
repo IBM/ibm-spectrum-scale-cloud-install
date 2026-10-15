@@ -1,6 +1,4 @@
-/*
-    Excutes ansible playbook to configure remote mount between IBM Spectrum Scale compute and storage cluster.
-*/
+# Excutes ansible playbook to configure remote mount between IBM Spectrum Scale compute and storage cluster.
 
 variable "turn_on" {}
 variable "create_scale_cluster" {}
@@ -63,6 +61,11 @@ resource "null_resource" "perform_scale_deployment" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = "ansible-playbook -i ${local.remote_mnt_inventory_path} ${local.remote_mnt_playbook_path}"
+    # The playbook reads the GUI passwords from these, so they are not written to disk
+    environment = {
+      SCALE_REMOTEMOUNT_CLIENT_GUI_PASSWORD  = var.compute_cluster_gui_password
+      SCALE_REMOTEMOUNT_STORAGE_GUI_PASSWORD = var.storage_cluster_gui_password
+    }
   }
   depends_on = [time_sleep.wait_for_gui_db_initializion, null_resource.prepare_remote_mnt_inventory, null_resource.prepare_remote_mnt_inventory_using_jumphost_connection]
   triggers = {
