@@ -169,6 +169,7 @@ The following steps will provision IBM Cloud resources (compute and storage inst
 | <a name="output_ces_ip_cidr"></a> [ces_ip_cidr](#output_ces_ip_cidr) | IPv4 range the CES IPs come from. |
 | <a name="output_ces_private_ips"></a> [ces_private_ips](#output_ces_private_ips) | CES IP addresses. |
 | <a name="output_ces_routes"></a> [ces_routes](#output_ces_routes) | VPC routes for the CES IPs, one per CES IP and zone. |
+| <a name="output_ces_trusted_profile_id"></a> [ces_trusted_profile_id](#output_ces_trusted_profile_id) | Trusted Profile linked to the protocol nodes for CES route management. |
 | <a name="output_compute_cluster_instance_details"></a> [compute_cluster_instance_details](#output_compute_cluster_instance_details) | Compute cluster instance details (map of id, private_ip, dns) |
 | <a name="output_compute_cluster_instance_ids"></a> [compute_cluster_instance_ids](#output_compute_cluster_instance_ids) | Compute cluster instance ids. |
 | <a name="output_compute_cluster_instance_private_ips"></a> [compute_cluster_instance_private_ips](#output_compute_cluster_instance_private_ips) | Private IP address of compute cluster instances. |
