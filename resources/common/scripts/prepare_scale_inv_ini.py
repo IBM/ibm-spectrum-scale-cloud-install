@@ -878,7 +878,9 @@ if __name__ == "__main__":
         print(node_template)
         print('[all:vars]')
         for each_key in config['all:vars']:
-            print("%s: %s" % (each_key, config.get('all:vars', each_key)))
+            value = '***REDACTED***' if 'password' in each_key else config.get(
+                'all:vars', each_key)
+            print("%s: %s" % (each_key, value))
 
     # Step-6: Create group_vars directory
     create_directory("%s/%s/%s" % (ARGUMENTS.install_infra_path,
