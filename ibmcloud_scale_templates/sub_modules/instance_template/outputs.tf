@@ -158,33 +158,35 @@ output "storage_cluster_desc_volume_ids" {
 # Node inventory consumed by the scale-operator cluster controller.
 # Each entry carries hostname (FQDN), ip, and role so callers do not
 # have to re-assemble the list from individual detail outputs.
+# role: Storage, Protocol, AFM or Client, optionally with ",bootstrap" or
+# ",tiebreaker".
 output "nodes" {
   description = "Node inventory for the scale-operator cluster controller."
   value = concat(
     [for i, inst in [for instance in module.storage_cluster_instances : instance.instance_details] : {
       hostname = inst.dns
       ip       = inst.private_ip
-      role     = i == 0 ? "storage,bootstrap" : "storage"
+      role     = i == 0 ? "Storage,bootstrap" : "Storage"
     }],
     [for inst in [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details] : {
       hostname = inst.dns
       ip       = inst.private_ip
-      role     = "storage-tiebreaker"
+      role     = "Storage,tiebreaker"
     }],
     [for inst in [for instance in module.compute_cluster_instances : instance.instance_details] : {
       hostname = inst.dns
       ip       = inst.private_ip
-      role     = "compute"
+      role     = "Client"
     }],
     [for inst in [for instance in module.gateway_instances : instance.instance_details] : {
       hostname = inst.dns
       ip       = inst.private_ip
-      role     = "afm"
+      role     = "AFM"
     }],
     [for inst in [for instance in module.protocol_instances : instance.instance_details] : {
       hostname = inst.dns
       ip       = inst.private_ip
-      role     = "protocol"
+      role     = "Protocol"
     }]
   )
 }
