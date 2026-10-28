@@ -147,7 +147,7 @@ The following steps will provision IBM Cloud resources (*new vpc, bastion/VPC-pe
 | <a name="input_compute_vsi_profile"></a> [compute_vsi_profile](#input_compute_vsi_profile) | IBM Cloud VSI profile (instance type) for compute cluster nodes. | `string` |
 | <a name="input_create_dns_zone"></a> [create_dns_zone](#input_create_dns_zone) | Flag to create new private DNS zones. Set to false to reuse existing DNS zones. | `bool` |
 | <a name="input_dns_service_instance_id"></a> [dns_service_instance_id](#input_dns_service_instance_id) | GUID of the IBM Cloud DNS Services instance for DNS record management. If not provided, a new DNS service instance will be created. | `string` |
-| <a name="input_enable_bastion"></a> [enable_bastion](#input_enable_bastion) | Flag to enable or disable bastion host deployment. Set to false to skip bastion creation. | `bool` |
+| <a name="input_enable_bastion"></a> [enable_bastion](#input_enable_bastion) | Deploy a bastion host. When true, bastion_public_key and bastion_osimage_id are required. | `bool` |
 | <a name="input_enable_placement_group"></a> [enable_placement_group](#input_enable_placement_group) | Enable IBM Cloud placement group to distribute instances in single-AZ deployments. | `bool` |
 | <a name="input_enable_transit_gateway"></a> [enable_transit_gateway](#input_enable_transit_gateway) | Flag to enable Transit Gateway connection between the newly created VPC and an existing user-provided VPC. Transit Gateway enables connectivity across VPCs in the same or different regions. | `bool` |
 | <a name="input_gateway_vsi_profile"></a> [gateway_vsi_profile](#input_gateway_vsi_profile) | IBM Cloud VSI profile (instance type) for gateway cluster nodes. | `string` |

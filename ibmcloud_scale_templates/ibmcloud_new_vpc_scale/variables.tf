@@ -130,8 +130,8 @@ variable "create_dns_zone" {
 
 variable "enable_bastion" {
   type        = bool
-  default     = true
-  description = "Flag to enable or disable bastion host deployment. Set to false to skip bastion creation."
+  default     = false
+  description = "Deploy a bastion host. When true, bastion_public_key and bastion_osimage_id are required."
 }
 
 variable "bastion_public_key" {

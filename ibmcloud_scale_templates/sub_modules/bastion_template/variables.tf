@@ -1,6 +1,6 @@
 variable "enable_bastion" {
   type        = bool
-  default     = true
+  default     = false
   description = "Enable or disable bastion host creation. When false, no resources will be created."
 }
 
@@ -30,6 +30,11 @@ variable "bastion_public_key" {
   type        = string
   default     = null
   description = "SSH public key content for the bastion host. Required when enable_bastion is true."
+
+  validation {
+    condition     = !var.enable_bastion || var.bastion_public_key != null
+    error_message = "bastion_public_key is required when enable_bastion is true."
+  }
 }
 
 variable "bastion_public_ssh_port" {
