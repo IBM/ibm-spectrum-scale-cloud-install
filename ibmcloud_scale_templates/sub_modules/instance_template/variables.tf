@@ -22,12 +22,6 @@ variable "tags" {
   description = "List of tags to attach to resources in format key:value"
 }
 
-variable "operator_managed_volumes" {
-  type        = bool
-  default     = true
-  description = "When true, Terraform creates the storage data volumes but leaves them unattached; the operator places them and moves them off failed nodes. Set false for deployments without the operator."
-}
-
 variable "vpc_id" {
   type        = string
   nullable    = false
@@ -191,25 +185,25 @@ variable "total_storage_cluster_instances" {
 variable "total_storage_volumes" {
   type        = number
   default     = 0
-  description = "Number of unattached storage volumes to provision."
+  description = "Number of storage volumes to provision. The operator attaches them. Can be raised but not lowered, and does not depend on the node count."
 }
 
 variable "storage_volume_size" {
   type        = number
   default     = 100
-  description = "Size of each unattached storage volume in GB."
+  description = "Size of each storage volume in GB."
 }
 
 variable "storage_volume_profile" {
   type        = string
   default     = "general-purpose"
-  description = "IBM Cloud volume profile for unattached storage volumes."
+  description = "IBM Cloud volume profile for storage volumes."
 }
 
 variable "storage_volume_iops" {
   type        = number
   default     = null
-  description = "IOPS for unattached storage volumes."
+  description = "IOPS for storage volumes."
 }
 
 variable "storage_volume_mbps" {

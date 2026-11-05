@@ -93,10 +93,22 @@ locals {
     }
   ]...)
 
-  # Storage volume distribution calculation
-  has_storage_volumes = var.total_storage_volumes != null && var.total_storage_volumes > 0 && var.total_storage_cluster_instances > 0
-  disks_per_vm        = local.has_storage_volumes ? floor(var.total_storage_volumes / var.total_storage_cluster_instances) : 0
-  extra_disks         = local.has_storage_volumes ? var.total_storage_volumes % var.total_storage_cluster_instances : 0
+  # Storage volume pool. A volume's name and zone depend only on its position,
+  # so changing the node count leaves every volume alone.
+  storage_volume_count = local.storage_or_combined && var.total_storage_volumes != null ? var.total_storage_volumes : 0
+  storage_volumes = {
+    for idx in range(local.storage_volume_count) :
+    format("%s-storage-volume-%d", var.resource_prefix, idx + 1) => element(local.first_two_zones, idx)
+  }
+  disks_per_vm = local.storage_volume_count > 0 ? floor(local.storage_volume_count / var.total_storage_cluster_instances) : 0
+
+  # What the guard in main.tf reads. Volume names are unique within a region.
+  existing_volume_names = [for volume in data.ibm_is_volumes.existing.volumes : volume.name]
+  node_tied_volumes     = [for name in local.existing_volume_names : name if can(regex(format("^%s-storage-[0-9]+-disk-[0-9]+$", var.resource_prefix), name))]
+  pool_volumes_to_lose = [
+    for name in local.existing_volume_names : name
+    if can(regex(format("^%s-storage-volume-[0-9]+$", var.resource_prefix), name)) && !contains(keys(local.storage_volumes), name)
+  ]
 
   # Storage VM zone mapping
   storage_vm_zone_map = {
@@ -104,30 +116,6 @@ locals {
     vm_name => {
       zone   = element(local.first_two_zones, idx)
       subnet = element(local.first_two_storage_subnets, idx)
-      disks = local.has_storage_volumes ? {
-        for disk_idx in range(local.disks_per_vm + (idx < local.extra_disks ? 1 : 0)) :
-        "disk-${disk_idx + 1}" => {
-          size = tostring(var.storage_volume_size)
-          type = var.storage_volume_profile
-          iops = var.storage_volume_iops != null ? tostring(var.storage_volume_iops) : ""
-        }
-      } : {}
-    }
-  }
-
-  # Storage instance IPs with disk mapping (using FQDN)
-  storage_instance_ips_with_disk_mapping = {
-    for idx, vm_name in local.storage_vm_names :
-    "${vm_name}.${var.vpc_storage_cluster_dns_domain}" => {
-      zone = element(local.first_two_zones, idx)
-      disks = local.has_storage_volumes ? {
-        for disk_idx in range(local.disks_per_vm + (idx < local.extra_disks ? 1 : 0)) :
-        "disk-${disk_idx + 1}" => {
-          size = tostring(var.storage_volume_size)
-          type = var.storage_volume_profile
-          iops = var.storage_volume_iops != null ? tostring(var.storage_volume_iops) : ""
-        }
-      } : {}
     }
   }
 
@@ -144,17 +132,8 @@ locals {
     (local.storage_tie_vm_name) = {
       zone   = var.vpc_availability_zones[2]
       subnet = var.vpc_storage_cluster_private_subnets[2]
-      disks  = {}
     }
   } : {}
-
-  storage_instance_desc_ip_with_disk_mapping = {
-    for idx, vm_dns in [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details["dns"]] :
-    vm_dns => {
-      zone  = var.vpc_availability_zones[2]
-      disks = {}
-    }
-  }
 
   # Gateway VM subnet mapping
   gateway_vm_subnet_map = {

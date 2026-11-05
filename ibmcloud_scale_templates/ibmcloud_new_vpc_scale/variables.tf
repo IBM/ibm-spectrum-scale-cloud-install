@@ -167,25 +167,25 @@ variable "total_storage_cluster_instances" {
 variable "total_storage_volumes" {
   type        = number
   default     = 0
-  description = "Total number of unattached storage volumes to provision. These volumes will be created but not attached to any instances."
+  description = "Number of storage volumes to provision. The operator attaches them. Can be raised but not lowered, and does not depend on the node count."
 }
 
 variable "storage_volume_size" {
   type        = number
   default     = 100
-  description = "Size of each unattached storage volume in GB."
+  description = "Size of each storage volume in GB."
 }
 
 variable "storage_volume_profile" {
   type        = string
   default     = "general-purpose"
-  description = "IBM Cloud volume profile for unattached storage volumes (e.g., general-purpose, 5iops-tier, 10iops-tier, custom)."
+  description = "IBM Cloud volume profile for storage volumes (e.g., general-purpose, 5iops-tier, 10iops-tier, custom)."
 }
 
 variable "storage_volume_iops" {
   type        = number
   default     = null
-  description = "IOPS for unattached storage volumes. Only applicable for custom IOPS profiles."
+  description = "IOPS for storage volumes. Only applicable for custom IOPS profiles."
 }
 
 variable "storage_volume_mbps" {

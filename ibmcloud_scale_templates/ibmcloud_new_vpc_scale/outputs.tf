@@ -179,11 +179,6 @@ output "storage_cluster_instance_private_ips" {
   description = "Private IP address of storage cluster instances."
 }
 
-output "storage_cluster_with_data_volume_mapping" {
-  value       = module.scale_instances.storage_cluster_with_data_volume_mapping
-  description = "Mapping of storage cluster instance ip vs. device path."
-}
-
 output "storage_cluster_desc_instance_ids" {
   value       = module.scale_instances.storage_cluster_desc_instance_ids
   description = "Storage cluster desc instance id."
@@ -192,11 +187,6 @@ output "storage_cluster_desc_instance_ids" {
 output "storage_cluster_desc_instance_private_ips" {
   value       = module.scale_instances.storage_cluster_desc_instance_private_ips
   description = "Private IP address of storage cluster desc instance."
-}
-
-output "storage_cluster_desc_data_volume_mapping" {
-  value       = module.scale_instances.storage_cluster_desc_data_volume_mapping
-  description = "Mapping of storage cluster desc instance ip vs. device path."
 }
 
 output "protocol_cluster_instance_ids" {
@@ -235,12 +225,12 @@ output "nodes" {
 
 output "storage_cluster_volume_ids" {
   value       = try(module.scale_instances.storage_cluster_volume_ids, {})
-  description = "Map of disk-key to volume ID for all storage cluster data volumes."
+  description = "Map of volume name to volume ID for all storage cluster data volumes."
 }
 
 output "storage_cluster_desc_volume_ids" {
   value       = try(module.scale_instances.storage_cluster_desc_volume_ids, {})
-  description = "Map of disk-key to volume ID for storage cluster tiebreaker data volumes."
+  description = "Always empty: the tiebreaker holds no data volumes."
 }
 
 output "ces_private_ips" {

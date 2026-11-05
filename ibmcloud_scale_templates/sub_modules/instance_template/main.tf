@@ -202,11 +202,53 @@ module "compute_cluster_instances" {
   orchestrator_workload_secret      = var.orchestrator_workload_secret
 }
 
+data "ibm_kms_key" "storage_volume" {
+  count       = var.root_device_kms_key_id != null && var.root_device_kms_key_name != null ? 1 : 0
+  instance_id = var.root_device_kms_key_id
+  key_name    = var.root_device_kms_key_name
+}
+
+data "ibm_is_volumes" "existing" {}
+
+# Rejects, at plan time, any input that would delete a storage volume or leave
+# one where no node can serve it.
+resource "terraform_data" "storage_volume_guard" {
+  lifecycle {
+    precondition {
+      condition     = length(local.node_tied_volumes) == 0
+      error_message = "Found ${length(local.node_tied_volumes)} volumes named <prefix>-storage-N-disk-M from an earlier version of this template. This version cannot manage them and nothing was changed. Recreate the cluster to use it."
+    }
+    precondition {
+      condition     = length(local.pool_volumes_to_lose) == 0
+      error_message = "total_storage_volumes is ${local.storage_volume_count}, which would delete ${length(local.pool_volumes_to_lose)} storage volumes and any data on them. Storage scale-in is not supported: set it back to at least ${local.storage_volume_count + length(local.pool_volumes_to_lose)}."
+    }
+    precondition {
+      condition     = local.storage_volume_count == 0 || var.total_storage_cluster_instances >= length(local.first_two_zones)
+      error_message = "Storage volumes are spread over ${length(local.first_two_zones)} zones, so total_storage_cluster_instances must be at least ${length(local.first_two_zones)}. A volume can only be served by a node in its own zone."
+    }
+  }
+}
+
+# The storage data volumes. Terraform creates and tags them; the operator finds
+# them by tag and decides which node serves each one.
+resource "ibm_is_volume" "storage_data" {
+  for_each       = local.storage_volumes
+  name           = each.key
+  zone           = each.value
+  capacity       = var.storage_volume_size
+  profile        = var.storage_volume_profile
+  iops           = var.storage_volume_iops
+  encryption_key = var.root_device_kms_key_id != null ? data.ibm_kms_key.storage_volume[0].id : null
+  resource_group = var.resource_group_id
+  tags           = local.storage_volume_tags
+
+  depends_on = [terraform_data.storage_volume_guard]
+}
+
 module "storage_cluster_instances" {
   for_each                          = local.storage_vm_zone_map
   source                            = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   ami_id                            = var.storage_cluster_image_id
-  disks                             = each.value["disks"]
   dns_service_instance_id           = var.dns_service_instance_id
   dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
   dns_domain                        = var.vpc_storage_cluster_dns_domain
@@ -223,8 +265,6 @@ module "storage_cluster_instances" {
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
-  attach_volumes                    = !var.operator_managed_volumes
-  volume_tags                       = local.storage_volume_tags
   total_volume_bandwidth            = local.effective_storage_vol_bandwidth
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port
@@ -235,7 +275,6 @@ module "storage_cluster_tie_breaker_instance" {
   for_each                          = local.storage_tie_vm_zone_map
   source                            = "../../../resources/ibmcloud/compute/vsi_multiple_vol"
   ami_id                            = var.storage_cluster_image_id
-  disks                             = each.value["disks"]
   dns_service_instance_id           = var.dns_service_instance_id
   dns_zone_id                       = var.vpc_storage_cluster_dns_zone_id
   dns_domain                        = var.vpc_storage_cluster_dns_domain
@@ -252,8 +291,6 @@ module "storage_cluster_tie_breaker_instance" {
   ssh_key_id                        = try(ibm_is_ssh_key.storage_ssh_key[0].id, null)
   vpc_id                            = var.vpc_id
   zone                              = each.value["zone"]
-  attach_volumes                    = !var.operator_managed_volumes
-  volume_tags                       = local.storage_volume_tags
   total_volume_bandwidth            = null
   orchestrator_server               = var.orchestrator_server
   orchestrator_port                 = var.orchestrator_port

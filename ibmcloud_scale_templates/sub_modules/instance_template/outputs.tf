@@ -76,11 +76,6 @@ output "protocol_instance_details" {
   description = "Protocol instance details (map of id, private_ip, dns)"
 }
 
-output "storage_cluster_desc_data_volume_mapping" {
-  value       = local.storage_instance_desc_ip_with_disk_mapping
-  description = "Requested disks per storage tie-breaker instance, keyed by FQDN."
-}
-
 output "storage_cluster_dec_instance_details" {
   value       = [for instance in module.storage_cluster_tie_breaker_instance : instance.instance_details]
   description = "Storage cluster desc instance details (map of id, private_ip, dns)"
@@ -120,16 +115,6 @@ output "storage_volume_tag" {
   description = "Tag on this deployment's storage volumes: scale-operator:<resource_prefix>-<vpc id suffix>."
 }
 
-output "storage_volumes_attached_by_terraform" {
-  value       = !var.operator_managed_volumes
-  description = "Whether Terraform attached the storage data volumes. False means the operator owns placement."
-}
-
-output "storage_cluster_with_data_volume_mapping" {
-  value       = local.storage_instance_ips_with_disk_mapping
-  description = "Requested disks per storage instance, keyed by FQDN: zone, and each disk's size, type and iops."
-}
-
 output "storage_vm_zone_map" {
   value = local.storage_vm_zone_map
 }
@@ -146,13 +131,13 @@ output "protocol_cluster_instance_id_name_map" {
 }
 
 output "storage_cluster_volume_ids" {
-  value       = length(module.storage_cluster_instances) > 0 ? merge([for instance in module.storage_cluster_instances : instance.volume_ids]...) : {}
-  description = "Flat map of disk-key to volume ID for all storage cluster data volumes."
+  value       = { for name, volume in ibm_is_volume.storage_data : name => volume.id }
+  description = "Map of volume name to volume ID for all storage cluster data volumes."
 }
 
 output "storage_cluster_desc_volume_ids" {
-  value       = length(module.storage_cluster_tie_breaker_instance) > 0 ? merge([for instance in module.storage_cluster_tie_breaker_instance : instance.volume_ids]...) : {}
-  description = "Flat map of disk-key to volume ID for storage cluster tiebreaker data volumes."
+  value       = {}
+  description = "Always empty: the tiebreaker holds no data volumes. Part of the output set the operator reads."
 }
 
 # Node inventory consumed by the scale-operator cluster controller.
