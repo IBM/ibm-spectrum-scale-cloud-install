@@ -10,7 +10,6 @@ terraform {
 }
 
 variable "ami_id" {}
-variable "disks" {}
 variable "dns_zone_id" {}
 variable "instance_type" {}
 variable "name_prefix" {}
@@ -26,8 +25,6 @@ variable "zone" {}
 variable "dns_service_instance_id" {}
 variable "dns_domain" {}
 variable "vpc_id" {}
-variable "attach_volumes" {}
-variable "volume_tags" {}
 variable "resource_group_id" {}
 variable "orchestrator_server" {}
 variable "orchestrator_port" {}
@@ -96,20 +93,6 @@ EOF
 }
 
 # Create the specified volumes with the corresponding type and size
-resource "ibm_is_volume" "itself" {
-  for_each       = var.disks
-  name           = format("%s-%s", var.name_prefix, each.key)
-  zone           = var.zone
-  capacity       = tonumber(each.value["size"])
-  profile        = each.value["type"]
-  iops           = each.value["iops"] == "" ? null : each.value["iops"]
-  encryption_key = var.root_device_kms_key_instance_id != null ? data.ibm_kms_key.itself[0].id : null
-  resource_group = var.resource_group_id
-
-  # Tag the volumes so the operator can find them.
-  tags = var.volume_tags
-}
-
 # Create "A" records
 resource "ibm_dns_resource_record" "a_itself" {
   instance_id = var.dns_service_instance_id
@@ -132,15 +115,6 @@ resource "ibm_dns_resource_record" "ptr_itself" {
   depends_on = [ibm_dns_resource_record.a_itself]
 }
 
-# Attach the volumes to the provisioned IBM Cloud instance (only if attach_volumes is true).
-resource "ibm_is_instance_volume_attachment" "itself" {
-  for_each = var.attach_volumes ? ibm_is_volume.itself : {}
-
-  instance = ibm_is_instance.itself.id
-  volume   = ibm_is_volume.itself[each.key].id
-  name     = format("%s-%s-att", var.name_prefix, each.key)
-}
-
 output "instance_details" {
   value = {
     private_ip = ibm_is_instance.itself.primary_network_attachment[0].primary_ip[0].address
@@ -148,9 +122,4 @@ output "instance_details" {
     dns        = format("%s.%s", var.name_prefix, var.dns_domain)
     zone       = ibm_is_instance.itself.zone
   }
-}
-
-output "volume_ids" {
-  value       = { for k, v in ibm_is_volume.itself : "${var.name_prefix}-${k}" => v.id }
-  description = "Map of '<instance>-<disk-key>' to volume ID for volumes attached to this instance."
 }
