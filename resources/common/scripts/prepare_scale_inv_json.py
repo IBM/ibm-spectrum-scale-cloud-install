@@ -95,6 +95,16 @@ def initialize_cluster_details(scale_version, cluster_name, username,
         CLUSTER_DEFINITION_JSON['scale_cluster']['scale_jump_host_user'] = bastion_user
 
 
+def redact_passwords(data):
+    """ Return a copy of data with every value stored under a password key redacted. """
+    if isinstance(data, dict):
+        return {key: '***REDACTED***' if 'password' in key else redact_passwords(value)
+                for key, value in data.items()}
+    if isinstance(data, list):
+        return [redact_passwords(item) for item in data]
+    return data
+
+
 def initialize_callhome_details():
     CLUSTER_DEFINITION_JSON['scale_callhome_params']['is_enabled'] = False
 
@@ -699,10 +709,6 @@ if __name__ == "__main__":
         CLUSTER_DEFINITION_JSON.update({"scale_filesystem": scale_storage})
         CLUSTER_DEFINITION_JSON.update({"scale_disks": disks_list})
 
-    if ARGUMENTS.verbose:
-        print("Content of scale_clusterdefinition.json: ",
-              json.dumps(CLUSTER_DEFINITION_JSON, indent=4))
-
     # Write json content
     if ARGUMENTS.verbose:
         print("Writing cloud infrastructure details to: ",
@@ -724,3 +730,6 @@ if __name__ == "__main__":
     if ARGUMENTS.verbose:
         print("Completed writing cloud infrastructure details to: ",
               ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH)
+        with open(ARGUMENTS.install_infra_path.rstrip('/') + SCALE_CLUSTER_DEFINITION_PATH) as json_fh:
+            print("Content of scale_clusterdefinition.json: ",
+                  json.dumps(redact_passwords(json.load(json_fh)), indent=4))
