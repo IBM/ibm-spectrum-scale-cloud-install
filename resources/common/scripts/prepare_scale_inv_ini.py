@@ -868,17 +868,18 @@ if __name__ == "__main__":
         config.write(configfile)
 
     if ARGUMENTS.verbose:
-        config.read("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
-                                                "ibm-spectrum-scale-install-infra",
-                                                cluster_type))
+        written = configparser.ConfigParser(allow_no_value=True)
+        written.read("%s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
+                                                 "ibm-spectrum-scale-install-infra",
+                                                 cluster_type))
         print("Content of %s/%s/%s_inventory.ini" % (ARGUMENTS.install_infra_path,
                                                      "ibm-spectrum-scale-install-infra",
                                                      cluster_type))
         print('[scale_nodes]')
         print(node_template)
         print('[all:vars]')
-        for each_key in config['all:vars']:
-            value = '***REDACTED***' if 'password' in each_key else config.get(
+        for each_key in written['all:vars']:
+            value = '***REDACTED***' if 'password' in each_key else written.get(
                 'all:vars', each_key)
             print("%s: %s" % (each_key, value))
 
